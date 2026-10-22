@@ -40,3 +40,4 @@ concevoir et de décider pour GAMAD numérique, et être super administrateur de
 | D-025 | 2026-10-22 | Confirme D-015 : inscription par e-mail et mot de passe en V1. | Décidée | Président |
 | D-026 | 2026-10-22 | Confirme D-016 : pas de connexion à GAMAD Core en V1. | Décidée | Président |
 | D-027 | 2026-10-22 | Confirme D-018 : nouveau dépôt, aucun code repris de `dgafrique-core`. Le lot 0 est lancé. | Décidée | Président |
+| D-028 | 2026-10-22 | Les documents de référence sont modifiés sur instruction du Président, directement sur main ; le code passe toujours par une Pull Request. Le document « Fondations de conception v0.2 » est archivé dans docs/archives/ et ne fait pas autorité. | Décidée | Président |

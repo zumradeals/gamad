@@ -1,3 +1,5 @@
+ARCHIVE — Document de raisonnement du 22 octobre 2026. Ne fait pas autorité. Sa numérotation (D-01 à D-16) est remplacée par celle de docs/DECISIONS.md.
+
 # Réseau social d'action GAMAD — Fondations de conception v0.2
 
 Oct 22, 2026 · @KONE DJAKARIDJA

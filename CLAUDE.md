@@ -58,6 +58,10 @@ Tu ouvres une Pull Request et tu rédiges le rapport selon `prompts/RAPPORT-DE-L
 toi-même dans `main`. Tu ne marques pas le lot « Terminé » : le Président le fait après l'avoir essayé sur
 son téléphone.
 
+Les fichiers de `docs/` et `CLAUDE.md` ne sont modifiés que sur instruction explicite du Président ; ces
+modifications documentaires peuvent être poussées directement sur `main`. Tout code passe par une
+Pull Request, sans exception.
+
 ## Interdictions
 
 - Restaurer ou copier du code de l'ancien dépôt `dgafrique-core`.
