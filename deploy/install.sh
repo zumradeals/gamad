@@ -229,7 +229,8 @@ controles() {
 
     # --- DNS : le certificat HTTPS exige que le domaine pointe vers ce serveur.
     local ips ip_publique=""
-    ips="$(getent ahostsv4 "$DOMAINE" 2>/dev/null | awk '{print $1}' | sort -u | tr '\n' ' ')"
+    # getent échoue (code 2) quand le nom ne se résout pas : ce n'est pas une erreur du script, mais un fait à signaler.
+    ips="$({ getent ahostsv4 "$DOMAINE" 2>/dev/null || true; } | awk '{print $1}' | sort -u | tr '\n' ' ')"
     [ -n "$ips" ] || arreter "$DOMAINE ne se résout pas : créez l'enregistrement DNS vers l'adresse de ce serveur, attendez sa propagation, puis relancez."
     if [ "$MODE_TEST" != "1" ] && command -v curl >/dev/null 2>&1; then ip_publique="$(curl -fsS -m 8 https://api.ipify.org 2>/dev/null || true)"; fi
     if [ -n "$ip_publique" ]; then

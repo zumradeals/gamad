@@ -54,6 +54,7 @@ if a "minuteurs" || a "unites"; then
     systemctl stop gamad-reseau-deploy.service gamad-reseau-sauvegarde.service >/dev/null 2>&1 || true
     rm -f "$UNITES"/gamad-reseau-deploy.service "$UNITES"/gamad-reseau-deploy.timer \
           "$UNITES"/gamad-reseau-sauvegarde.service "$UNITES"/gamad-reseau-sauvegarde.timer
+    rm -rf "$UNITES"/gamad-reseau-deploy.service.d "$UNITES"/gamad-reseau-sauvegarde.service.d
     systemctl daemon-reload
     ok "déploiement automatique et sauvegardes arrêtés"
 fi
