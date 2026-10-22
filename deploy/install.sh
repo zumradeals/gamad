@@ -426,6 +426,11 @@ etape_depot() {
     if [ ! -d "$APP_DIR/repo/.git" ]; then
         runuser -u "$APP_USER" -- git clone --quiet --depth 1 --branch "$BRANCHE" --no-tags "$DEPOT" "$APP_DIR/repo" \
             || arreter "Impossible de récupérer le code depuis $DEPOT (branche $BRANCHE)." "Vérifiez que le serveur accède à Internet."
+    else
+        # Relance de l'installation : on se remet sur le dernier commit, source des scripts installés plus bas.
+        runuser -u "$APP_USER" -- git -C "$APP_DIR/repo" fetch --quiet --depth 1 --no-tags origin "$BRANCHE" \
+            && runuser -u "$APP_USER" -- git -C "$APP_DIR/repo" reset --quiet --hard FETCH_HEAD \
+            || arreter "Impossible de mettre à jour le code depuis $DEPOT."
     fi
     etat_marquer "depot"; ok "code récupéré ($(git -C "$APP_DIR/repo" rev-parse --short HEAD))"
 }

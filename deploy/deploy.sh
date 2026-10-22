@@ -26,7 +26,7 @@ CONF="${GAMAD_CONF:-/etc/gamad-reseau/deploy.conf}"
 export PATH="/usr/local/bin:/usr/bin:/bin:/snap/bin"
 export HOME="$APP_DIR"
 export COMPOSER_HOME="$APP_DIR/.composer" COMPOSER_NO_INTERACTION=1 COMPOSER_ALLOW_SUPERUSER=0
-export npm_config_cache="$APP_DIR/.npm" CI=true
+export npm_config_cache="$APP_DIR/.npm" CI=true NO_COLOR=1 FORCE_COLOR=0 TERM=dumb
 
 SHARED="$APP_DIR/shared"
 ETAT="$SHARED/etat"
@@ -156,7 +156,7 @@ ln -s "$ENV_FILE" "$RELEASE_DIR/.env"
 cd "$RELEASE_DIR"
 
 ETAPE="installation des dépendances PHP (composer)"
-exec_logue "$PHP_BIN" "$(command -v composer)" install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-progress
+exec_logue "$PHP_BIN" "$(command -v composer)" install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-progress --no-ansi
 
 ETAPE="installation des dépendances du front (npm)"
 exec_logue npm ci --no-audit --no-fund
@@ -166,8 +166,8 @@ exec_logue npm run build
 rm -rf "$RELEASE_DIR/node_modules"
 
 ETAPE="préparation des caches"
-exec_logue "$PHP_BIN" artisan view:cache
-exec_logue "$PHP_BIN" artisan event:cache
+exec_logue "$PHP_BIN" artisan view:cache --no-ansi
+exec_logue "$PHP_BIN" artisan event:cache --no-ansi
 
 ETAPE="sauvegarde de la base avant migration"
 SAUVEGARDE="$APP_DIR/sauvegardes-deploiement/avant-$NOM.dump"
@@ -179,7 +179,7 @@ chmod 600 "$SAUVEGARDE"
 ls -1t "$APP_DIR/sauvegardes-deploiement"/avant-*.dump 2>/dev/null | tail -n +6 | xargs -r rm -f
 
 ETAPE="migrations de la base de données"
-exec_logue "$PHP_BIN" artisan migrate --force
+exec_logue "$PHP_BIN" artisan migrate --force --no-ansi
 
 # ----------------------------------------------------------- bascule
 ETAPE="bascule vers la nouvelle version"
@@ -208,6 +208,9 @@ journal "Version $NOM (commit ${SHA:0:7}) en ligne. Précédente : $PRECEDENT_NO
 # Le nettoyage ne doit jamais faire échouer un déploiement réussi : chaque commande est tolérante.
 rm -f "$ETAT/echecs/$SHA" "$ETAT/gel-sha"
 if [ -n "$PRECEDENT" ]; then basename "$PRECEDENT" >"$ETAT/precedente" || true; fi
+
+# Les journaux de construction des versions échouées n'ont plus de dossier : on garde les 10 plus récents.
+{ ls -1t "$APP_DIR"/releases/*.log 2>/dev/null | tail -n +11 | xargs -r rm -f; } || true
 
 # On garde la version en ligne et les plus récentes, 5 versions au total.
 { ls -1t "$APP_DIR/releases" | grep -v '\.log$' | grep -vxF "$NOM" | tail -n +"$KEEP_RELEASES" || true; } | while read -r ancien; do
