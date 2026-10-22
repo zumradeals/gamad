@@ -1,65 +1,78 @@
-# TESTER — essayer le lot en cours sur un téléphone
+# TESTER — essayer le lot en cours sur votre téléphone
 
-Ce document explique comment le Président essaie le lot 0 sur son téléphone, puis ce qu'il doit vérifier.
-Seul le Président marque un lot « Terminé » (`docs/LOTS.md`).
+Ce guide vous permet d'essayer GAMAD sur **https://reseau.dgafrique.com** avec votre téléphone, sans aucune ligne de commande
+et sans ouvrir aucun fichier technique (D-049, D-050). Seul le Président marque un lot « Terminé » (`docs/LOTS.md`, D-052).
 
-## 1. Mettre l'application à disposition du téléphone
+Ce qu'il vous faut : votre téléphone, la boîte de réception de `no-reply@dgafrique.com` (ou le moyen de lire ses courriels),
+et une seconde adresse e-mail que vous savez lire, pour créer un compte de test.
 
-Aucun hébergement de test n'est encore décidé. En attendant, l'application se lance sur un ordinateur,
-et le téléphone s'y connecte par le même réseau Wi-Fi.
+## 1. Se connecter en super administrateur
 
-1. Installer l'application sur l'ordinateur selon `README.md`.
-2. Trouver l'adresse de l'ordinateur sur le réseau (exemple : `192.168.1.20`).
-3. Dans le fichier `.env`, remplacer la ligne `APP_URL=…` par `APP_URL=http://192.168.1.20:8000`
-   (les liens des e-mails utilisent cette adresse).
-4. Lancer : `php artisan serve --host=0.0.0.0 --port=8000`
-5. Sur le téléphone, ouvrir `http://192.168.1.20:8000`.
+Votre compte a été créé pendant l'installation, avec le nom, l'adresse e-mail et le mot de passe que vous avez saisis.
+Il est déjà vérifié : vous n'avez pas de courriel à attendre.
 
-## 2. Récupérer le lien de vérification de l'e-mail
+1. Ouvrez **https://reseau.dgafrique.com**. Vous voyez l'accueil : le titre, l'accroche, « Créer un compte », « Se connecter », la devise en petit.
+2. Touchez **Se connecter**, saisissez votre adresse e-mail (les majuscules n'ont pas d'importance) et votre mot de passe.
+3. Vous arrivez sur le **Fil** : « Le Fil se remplira bientôt. »
+4. En bas de l'écran, vous ne voyez que **Fil** et **Espace**. Rien d'autre.
 
-En local, les e-mails ne partent pas : ils sont écrits dans `storage/logs/laravel.log`. Pour afficher le dernier
-lien de vérification :
+## 2. Régler le courriel (page Paramètres)
 
-```sh
-grep -o 'http[^ "<>]*email/verify[^ "<>]*' storage/logs/laravel.log | tail -1 | sed 's/&amp;/\&/g'
-```
+Les réglages se font dans l'application, jamais dans un fichier.
 
-Copier ce lien et l'ouvrir sur le téléphone. Pour le lien « mot de passe oublié », remplacer `email/verify` par
-`reset-password`.
+1. Touchez **Espace**. Vous voyez une section **Administration** (les autres personnes ne la voient pas). Touchez **Paramètres**.
+2. Section **Courriel**. Les valeurs sont celles du compte `no-reply@dgafrique.com` chez o2switch
+   (dans cPanel, rubrique « Comptes e-mail », bouton « Configuration manuelle » : o2switch les affiche) :
+   - **Serveur SMTP** : le serveur sortant indiqué par o2switch ;
+   - **Port** et **Chiffrement** : 465 avec « SSL/TLS » (ou 587 avec « STARTTLS ») ;
+   - **Identifiant** : `no-reply@dgafrique.com` ;
+   - **Mot de passe** : celui de ce compte e-mail ;
+   - **Adresse de l'expéditeur** : `no-reply@dgafrique.com` ; **Nom de l'expéditeur** : GAMAD.
+3. Section **Plateforme** : le nom (GAMAD) et l'adresse publique `https://reseau.dgafrique.com`.
+4. Section **Sécurité** : vous pouvez laisser 20 inscriptions par heure et par adresse IP, et 5 tentatives de connexion par minute.
+5. Touchez **Enregistrer**. Un message confirme le nombre de modifications.
+6. Touchez **Envoyer un e-mail de test**. Un courriel « Courriel de test — GAMAD » doit arriver sur **votre** adresse
+   (regardez aussi les courriers indésirables).
+   - Si l'envoi échoue, un message rouge explique pourquoi. **Copiez-le-moi tel quel** : il ne contient jamais votre mot de passe.
 
-## 3. Parcours à vérifier (critères de fin du lot 0)
+À savoir :
+- Le mot de passe SMTP n'est **jamais réaffiché**. Un champ laissé vide le **conserve** ; la case « Retirer le mot de passe enregistré » l'efface.
+- Chaque modification est inscrite au journal d'administration (l'ancienne et la nouvelle valeur ; pour un mot de passe, seulement « modifié »).
+  Ce journal n'a pas encore d'écran : il est vérifié par les tests automatiques.
 
-Sur le téléphone :
+## 3. Essayer le parcours d'une personne ordinaire
 
-- [ ] L'accueil affiche le titre, l'accroche, les boutons « Créer un compte » et « Se connecter », et la devise en petit.
-- [ ] Je crée un compte (nom affiché, e-mail, mot de passe). L'écran m'invite à vérifier mon e-mail.
-- [ ] J'ouvre le lien de vérification : j'arrive sur le Fil, qui affiche « Le Fil se remplira bientôt. »
-- [ ] La barre du bas n'affiche que **Fil** et **Espace**.
-- [ ] Dans Espace, je vois mon nom et mon e-mail, puis je me déconnecte.
-- [ ] Je me reconnecte, en tapant mon adresse e-mail avec des majuscules : cela fonctionne. Un mauvais mot de passe affiche un message clair ; après 5 essais ratés, la connexion est bloquée un moment.
-- [ ] « Mot de passe oublié » m'envoie un lien qui me permet de choisir un nouveau mot de passe.
-- [ ] Dans Espace, « Supprimer mon compte » demande mon mot de passe, puis supprime définitivement le compte.
+1. **Espace → Se déconnecter.** Vous revenez à l'accueil.
+2. **Créer un compte** avec votre **seconde adresse e-mail** : nom affiché, adresse, mot de passe (8 caractères au minimum), confirmation.
+   L'écran vous demande de vérifier votre adresse.
+3. Ouvrez le courriel reçu, touchez le lien de vérification : vous arrivez sur le Fil.
+   Si le courriel n'arrive pas, touchez **Renvoyer le lien**.
+4. Dans **Espace**, vous voyez votre nom et votre adresse e-mail, mais **pas** la section Administration.
+   Essayez d'ouvrir **https://reseau.dgafrique.com/espace/parametres** : l'accès est refusé (page « Accès refusé »).
+5. **Se déconnecter**, puis **Se connecter** avec un mauvais mot de passe : un message clair s'affiche.
+   Après 5 essais ratés en moins d'une minute, la connexion est bloquée un moment.
+6. **Mot de passe oublié ?** : saisissez votre seconde adresse, ouvrez le courriel, choisissez un nouveau mot de passe, reconnectez-vous.
+7. **Espace → Supprimer mon compte** : confirmez avec votre mot de passe. Le compte de test est supprimé **définitivement**
+   (vous le retrouvez absent si vous tentez de vous reconnecter).
 
-Sur l'ordinateur (fenêtre large) :
+## 4. Ce qu'il faut regarder à chaque écran
 
-- [ ] La barre du haut affiche **Fil** et l'avatar (initiale) qui mène à Espace. Rien d'autre.
+- [ ] Le texte se lit sans zoomer, rien ne dépasse de l'écran, aucun défilement de côté.
+- [ ] Les boutons sont faciles à toucher du pouce.
+- [ ] En tournant le téléphone ou sur ordinateur (fenêtre large), la barre du haut affiche **Fil** et votre initiale qui mène à Espace.
+- [ ] Les messages d'erreur sont clairs et en français.
+- [ ] Tout bouton ou lien visible mène à une vraie page.
 
-## 4. Super administrateur
+## 5. Les mises à jour se font toutes seules
 
-Après avoir créé votre compte et vérifié votre e-mail, indiquez la raison de la promotion (obligatoire) :
+Chaque fois qu'un changement est fusionné dans `main`, le site se met à jour tout seul en **5 à 10 minutes** : rechargez la page après ce délai.
+Si une mise à jour échoue, la version actuelle reste en ligne et l'échec est noté dans un journal côté serveur ; si une mise à jour
+casse le site, le serveur revient seul à la version précédente. En cas de doute, dites-le-moi : la personne qui administre le serveur
+sait revenir en arrière (voir `deploy/LISEZMOI.md`, réservé à l'administration).
 
-```sh
-php artisan gamad:super-admin votre-adresse@exemple.org --raison="Président de GAMAD"
-```
+Les données sont sauvegardées chaque nuit (7 jours conservés).
 
-Le message confirme la promotion. Sans `--raison`, la commande refuse et ne change rien. La casse de l'adresse
-n'a pas d'importance. Vérification dans le journal (acteur « Console GAMAD », raison, compte système et machine) :
+## 6. Ce qui n'existe pas encore (c'est normal)
 
-```sh
-php artisan tinker --execute="dump(App\Models\AdminAction::latest()->first()->toArray());"
-```
-
-## 5. Ce qui n'existe pas encore (c'est normal)
-
-Profil, ZUMRA, publications, gestes, recherche, notifications, paiement, bouton « Agir » : ces modules sont
-masqués tant que leur lot n'est pas construit.
+Profil, ZUMRA, publications, gestes, recherche, notifications, paiement, bouton « Agir » : ces modules sont masqués tant que leur lot
+n'est pas construit.
