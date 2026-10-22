@@ -5,6 +5,15 @@
         <x-status>{{ session('status') }}</x-status>
     @endif
 
+    <section aria-labelledby="profil" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
+        <h2 id="profil" class="text-[18px] font-extrabold">Mon profil</h2>
+        <p class="text-muted">Ce que vous pouvez apporter, ce que vous voulez apprendre, où vous êtes : c’est ce qui permet aux autres de vous trouver.</p>
+        <div class="flex flex-col gap-2 sm:flex-row">
+            <x-button :href="route('espace.profil')" class="sm:flex-1">Modifier mon profil</x-button>
+            <x-button :href="route('personnes.show', $user->ensureProfile()->public_id)" variant="secondary" class="sm:flex-1">Voir mon profil</x-button>
+        </div>
+    </section>
+
     <section aria-labelledby="compte" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
         <h2 id="compte" class="text-[18px] font-extrabold">Mon compte</h2>
         <div class="flex items-center gap-3">
@@ -43,7 +52,7 @@
     @can('super-admin')
         <section aria-labelledby="administration" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
             <h2 id="administration" class="text-[18px] font-extrabold">Administration</h2>
-            <p class="text-muted">Courriel, nom et adresse de la plateforme, limites de sécurité.</p>
+            <p class="text-muted">Courriel, nom et adresse de la plateforme, limites de sécurité, domaines et territoires.</p>
             <x-button :href="route('espace.parametres')">Paramètres</x-button>
         </section>
     @endcan

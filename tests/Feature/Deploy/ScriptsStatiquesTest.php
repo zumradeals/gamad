@@ -125,3 +125,9 @@ it('exempte diagnostic.sh de cette règle parce qu’il ne peut jamais afficher 
         ->and($diagnostic)->not->toMatch('/\btrap\b/')
         ->and($diagnostic)->not->toContain('arreter');
 });
+
+it('exige l’extension PHP gd (photos de profil du Lot 1) et sait quel paquet l’installe', function () {
+    $install = file_get_contents(dirname(__DIR__, 3).'/deploy/install.sh');
+
+    expect($install)->toMatch('/for ext in [^;]*\bgd\b[^;]*; do/')->toContain('gd) paquet="php$PHP_V-gd"');
+});

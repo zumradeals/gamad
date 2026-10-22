@@ -9,6 +9,15 @@
         <x-status>{{ $saved }}</x-status>
     @endif
 
+    <section aria-labelledby="listes" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
+        <h2 id="listes" class="text-[18px] font-extrabold">Listes de référence</h2>
+        <p class="text-[13px] text-muted">Les choix proposés dans les profils. On ajoute, on renomme, on désactive ; on ne supprime jamais.</p>
+        <div class="flex flex-col gap-2 sm:flex-row">
+            <x-button :href="route('espace.parametres.domaines')" variant="secondary" class="sm:flex-1">Domaines</x-button>
+            <x-button :href="route('espace.parametres.territoires')" variant="secondary" class="sm:flex-1">Territoires</x-button>
+        </div>
+    </section>
+
     <form wire:submit="save" class="flex flex-col gap-4">
         <section aria-labelledby="courriel" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
             <h2 id="courriel" class="text-[18px] font-extrabold">Courriel</h2>

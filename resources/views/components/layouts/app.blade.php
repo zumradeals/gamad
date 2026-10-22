@@ -4,7 +4,7 @@
     $enabled = fn (array $items) => array_values(array_filter($items, fn ($item) => $item['enabled'] ?? false));
     $phoneItems = $enabled(config('navigation.phone'));
     $desktopItems = $enabled(config('navigation.desktop'));
-    $isActive = fn (array $item) => $item['route'] && request()->routeIs($item['route'], $item['route'].'.*');
+    $isActive = fn (array $item) => $item['route'] && request()->routeIs($item['active'] ?? [$item['route'], $item['route'].'.*']);
 @endphp
 
 <!DOCTYPE html>
@@ -20,34 +20,47 @@
 <body class="flex flex-col bg-ground text-ink antialiased">
     <header class="border-b border-line bg-card">
         <div class="mx-auto flex w-full max-w-[1240px] items-center gap-6 px-4 py-3.5 md:px-6 md:py-2.5">
-            <a href="{{ route('fil') }}" class="no-underline" aria-label="GAMAD — accueil">
+            <a href="{{ auth()->check() ? route('fil') : url('/') }}" class="no-underline" aria-label="GAMAD — accueil">
                 <x-logo />
             </a>
 
+            @auth
             <nav aria-label="Navigation principale" class="hidden gap-1 md:flex">
                 @foreach ($desktopItems as $item)
                     <a href="{{ route($item['route']) }}"
                        @if ($isActive($item)) aria-current="page" @endif
-                       class="flex min-h-11 items-center rounded-[10px] px-3.5 text-[14px] no-underline {{ $isActive($item) ? 'bg-soft-blue font-extrabold text-ink' : 'font-semibold text-muted hover:text-ink' }}">
+                       class="flex min-h-11 min-w-11 items-center justify-center rounded-[10px] px-3.5 text-[14px] no-underline {{ $isActive($item) ? 'bg-soft-blue font-extrabold text-ink' : 'font-semibold text-muted hover:text-ink' }}">
                         {{ $item['label'] }}
                     </a>
                 @endforeach
             </nav>
+            @endauth
 
             <span class="flex-1"></span>
 
-            <a href="{{ route('espace') }}"
-               aria-label="Mon espace"
-               class="hidden size-11 items-center justify-center rounded-full bg-ink font-extrabold text-white no-underline hover:text-white md:flex">
-                {{ auth()->user()?->initial() }}
-            </a>
+            @auth
+                <a href="{{ route('espace') }}"
+                   aria-label="Mon espace"
+                   class="hidden size-11 items-center justify-center rounded-full bg-ink font-extrabold text-white no-underline hover:text-white md:flex">
+                    {{ auth()->user()?->initial() }}
+                </a>
+            @else
+                {{-- Visiteur sans compte (Carrefour Personnes, Monde d'une personne publics) : seulement entrer ou s'inscrire. --}}
+                <div class="flex items-center gap-2">
+                    <x-button :href="route('login')" variant="secondary" class="whitespace-nowrap !px-3.5">Se connecter</x-button>
+                    <span class="hidden sm:contents">
+                        <x-button :href="route('register')" class="whitespace-nowrap !px-3.5">Créer un compte</x-button>
+                    </span>
+                </div>
+            @endauth
         </div>
     </header>
 
-    <main class="mx-auto w-full max-w-[760px] flex-1 px-4 pb-[104px] pt-4 md:px-6 md:pb-10 md:pt-6">
+    <main @class(['mx-auto w-full max-w-[760px] flex-1 px-4 pt-4 md:px-6 md:pb-10 md:pt-6', 'pb-[104px]' => auth()->check(), 'pb-10' => ! auth()->check()])>
         {{ $slot }}
     </main>
 
+    @auth
     <nav aria-label="Navigation principale"
          class="fixed inset-x-0 bottom-0 z-10 border-t border-line bg-card md:hidden"
          style="padding-bottom: env(safe-area-inset-bottom)">
@@ -72,6 +85,7 @@
             @endforeach
         </div>
     </nav>
+    @endauth
 
     @livewireScripts
 </body>
