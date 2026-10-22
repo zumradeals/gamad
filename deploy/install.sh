@@ -203,12 +203,13 @@ controles() {
     if [ -x "/usr/sbin/php-fpm$PHP_V" ]; then
         local ext paquet modules manque_ext=()
         modules="$("/usr/sbin/php-fpm$PHP_V" -m 2>/dev/null)"
-        for ext in ctype curl dom fileinfo intl mbstring openssl pdo_pgsql tokenizer xml zip; do
+        for ext in ctype curl dom fileinfo gd intl mbstring openssl pdo_pgsql tokenizer xml zip; do
             grep -qix "$ext" <<<"$modules" && continue
             case "$ext" in
                 ctype|fileinfo|tokenizer|openssl) paquet="php$PHP_V-common" ;;
                 curl) paquet="php$PHP_V-curl" ;;
                 dom|xml) paquet="php$PHP_V-xml" ;;
+                gd) paquet="php$PHP_V-gd" ;;
                 intl) paquet="php$PHP_V-intl" ;;
                 mbstring) paquet="php$PHP_V-mbstring" ;;
                 pdo_pgsql) paquet="php$PHP_V-pgsql" ;;

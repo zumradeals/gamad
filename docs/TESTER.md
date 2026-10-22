@@ -57,7 +57,60 @@ Les réglages se font dans l'application, jamais dans un fichier.
 7. **Espace → Supprimer mon compte** : confirmez avec votre mot de passe. Le compte de test est supprimé **définitivement**
    (vous le retrouvez absent si vous tentez de vous reconnecter).
 
-## 4. Ce qu'il faut regarder à chaque écran
+## 4. Essayer le Lot 1 « Personne » : profil, Monde d'une personne, Carrefour Personnes
+
+Il vous faut deux comptes : le vôtre (super administrateur, appelé **compte 1**) et un compte de test créé avec votre seconde
+adresse (**compte 2**, voir §3, étapes 1 à 3). Ne supprimez pas le compte 2 avant d'avoir fini cette partie.
+
+**Mon profil.**
+
+1. Compte 1 : **Espace → Modifier mon profil**. Vous voyez la photo (ou vos initiales), le nom, la présentation (compteur « n / 280 »),
+   le pays et la ville, « Je peux apporter », « Je veux apprendre », les domaines et « Qui voit mon profil ? ».
+2. Choisissez le pays **Côte d'Ivoire** puis une **ville**. Écrivez une présentation courte.
+3. Dans **Je peux apporter**, tapez quelques lettres, par exemple « cout » : une ligne **Ajouter « cout »** apparaît, et sous elle les
+   capacités que d'autres ont déjà indiquées, marquées « déjà utilisée ». Touchez-en une, ou écrivez la vôtre en entier puis touchez
+   **Ajouter** (ou la touche Entrée). Elle s'ajoute en pastille verte. La croix de la pastille la retire.
+4. Dans **Je veux apprendre**, faites de même (pastilles bleues). Dix capacités au plus par liste : à la onzième, un message l'explique.
+5. Choisissez jusqu'à **trois domaines** (« Voir tous les domaines » déplie la liste). Au quatrième, un message l'explique.
+6. Touchez **Enregistrer** : le message « Profil enregistré. » apparaît, avec le lien **Voir mon profil**.
+7. Photo (si le bouton « Ajouter une photo » est présent) : prenez ou choisissez une photo. Après **Enregistrer**, elle apparaît en rond.
+   Une photo prise en hauteur doit rester droite. La position GPS de la photo n'est jamais conservée (vérifié par les tests).
+   Si le bouton « Ajouter une photo » n'apparaît pas, le serveur n'a pas l'extension d'images : dites-le-moi.
+
+**Le Monde d'une personne.**
+
+8. **Voir mon profil** : votre nom, votre ville, « Sur GAMAD depuis … », votre présentation, vos capacités, vos domaines et le bouton
+   **Modifier mon profil**. Il n'y a ni « Suivre », ni « Inviter », ni remerciements : ils viendront avec les lots suivants.
+9. Touchez une capacité : le **Carrefour Personnes** s'ouvre, déjà filtré sur elle.
+
+**Le Carrefour Personnes.**
+
+10. Compte 2 : remplissez de la même façon un profil qui **apporte** ce que le compte 1 veut apprendre, et **veut apprendre** ce que le
+    compte 1 apporte, **dans la même ville**. Écrivez une capacité en variant les majuscules et les accents (« COUTURE », « couture ») :
+    le site propose la capacité existante au lieu d'en créer une autre.
+11. **Découvrir** (téléphone) ou **Personnes** (ordinateur) ouvre le Carrefour. Depuis le compte 1, cherchez une capacité du compte 2 :
+    « **peut l'apporter** » le trouve. Passez en « **veut l'apprendre** » avec une capacité que le compte 2 veut apprendre : il apparaît.
+    Faites l'inverse depuis le compte 2. Ajoutez le filtre **ville** puis **domaine**.
+12. Cherchez par nom, avec ou sans majuscules et accents. Cherchez quelque chose qui n'existe pas : l'écran vide propose de compléter votre profil.
+
+**Qui voit mon profil.**
+
+13. Compte 2 : **Qui voit mon profil ? → Les personnes inscrites seulement**, puis Enregistrer.
+14. Ouvrez une **fenêtre de navigation privée** (sans compte) sur **https://reseau.dgafrique.com/personnes** : le compte 2 n'apparaît pas, et son
+    adresse directe répond « page introuvable ». Connecté, vous le voyez. Remettez « Tout le monde » : un visiteur sans compte le voit,
+    mais votre e-mail n'apparaît nulle part.
+
+**Domaines et territoires (super administrateur).**
+
+15. Compte 1 : **Espace → Administration → Paramètres → Domaines**. Vous voyez les 17 domaines. Ajoutez un domaine, renommez-le, désactivez-le :
+    il disparaît de « Modifier mon profil » et du filtre du Carrefour. Réactivez-le. **Territoires** fonctionne de même pour les pays et les villes.
+    Attention : **rien ne se supprime**, seulement se désactiver ; n'ajoutez donc que ce que vous voulez garder, ou désactivez votre essai ensuite.
+16. Le compte 2 ne voit pas la section Administration, et l'adresse `/espace/parametres/domaines` lui répond « Accès refusé ».
+
+La liste des villes ivoiriennes (31 chefs-lieux de région, 2 districts autonomes, 13 communes d'Abidjan) a été reprise de sources publiques :
+**contrôlez-la** et corrigez dans Territoires tout nom qui serait faux.
+
+## 5. Ce qu'il faut regarder à chaque écran
 
 - [ ] Le texte se lit sans zoomer, rien ne dépasse de l'écran, aucun défilement de côté.
 - [ ] Les boutons sont faciles à toucher du pouce.
@@ -65,7 +118,7 @@ Les réglages se font dans l'application, jamais dans un fichier.
 - [ ] Les messages d'erreur sont clairs et en français.
 - [ ] Tout bouton ou lien visible mène à une vraie page.
 
-## 5. Les mises à jour se font toutes seules
+## 6. Les mises à jour se font toutes seules
 
 Chaque fois qu'un changement est fusionné dans `main`, le site se met à jour tout seul en **5 à 10 minutes** : rechargez la page après ce délai.
 Si une mise à jour échoue, la version actuelle reste en ligne et l'échec est noté dans un journal côté serveur ; si une mise à jour
@@ -74,7 +127,7 @@ sait revenir en arrière (voir `deploy/LISEZMOI.md`, réservé à l'administrati
 
 Les données sont sauvegardées chaque nuit (7 jours conservés).
 
-## 6. Ce qui n'existe pas encore (c'est normal)
+## 7. Ce qui n'existe pas encore (c'est normal)
 
-Profil, ZUMRA, publications, gestes, recherche, notifications, paiement, bouton « Agir » : ces modules sont masqués tant que leur lot
+ZUMRA, publications, gestes, besoins, projets, remerciements, « Suivre », « Inviter », recherche générale, notifications, paiement, bouton « Agir » : ces modules sont masqués tant que leur lot
 n'est pas construit.

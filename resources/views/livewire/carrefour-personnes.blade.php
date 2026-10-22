@@ -67,8 +67,8 @@
         <article wire:key="personne-{{ $profile->id }}" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
             <div class="flex items-center gap-3">
                 <x-avatar :profile="$profile" :size="52" />
-                <div class="flex min-w-0 flex-col gap-0.5">
-                    <a href="{{ route('personnes.show', $profile->public_id) }}" class="truncate text-[16px] font-extrabold text-ink no-underline hover:text-ink hover:underline">{{ $profile->user->name }}</a>
+                <div class="flex min-w-0 flex-col">
+                    <a href="{{ route('personnes.show', $profile->public_id) }}" class="inline-flex min-h-11 items-center break-words text-[16px] font-extrabold text-ink no-underline hover:text-ink hover:underline">{{ $profile->user->name }}</a>
                     @if ($profile->city)
                         <span class="text-[12px] font-semibold text-muted">{{ $profile->city->label() }}</span>
                     @endif

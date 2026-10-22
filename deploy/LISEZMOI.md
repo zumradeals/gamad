@@ -43,6 +43,12 @@ Ce qu'il crée, aux noms dédiés :
 | Journaux | `/var/log/gamad-reseau/` (`installation.log`, `deploy.log`, `sauvegarde.log`, `php-fpm.log`) |
 | Sauvegardes | `/var/backups/gamad-reseau/` (lisible par l'administrateur seul) |
 
+Extensions PHP exigées (le script installe seulement celles qui manquent) : `ctype curl dom fileinfo gd intl mbstring openssl pdo_pgsql
+tokenizer xml zip`. **`gd`** sert à traiter les photos de profil (Lot 1). Sur un serveur installé avant le Lot 1, le déploiement automatique
+met le code à jour mais n'installe aucun paquet : sans `gd`, l'écran « Modifier mon profil » n'offre simplement pas l'envoi de photo (les
+initiales s'affichent). Pour l'activer, relancez l'installation (elle ajoute `php<version>-gd` et recharge PHP-FPM) ou, à la main :
+`sudo apt install php8.4-gd && sudo systemctl reload php8.4-fpm` (adaptez la version).
+
 Nginx et PHP-FPM sont seulement **rechargés en douceur** (aucune requête en cours n'est coupée), après `nginx -t` et `php-fpm -t`.
 Le pare-feu n'est pas modifié. Le fichier `.env` est écrit par le script, avec le seul amorçage technique (D-049) :
 mode de production, clé de chiffrement, adresse, connexion à la base.

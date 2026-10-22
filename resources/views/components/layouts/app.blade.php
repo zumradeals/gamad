@@ -29,7 +29,7 @@
                 @foreach ($desktopItems as $item)
                     <a href="{{ route($item['route']) }}"
                        @if ($isActive($item)) aria-current="page" @endif
-                       class="flex min-h-11 items-center rounded-[10px] px-3.5 text-[14px] no-underline {{ $isActive($item) ? 'bg-soft-blue font-extrabold text-ink' : 'font-semibold text-muted hover:text-ink' }}">
+                       class="flex min-h-11 min-w-11 items-center justify-center rounded-[10px] px-3.5 text-[14px] no-underline {{ $isActive($item) ? 'bg-soft-blue font-extrabold text-ink' : 'font-semibold text-muted hover:text-ink' }}">
                         {{ $item['label'] }}
                     </a>
                 @endforeach
@@ -47,8 +47,10 @@
             @else
                 {{-- Visiteur sans compte (Carrefour Personnes, Monde d'une personne publics) : seulement entrer ou s'inscrire. --}}
                 <div class="flex items-center gap-2">
-                    <x-button :href="route('login')" variant="secondary" class="!px-3.5">Se connecter</x-button>
-                    <x-button :href="route('register')" class="hidden !px-3.5 sm:inline-flex">Créer un compte</x-button>
+                    <x-button :href="route('login')" variant="secondary" class="whitespace-nowrap !px-3.5">Se connecter</x-button>
+                    <span class="hidden sm:contents">
+                        <x-button :href="route('register')" class="whitespace-nowrap !px-3.5">Créer un compte</x-button>
+                    </span>
                 </div>
             @endauth
         </div>
