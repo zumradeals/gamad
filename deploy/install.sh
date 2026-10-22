@@ -282,6 +282,8 @@ saisies() {
     fi
     if [ "$SIMULATION" = "1" ]; then PRESIDENT_NOM="(simulation)"; PRESIDENT_EMAIL="president@exemple.org"; return 0; fi
 
+    # /dev/tty peut exister sans pouvoir être ouvert (lancement sans terminal) : on le vérifie avant de poser la première question.
+    ( : </dev/tty ) 2>/dev/null || arreter "Pas de terminal : je ne peux pas poser mes questions." "Lancez la commande depuis une console ouverte sur le serveur (SSH ou console du fournisseur)."
     info "Ces informations créent votre compte de super administrateur. Le mot de passe n'est ni affiché, ni enregistré en clair."
     local essai=0
     while [ -z "$PRESIDENT_NOM" ] && [ "$essai" -lt 5 ]; do
