@@ -41,3 +41,7 @@ concevoir et de décider pour GAMAD numérique, et être super administrateur de
 | D-026 | 2026-10-22 | Confirme D-016 : pas de connexion à GAMAD Core en V1. | Décidée | Président |
 | D-027 | 2026-10-22 | Confirme D-018 : nouveau dépôt, aucun code repris de `dgafrique-core`. Le lot 0 est lancé. | Décidée | Président |
 | D-028 | 2026-10-22 | Les documents de référence sont modifiés sur instruction du Président, directement sur main ; le code passe toujours par une Pull Request. Le document « Fondations de conception v0.2 » est archivé dans docs/archives/ et ne fait pas autorité. | Décidée | Président |
+| D-029 | 2026-10-22 | Authentification avec Laravel Fortify et écrans propres Livewire/Blade ; ni Flux ni Breeze. | Décidée | Président |
+| D-030 | 2026-10-22 | Journal d'administration sans clé étrangère sur l'acteur, avec actor_label copié ; suppression de compte définitive confirmée par mot de passe. | Décidée | Président |
+| D-031 | 2026-10-22 | Rechercher et Notifications masqués tant que leurs modules n'existent pas. | Décidée | Président |
+| D-032 | 2026-10-22 | Textes de l'accueil public : titre « Des personnes. Des actions. Un impact réel. », accroche « Apportez ce que vous savez faire, apprenez ce qui vous manque, agissez avec d'autres. », devise « Formation — Travail — Adoration ». | Décidée | Président |

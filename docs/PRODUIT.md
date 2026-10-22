@@ -1,7 +1,6 @@
 # PRODUIT — Réseau social d'action GAMAD
 
-Version 1.0 — 22 octobre 2026. Source : document « Fondations de conception v0.2 » et décisions du Président
-(voir `DECISIONS.md`). Toute modification passe par une décision.
+Version 1.0 — 22 octobre 2026. Source : décisions du Président consignées dans docs/DECISIONS.md. Toute modification passe par une décision.
 
 ## 1. Principe
 
