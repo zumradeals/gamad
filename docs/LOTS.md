@@ -8,7 +8,7 @@ lot en « Terminé ».
 | --- | --- | --- |
 | 0 | Socle | **Terminé** (essai du Président réussi sur reseau.dgafrique.com le 2026-10-22) |
 | 0.1 | Mise en ligne et paramètres | **Terminé** (essai du Président réussi sur reseau.dgafrique.com le 2026-10-22) |
-| 1 | Personne | À venir |
+| 1 | Personne | **En cours** |
 | 2 | Fil global et gestes | À venir |
 | 3 | ZUMRA | À venir |
 | 4 | Projets | À venir |
@@ -138,11 +138,50 @@ rapport ; pas de fusion par Claude.
 
 ---
 
-## Lot 1 — Personne (À venir)
+## Lot 1 — Personne (En cours)
 
-Profil « Je peux apporter / Je veux apprendre », capacités partagées, ville et domaines ; Monde d'une
-personne ; Carrefour Personnes avec recherche par capacité et ville.
-Terminé quand deux comptes de test se trouvent par capacité et par ville.
+Maquettes : écrans 5, 6 et 7 de `docs/DESIGN.md`. Décisions : D-065 à D-070.
+
+**Périmètre :**
+
+1. Données : présentation (280 caractères), pays, ville, visibilité (public / inscrits), photo ; capacités
+   partagées avec forme normalisée unique ; liens personne–capacité avec le sens « apporte » ou « apprend »
+   (10 au plus chacun) ; domaines (17, avec ordre et état actif) et liens personne–domaine (3 au plus) ;
+   pays et villes. Les villes ivoiriennes sont fournies par un seeder qui cite sa source dans un
+   commentaire ; aucun nom n'est inventé.
+2. Écran « Modifier mon profil » (Espace › Mon profil), écran 6 : suggestions de capacités déjà utilisées,
+   création d'une nouvelle capacité, retrait, validation (2 à 60 caractères), photo traitée comme D-070,
+   enregistrement avec message de confirmation.
+3. Écran « Monde d'une personne » (`/personnes/{identifiant}`), écran 5. Au Lot 1, seul l'onglet
+   « Apporte · Apprend » existe ; Fil, ZUMRA, Remerciements, Suivre et « Inviter dans ma ZUMRA » sont masqués
+   (Lots 2 et 3). Le propriétaire voit « Modifier mon profil ». Toucher une capacité ouvre le Carrefour
+   Personnes filtré sur elle.
+4. Écran « Carrefour Personnes » (`/personnes`), écran 7 : recherche par capacité ou nom (sans tenir compte
+   de la casse ni des accents), bascule « peut l'apporter » / « veut l'apprendre », filtres ville et
+   domaine, pagination, état vide qui invite à compléter son profil. Un visiteur sans compte ne voit que
+   les profils publics ; un profil « inscrits seulement » n'existe pas pour lui (404). Le bouton « Inviter »
+   est masqué jusqu'au Lot 3.
+5. Navigation : « Découvrir » (téléphone) et « Personnes » (ordinateur) mènent au Carrefour Personnes ; les
+   onglets Besoins et Projets de Découvrir restent masqués. L'état vide du Fil renvoie vers « Compléter mon
+   profil ».
+6. Paramètres du super administrateur : sections « Domaines » et « Territoires » (ajouter, renommer,
+   désactiver ; jamais supprimer), chaque acte inscrit au journal d'administration.
+7. Tests : critères de fin, visibilité, limites (10 capacités, 3 domaines), normalisation (« Comptabilité »,
+   « comptabilite », « COMPTABILITÉ » = une seule capacité), suppression des métadonnées de la photo, accès
+   réservé aux sections Domaines et Territoires.
+
+**Hors périmètre :** ZUMRA, publications, gestes, Suivre, Remerciements, invitations, notifications,
+messagerie, paiements, données d'exemple en production.
+
+**Terminé quand :**
+
+- deux comptes de test se trouvent l'un l'autre par capacité et par ville, dans les deux sens (apporter et
+  apprendre) ;
+- un profil « inscrits seulement » est invisible pour un visiteur sans compte, visible une fois connecté ;
+- le parcours complet fonctionne à 390 px et sur ordinateur, fidèle aux maquettes ;
+- l'intégration continue est verte et `docs/TESTER.md` décrit l'essai du Lot 1 sur reseau.dgafrique.com.
+
+---
 
 ## Lot 2 — Fil global et gestes (À venir)
 

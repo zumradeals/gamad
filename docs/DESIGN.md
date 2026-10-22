@@ -13,6 +13,9 @@ reconstruis les écrans en Blade, Livewire et Tailwind ; ne copie pas ces balise
 | `Carrefour-ZUMRA.dc.html` | Carrefour ZUMRA, téléphone |
 | `Monde-ZUMRA.dc.html` | Monde d'une ZUMRA, onglet Formation, téléphone |
 | `Fil-ordinateur.dc.html` | Fil global, ordinateur (3 colonnes) |
+| `Monde-Personne.dc.html` | Écran 5 — Monde d'une personne, téléphone (Lot 1, D-065) |
+| `Modifier-profil.dc.html` | Écran 6 — Modifier mon profil, téléphone (Lot 1, D-065) |
+| `Carrefour-Personnes.dc.html` | Écran 7 — Carrefour Personnes, avec le choix « peut l'apporter » / « veut l'apprendre », téléphone (Lot 1, D-065) |
 
 ## 1. Jetons (à déclarer dans la configuration Tailwind)
 

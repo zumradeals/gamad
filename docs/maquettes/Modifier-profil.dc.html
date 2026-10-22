@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Modifier mon profil</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0A5FA3}a:hover{color:#08487A}
+button,input,select,textarea{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 390px; height: 1800px; box-sizing: border-box; background: #F5F3EE; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #0E2A3F; display: flex; flex-direction: column">
+
+<header style="background: #FFFFFF; border-bottom: 1px solid #E3E0D8; padding: 8px 8px; display: flex; align-items: center; gap: 4px">
+<a href="Monde-Personne.dc.html" aria-label="Retour" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #0E2A3F"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></a>
+<h1 style="margin: 0; font-size: 18px; font-weight: 800">Modifier mon profil</h1>
+</header>
+
+<form style="flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 14px">
+
+<section style="background: #FFFFFF; border: 1px solid #E3E0D8; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; gap: 14px; align-items: center">
+<span style="width: 72px; height: 72px; border-radius: 999px; background: #DCEBF8; color: #0A4C85; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 26px; flex-shrink: 0">AT</span>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<button type="button" style="height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid #0E2A3F; background: #FFFFFF; color: #0E2A3F; font-size: 14px; font-weight: 700">Ajouter une photo</button>
+<span style="font-size: 12px; color: #4A5B68">Facultatif. Sinon, vos initiales.</span>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="nom" style="font-size: 13px; font-weight: 700">Nom affiché</label>
+<input id="nom" type="text" value="Awa Traoré" style="height: 48px; border: 1px solid #D5D1C7; border-radius: 12px; padding: 0 14px; font-size: 15px; color: #0E2A3F; background: #FFFFFF">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="presentation" style="font-size: 13px; font-weight: 700">Présentation courte</label>
+<textarea id="presentation" rows="3" style="border: 1px solid #D5D1C7; border-radius: 12px; padding: 12px 14px; font-size: 15px; line-height: 1.5; color: #0E2A3F; resize: none">Comptable de formation, j'aide les petits commerces à tenir leurs comptes. J'aimerais apprendre à mieux vendre sur WhatsApp.</textarea>
+<span style="font-size: 12px; color: #4A5B68; align-self: flex-end">128 / 280</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="pays" style="font-size: 13px; font-weight: 700">Pays</label>
+<select id="pays" style="height: 48px; border: 1px solid #D5D1C7; border-radius: 12px; padding: 0 10px; font-size: 15px; color: #0E2A3F; background: #FFFFFF"><option>Côte d'Ivoire</option></select>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="ville" style="font-size: 13px; font-weight: 700">Ville</label>
+<select id="ville" style="height: 48px; border: 1px solid #D5D1C7; border-radius: 12px; padding: 0 10px; font-size: 15px; color: #0E2A3F; background: #FFFFFF"><option>Yamoussoukro</option></select>
+</div>
+</div>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E3E0D8; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<label for="apporte" style="font-size: 16px; font-weight: 800; color: #1B5E33">Je peux apporter</label>
+<span style="font-size: 13px; color: #4A5B68">Ce que vous savez faire et pouvez mettre au service des autres. Jusqu'à 10.</span>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<span style="display: inline-flex; align-items: center; gap: 2px; background: #DDF1E4; color: #1B5E33; font-size: 14px; font-weight: 700; padding: 0 4px 0 12px; border-radius: 999px; height: 40px">Comptabilité<button type="button" aria-label="Retirer Comptabilité" style="width: 36px; height: 36px; border: none; background: transparent; color: #1B5E33; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></span>
+<span style="display: inline-flex; align-items: center; gap: 2px; background: #DDF1E4; color: #1B5E33; font-size: 14px; font-weight: 700; padding: 0 4px 0 12px; border-radius: 999px; height: 40px">Gestion de petit commerce<button type="button" aria-label="Retirer Gestion de petit commerce" style="width: 36px; height: 36px; border: none; background: transparent; color: #1B5E33; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></span>
+<span style="display: inline-flex; align-items: center; gap: 2px; background: #DDF1E4; color: #1B5E33; font-size: 14px; font-weight: 700; padding: 0 4px 0 12px; border-radius: 999px; height: 40px">Tableur Excel<button type="button" aria-label="Retirer Tableur Excel" style="width: 36px; height: 36px; border: none; background: transparent; color: #1B5E33; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></span>
+</div>
+<div style="position: relative; display: flex; flex-direction: column">
+<input id="apporte" type="text" value="couture" style="height: 48px; border: 2px solid #0A5FA3; border-radius: 12px; padding: 0 14px; font-size: 15px; color: #0E2A3F; background: #FFFFFF">
+<div role="listbox" aria-label="Suggestions" style="margin-top: 6px; border: 1px solid #E3E0D8; border-radius: 12px; background: #FFFFFF; display: flex; flex-direction: column; overflow: hidden">
+<button type="button" role="option" style="height: 48px; padding: 0 14px; border: none; border-bottom: 1px solid #EEEBE4; background: #FFFFFF; text-align: left; font-size: 15px; color: #0E2A3F; display: flex; justify-content: space-between; align-items: center">Couture<span style="font-size: 12px; color: #4A5B68">déjà utilisée</span></button>
+<button type="button" role="option" style="height: 48px; padding: 0 14px; border: none; border-bottom: 1px solid #EEEBE4; background: #FFFFFF; text-align: left; font-size: 15px; color: #0E2A3F; display: flex; justify-content: space-between; align-items: center">Couture de vêtements traditionnels<span style="font-size: 12px; color: #4A5B68">déjà utilisée</span></button>
+<button type="button" role="option" style="height: 48px; padding: 0 14px; border: none; background: #FFFFFF; text-align: left; font-size: 15px; color: #0A5FA3; font-weight: 700">Ajouter « couture »</button>
+</div>
+</div>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E3E0D8; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<label for="apprend" style="font-size: 16px; font-weight: 800; color: #0A4C85">Je veux apprendre</label>
+<span style="font-size: 13px; color: #4A5B68">Ce que vous aimeriez savoir faire. Jusqu'à 10.</span>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<span style="display: inline-flex; align-items: center; gap: 2px; background: #DCEBF8; color: #0A4C85; font-size: 14px; font-weight: 700; padding: 0 4px 0 12px; border-radius: 999px; height: 40px">Vente sur WhatsApp<button type="button" aria-label="Retirer Vente sur WhatsApp" style="width: 36px; height: 36px; border: none; background: transparent; color: #0A4C85; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></span>
+<span style="display: inline-flex; align-items: center; gap: 2px; background: #DCEBF8; color: #0A4C85; font-size: 14px; font-weight: 700; padding: 0 4px 0 12px; border-radius: 999px; height: 40px">Anglais<button type="button" aria-label="Retirer Anglais" style="width: 36px; height: 36px; border: none; background: transparent; color: #0A4C85; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></span>
+</div>
+<input id="apprend" type="text" placeholder="Ex. réparation de panneaux solaires" style="height: 48px; border: 1px solid #D5D1C7; border-radius: 12px; padding: 0 14px; font-size: 15px; color: #0E2A3F; background: #FFFFFF">
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E3E0D8; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 16px; font-weight: 800">Domaines qui m'intéressent</span>
+<span style="font-size: 13px; color: #4A5B68">Trois au plus.</span>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<button type="button" aria-pressed="true" style="height: 40px; padding: 0 12px; border-radius: 999px; border: none; background: #0E2A3F; color: #FFFFFF; font-size: 13px; font-weight: 700">Économie et Finances</button>
+<button type="button" aria-pressed="true" style="height: 40px; padding: 0 12px; border-radius: 999px; border: none; background: #0E2A3F; color: #FFFFFF; font-size: 13px; font-weight: 700">Affaires commerciales</button>
+<button type="button" aria-pressed="false" style="height: 40px; padding: 0 12px; border-radius: 999px; border: 1px solid #D5D1C7; background: #FFFFFF; color: #0E2A3F; font-size: 13px; font-weight: 600">Formation et Éducation</button>
+<button type="button" aria-pressed="false" style="height: 40px; padding: 0 12px; border-radius: 999px; border: 1px solid #D5D1C7; background: #FFFFFF; color: #0E2A3F; font-size: 13px; font-weight: 600">Technologie</button>
+<button type="button" aria-pressed="false" style="height: 40px; padding: 0 12px; border-radius: 999px; border: 1px solid #D5D1C7; background: #FFFFFF; color: #0E2A3F; font-size: 13px; font-weight: 600">Agriculture, Pêche et Élevage</button>
+<button type="button" style="height: 40px; padding: 0 12px; border-radius: 999px; border: none; background: transparent; color: #0A5FA3; font-size: 13px; font-weight: 700">Voir tous les domaines</button>
+</div>
+</section>
+
+<fieldset style="margin: 0; background: #FFFFFF; border: 1px solid #E3E0D8; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<legend style="font-size: 16px; font-weight: 800; padding: 0 4px">Qui voit mon profil ?</legend>
+<label style="display: flex; gap: 12px; align-items: flex-start; padding: 12px; border: 2px solid #0E2A3F; border-radius: 12px; cursor: pointer">
+<input type="radio" name="visibilite" checked style="width: 20px; height: 20px; margin: 2px 0 0; accent-color: #0E2A3F">
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 700">Tout le monde</span><span style="font-size: 13px; color: #4A5B68">Même sans compte. Votre profil peut être trouvé par ceux qui cherchent votre savoir-faire.</span></span>
+</label>
+<label style="display: flex; gap: 12px; align-items: flex-start; padding: 12px; border: 1px solid #D5D1C7; border-radius: 12px; cursor: pointer">
+<input type="radio" name="visibilite" style="width: 20px; height: 20px; margin: 2px 0 0; accent-color: #0E2A3F">
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 700">Les personnes inscrites seulement</span><span style="font-size: 13px; color: #4A5B68">Votre profil n'est visible qu'une fois connecté.</span></span>
+</label>
+<p style="margin: 0; font-size: 12px; color: #4A5B68">Votre e-mail et votre téléphone ne sont jamais affichés.</p>
+</fieldset>
+
+<button type="submit" style="height: 52px; border-radius: 12px; border: none; background: #0E2A3F; color: #FFFFFF; font-size: 16px; font-weight: 800">Enregistrer</button>
+
+</form>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1800}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
