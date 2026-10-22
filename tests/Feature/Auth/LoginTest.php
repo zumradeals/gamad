@@ -40,3 +40,7 @@ it('renvoie un invité vers la connexion', function () {
     $this->get('/fil')->assertRedirect(route('login'));
     $this->get('/espace')->assertRedirect(route('login'));
 });
+
+it('répond 404 sur la route interne de confirmation de mot de passe, qui n’a pas d’écran', function () {
+    $this->actingAs(User::factory()->create())->get('/user/confirm-password')->assertNotFound();
+});
