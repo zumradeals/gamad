@@ -8,25 +8,25 @@ function pageDuFil(): TestResponse
     return test()->actingAs(User::factory()->create())->get('/fil');
 }
 
-it('n’affiche que Fil et Espace dans la navigation', function () {
+it('n’affiche que Fil, Découvrir, Personnes et Espace dans la navigation', function () {
     pageDuFil()
         ->assertOk()
         ->assertSeeText('Fil')
+        ->assertSeeText('Découvrir')
+        ->assertSeeText('Personnes')
         ->assertSeeText('Espace')
-        ->assertDontSeeText('Découvrir')
         ->assertDontSeeText('Agir')
         ->assertDontSeeText('ZUMRA')
-        ->assertDontSeeText('Personnes')
         ->assertDontSeeText('Besoins')
         ->assertDontSeeText('Projets')
         ->assertDontSeeText('Rechercher')
         ->assertDontSeeText('Notifications');
 });
 
-it('affiche le message d’état vide du Fil, sans lien vers un profil inexistant', function () {
+it('affiche le message d’état vide du Fil, avec un lien vers « Modifier mon profil »', function () {
     pageDuFil()
         ->assertSeeText('Le Fil se remplira bientôt. Commencez par compléter votre profil.')
-        ->assertDontSee('/profil');
+        ->assertSee('href="'.route('espace.profil').'"', false);
 });
 
 it('mène chaque entrée affichée vers une page qui répond', function () {

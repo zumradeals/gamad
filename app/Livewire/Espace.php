@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\User;
 use App\Services\AdminJournal;
+use App\Services\DisplayName;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -36,22 +37,12 @@ class Espace extends Component
         $this->name = trim($this->name);
         $this->validate(['name' => ['required', 'string', 'max:255']], [], ['name' => 'nom affiché']);
 
-        if ($this->name === $user->name) {
+        if (! DisplayName::change($user, $this->name)) {
             session()->flash('status', 'Aucune modification.');
             $this->redirect(route('espace'), navigate: false);
 
             return;
         }
-
-        DB::transaction(function () use ($user) {
-            // Les actes d'un modérateur ou du super administrateur sont tracés (CLAUDE.md, règle 8, D-063) : l'entrée porte
-            // l'ancien nom, celui sous lequel la personne était connue au moment de l'acte.
-            if ($user->can('moderate')) {
-                AdminJournal::record($user, 'account.renamed_by_owner', $user, payload: ['ancien' => $user->name, 'nouveau' => $this->name]);
-            }
-
-            $user->update(['name' => $this->name]);
-        });
 
         session()->flash('status', 'Nom affiché enregistré.');
         $this->redirect(route('espace'), navigate: false);
