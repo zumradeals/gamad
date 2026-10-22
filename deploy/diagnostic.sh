@@ -90,15 +90,15 @@ diagnostic() {
         info "Nginx — fichiers de sites activés :"
         ls -1 /etc/nginx/sites-enabled /etc/nginx/conf.d 2>/dev/null | indente
         info "Nginx — lignes server_name :"
-        grep -rhE '^[[:space:]]*server_name[[:space:]]' /etc/nginx/sites-enabled /etc/nginx/conf.d 2>/dev/null \
+        grep -RhE '^[[:space:]]*server_name[[:space:]]' /etc/nginx/sites-enabled /etc/nginx/conf.d 2>/dev/null \
             | sed -E 's/^[[:space:]]+//' | sort -u | indente
         info "Nginx — sites qui prennent la place par défaut (default_server) :"
-        grep -rlE 'listen[^;]*default_server' /etc/nginx/sites-enabled /etc/nginx/conf.d 2>/dev/null | indente
+        grep -RlE 'listen[^;]*default_server' /etc/nginx/sites-enabled /etc/nginx/conf.d 2>/dev/null | indente
         trouve=1
     fi
     if [ -d /etc/apache2 ]; then
         info "Apache — ServerName / ServerAlias :"
-        grep -rhEi '^[[:space:]]*Server(Name|Alias)[[:space:]]' /etc/apache2/sites-enabled 2>/dev/null \
+        grep -RhEi '^[[:space:]]*Server(Name|Alias)[[:space:]]' /etc/apache2/sites-enabled 2>/dev/null \
             | sed -E 's/^[[:space:]]+//' | sort -u | indente
         trouve=1
     fi
@@ -136,7 +136,7 @@ diagnostic() {
             done
             local manque=""
             if [ -x "/usr/bin/php$ver" ]; then
-                for e in pdo_pgsql mbstring intl xml curl zip bcmath; do
+                for e in pdo_pgsql mbstring intl xml curl zip; do
                     "/usr/bin/php$ver" -m 2>/dev/null | grep -qi "^$e$" || manque="$manque $e"
                 done
                 if [ -z "$manque" ]; then info "  extensions utiles pour GAMAD : toutes présentes"; else info "  extensions utiles manquantes :$manque"; fi
@@ -177,14 +177,25 @@ diagnostic() {
 
     # ----------------------------------------------------------- Réseau
     titre "Ports à l'écoute (processus par leur nom)"
-    local p ligne
+    local p ligne hex
     for p in 80 443 5432; do
-        ligne=$(ss -H -ltnp 2>/dev/null | awk -v port=":$p" '$4 ~ port"$" {print $4 " " $NF}' | sort -u)
-        if [ -n "$ligne" ]; then
-            info "Port $p : à l'écoute"
-            printf '%s\n' "$ligne" | indente
+        if a ss; then
+            # Adresse d'écoute, puis nom du processus s'il est visible (jamais sa ligne de commande).
+            ligne=$(ss -H -ltnp 2>/dev/null | awk -v port=":$p" '$4 ~ port"$" { proc = "(processus non visible)"; if (match($0, /users:\(\("[^"]*"/)) { proc = substr($0, RSTART + 9, RLENGTH - 10) } print $4 " — " proc }' | sort -u)
+            if [ -n "$ligne" ]; then
+                info "Port $p : à l'écoute"
+                printf '%s\n' "$ligne" | indente
+            else
+                info "Port $p : personne n'écoute"
+            fi
         else
-            info "Port $p : personne n'écoute"
+            # Repli sans l'outil « ss » : lecture directe de la table des sockets du noyau (état 0A = à l'écoute).
+            hex=$(printf '%04X' "$p")
+            if grep -qiE "^[[:space:]]*[0-9]+: [0-9A-F]+:$hex [0-9A-F]+:[0-9A-F]+ 0A" /proc/net/tcp /proc/net/tcp6 2>/dev/null; then
+                info "Port $p : à l'écoute (processus non identifiable : l'outil ss est absent)"
+            else
+                info "Port $p : personne n'écoute"
+            fi
         fi
     done
 
