@@ -85,6 +85,8 @@ arreter() {
 
 sur_erreur() {
     local code=$?
+    # Dans une substitution de commande $(...), l'erreur ne concerne pas le script principal : on sort sans bruit.
+    [ "$BASHPID" = "$$" ] || exit "$code"
     trap - ERR
     printf '\n✘ L'"'"'installation s'"'"'est arrêtée pendant l'"'"'étape : %s (code %s).\n' "$ETAPE" "$code" >&2
     printf '  Les autres sites du serveur n'"'"'ont pas été touchés.\n' >&2
@@ -332,9 +334,11 @@ saisies() {
 # ============================================================== 3. récapitulatif
 recapitulatif() {
     titre "Ce que je vais faire"
+    local qui="déjà créé"
+    [ -n "$PRESIDENT_EMAIL" ] && qui="$PRESIDENT_NOM <$PRESIDENT_EMAIL>"
     cat <<E
   Site                : https://$DOMAINE (certificat HTTPS gratuit Let's Encrypt)
-  Compte du Président : ${PRESIDENT_EMAIL:+$PRESIDENT_NOM <$PRESIDENT_EMAIL>}${PRESIDENT_EMAIL:-déjà créé}
+  Compte du Président : $qui
 
   Je vais CRÉER, aux noms ci-dessous, et rien d'autre :
     - un utilisateur système dédié        : $APP_USER
@@ -456,7 +460,10 @@ etape_depot() {
             && runuser -u "$APP_USER" -- git -C "$APP_DIR/repo" reset --quiet --hard FETCH_HEAD \
             || arreter "Impossible de mettre à jour le code depuis $DEPOT."
     fi
-    etat_marquer "depot"; ok "code récupéré ($(git -C "$APP_DIR/repo" rev-parse --short HEAD))"
+    # Le dépôt appartient au compte dédié : git refuse de le lire en administrateur (« dubious ownership »).
+    local version
+    version="$(runuser -u "$APP_USER" -- git -C "$APP_DIR/repo" rev-parse --short HEAD 2>/dev/null || true)"
+    etat_marquer "depot"; ok "code récupéré (${version:-version inconnue})"
 }
 
 # ================================================================== 8. .env
