@@ -1,7 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\Process;
-
 /*
  * Règle des scripts de deploy/ : un message d'arrêt ne s'affiche JAMAIS sans arrêt réel du script, y compris quand
  * l'erreur survient dans une substitution de commande $(...) ou un sous-shell (incident de l'installation réelle du
@@ -10,20 +8,6 @@ use Illuminate\Support\Facades\Process;
 
 const MESSAGE_ARRET = 'L’installation s’est arrêtée pendant l’étape';
 const MESSAGE_ARRET_ASCII = "L'installation s'est arrêtée pendant l'étape";
-
-/**
- * Charge les fonctions de install.sh sans lancer l'installation, puis exécute un scénario.
- *
- * @return array{code: int, sortie: string}
- */
-function scenarioInstall(string $scenario): array
-{
-    $script = base_path('deploy/install.sh');
-    $resultat = Process::env(['GAMAD_SOURCE_ONLY' => '1'])
-        ->run(['bash', '-c', "source '$script'\ntitre 'Étape d essai'\n$scenario"]);
-
-    return ['code' => $resultat->exitCode(), 'sortie' => $resultat->output().$resultat->errorOutput()];
-}
 
 it('s’arrête vraiment quand une affectation par substitution échoue', function () {
     $r = scenarioInstall('x="$(false)"; echo APRES');
