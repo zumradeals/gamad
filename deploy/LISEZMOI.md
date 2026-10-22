@@ -41,7 +41,7 @@ Ce qu'il crée, aux noms dédiés :
 | Unités systemd | `gamad-reseau-deploy.{service,timer}`, `gamad-reseau-sauvegarde.{service,timer}` |
 | Réglages techniques | `/etc/gamad-reseau/deploy.conf` (sans secret) et `/etc/gamad-reseau/etat` (liste de ce qui a été créé) |
 | Journaux | `/var/log/gamad-reseau/` (`installation.log`, `deploy.log`, `sauvegarde.log`, `php-fpm.log`) |
-| Sauvegardes | `/var/backups/gamad-reseau/` (lisible par l'administrateur seul) |
+| Sauvegardes | `/var/backups/gamad-reseau/` : base, `.env`, photos de profil (lisible par l'administrateur seul) |
 
 Extensions PHP exigées (le script installe seulement celles qui manquent) : `ctype curl dom fileinfo gd intl mbstring openssl pdo_pgsql
 tokenizer xml zip`. **`gd`** sert à traiter les photos de profil (Lot 1). Sur un serveur installé avant le Lot 1, le déploiement automatique
@@ -86,10 +86,13 @@ pour ne pas redéployer la version défaillante. Si le site ne répond pas avec 
 
 Chaque nuit à 3 h 30 (heure du serveur) : `pg_dump` de la base `gamad_reseau` (format personnalisé), vérifié par `pg_restore --list`,
 plus une copie du `.env` (la clé de chiffrement qu'il contient est indispensable pour relire les mots de passe enregistrés dans
-Paramètres). Les 7 plus récentes sont conservées. Pour restaurer :
+Paramètres), et les photos de profil (`storage/app/private/profile-photos` du dossier partagé) dans une archive
+`photos-AAAA-MM-JJ_HHMMSS.tar.gz`. Les 7 plus récentes de chaque sorte sont conservées. Sans photo, ou si le dossier n'existe pas
+encore, il n'y a simplement pas d'archive de photos et la sauvegarde réussit. Pour restaurer :
 
 ```
 sudo -u postgres pg_restore --clean --if-exists --no-owner -d gamad_reseau /var/backups/gamad-reseau/gamad_reseau-AAAA-MM-JJ_HHMMSS.dump
+sudo tar -xzf /var/backups/gamad-reseau/photos-AAAA-MM-JJ_HHMMSS.tar.gz -C /srv/gamad-reseau/shared/storage/app/private && sudo chown -R gamad-reseau:gamad-reseau /srv/gamad-reseau/shared/storage/app/private/profile-photos
 ```
 
 ## Désinstallation

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Profile;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,16 +20,27 @@ class PersonController extends Controller
         return view('pages.personne', ['profile' => $profile, 'isOwner' => auth()->id() === $profile->user_id]);
     }
 
-    public function photo(Profile $profile): Response
+    /**
+     * La photo repasse par la règle de visibilité à chaque affichage : « no-cache » oblige le navigateur à revalider avant de la
+     * réafficher, et la revalidation (ETag) n'aboutit à « 304 » qu'après le contrôle d'accès. Un profil passé à « inscrits
+     * seulement » n'est donc plus servi à un visiteur sans compte, même s'il avait déjà la photo en mémoire.
+     */
+    public function photo(Request $request, Profile $profile): Response
     {
         Gate::authorize('view', $profile);
 
         abort_unless($profile->hasPhoto() && Storage::disk(Profile::PHOTO_DISK)->exists($profile->photo_path), 404);
 
-        return Storage::disk(Profile::PHOTO_DISK)->response($profile->photo_path, null, [
+        $response = Storage::disk(Profile::PHOTO_DISK)->response($profile->photo_path, null, [
             'Content-Type' => 'image/jpeg',
-            'Cache-Control' => 'private, max-age=86400',
             'X-Content-Type-Options' => 'nosniff',
         ]);
+
+        // Le nom du fichier change à chaque nouvelle photo : il identifie donc la version sans lire le fichier.
+        $response->setEtag(md5($profile->photo_path));
+        $response->headers->set('Cache-Control', 'private, no-cache');
+        $response->isNotModified($request);
+
+        return $response;
     }
 }
