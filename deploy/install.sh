@@ -107,24 +107,31 @@ rendre() {   # remplace les marqueurs @@NOM@@ d'un modèle lu sur l'entrée stan
 }
 
 # ------------------------------------------------------------- paquets (garde)
+apt_simuler() {   # paquets... — simule l'installation ; refuse si elle supprimerait ou mettrait à jour un paquet existant
+    local simulation
+    # Si la simulation échoue (liste de paquets périmée, par exemple), on ne peut pas juger ici : la vérification sera refaite
+    # juste avant l'installation, après mise à jour de la liste.
+    simulation="$(apt-get -s install --no-install-recommends --no-upgrade "$@" 2>&1)" || return 0
+    if grep -qE '^Remv ' <<<"$simulation"; then
+        arreter "Installer $* supprimerait un paquet existant : je ne le fais pas." "$(grep -E '^Remv ' <<<"$simulation" | head -n 3)"
+    fi
+    if grep -qE '^Inst [^ ]+ \[' <<<"$simulation"; then
+        arreter "Installer $* mettrait à jour un paquet existant : je ne le fais pas." "$(grep -E '^Inst [^ ]+ \[' <<<"$simulation" | head -n 3)"
+    fi
+}
+
 apt_installer() {   # paquets... — n'installe que ce qui manque, refuse toute mise à jour ou suppression
-    local manquants=() p simulation
+    local manquants=() p
     for p in "$@"; do dpkg -s "$p" >/dev/null 2>&1 || manquants+=("$p"); done
     [ "${#manquants[@]}" -eq 0 ] && return 0
 
     if [ "$SIMULATION" = "1" ]; then info "[simulation] installerait : ${manquants[*]}"; return 0; fi
 
     apt-get update -qq >/dev/null
-    simulation="$(apt-get -s install --no-install-recommends --no-upgrade "${manquants[@]}" 2>&1)" \
-        || arreter "Impossible d'installer : ${manquants[*]}" "Le gestionnaire de paquets répond : $(printf '%s' "$simulation" | tail -n 3 | tr '\n' ' ')"
-    if grep -qE '^Remv ' <<<"$simulation"; then
-        arreter "Installer ${manquants[*]} supprimerait un paquet existant : je ne le fais pas." "$(grep -E '^Remv ' <<<"$simulation" | head -n 3)"
-    fi
-    if grep -qE '^Inst [^ ]+ \[' <<<"$simulation"; then
-        arreter "Installer ${manquants[*]} mettrait à jour un paquet existant : je ne le fais pas." "$(grep -E '^Inst [^ ]+ \[' <<<"$simulation" | head -n 3)"
-    fi
+    apt_simuler "${manquants[@]}"
     DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=l NEEDRESTART_SUSPEND=1 \
-        apt-get install -y -qq --no-install-recommends --no-upgrade "${manquants[@]}" </dev/null >/dev/null
+        apt-get install -y -qq --no-install-recommends --no-upgrade "${manquants[@]}" </dev/null >/dev/null \
+        || arreter "L'installation de ${manquants[*]} a échoué."
     ok "installé : ${manquants[*]}"
 }
 
@@ -141,7 +148,7 @@ controles() {
     fi
     ok "Système : ${PRETTY_NAME:-inconnu}"
 
-    local libre_ko
+    local libre_ko p
     libre_ko="$(df -Pk "$(dirname "$APP_DIR")" | awk 'NR==2 {print $4}')"
     [ "${libre_ko:-0}" -gt 2000000 ] || arreter "Moins de 2 Go libres pour $(dirname "$APP_DIR") : espace insuffisant."
     ok "Espace disque suffisant"
@@ -206,7 +213,13 @@ controles() {
     command -v composer >/dev/null 2>&1 || A_INSTALLER+=(composer)
     command -v flock >/dev/null 2>&1 || A_INSTALLER+=(util-linux)
     if ! command -v pg_lsclusters >/dev/null 2>&1 || [ -z "$(pg_lsclusters --no-header 2>/dev/null)" ]; then A_INSTALLER+=(postgresql); fi
-    [ "${#A_INSTALLER[@]}" -gt 0 ] && info "À installer (ce qui manque seulement) : $(printf '%s\n' "${A_INSTALLER[@]}" | sort -u | tr '\n' ' ')"
+    if [ "${#A_INSTALLER[@]}" -gt 0 ]; then
+        info "À installer (ce qui manque seulement) : $(printf '%s\n' "${A_INSTALLER[@]}" | sort -u | tr '\n' ' ')"
+        # Refus dès maintenant, avant toute modification, si cela toucherait à un paquet existant.
+        local a_verifier=()
+        for p in $(printf '%s\n' "${A_INSTALLER[@]}" | sort -u); do dpkg -s "$p" >/dev/null 2>&1 || a_verifier+=("$p"); done
+        [ "${#a_verifier[@]}" -gt 0 ] && apt_simuler "${a_verifier[@]}"
+    fi
 
     # --- Configuration actuelle : elle doit être saine AVANT que je touche à quoi que ce soit.
     if command -v nginx >/dev/null 2>&1; then
