@@ -32,6 +32,9 @@ class Espace extends Component
                 AdminJournal::record($user, 'account.deleted_by_owner', $user, payload: ['role' => $user->platform_role->value]);
             }
 
+            // Aucun jeton de réinitialisation ne survit au compte : il est rattaché à l'adresse e-mail, non à l'identifiant.
+            DB::table('password_reset_tokens')->whereRaw('lower(email) = ?', [mb_strtolower($user->email)])->delete();
+
             Auth::guard('web')->logout();
             $user->delete();
         });

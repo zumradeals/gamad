@@ -3,6 +3,8 @@
 use App\Livewire\Espace;
 use App\Models\AdminAction;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Password;
 use Livewire\Livewire;
 
 it('affiche le nom et l’adresse e-mail de la personne connectée seulement', function () {
@@ -82,4 +84,33 @@ it('affiche la confirmation avec les états d’erreur du mot de passe', functio
         ->set('password', 'faux')
         ->call('deleteAccount')
         ->assertSee('Le mot de passe est incorrect.');
+});
+
+it('efface aussi les jetons de réinitialisation de mot de passe du compte supprimé, et seulement les siens', function () {
+    $user = User::factory()->create(['email' => 'awa@example.com', 'password' => 'motdepasse1']);
+    $autre = User::factory()->create(['email' => 'moussa@example.com']);
+
+    Password::createToken($user);
+    Password::createToken($autre);
+    expect(DB::table('password_reset_tokens')->count())->toBe(2);
+
+    Livewire::actingAs($user)->test(Espace::class)
+        ->set('password', 'motdepasse1')
+        ->call('deleteAccount');
+
+    expect(User::find($user->id))->toBeNull()
+        ->and(DB::table('password_reset_tokens')->where('email', 'awa@example.com')->exists())->toBeFalse()
+        ->and(DB::table('password_reset_tokens')->where('email', 'moussa@example.com')->exists())->toBeTrue();
+});
+
+it('conserve les jetons de réinitialisation quand la suppression est refusée', function () {
+    $user = User::factory()->create(['password' => 'motdepasse1']);
+    Password::createToken($user);
+
+    Livewire::actingAs($user)->test(Espace::class)
+        ->set('password', 'faux')
+        ->call('deleteAccount')
+        ->assertHasErrors(['password']);
+
+    expect(DB::table('password_reset_tokens')->where('email', $user->email)->exists())->toBeTrue();
 });
