@@ -17,6 +17,46 @@ class Espace extends Component
 {
     public string $password = '';
 
+    public string $name = '';
+
+    public function mount(): void
+    {
+        $this->name = Auth::user()->name;
+    }
+
+    /**
+     * Chaque personne modifie son propre nom affiché, et lui seul. Les entrées passées du journal d'administration
+     * gardent l'ancien nom (actor_label est une copie faite au moment de l'acte).
+     */
+    public function updateName(): void
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        $this->name = trim($this->name);
+        $this->validate(['name' => ['required', 'string', 'max:255']], [], ['name' => 'nom affiché']);
+
+        if ($this->name === $user->name) {
+            session()->flash('status', 'Aucune modification.');
+            $this->redirect(route('espace'), navigate: false);
+
+            return;
+        }
+
+        DB::transaction(function () use ($user) {
+            // Les actes d'un modérateur ou du super administrateur sont tracés (CLAUDE.md, règle 8, D-063) : l'entrée porte
+            // l'ancien nom, celui sous lequel la personne était connue au moment de l'acte.
+            if ($user->can('moderate')) {
+                AdminJournal::record($user, 'account.renamed_by_owner', $user, payload: ['ancien' => $user->name, 'nouveau' => $this->name]);
+            }
+
+            $user->update(['name' => $this->name]);
+        });
+
+        session()->flash('status', 'Nom affiché enregistré.');
+        $this->redirect(route('espace'), navigate: false);
+    }
+
     public function deleteAccount(): void
     {
         /** @var User $user */

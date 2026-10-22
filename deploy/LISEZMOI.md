@@ -101,3 +101,15 @@ Le dépôt est public et le serveur n'a aucun secret à configurer. Conséquence
 faire exécuter du code sur le serveur**, sous le compte dédié `gamad-reseau` (jamais en administrateur, sans mot de passe sudo).
 Protégez donc la branche `main` (revue obligatoire, pas de poussée directe de code) : c'est déjà la règle du projet, le code ne
 passe que par une Pull Request.
+
+## Règles d'écriture des scripts
+
+Ces règles sont vérifiées par `tests/Feature/Deploy/` (elles s'exécutent à chaque Pull Request) :
+
+- **Un message d'arrêt ne s'affiche jamais sans arrêt réel.** Les pièges d'erreur (`trap … ERR`) ne font rien hors du shell principal
+  (substitutions `$( … )` et sous-shells) ; `arreter()` arrête le script principal même appelée depuis un sous-shell.
+- **Aucune commande pouvant échouer dans un message** (`ok`, `info`, `arreter`, `journal`, `echo`…) : on calcule la valeur avant,
+  dans une variable, avec `|| true` si l'échec est sans gravité, et sans `|| true` si l'échec doit arrêter le script.
+- Le code du dépôt (`/srv/gamad-reseau/repo`) appartient au compte dédié : toute commande `git` y est lancée avec
+  `runuser -u gamad-reseau --` (sinon git refuse : « dubious ownership »).
+- Pour tester un script `install.sh` sans l'exécuter : `GAMAD_SOURCE_ONLY=1 source deploy/install.sh` charge ses fonctions seulement.

@@ -48,6 +48,8 @@ Les réglages se font dans l'application, jamais dans un fichier.
 3. Ouvrez le courriel reçu, touchez le lien de vérification : vous arrivez sur le Fil.
    Si le courriel n'arrive pas, touchez **Renvoyer le lien**.
 4. Dans **Espace**, vous voyez votre nom et votre adresse e-mail, mais **pas** la section Administration.
+   Vous pouvez y **modifier votre nom affiché** : changez-le dans le champ « Nom affiché », touchez **Enregistrer le nom** ;
+   un message confirme, et le nouveau nom apparaît aussitôt. Un nom vide est refusé avec un message clair.
    Essayez d'ouvrir **https://reseau.dgafrique.com/espace/parametres** : l'accès est refusé (page « Accès refusé »).
 5. **Se déconnecter**, puis **Se connecter** avec un mauvais mot de passe : un message clair s'affiche.
    Après 5 essais ratés en moins d'une minute, la connexion est bloquée un moment.
