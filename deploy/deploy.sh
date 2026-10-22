@@ -209,6 +209,9 @@ journal "Version $NOM (commit ${SHA:0:7}) en ligne. Précédente : $PRECEDENT_NO
 rm -f "$ETAT/echecs/$SHA" "$ETAT/gel-sha"
 if [ -n "$PRECEDENT" ]; then basename "$PRECEDENT" >"$ETAT/precedente" || true; fi
 
+# Compteurs d'échec des anciens commits : on garde les 20 plus récents.
+{ ls -1t "$ETAT/echecs" 2>/dev/null | tail -n +21 | while read -r ancien; do rm -f "$ETAT/echecs/$ancien"; done; } || true
+
 # Les journaux de construction des versions échouées n'ont plus de dossier : on garde les 10 plus récents.
 { ls -1t "$APP_DIR"/releases/*.log 2>/dev/null | tail -n +11 | xargs -r rm -f; } || true
 
