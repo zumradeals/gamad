@@ -20,6 +20,14 @@
         </form>
     </section>
 
+    @can('super-admin')
+        <section aria-labelledby="administration" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
+            <h2 id="administration" class="text-[18px] font-extrabold">Administration</h2>
+            <p class="text-muted">Courriel, nom et adresse de la plateforme, limites de sécurité.</p>
+            <x-button :href="route('espace.parametres')">Paramètres</x-button>
+        </section>
+    @endcan
+
     <section aria-labelledby="suppression" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]" x-data="{ confirming: {{ $errors->has('password') ? 'true' : 'false' }} }">
         <h2 id="suppression" class="text-[18px] font-extrabold">Supprimer mon compte</h2>
         <p class="text-muted">La suppression est définitive : votre compte et vos données personnelles sont effacés et ne peuvent pas être restaurés.</p>

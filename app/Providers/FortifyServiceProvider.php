@@ -26,13 +26,14 @@ class FortifyServiceProvider extends ServiceProvider
         // La confirmation de mot de passe n'a pas d'écran au lot 0 : la route interne de Fortify répond 404.
         Fortify::confirmPasswordView(fn () => abort(404));
 
-        // 20 inscriptions par heure et par adresse IP : beaucoup d'utilisateurs mobiles partagent une même adresse IP (D-045).
-        RateLimiter::for('register', fn (Request $request) => Limit::perHour(20)->by($request->ip()));
+        // Inscriptions par heure et par adresse IP (20 par défaut : beaucoup d'utilisateurs mobiles partagent une même
+        // adresse IP, D-045). La valeur se règle dans la page « Paramètres ».
+        RateLimiter::for('register', fn (Request $request) => Limit::perHour((int) config('gamad.limits.register_per_hour'))->by($request->ip()));
 
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
 
-            return Limit::perMinute(5)->by($throttleKey);
+            return Limit::perMinute((int) config('gamad.limits.login_per_minute'))->by($throttleKey);
         });
     }
 }

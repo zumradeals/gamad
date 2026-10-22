@@ -4,7 +4,7 @@
     $enabled = fn (array $items) => array_values(array_filter($items, fn ($item) => $item['enabled'] ?? false));
     $phoneItems = $enabled(config('navigation.phone'));
     $desktopItems = $enabled(config('navigation.desktop'));
-    $isActive = fn (array $item) => $item['route'] && request()->routeIs($item['route']);
+    $isActive = fn (array $item) => $item['route'] && request()->routeIs($item['route'], $item['route'].'.*');
 @endphp
 
 <!DOCTYPE html>
@@ -13,7 +13,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0E2A3F">
-    <title>{{ $title ? $title.' — GAMAD' : 'GAMAD' }}</title>
+    <title>{{ $title ? $title.' — '.config('app.name') : config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>

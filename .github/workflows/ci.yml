@@ -55,6 +55,12 @@ jobs:
           npm ci
           npm run build
 
+      - name: Syntaxe des scripts de déploiement
+        run: |
+          for script in deploy/*.sh; do
+            bash -n "$script"
+          done
+
       - name: Pint (style du code)
         run: vendor/bin/pint --test
 
