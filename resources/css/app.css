@@ -1,0 +1,104 @@
+@import 'tailwindcss';
+
+@source '../../storage/framework/views/*.php';
+
+/* Police auto-hébergée : Plus Jakarta Sans (licence SIL OFL, voir resources/fonts/LICENSE-OFL.txt). */
+@font-face {
+    font-family: 'Plus Jakarta Sans';
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+    src: url('../fonts/plus-jakarta-sans-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Plus Jakarta Sans';
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+    src: url('../fonts/plus-jakarta-sans-latin-500-normal.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Plus Jakarta Sans';
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+    src: url('../fonts/plus-jakarta-sans-latin-600-normal.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Plus Jakarta Sans';
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+    src: url('../fonts/plus-jakarta-sans-latin-700-normal.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Plus Jakarta Sans';
+    font-weight: 800;
+    font-style: normal;
+    font-display: swap;
+    src: url('../fonts/plus-jakarta-sans-latin-800-normal.woff2') format('woff2');
+}
+
+/* Jetons de design — docs/DESIGN.md §1 à §3. */
+@theme {
+    --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+
+    --color-ink: #0e2a3f;
+    --color-muted: #4a5b68;
+    --color-ground: #f5f3ee;
+    --color-card: #ffffff;
+    --color-line: #e3e0d8;
+    --color-line-soft: #eeebe4;
+    --color-chip-line: #d5d1c7;
+    --color-accent: #f2c200;
+    --color-link: #0a5fa3;
+    --color-link-hover: #08487a;
+    --color-soft-blue: #eaf2fa;
+    --color-danger: #b42318;
+
+    --color-type-need-bg: #fce9d9;
+    --color-type-need-fg: #8a3b00;
+    --color-type-knowledge-bg: #ddf1e4;
+    --color-type-knowledge-fg: #1b5e33;
+    --color-type-learning-bg: #dcebf8;
+    --color-type-learning-fg: #0a4c85;
+    --color-type-project-bg: #ece6f8;
+    --color-type-project-fg: #4b2f86;
+    --color-type-call-bg: #fbf1c7;
+    --color-type-call-fg: #6b5200;
+
+    --radius-card: 16px;
+    --radius-button: 12px;
+    --radius-chip: 999px;
+}
+
+@layer base {
+    html {
+        font-family: var(--font-sans);
+        background-color: var(--color-ground);
+        color: var(--color-ink);
+    }
+
+    body {
+        font-size: 15px;
+        line-height: 1.5;
+        min-height: 100vh;
+    }
+
+    a {
+        color: var(--color-link);
+    }
+
+    a:hover {
+        color: var(--color-link-hover);
+    }
+
+    :focus-visible {
+        outline: 3px solid var(--color-link);
+        outline-offset: 2px;
+    }
+
+    [x-cloak] {
+        display: none !important;
+    }
+}
