@@ -41,3 +41,9 @@ php artisan gamad:super-admin adresse@exemple.org --raison="Président de GAMAD"
 Le compte doit déjà exister. L'option `--raison` est obligatoire ; l'acte et sa raison sont inscrits au journal d'administration.
 
 Pour essayer le lot sur un téléphone : `docs/TESTER.md`.
+
+## Mise en ligne
+
+Le site de test `reseau.dgafrique.com` s'installe avec `deploy/install.sh` et se met à jour tout seul à chaque fusion sur `main` :
+voir `deploy/LISEZMOI.md` (administration du serveur). Les réglages métier (courriel, nom, limites) se font dans l'application,
+page Paramètres, jamais dans le fichier `.env`. Essai sur téléphone : `docs/TESTER.md`.
