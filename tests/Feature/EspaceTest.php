@@ -114,3 +114,34 @@ it('conserve les jetons de réinitialisation quand la suppression est refusée',
 
     expect(DB::table('password_reset_tokens')->where('email', $user->email)->exists())->toBeTrue();
 });
+
+it('efface aussi toutes les sessions du compte supprimé (adresse IP, navigateur), et seulement les siennes', function () {
+    $user = User::factory()->create(['password' => 'motdepasse1']);
+    $autre = User::factory()->create();
+
+    foreach ([['s1', $user->id], ['s2', $user->id], ['s3', $autre->id], ['s4', null]] as [$id, $userId]) {
+        DB::table('sessions')->insert([
+            'id' => $id, 'user_id' => $userId, 'ip_address' => '203.0.113.9',
+            'user_agent' => 'Navigateur de test', 'payload' => '', 'last_activity' => time(),
+        ]);
+    }
+
+    Livewire::actingAs($user)->test(Espace::class)
+        ->set('password', 'motdepasse1')
+        ->call('deleteAccount');
+
+    expect(DB::table('sessions')->where('user_id', $user->id)->count())->toBe(0)
+        ->and(DB::table('sessions')->pluck('id')->sort()->values()->all())->toBe(['s3', 's4']);
+});
+
+it('conserve les sessions quand la suppression est refusée', function () {
+    $user = User::factory()->create(['password' => 'motdepasse1']);
+    DB::table('sessions')->insert(['id' => 's1', 'user_id' => $user->id, 'payload' => '', 'last_activity' => time()]);
+
+    Livewire::actingAs($user)->test(Espace::class)
+        ->set('password', 'faux')
+        ->call('deleteAccount')
+        ->assertHasErrors(['password']);
+
+    expect(DB::table('sessions')->where('user_id', $user->id)->count())->toBe(1);
+});

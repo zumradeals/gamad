@@ -35,6 +35,9 @@ class Espace extends Component
             // Aucun jeton de réinitialisation ne survit au compte : il est rattaché à l'adresse e-mail, non à l'identifiant.
             DB::table('password_reset_tokens')->whereRaw('lower(email) = ?', [mb_strtolower($user->email)])->delete();
 
+            // Ni adresse IP ni navigateur ne survivent au compte : toutes ses sessions sont effacées (D-048).
+            DB::table('sessions')->where('user_id', $user->id)->delete();
+
             Auth::guard('web')->logout();
             $user->delete();
         });
