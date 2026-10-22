@@ -29,6 +29,12 @@ export COMPOSER_HOME="$APP_DIR/.composer" COMPOSER_NO_INTERACTION=1 COMPOSER_ALL
 export npm_config_cache="$APP_DIR/.npm" CI=true NO_COLOR=1 FORCE_COLOR=0 TERM=dumb
 
 SHARED="$APP_DIR/shared"
+
+# Composer et artisan doivent utiliser la version de PHP choisie à l'installation, quel que soit le « php » par défaut
+# du serveur : on met un lien « php » vers elle en tête du chemin (fonctionne que composer soit un phar ou un script).
+mkdir -p "$SHARED/bin-php"
+ln -sfn "$PHP_BIN" "$SHARED/bin-php/php"
+export PATH="$SHARED/bin-php:$PATH"
 ETAT="$SHARED/etat"
 ENV_FILE="$SHARED/.env"
 MAX_ECHECS=3
@@ -156,7 +162,7 @@ ln -s "$ENV_FILE" "$RELEASE_DIR/.env"
 cd "$RELEASE_DIR"
 
 ETAPE="installation des dépendances PHP (composer)"
-exec_logue "$PHP_BIN" "$(command -v composer)" install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-progress --no-ansi
+exec_logue composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-progress --no-ansi
 
 ETAPE="installation des dépendances du front (npm)"
 exec_logue npm ci --no-audit --no-fund
