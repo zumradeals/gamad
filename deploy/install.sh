@@ -499,10 +499,15 @@ E
     ok "pool $POOL_NOM actif (rechargement doux de php$PHP_V-fpm)"
 }
 
+# Les lignes « listen [::] » (IPv6) ne sont écrites que si ce serveur sait faire de l'IPv6 : sinon Nginx refuserait de démarrer.
+sans_ipv6_si_absent() {
+    if [ -s /proc/net/if_inet6 ]; then cat; else grep -v 'listen \[::\]'; fi
+}
+
 ecrire_vhost() {   # http | https
     local phase="$1"
     if [ "$phase" = "http" ]; then
-        cat <<'E' | rendre >"$VHOST"
+        cat <<'E' | rendre | sans_ipv6_si_absent >"$VHOST"
 # GAMAD — site de @@DOMAINE@@ (créé par deploy/install.sh) : phase d'obtention du certificat.
 server {
     listen 80;
@@ -521,7 +526,7 @@ server {
 }
 E
     else
-        cat <<'E' | rendre >"$VHOST"
+        cat <<'E' | rendre | sans_ipv6_si_absent >"$VHOST"
 # GAMAD — site de @@DOMAINE@@ (créé par deploy/install.sh). Ne concerne que ce nom de domaine.
 server {
     listen 80;
