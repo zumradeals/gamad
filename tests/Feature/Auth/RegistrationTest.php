@@ -96,3 +96,44 @@ it('rédige le courriel de vérification en français', function () {
         ->and($mail->actionText)->toBe('Vérifier mon adresse e-mail')
         ->and($mail->introLines)->toContain('Cliquez sur le bouton ci-dessous pour confirmer votre adresse e-mail.');
 });
+
+it('limite à 5 les inscriptions par heure et par adresse IP', function () {
+    foreach (range(1, 5) as $n) {
+        $this->post('/register', [
+            'name' => "Personne $n", 'email' => "personne$n@example.com",
+            'password' => 'motdepasse1', 'password_confirmation' => 'motdepasse1',
+        ])->assertRedirect(route('fil'));
+        $this->post('/logout');
+    }
+
+    $this->post('/register', [
+        'name' => 'Sixième', 'email' => 'sixieme@example.com',
+        'password' => 'motdepasse1', 'password_confirmation' => 'motdepasse1',
+    ])->assertStatus(429);
+
+    expect(User::where('email', 'sixieme@example.com')->exists())->toBeFalse();
+});
+
+it('compte aussi les tentatives refusées, et ne gêne pas les autres adresses IP', function () {
+    foreach (range(1, 5) as $_) {
+        $this->post('/register', [])->assertSessionHasErrors();
+    }
+
+    $this->post('/register', [])->assertStatus(429);
+
+    $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.7'])
+        ->post('/register', [])->assertSessionHasErrors();
+});
+
+it('n’applique pas la limite d’inscription à l’affichage du formulaire ni à la connexion', function () {
+    foreach (range(1, 8) as $_) {
+        $this->get('/register')->assertOk();
+    }
+
+    foreach (range(1, 5) as $_) {
+        $this->post('/register', []);
+    }
+
+    $this->get('/register')->assertOk();
+    $this->get('/login')->assertOk();
+});

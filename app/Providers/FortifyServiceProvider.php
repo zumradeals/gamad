@@ -26,6 +26,9 @@ class FortifyServiceProvider extends ServiceProvider
         // La confirmation de mot de passe n'a pas d'écran au lot 0 : la route interne de Fortify répond 404.
         Fortify::confirmPasswordView(fn () => abort(404));
 
+        // 5 inscriptions par heure et par adresse IP (D-045).
+        RateLimiter::for('register', fn (Request $request) => Limit::perHour(5)->by($request->ip()));
+
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
 
