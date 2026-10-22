@@ -1,0 +1,50 @@
+<div class="flex flex-col gap-4">
+    <h1 class="text-[24px] font-extrabold leading-tight">Espace</h1>
+
+    <section aria-labelledby="compte" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
+        <h2 id="compte" class="text-[18px] font-extrabold">Mon compte</h2>
+        <div class="flex items-center gap-3">
+            <span class="flex size-12 shrink-0 items-center justify-center rounded-full bg-ink text-[18px] font-extrabold text-white" aria-hidden="true">{{ $user->initial() }}</span>
+            <dl class="min-w-0">
+                <dt class="sr-only">Nom affiché</dt>
+                <dd class="truncate text-[16px] font-bold">{{ $user->name }}</dd>
+                <dt class="sr-only">Adresse e-mail</dt>
+                <dd class="truncate text-[13px] text-muted">{{ $user->email }}</dd>
+            </dl>
+        </div>
+        <p class="text-[13px] text-muted">Votre adresse e-mail n’est visible que par vous.</p>
+
+        <form method="POST" action="{{ route('logout') }}" class="flex flex-col pt-1">
+            @csrf
+            <x-button variant="secondary">Se déconnecter</x-button>
+        </form>
+    </section>
+
+    <section aria-labelledby="suppression" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]" x-data="{ confirming: {{ $errors->has('password') ? 'true' : 'false' }} }">
+        <h2 id="suppression" class="text-[18px] font-extrabold">Supprimer mon compte</h2>
+        <p class="text-muted">La suppression est définitive : votre compte et vos données personnelles sont effacés et ne peuvent pas être restaurés.</p>
+
+        <div x-show="!confirming">
+            <x-button type="button" variant="secondary" x-on:click="confirming = true">Supprimer mon compte</x-button>
+        </div>
+
+        <form wire:submit="deleteAccount" x-show="confirming" x-cloak class="flex flex-col gap-3">
+            <div class="flex flex-col gap-1.5">
+                <label for="password" class="text-[13px] font-semibold">Confirmez avec votre mot de passe</label>
+                <input id="password" type="password" wire:model="password" autocomplete="current-password" required
+                       @class(['min-h-11 w-full rounded-button border bg-card px-3.5 text-[15px]', $errors->has('password') ? 'border-danger' : 'border-chip-line'])
+                       @if ($errors->has('password')) aria-invalid="true" aria-describedby="password-error" @endif>
+                @error('password')
+                    <p id="password-error" role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>
+                @enderror
+            </div>
+            <div class="flex flex-col gap-2 sm:flex-row">
+                <x-button wire:loading.attr="disabled" wire:target="deleteAccount" class="sm:flex-1">
+                    <span wire:loading.remove wire:target="deleteAccount">Supprimer définitivement</span>
+                    <span wire:loading wire:target="deleteAccount">Suppression…</span>
+                </x-button>
+                <x-button type="button" variant="secondary" class="sm:flex-1" x-on:click="confirming = false; $wire.set('password', '')">Annuler</x-button>
+            </div>
+        </form>
+    </section>
+</div>
