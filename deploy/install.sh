@@ -80,11 +80,17 @@ arreter() {
     else
         printf '\n  Rien n'"'"'a été modifié sur le serveur.\n' >&2
     fi
+    # Appelée depuis un sous-shell ou une substitution de commande $(...), un simple « exit » n'arrêterait que ce
+    # sous-shell : on demande au script principal de s'arrêter aussi (piège TERM ci-dessous). Un message d'arrêt ne
+    # s'affiche donc jamais sans arrêt réel.
+    [ "$BASHPID" = "$$" ] || kill -TERM "$$"
     exit 1
 }
 
 sur_erreur() {
     local code=$?
+    # Dans une substitution de commande $(...), l'erreur ne concerne pas le script principal : on sort sans bruit.
+    [ "$BASHPID" = "$$" ] || exit "$code"
     trap - ERR
     printf '\n✘ L'"'"'installation s'"'"'est arrêtée pendant l'"'"'étape : %s (code %s).\n' "$ETAPE" "$code" >&2
     printf '  Les autres sites du serveur n'"'"'ont pas été touchés.\n' >&2
@@ -94,6 +100,7 @@ sur_erreur() {
     exit "$code"
 }
 trap sur_erreur ERR
+trap 'exit 1' TERM   # arrêt demandé par arreter() depuis un sous-shell (le message est déjà affiché)
 
 # --------------------------------------------------------------------- état
 etat_a()      { [ -f "$ETAT_FILE" ] && grep -qxF "$1" "$ETAT_FILE"; }
@@ -120,11 +127,14 @@ apt_simuler() {   # paquets... — simule l'installation ; refuse si elle suppri
     # Si la simulation échoue (liste de paquets périmée, par exemple), on ne peut pas juger ici : la vérification sera refaite
     # juste avant l'installation, après mise à jour de la liste.
     simulation="$(apt-get -s install --no-install-recommends --no-upgrade "$@" 2>&1)" || return 0
+    local details
     if grep -qE '^Remv ' <<<"$simulation"; then
-        arreter "Installer $* supprimerait un paquet existant : je ne le fais pas." "$(grep -E '^Remv ' <<<"$simulation" | head -n 3)"
+        details="$(grep -E '^Remv ' <<<"$simulation" | head -n 3 || true)"
+        arreter "Installer $* supprimerait un paquet existant : je ne le fais pas." "$details"
     fi
     if grep -qE '^Inst [^ ]+ \[' <<<"$simulation"; then
-        arreter "Installer $* mettrait à jour un paquet existant : je ne le fais pas." "$(grep -E '^Inst [^ ]+ \[' <<<"$simulation" | head -n 3)"
+        details="$(grep -E '^Inst [^ ]+ \[' <<<"$simulation" | head -n 3 || true)"
+        arreter "Installer $* mettrait à jour un paquet existant : je ne le fais pas." "$details"
     fi
 }
 
@@ -222,7 +232,9 @@ controles() {
     command -v flock >/dev/null 2>&1 || A_INSTALLER+=(util-linux)
     if ! command -v pg_lsclusters >/dev/null 2>&1 || [ -z "$(pg_lsclusters --no-header 2>/dev/null)" ]; then A_INSTALLER+=(postgresql); fi
     if [ "${#A_INSTALLER[@]}" -gt 0 ]; then
-        info "À installer (ce qui manque seulement) : $(printf '%s\n' "${A_INSTALLER[@]}" | sort -u | tr '\n' ' ')"
+        local liste_a_installer
+        liste_a_installer="$(printf '%s\n' "${A_INSTALLER[@]}" | sort -u | tr '\n' ' ')"
+        info "À installer (ce qui manque seulement) : $liste_a_installer"
         # Refus dès maintenant, avant toute modification, si cela toucherait à un paquet existant.
         local a_verifier=()
         for p in $(printf '%s\n' "${A_INSTALLER[@]}" | sort -u); do dpkg -s "$p" >/dev/null 2>&1 || a_verifier+=("$p"); done
@@ -268,8 +280,15 @@ controles() {
     etat_a "utilisateur" || { id "$APP_USER" >/dev/null 2>&1 && collisions+=("utilisateur système « $APP_USER »"); }
     etat_a "dossiers" || { [ -e "$APP_DIR" ] && collisions+=("dossier $APP_DIR"); }
     if [ -n "$PG_PORT" ]; then
-        etat_a "role" || { [ "$(pg -c "select 1 from pg_roles where rolname='$DB_USER'")" = "1" ] && collisions+=("rôle PostgreSQL « $DB_USER »"); }
-        etat_a "base" || { [ "$(pg -c "select 1 from pg_database where datname='$DB_NAME'")" = "1" ] && collisions+=("base PostgreSQL « $DB_NAME »"); }
+        local existe
+        if ! etat_a "role"; then
+            existe="$(pg -c "select 1 from pg_roles where rolname='$DB_USER'")" || arreter "Impossible d'interroger PostgreSQL pour vérifier les noms."
+            [ "$existe" = "1" ] && collisions+=("rôle PostgreSQL « $DB_USER »")
+        fi
+        if ! etat_a "base"; then
+            existe="$(pg -c "select 1 from pg_database where datname='$DB_NAME'")" || arreter "Impossible d'interroger PostgreSQL pour vérifier les noms."
+            [ "$existe" = "1" ] && collisions+=("base PostgreSQL « $DB_NAME »")
+        fi
     fi
     etat_a "pool" || { compgen -G "/etc/php/*/fpm/pool.d/$POOL_NOM.conf" >/dev/null && collisions+=("pool PHP-FPM « $POOL_NOM »"); }
     etat_a "vhost-http" || { { [ -e "$VHOST" ] || [ -e "$VHOST_LIEN" ]; } && collisions+=("site Nginx $DOMAINE"); }
@@ -332,9 +351,11 @@ saisies() {
 # ============================================================== 3. récapitulatif
 recapitulatif() {
     titre "Ce que je vais faire"
+    local qui="déjà créé"
+    [ -n "$PRESIDENT_EMAIL" ] && qui="$PRESIDENT_NOM <$PRESIDENT_EMAIL>"
     cat <<E
   Site                : https://$DOMAINE (certificat HTTPS gratuit Let's Encrypt)
-  Compte du Président : ${PRESIDENT_EMAIL:+$PRESIDENT_NOM <$PRESIDENT_EMAIL>}${PRESIDENT_EMAIL:-déjà créé}
+  Compte du Président : $qui
 
   Je vais CRÉER, aux noms ci-dessous, et rien d'autre :
     - un utilisateur système dédié        : $APP_USER
@@ -456,7 +477,10 @@ etape_depot() {
             && runuser -u "$APP_USER" -- git -C "$APP_DIR/repo" reset --quiet --hard FETCH_HEAD \
             || arreter "Impossible de mettre à jour le code depuis $DEPOT."
     fi
-    etat_marquer "depot"; ok "code récupéré ($(git -C "$APP_DIR/repo" rev-parse --short HEAD))"
+    # Le dépôt appartient au compte dédié : git refuse de le lire en administrateur (« dubious ownership »).
+    local version
+    version="$(runuser -u "$APP_USER" -- git -C "$APP_DIR/repo" rev-parse --short HEAD 2>/dev/null || true)"
+    etat_marquer "depot"; ok "code récupéré (${version:-version inconnue})"
 }
 
 # ================================================================== 8. .env
@@ -639,7 +663,8 @@ etape_vhost_http() {
     ln -sfn "$VHOST" "$VHOST_LIEN"
     if ! nginx -t >/dev/null 2>&1; then
         retirer_vhost
-        arreter "La configuration Nginx est invalide avec mon site : je l'ai retiré, rien n'a été rechargé." "$(nginx -t 2>&1 | tail -n 3)"
+        detail_nginx="$(nginx -t 2>&1 | tail -n 3 || true)"
+        arreter "La configuration Nginx est invalide avec mon site : je l'ai retiré, rien n'a été rechargé." "$detail_nginx"
     fi
     etat_marquer "vhost-http"
     systemctl reload nginx
@@ -688,7 +713,8 @@ etape_vhost_https() {
     ecrire_vhost https
     if ! nginx -t >/dev/null 2>&1; then
         mv "$VHOST.http" "$VHOST"
-        arreter "La configuration Nginx HTTPS est invalide : je suis revenu à la phase précédente, rien n'a été rechargé." "$(nginx -t 2>&1 | tail -n 3)"
+        detail_nginx="$(nginx -t 2>&1 | tail -n 3 || true)"
+        arreter "La configuration Nginx HTTPS est invalide : je suis revenu à la phase précédente, rien n'a été rechargé." "$detail_nginx"
     fi
     rm -f "$VHOST.http"
     etat_marquer "vhost-https"
@@ -804,11 +830,14 @@ etape_premiere_version() {
     [ "$SIMULATION" = "1" ] && { info "[simulation] construirait la première version (composer, npm, migrations) puis la mettrait en ligne"; return 0; }
     if etat_a "premiere-version" && [ -L "$APP_DIR/current" ]; then ok "une version est déjà en ligne"; return 0; fi
     info "Construction en cours (installation des dépendances et compilation : quelques minutes)…"
+    local fin_journal version_en_ligne
     if ! runuser -u "$APP_USER" -- "$APP_DIR/bin/gamad-deploy" --forcer; then
-        arreter "La construction de la première version a échoué." "Voir : $LOG_DIR/deploy.log" "$(tail -n 12 "$LOG_DIR/deploy.log" 2>/dev/null | sed 's/^/    /')"
+        fin_journal="$(tail -n 12 "$LOG_DIR/deploy.log" 2>/dev/null | sed 's/^/    /' || true)"
+        arreter "La construction de la première version a échoué." "Voir : $LOG_DIR/deploy.log" "$fin_journal"
     fi
     etat_marquer "premiere-version"
-    ok "première version en ligne : $(basename "$(readlink -f "$APP_DIR/current")")"
+    version_en_ligne="$(basename "$(readlink -f "$APP_DIR/current")")"
+    ok "première version en ligne : $version_en_ligne"
 }
 
 etape_president() {
@@ -829,7 +858,13 @@ etape_minuteurs() {
     [ "$SIMULATION" = "1" ] && { info "[simulation] activerait les deux minuteurs et lancerait une première sauvegarde"; return 0; }
     systemctl enable --now gamad-reseau-deploy.timer gamad-reseau-sauvegarde.timer >/dev/null 2>&1
     ok "déploiement automatique actif (toutes les 5 minutes)"
-    if systemctl start gamad-reseau-sauvegarde.service; then ok "première sauvegarde réussie : $(ls -1t "$BACKUP_DIR"/"$DB_NAME"-*.dump | head -n 1 | xargs -r basename)"; else avertir "La première sauvegarde a échoué : voir $LOG_DIR/sauvegarde.log."; fi
+    local derniere_sauvegarde
+    if systemctl start gamad-reseau-sauvegarde.service; then
+        derniere_sauvegarde="$(ls -1t "$BACKUP_DIR"/"$DB_NAME"-*.dump | head -n 1 | xargs -r basename || true)"
+        ok "première sauvegarde réussie : $derniere_sauvegarde"
+    else
+        avertir "La première sauvegarde a échoué : voir $LOG_DIR/sauvegarde.log."
+    fi
     etat_marquer "minuteurs"
 }
 
@@ -913,4 +948,7 @@ main() {
 
 # L'entrée standard est fermée : le script (lu par « curl | sudo bash ») ne peut pas être consommé par une commande,
 # et les questions sont posées directement sur le terminal.
-main "$@" </dev/null
+# GAMAD_SOURCE_ONLY=1 permet aux tests automatiques de charger les fonctions sans lancer l'installation.
+if [ "${GAMAD_SOURCE_ONLY:-0}" != "1" ]; then
+    main "$@" </dev/null
+fi

@@ -1,6 +1,10 @@
 <div class="flex flex-col gap-4">
     <h1 class="text-[24px] font-extrabold leading-tight">Espace</h1>
 
+    @if (session('status'))
+        <x-status>{{ session('status') }}</x-status>
+    @endif
+
     <section aria-labelledby="compte" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
         <h2 id="compte" class="text-[18px] font-extrabold">Mon compte</h2>
         <div class="flex items-center gap-3">
@@ -13,6 +17,22 @@
             </dl>
         </div>
         <p class="text-[13px] text-muted">Votre adresse e-mail n’est visible que par vous.</p>
+
+        <form wire:submit="updateName" class="flex flex-col gap-3 border-t border-line-soft pt-3">
+            <div class="flex flex-col gap-1.5">
+                <label for="name" class="text-[13px] font-semibold">Nom affiché</label>
+                <input id="name" type="text" wire:model="name" autocomplete="name" required maxlength="255"
+                       @class(['min-h-11 w-full rounded-button border bg-card px-3.5 text-[15px]', $errors->has('name') ? 'border-danger' : 'border-chip-line'])
+                       @if ($errors->has('name')) aria-invalid="true" aria-describedby="name-error" @endif>
+                @error('name')
+                    <p id="name-error" role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>
+                @enderror
+            </div>
+            <x-button variant="secondary" wire:loading.attr="disabled" wire:target="updateName">
+                <span wire:loading.remove wire:target="updateName">Enregistrer le nom</span>
+                <span wire:loading wire:target="updateName">Enregistrement…</span>
+            </x-button>
+        </form>
 
         <form method="POST" action="{{ route('logout') }}" class="flex flex-col pt-1">
             @csrf
