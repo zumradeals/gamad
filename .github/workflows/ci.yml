@@ -1,0 +1,62 @@
+name: Intégration continue
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Pint et tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: gamad
+          POSTGRES_PASSWORD: gamad
+          POSTGRES_DB: gamad_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U gamad -d gamad_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, intl, pdo_pgsql
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Installer les dépendances PHP
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Préparer l'environnement
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Installer et compiler le front
+        run: |
+          npm ci
+          npm run build
+
+      - name: Pint (style du code)
+        run: vendor/bin/pint --test
+
+      - name: Tests
+        run: php artisan test
