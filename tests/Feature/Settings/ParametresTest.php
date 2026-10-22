@@ -232,3 +232,13 @@ it('montre l’échec d’envoi sans jamais laisser passer le mot de passe', fun
     expect(json_encode(DB::table('admin_actions')->get()))->not->toContain('MotDePasse-SMTP-9')
         ->and(AdminAction::where('action', 'settings.test_email_failed')->count())->toBe(1);
 });
+
+it('affiche le nom de plateforme réglé dans le titre des pages', function () {
+    $admin = User::factory()->superAdmin()->create();
+    app(Settings::class)->update(['app_name' => 'Réseau GAMAD'], $admin);
+    app(Settings::class)->applyToConfig();
+
+    $this->actingAs($admin)->get('/espace')->assertSee('<title>Espace — Réseau GAMAD</title>', false);
+    auth()->logout();
+    $this->get('/login')->assertSee('<title>Connexion — Réseau GAMAD</title>', false);
+});
