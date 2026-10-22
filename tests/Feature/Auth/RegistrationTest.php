@@ -97,8 +97,8 @@ it('rédige le courriel de vérification en français', function () {
         ->and($mail->introLines)->toContain('Cliquez sur le bouton ci-dessous pour confirmer votre adresse e-mail.');
 });
 
-it('limite à 5 les inscriptions par heure et par adresse IP', function () {
-    foreach (range(1, 5) as $n) {
+it('limite à 20 les inscriptions par heure et par adresse IP', function () {
+    foreach (range(1, 20) as $n) {
         $this->post('/register', [
             'name' => "Personne $n", 'email' => "personne$n@example.com",
             'password' => 'motdepasse1', 'password_confirmation' => 'motdepasse1',
@@ -107,15 +107,15 @@ it('limite à 5 les inscriptions par heure et par adresse IP', function () {
     }
 
     $this->post('/register', [
-        'name' => 'Sixième', 'email' => 'sixieme@example.com',
+        'name' => 'Vingt et unième', 'email' => 'vingtunieme@example.com',
         'password' => 'motdepasse1', 'password_confirmation' => 'motdepasse1',
     ])->assertStatus(429);
 
-    expect(User::where('email', 'sixieme@example.com')->exists())->toBeFalse();
+    expect(User::where('email', 'vingtunieme@example.com')->exists())->toBeFalse();
 });
 
 it('compte aussi les tentatives refusées, et ne gêne pas les autres adresses IP', function () {
-    foreach (range(1, 5) as $_) {
+    foreach (range(1, 20) as $_) {
         $this->post('/register', [])->assertSessionHasErrors();
     }
 
@@ -130,7 +130,7 @@ it('n’applique pas la limite d’inscription à l’affichage du formulaire ni
         $this->get('/register')->assertOk();
     }
 
-    foreach (range(1, 5) as $_) {
+    foreach (range(1, 20) as $_) {
         $this->post('/register', []);
     }
 
