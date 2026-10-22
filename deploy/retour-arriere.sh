@@ -30,7 +30,7 @@ journal() { printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >>"$LOG_FILE"
 
 versions() { find "$APP_DIR/releases" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort; }
 
-EN_LIGNE="$(basename "$(readlink -f "$APP_DIR/current" 2>/dev/null || echo "")")"
+EN_LIGNE="$(basename "$(readlink -e "$APP_DIR/current" 2>/dev/null || echo "")")"
 
 if [ "${1:-}" = "--liste" ]; then
     echo "Versions conservées (la plus récente en bas) :"
@@ -69,8 +69,8 @@ RESOLVE=()
 OK=0
 for essai in 1 2 3 4 5 6; do
     sleep 2
-    UP="$(curl -ksS -o /dev/null -m 15 -w '%{http_code}' "${RESOLVE[@]}" "$BASE/up" 2>/dev/null || true)"
-    ACCUEIL="$(curl -ksS -o /dev/null -m 15 -w '%{http_code}' "${RESOLVE[@]}" "$BASE/" 2>/dev/null || true)"
+    UP="$(curl -ksS --noproxy '*' -o /dev/null -m 15 -w '%{http_code}' "${RESOLVE[@]}" "$BASE/up" 2>/dev/null || true)"
+    ACCUEIL="$(curl -ksS --noproxy '*' -o /dev/null -m 15 -w '%{http_code}' "${RESOLVE[@]}" "$BASE/" 2>/dev/null || true)"
     if [ "$UP" = "200" ] && [ "$ACCUEIL" = "200" ]; then OK=1; break; fi
 done
 

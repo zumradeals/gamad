@@ -51,7 +51,7 @@ sha_en_ligne() { [ -r "$APP_DIR/current/.sha" ] && cat "$APP_DIR/current/.sha" |
 
 # ------------------------------------------------------------------ statut
 if [ "$STATUT" -eq 1 ]; then
-    echo "Version en ligne    : $(readlink -f "$APP_DIR/current" 2>/dev/null | xargs -r basename || true)"
+    echo "Version en ligne    : $(readlink -e "$APP_DIR/current" 2>/dev/null | xargs -r basename || true)"
     echo "Commit en ligne     : $(sha_en_ligne)"
     echo "Dernier commit main : $(git ls-remote "$REPO_URL" "refs/heads/$BRANCH" 2>/dev/null | cut -f1)"
     echo "Gel après retour    : $(cat "$ETAT/gel-sha" 2>/dev/null || echo aucun)"
@@ -97,7 +97,8 @@ fi
 ETAPE="récupération du code"
 RELEASE_DIR=""
 BASCULE=0
-PRECEDENT="$(readlink -f "$APP_DIR/current" 2>/dev/null || true)"
+# readlink -e : vide si « current » n'existe pas (readlink -f renverrait le chemin lui-même).
+PRECEDENT="$(readlink -e "$APP_DIR/current" 2>/dev/null || true)"
 PRECEDENT_NOM="aucune"
 [ -n "$PRECEDENT" ] && PRECEDENT_NOM="$(basename "$PRECEDENT")"
 JOURNAL_BUILD=""
@@ -193,8 +194,8 @@ RESOLVE=()
 OK=0
 for essai in 1 2 3 4 5 6; do
     sleep 2
-    UP="$(curl -ksS -o /dev/null -m 15 -w '%{http_code}' "${RESOLVE[@]}" "$BASE/up" 2>>"$JOURNAL_BUILD" || true)"
-    ACCUEIL="$(curl -ksS -o /dev/null -m 15 -w '%{http_code}' "${RESOLVE[@]}" "$BASE/" 2>>"$JOURNAL_BUILD" || true)"
+    UP="$(curl -ksS --noproxy '*' -o /dev/null -m 15 -w '%{http_code}' "${RESOLVE[@]}" "$BASE/up" 2>>"$JOURNAL_BUILD" || true)"
+    ACCUEIL="$(curl -ksS --noproxy '*' -o /dev/null -m 15 -w '%{http_code}' "${RESOLVE[@]}" "$BASE/" 2>>"$JOURNAL_BUILD" || true)"
     if [ "$UP" = "200" ] && [ "$ACCUEIL" = "200" ]; then OK=1; break; fi
     echo "essai $essai : /up=$UP /=$ACCUEIL" >>"$JOURNAL_BUILD"
 done

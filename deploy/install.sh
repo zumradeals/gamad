@@ -21,6 +21,7 @@
 # Pour tout défaire : deploy/desinstaller.sh.
 
 set -Eeuo pipefail
+umask 022
 
 # --------------------------------------------------------------- constantes
 DOMAINE="${GAMAD_DOMAINE:-reseau.dgafrique.com}"
@@ -803,7 +804,7 @@ verification_finale() {
     titre "Vérification finale"
     [ "$SIMULATION" = "1" ] && return 0
     local code
-    code="$(curl -ksS -o /dev/null -m 20 -w '%{http_code}' --resolve "$DOMAINE:443:127.0.0.1" "https://$DOMAINE/" || true)"
+    code="$(curl -ksS --noproxy '*' -o /dev/null -m 20 -w '%{http_code}' --resolve "$DOMAINE:443:127.0.0.1" "https://$DOMAINE/" || true)"
     [ "$code" = "200" ] && ok "https://$DOMAINE répond (code 200)" || avertir "https://$DOMAINE a répondu $code : voir $LOG_DIR/deploy.log."
 }
 
