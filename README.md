@@ -35,9 +35,9 @@ vendor/bin/pint --test       # style du code (retirer --test pour corriger)
 ## Super administrateur
 
 ```sh
-php artisan gamad:super-admin adresse@exemple.org
+php artisan gamad:super-admin adresse@exemple.org --raison="Président de GAMAD"
 ```
 
-Le compte doit déjà exister. L'acte est inscrit au journal d'administration.
+Le compte doit déjà exister. L'option `--raison` est obligatoire ; l'acte et sa raison sont inscrits au journal d'administration.
 
 Pour essayer le lot sur un téléphone : `docs/TESTER.md`.

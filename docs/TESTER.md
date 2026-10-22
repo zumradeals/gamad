@@ -36,7 +36,7 @@ Sur le téléphone :
 - [ ] J'ouvre le lien de vérification : j'arrive sur le Fil, qui affiche « Le Fil se remplira bientôt. »
 - [ ] La barre du bas n'affiche que **Fil** et **Espace**.
 - [ ] Dans Espace, je vois mon nom et mon e-mail, puis je me déconnecte.
-- [ ] Je me reconnecte. Un mauvais mot de passe affiche un message clair ; après 5 essais ratés, la connexion est bloquée un moment.
+- [ ] Je me reconnecte, en tapant mon adresse e-mail avec des majuscules : cela fonctionne. Un mauvais mot de passe affiche un message clair ; après 5 essais ratés, la connexion est bloquée un moment.
 - [ ] « Mot de passe oublié » m'envoie un lien qui me permet de choisir un nouveau mot de passe.
 - [ ] Dans Espace, « Supprimer mon compte » demande mon mot de passe, puis supprime définitivement le compte.
 
@@ -46,13 +46,14 @@ Sur l'ordinateur (fenêtre large) :
 
 ## 4. Super administrateur
 
-Après avoir créé votre compte et vérifié votre e-mail :
+Après avoir créé votre compte et vérifié votre e-mail, indiquez la raison de la promotion (obligatoire) :
 
 ```sh
-php artisan gamad:super-admin votre-adresse@exemple.org
+php artisan gamad:super-admin votre-adresse@exemple.org --raison="Président de GAMAD"
 ```
 
-Le message confirme la promotion. Vérification dans le journal :
+Le message confirme la promotion. Sans `--raison`, la commande refuse et ne change rien. La casse de l'adresse
+n'a pas d'importance. Vérification dans le journal (acteur « Console GAMAD », raison, compte système et machine) :
 
 ```sh
 php artisan tinker --execute="dump(App\Models\AdminAction::latest()->first()->toArray());"
