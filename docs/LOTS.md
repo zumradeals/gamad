@@ -6,8 +6,8 @@ lot en « Terminé ».
 
 | Lot | Nom | Statut |
 | --- | --- | --- |
-| 0 | Socle | **En cours** (fusionné dans `main` ; essai du Président en attente, D-052) |
-| 0.1 | Mise en ligne et paramètres | **En cours** |
+| 0 | Socle | **Terminé** (essai du Président réussi sur reseau.dgafrique.com le 2026-10-22) |
+| 0.1 | Mise en ligne et paramètres | **Terminé** (essai du Président réussi sur reseau.dgafrique.com le 2026-10-22) |
 | 1 | Personne | À venir |
 | 2 | Fil global et gestes | À venir |
 | 3 | ZUMRA | À venir |
@@ -17,7 +17,7 @@ lot en « Terminé ».
 
 ---
 
-## Lot 0 — Socle (En cours)
+## Lot 0 — Socle (Terminé)
 
 **But :** un dépôt propre où une personne peut créer un compte et se connecter sur téléphone, dans le gabarit
 visuel validé, avec un super administrateur dont les actes sont tracés.
@@ -71,7 +71,7 @@ d'exemple en production.
 
 ---
 
-## Lot 0.1 — Mise en ligne et paramètres (En cours)
+## Lot 0.1 — Mise en ligne et paramètres (Terminé)
 
 **But :** mettre le socle en ligne sur `reseau.dgafrique.com` (D-050) pour que le Président l'essaie sur son
 téléphone, avec des réglages métier modifiables sans jamais ouvrir un fichier `.env` (D-049).
@@ -168,7 +168,8 @@ Terminé quand un visiteur sans compte comprend où en est un projet réel en mo
 ## Lot 5 — Ouverture (À venir)
 
 Page d'accueil publique complète, charte de conduite, mentions légales, outil de modération, test en connexion
-faible ; pilote fermé (taille suggérée : 30 à 50 personnes et 3 ZUMRA) puis ouverture.
+faible ; sauvegardes copiées hors du serveur (stockage externe), avec essai de restauration ; pilote fermé
+(taille suggérée : 30 à 50 personnes et 3 ZUMRA) puis ouverture.
 
 ## Lot 6 — Contributions mensuelles (À venir)
 
