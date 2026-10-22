@@ -6,7 +6,8 @@ use App\Models\User;
 
 const RAISON = 'Président de GAMAD, désigné le 22 octobre 2026';
 
-it('promeut un compte existant et inscrit au journal l’acte, sa raison, le compte système et la machine', function () {
+it('promeut un compte existant et inscrit au journal l’acte, sa raison, le compte système réel et la machine', function () {
+    putenv('SUDO_USER');
     $user = User::factory()->create(['email' => 'president@example.com', 'name' => 'Koné']);
 
     $this->artisan('gamad:super-admin', ['email' => 'president@example.com', '--raison' => RAISON])
@@ -24,9 +25,33 @@ it('promeut un compte existant et inscrit au journal l’acte, sa raison, le com
         ->and($entry->payload)->toEqual([
             'previous_role' => 'member',
             'new_role' => 'super_admin',
-            'system_user' => get_current_user(),
+            'system_user' => posix_getpwuid(posix_geteuid())['name'],
             'machine' => gethostname(),
         ]);
+});
+
+it('inscrit le compte d’origine quand la commande est lancée avec sudo', function () {
+    putenv('SUDO_USER=zakaria');
+    User::factory()->create(['email' => 'president@example.com']);
+
+    try {
+        $this->artisan('gamad:super-admin', ['email' => 'president@example.com', '--raison' => RAISON])->assertSuccessful();
+    } finally {
+        putenv('SUDO_USER');
+    }
+
+    expect(AdminAction::sole()->payload)
+        ->toHaveKey('origin_account', 'zakaria')
+        ->toHaveKey('system_user', posix_getpwuid(posix_geteuid())['name']);
+});
+
+it('n’inscrit pas de compte d’origine quand il n’existe pas', function () {
+    putenv('SUDO_USER');
+    User::factory()->create(['email' => 'president@example.com']);
+
+    $this->artisan('gamad:super-admin', ['email' => 'president@example.com', '--raison' => RAISON])->assertSuccessful();
+
+    expect(AdminAction::sole()->payload)->not->toHaveKey('origin_account');
 });
 
 it('exige l’option --raison et ne change rien sans elle', function (array $options) {

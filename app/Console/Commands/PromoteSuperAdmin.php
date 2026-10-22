@@ -40,6 +40,7 @@ class PromoteSuperAdmin extends Command
         }
 
         $previous = $user->platform_role;
+        $originAccount = getenv('SUDO_USER') ?: null;
         $user->forceFill(['platform_role' => PlatformRole::SuperAdmin])->save();
 
         AdminJournal::record(
@@ -47,16 +48,25 @@ class PromoteSuperAdmin extends Command
             action: 'platform_role.promoted_to_super_admin',
             subject: $user,
             reason: $raison,
-            payload: [
+            payload: array_filter([
                 'previous_role' => $previous->value,
                 'new_role' => PlatformRole::SuperAdmin->value,
-                'system_user' => get_current_user(),
+                'system_user' => $this->systemUser(),
+                'origin_account' => $originAccount,
                 'machine' => gethostname(),
-            ],
+            ], fn ($value) => $value !== null),
         );
 
         $this->info("{$user->name} est maintenant super administrateur. L'acte est inscrit au journal d'administration.");
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Compte système qui exécute réellement la commande (et non le propriétaire du fichier).
+     */
+    private function systemUser(): string
+    {
+        return posix_getpwuid(posix_geteuid())['name'] ?? 'inconnu';
     }
 }
