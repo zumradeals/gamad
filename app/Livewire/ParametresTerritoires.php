@@ -9,6 +9,7 @@ use App\Support\Normalizer;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -47,6 +48,7 @@ class ParametresTerritoires extends Component
     {
         Gate::authorize('super-admin');
         $this->reset('status');
+        $this->resetErrorBag();
 
         $this->resolve(fn () => $admin->create(Auth::user(), 'country', ['name' => $this->newCountry]), 'newCountry');
 
@@ -58,6 +60,7 @@ class ParametresTerritoires extends Component
     {
         Gate::authorize('super-admin');
         $this->reset('status');
+        $this->resetErrorBag();
 
         $this->resolve(fn () => $admin->create(Auth::user(), 'city', [
             'name' => $this->newCity,
@@ -90,6 +93,7 @@ class ParametresTerritoires extends Component
     {
         Gate::authorize('super-admin');
         $this->reset('status');
+        $this->resetErrorBag();
 
         $item = $this->find((string) $this->editingType, (string) $this->editingId);
         $changed = $this->resolve(fn () => $admin->rename(Auth::user(), $item, $this->editName), 'editName');
@@ -102,6 +106,7 @@ class ParametresTerritoires extends Component
     {
         Gate::authorize('super-admin');
         $this->reset('status');
+        $this->resetErrorBag();
 
         $item = $this->find($type, $id);
         $admin->setActive(Auth::user(), $item, ! $item->active);
@@ -113,7 +118,7 @@ class ParametresTerritoires extends Component
     {
         return view('livewire.parametres-territoires', [
             'countries' => Country::query()->orderBy('sort_order')->orderBy('name')->get(),
-            'cities' => $this->cityCountryId === '' ? collect() : City::query()->where('country_id', $this->cityCountryId)->get()
+            'cities' => ! Str::isUuid($this->cityCountryId) ? collect() : City::query()->where('country_id', $this->cityCountryId)->get()
                 ->sortBy(fn (City $city) => Normalizer::key($city->label()))->values(),
             'cityUsage' => DB::table('profiles')->selectRaw('city_id, count(*) as total')->whereNotNull('city_id')->groupBy('city_id')->pluck('total', 'city_id'),
         ]);
@@ -121,6 +126,9 @@ class ParametresTerritoires extends Component
 
     private function find(string $type, string $id): Country|City
     {
+        // Un identifiant renvoyé par le navigateur n'est jamais cru : qui n'est pas un identifiant donne 404.
+        abort_unless(Str::isUuid($id), 404);
+
         return match ($type) {
             'country' => Country::query()->findOrFail($id),
             'city' => City::query()->findOrFail($id),

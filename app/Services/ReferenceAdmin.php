@@ -10,6 +10,7 @@ use App\Support\Normalizer;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -109,7 +110,7 @@ class ReferenceAdmin
 
     private function newCity(string $name, string $countryId, ?string $area): City
     {
-        $country = Country::query()->find($countryId);
+        $country = Str::isUuid($countryId) ? Country::query()->find($countryId) : null;
 
         if (! $country) {
             throw ValidationException::withMessages(['country_id' => 'Choisissez le pays de cette ville.']);

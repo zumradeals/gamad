@@ -2,6 +2,9 @@
     $offered = $mode === 'offered';
     $n = $people->total();
     $guest = ! auth()->check();
+    $summary = $n.' '.($n > 1 ? 'personnes' : 'personne').' '.($key !== ''
+        ? ($offered ? ($n > 1 ? 'peuvent apporter' : 'peut apporter') : ($n > 1 ? 'veulent apprendre' : 'veut apprendre')).' « '.\App\Support\Normalizer::display($this->query).' »'
+        : 'à découvrir');
 @endphp
 
 <div class="flex flex-col gap-4">
@@ -58,15 +61,7 @@
 
     <div wire:loading.delay class="text-[13px] font-semibold text-muted" role="status">Recherche en cours…</div>
 
-    <p class="text-[13px] font-bold text-muted" role="status" aria-live="polite">
-        {{ $n }} {{ $n > 1 ? 'personnes' : 'personne' }}
-        @if ($key !== '')
-            {{ $offered ? ($n > 1 ? 'peuvent apporter' : 'peut apporter') : ($n > 1 ? 'veulent apprendre' : 'veut apprendre') }}
-            « {{ \App\Support\Normalizer::display($this->query) }} »
-        @else
-            à découvrir
-        @endif
-    </p>
+    <p class="text-[13px] font-bold text-muted" role="status" aria-live="polite">{{ $summary }}</p>
 
     @forelse ($people as $profile)
         <article wire:key="personne-{{ $profile->id }}" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">

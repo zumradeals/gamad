@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -209,20 +210,24 @@ class ModifierProfil extends Component
     public function render()
     {
         $profile = $this->profile();
+        // Ce que le navigateur renvoie n'est jamais cru : un identifiant qui n'en est pas un est ignoré à l'affichage
+        // (et refusé à l'enregistrement).
+        $countryId = Str::isUuid($this->country_id) ? $this->country_id : '';
+        $domainIds = array_values(array_filter($this->domain_ids, fn ($id) => is_string($id) && Str::isUuid($id)));
 
         return view('livewire.modifier-profil', [
             'profile' => $profile->load('user'),
             'countries' => Country::query()
                 ->where(fn (Builder $query) => $query->where('active', true)->when($profile->country_id, fn (Builder $q) => $q->orWhere('id', $profile->country_id)))
                 ->orderBy('sort_order')->orderBy('name')->get(),
-            'cities' => $this->country_id === '' ? collect() : City::query()
-                ->where('country_id', $this->country_id)
+            'cities' => $countryId === '' ? collect() : City::query()
+                ->where('country_id', $countryId)
                 ->where(fn (Builder $query) => $query->where('active', true)->when($profile->city_id, fn (Builder $q) => $q->orWhere('id', $profile->city_id)))
                 ->get()
                 ->sortBy(fn (City $city) => Normalizer::key($city->label()))
                 ->values(),
             'domains' => Domain::query()
-                ->where(fn (Builder $query) => $query->where('active', true)->orWhereIn('id', $this->domain_ids))
+                ->where(fn (Builder $query) => $query->where('active', true)->orWhereIn('id', $domainIds))
                 ->ordered()->get(),
             'suggestions' => [
                 'offered' => $this->suggestions('offered'),
@@ -235,9 +240,12 @@ class ModifierProfil extends Component
         ]);
     }
 
+    /** Toujours relu en base : l'état affiché ne dépend jamais d'une relation gardée en mémoire. */
     private function profile(): Profile
     {
-        return Auth::user()->ensureProfile();
+        $user = Auth::user();
+
+        return Profile::query()->where('user_id', $user->getKey())->first() ?? $user->ensureProfile();
     }
 
     private function pendingPhotoUrl(): ?string

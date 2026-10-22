@@ -53,6 +53,10 @@ class ProfileEditor
         $wanted = $this->skillNames($data['wanted'], 'wanted');
         $domainIds = array_values(array_unique($data['domain_ids']));
 
+        if (collect($domainIds)->contains(fn ($id) => ! is_string($id) || ! Str::isUuid($id))) {
+            throw ValidationException::withMessages(['domain_ids' => 'Choisissez des domaines dans la liste.']);
+        }
+
         if (count($domainIds) > Profile::MAX_DOMAINS) {
             throw ValidationException::withMessages(['domain_ids' => 'Trois domaines au plus.']);
         }
@@ -165,7 +169,7 @@ class ProfileEditor
         $cityId = filled($cityId) ? $cityId : null;
 
         if ($countryId !== null) {
-            $country = Country::query()->find($countryId);
+            $country = Str::isUuid($countryId) ? Country::query()->find($countryId) : null;
 
             if (! $country || (! $country->active && $country->id !== $profile->country_id)) {
                 throw ValidationException::withMessages(['country_id' => 'Choisissez un pays dans la liste.']);
@@ -173,7 +177,7 @@ class ProfileEditor
         }
 
         if ($cityId !== null) {
-            $city = City::query()->find($cityId);
+            $city = Str::isUuid($cityId) ? City::query()->find($cityId) : null;
 
             if (! $city || $countryId === null || $city->country_id !== $countryId || (! $city->active && $city->id !== $profile->city_id)) {
                 throw ValidationException::withMessages(['city_id' => 'Choisissez une ville de ce pays, dans la liste.']);

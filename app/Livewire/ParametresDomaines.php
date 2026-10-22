@@ -7,6 +7,7 @@ use App\Services\ReferenceAdmin;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -34,6 +35,7 @@ class ParametresDomaines extends Component
     {
         Gate::authorize('super-admin');
         $this->reset('status');
+        $this->resetErrorBag();
 
         $this->resolve(fn () => $admin->create(Auth::user(), 'domain', ['name' => $this->newName]), 'newName');
 
@@ -46,7 +48,7 @@ class ParametresDomaines extends Component
         Gate::authorize('super-admin');
 
         $this->editingId = $id;
-        $this->editName = Domain::query()->findOrFail($id)->name;
+        $this->editName = $this->domain($id)->name;
         $this->resetErrorBag();
     }
 
@@ -60,8 +62,9 @@ class ParametresDomaines extends Component
     {
         Gate::authorize('super-admin');
         $this->reset('status');
+        $this->resetErrorBag();
 
-        $domain = Domain::query()->findOrFail($this->editingId);
+        $domain = $this->domain((string) $this->editingId);
         $changed = $this->resolve(fn () => $admin->rename(Auth::user(), $domain, $this->editName), 'editName');
 
         $this->reset('editingId', 'editName');
@@ -72,8 +75,9 @@ class ParametresDomaines extends Component
     {
         Gate::authorize('super-admin');
         $this->reset('status');
+        $this->resetErrorBag();
 
-        $domain = Domain::query()->findOrFail($id);
+        $domain = $this->domain($id);
         $admin->setActive(Auth::user(), $domain, ! $domain->active);
 
         $this->status = $domain->fresh()->active ? 'Domaine réactivé.' : 'Domaine désactivé.';
@@ -85,6 +89,14 @@ class ParametresDomaines extends Component
             'domains' => Domain::query()->ordered()->get(),
             'usage' => DB::table('domain_profile')->selectRaw('domain_id, count(*) as total')->groupBy('domain_id')->pluck('total', 'domain_id'),
         ]);
+    }
+
+    /** Un identifiant renvoyé par le navigateur n'est jamais cru : qui n'est pas un identifiant donne 404. */
+    private function domain(string $id): Domain
+    {
+        abort_unless(Str::isUuid($id), 404);
+
+        return Domain::query()->findOrFail($id);
     }
 
     /** Les erreurs de validation du service sont rattachées au champ de la page. */
