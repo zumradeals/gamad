@@ -57,10 +57,14 @@ sha_en_ligne() { [ -r "$APP_DIR/current/.sha" ] && cat "$APP_DIR/current/.sha" |
 
 # ------------------------------------------------------------------ statut
 if [ "$STATUT" -eq 1 ]; then
-    echo "Version en ligne    : $(readlink -e "$APP_DIR/current" 2>/dev/null | xargs -r basename || true)"
-    echo "Commit en ligne     : $(sha_en_ligne)"
-    echo "Dernier commit main : $(git ls-remote "$REPO_URL" "refs/heads/$BRANCH" 2>/dev/null | cut -f1)"
-    echo "Gel après retour    : $(cat "$ETAT/gel-sha" 2>/dev/null || echo aucun)"
+    VERSION_EN_LIGNE="$(readlink -e "$APP_DIR/current" 2>/dev/null | xargs -r basename || true)"
+    COMMIT_EN_LIGNE="$(sha_en_ligne)"
+    COMMIT_DISTANT="$(git ls-remote "$REPO_URL" "refs/heads/$BRANCH" 2>/dev/null | cut -f1 || true)"
+    GEL="$(cat "$ETAT/gel-sha" 2>/dev/null || echo aucun)"
+    echo "Version en ligne    : $VERSION_EN_LIGNE"
+    echo "Commit en ligne     : $COMMIT_EN_LIGNE"
+    echo "Dernier commit main : $COMMIT_DISTANT"
+    echo "Gel après retour    : $GEL"
     echo "Versions conservées :"; ls -1t "$APP_DIR/releases" 2>/dev/null | sed 's/^/  /'
     exit 0
 fi
@@ -124,12 +128,17 @@ nettoyer_echec() {
 
 en_cas_d_echec() {
     local code=$?
+    # Dans un sous-shell ou une substitution $(...), l'échec ne concerne pas le déploiement lui-même : on ne journalise
+    # rien et surtout on ne supprime RIEN (ce piège efface la version en construction) ; la commande qui a échoué
+    # est gérée par le script principal.
+    [ "$BASHPID" = "$$" ] || exit "$code"
     trap - ERR
     journal "ÉCHEC du déploiement de ${SHA:-$DISTANT} pendant : $ETAPE (code $code). Version en ligne : $PRECEDENT_NOM."
     if [ -n "$JOURNAL_BUILD" ] && [ -s "$JOURNAL_BUILD" ]; then
         { echo "    --- dernières lignes de la sortie ---"; tail -n 25 "$JOURNAL_BUILD" | sed 's/^/    /'; } >>"$LOG_FILE"
     fi
-    echo $(( $(cat "$ETAT/echecs/${SHA:-$DISTANT}" 2>/dev/null || echo 0) + 1 )) >"$ETAT/echecs/${SHA:-$DISTANT}"
+    DEJA_ECHOUE="$(cat "$ETAT/echecs/${SHA:-$DISTANT}" 2>/dev/null || echo 0)"
+    echo "$((DEJA_ECHOUE + 1))" >"$ETAT/echecs/${SHA:-$DISTANT}"
     nettoyer_echec
     exit 1
 }
@@ -177,9 +186,14 @@ exec_logue "$PHP_BIN" artisan event:cache --no-ansi
 
 ETAPE="sauvegarde de la base avant migration"
 SAUVEGARDE="$APP_DIR/sauvegardes-deploiement/avant-$NOM.dump"
-PGPASSWORD="$(env_get DB_PASSWORD)" exec_logue pg_dump --format=custom --no-owner \
-    --host "$(env_get DB_HOST)" --port "$(env_get DB_PORT)" --username "$(env_get DB_USERNAME)" \
-    --file "$SAUVEGARDE" "$(env_get DB_DATABASE)"
+DB_MDP="$(env_get DB_PASSWORD)"
+DB_HOTE="$(env_get DB_HOST)"
+DB_PORT_PG="$(env_get DB_PORT)"
+DB_UTILISATEUR="$(env_get DB_USERNAME)"
+DB_BASE="$(env_get DB_DATABASE)"
+PGPASSWORD="$DB_MDP" exec_logue pg_dump --format=custom --no-owner \
+    --host "$DB_HOTE" --port "$DB_PORT_PG" --username "$DB_UTILISATEUR" \
+    --file "$SAUVEGARDE" "$DB_BASE"
 chmod 600 "$SAUVEGARDE"
 # On ne garde que les 5 dernières sauvegardes de déploiement.
 ls -1t "$APP_DIR/sauvegardes-deploiement"/avant-*.dump 2>/dev/null | tail -n +6 | xargs -r rm -f
