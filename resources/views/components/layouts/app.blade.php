@@ -4,7 +4,7 @@
     $enabled = fn (array $items) => array_values(array_filter($items, fn ($item) => $item['enabled'] ?? false));
     $phoneItems = $enabled(config('navigation.phone'));
     $desktopItems = $enabled(config('navigation.desktop'));
-    $isActive = fn (array $item) => $item['route'] && request()->routeIs($item['route']);
+    $isActive = fn (array $item) => $item['route'] && request()->routeIs($item['route'], $item['route'].'.*');
 @endphp
 
 <!DOCTYPE html>
