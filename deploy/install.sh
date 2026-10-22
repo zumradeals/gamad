@@ -470,6 +470,7 @@ etape_pool() {
     titre "Pool PHP-FPM dédié"
     local fichier="/etc/php/$PHP_V/fpm/pool.d/$POOL_NOM.conf"
     [ "$SIMULATION" = "1" ] && { info "[simulation] écrirait $fichier puis rechargerait php$PHP_V-fpm après vérification"; return 0; }
+    if etat_a "pool" && [ -f "$fichier" ] && [ -S "$SOCKET" ]; then ok "pool $POOL_NOM déjà actif"; return 0; fi
     cat <<'E' | rendre >"$fichier"
 ; GAMAD — pool dédié (créé par deploy/install.sh). Ne concerne que reseau.dgafrique.com.
 [@@POOL_NOM@@]
@@ -608,6 +609,8 @@ retirer_vhost() { rm -f "$VHOST_LIEN" "$VHOST"; }
 etape_vhost_http() {
     titre "Site Nginx (phase certificat)"
     [ "$SIMULATION" = "1" ] && { info "[simulation] écrirait $VHOST et le lien dans sites-enabled, puis rechargerait Nginx après nginx -t"; return 0; }
+    # Une fois le certificat obtenu, la phase « certificat » est dépassée : la réécrire couperait le HTTPS.
+    if etat_a "certificat" || { etat_a "vhost-http" && [ -f "$VHOST" ]; }; then ok "site $DOMAINE déjà configuré"; return 0; fi
     ecrire_vhost http
     ln -sfn "$VHOST" "$VHOST_LIEN"
     if ! nginx -t >/dev/null 2>&1; then
@@ -654,7 +657,9 @@ etape_certificat() {
 etape_vhost_https() {
     titre "Site Nginx (HTTPS)"
     [ "$SIMULATION" = "1" ] && { info "[simulation] activerait HTTPS dans $VHOST, après nginx -t"; return 0; }
-    if etat_a "vhost-https"; then ok "HTTPS déjà actif"; return 0; fi
+    if etat_a "vhost-https" && grep -q 'listen 443' "$VHOST" 2>/dev/null; then ok "HTTPS déjà actif"; return 0; fi
+    [ -f "$VHOST" ] || ecrire_vhost http
+    ln -sfn "$VHOST" "$VHOST_LIEN"
     cp "$VHOST" "$VHOST.http"
     ecrire_vhost https
     if ! nginx -t >/dev/null 2>&1; then
