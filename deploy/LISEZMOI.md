@@ -22,7 +22,11 @@ curl -fsSL https://raw.githubusercontent.com/zumradeals/gamad/main/deploy/instal
 
 Avant toute modification, le script contrôle le serveur et **refuse de continuer** si : la configuration actuelle de Nginx ou de
 PHP-FPM est déjà en erreur, Node est trop ancien, le DNS ne pointe pas vers le serveur, ou l'un des noms qu'il veut créer est
-déjà pris. Pour voir ce qu'il ferait sans rien modifier : `GAMAD_SIMULATION=1` devant `sudo`.
+déjà pris. Pour voir ce qu'il ferait sans rien modifier, ajoutez `-s -- --simulation` après `bash` :
+
+```
+curl -fsSL https://raw.githubusercontent.com/zumradeals/gamad/main/deploy/install.sh | sudo bash -s -- --simulation
+```
 
 Ce qu'il crée, aux noms dédiés :
 

@@ -17,7 +17,8 @@
 #   - affiche un résumé en français, sans aucun secret.
 #
 # Si une étape échoue, le script s'arrête proprement et dit laquelle ; relancer la même ligne reprend là où il
-# s'est arrêté. Pour voir ce qu'il ferait sans rien modifier : GAMAD_SIMULATION=1 (juste avant « sudo »).
+# s'est arrêté. Pour voir ce qu'il ferait sans rien modifier :
+#   curl -fsSL https://raw.githubusercontent.com/zumradeals/gamad/main/deploy/install.sh | sudo bash -s -- --simulation
 # Pour tout défaire : deploy/desinstaller.sh.
 
 set -Eeuo pipefail
@@ -46,6 +47,13 @@ SOCKET="/run/php/gamad-reseau.sock"
 VHOST="/etc/nginx/sites-available/$DOMAINE"
 VHOST_LIEN="/etc/nginx/sites-enabled/$DOMAINE"
 UNITES="/etc/systemd/system"
+
+for argument in "$@"; do
+    case "$argument" in
+        --simulation) SIMULATION=1 ;;
+        *) echo "Option inconnue : $argument (seule --simulation existe)." >&2; exit 2 ;;
+    esac
+done
 
 PHP_V=""
 PG_PORT=""
@@ -340,7 +348,7 @@ recapitulatif() {
   en douceur, après vérification de leur configuration. Pare-feu : inchangé.
 E
     if [ "$SIMULATION" = "1" ]; then
-        printf '\n  SIMULATION : rien n'"'"'est modifié. Relancez sans GAMAD_SIMULATION=1 pour installer.\n'
+        printf '\n  SIMULATION : rien n'"'"'est modifié. Relancez sans « --simulation » pour installer.\n'
         return 0
     fi
     if [ "$MODE_TEST" = "1" ] || [ "${GAMAD_OUI:-0}" = "1" ]; then return 0; fi
