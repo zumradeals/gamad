@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Carrefour Personnes — téléphone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0A5FA3}a:hover{color:#08487A}
+button,input{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 390px; height: 1750px; box-sizing: border-box; background: #F5F3EE; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #0E2A3F; display: flex; flex-direction: column">
+
+<header style="background: #0E2A3F; color: #FFFFFF; padding: 14px 16px 22px; display: flex; flex-direction: column; gap: 14px">
+<nav aria-label="Découvrir" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: rgba(255,255,255,0.1); border-radius: 12px; padding: 4px">
+<a href="#" aria-current="page" style="height: 40px; border-radius: 9px; background: #FFFFFF; color: #0E2A3F; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center; text-decoration: none">Personnes</a>
+<a href="#" style="height: 40px; border-radius: 9px; color: #D6E0E8; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; text-decoration: none">Besoins</a>
+<a href="#" style="height: 40px; border-radius: 9px; color: #D6E0E8; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; text-decoration: none">Projets</a>
+</nav>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 12px; font-weight: 700; letter-spacing: 1.5px; color: #F2C200">CARREFOUR</span>
+<h1 style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.5px">Personnes</h1>
+<p style="margin: 0; font-size: 14px; line-height: 1.5; color: #D6E0E8">Trouvez qui peut vous aider, ou qui veut apprendre ce que vous savez.</p>
+</div>
+<label style="display: flex; align-items: center; gap: 10px; background: #FFFFFF; border-radius: 12px; height: 48px; padding: 0 14px; color: #4A5B68">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Rechercher une capacité ou un nom</span>
+<input type="search" value="comptabilité" style="flex: 1; border: none; outline: none; font-size: 15px; color: #0E2A3F; background: transparent; min-width: 0">
+</label>
+</header>
+
+<main style="flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 14px">
+
+<fieldset style="margin: 0; padding: 0; border: none; display: flex; flex-direction: column; gap: 8px">
+<legend style="font-size: 13px; font-weight: 700; color: #4A5B68; padding: 0; margin-bottom: 8px">Je cherche quelqu'un qui…</legend>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<button type="button" aria-pressed="true" style="height: 48px; border-radius: 12px; border: 2px solid #1B5E33; background: #DDF1E4; color: #1B5E33; font-size: 14px; font-weight: 800">peut l'apporter</button>
+<button type="button" aria-pressed="false" style="height: 48px; border-radius: 12px; border: 1px solid #D5D1C7; background: #FFFFFF; color: #0E2A3F; font-size: 14px; font-weight: 600">veut l'apprendre</button>
+</div>
+</fieldset>
+
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<button style="height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid #D5D1C7; background: #FFFFFF; color: #0E2A3F; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px">Toutes les villes<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+<button style="height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid #D5D1C7; background: #FFFFFF; color: #0E2A3F; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px">Tous les domaines<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+</div>
+
+<p style="margin: 0; font-size: 13px; font-weight: 700; color: #4A5B68">{{count}} personnes peuvent apporter « comptabilité »</p>
+
+<sc-for list="{{people}}" as="p" hint-placeholder-count="4">
+<article style="background: #FFFFFF; border: 1px solid #E3E0D8; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; gap: 12px; align-items: center">
+<span style="width: 52px; height: 52px; border-radius: 999px; background: {{p.bg}}; color: {{p.fg}}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; flex-shrink: 0">{{p.initials}}</span>
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+<a href="Monde-Personne.dc.html" style="font-weight: 800; font-size: 16px; color: #0E2A3F; text-decoration: none">{{p.name}}</a>
+<span style="font-size: 12px; color: #4A5B68; font-weight: 600">{{p.city}}</span>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 11px; font-weight: 800; letter-spacing: 0.8px; color: #1B5E33">PEUT APPORTER</span>
+<div style="display: flex; gap: 6px; flex-wrap: wrap">
+<sc-for list="{{p.gives}}" as="g" hint-placeholder-count="2">
+<span style="background: #DDF1E4; color: #1B5E33; font-size: 13px; font-weight: 700; padding: 5px 10px; border-radius: 999px">{{g}}</span>
+</sc-for>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 11px; font-weight: 800; letter-spacing: 0.8px; color: #0A4C85">VEUT APPRENDRE</span>
+<span style="font-size: 13px; color: #0E2A3F">{{p.learns}}</span>
+</div>
+<div style="display: flex; gap: 8px">
+<a href="Monde-Personne.dc.html" style="flex: 1; height: 44px; border-radius: 12px; border: 1px solid #0E2A3F; color: #0E2A3F; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; text-decoration: none">Voir le profil</a>
+<button style="flex: 1; height: 44px; border-radius: 12px; border: none; background: #0E2A3F; color: #FFFFFF; font-size: 14px; font-weight: 700">Inviter</button>
+</div>
+</article>
+</sc-for>
+
+</main>
+
+<nav aria-label="Navigation principale" style="background: #FFFFFF; border-top: 1px solid #E3E0D8; height: 76px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center">
+<a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; font-weight: 600; color: #4A5B68; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"></path></svg>Fil</a>
+<a href="#" aria-current="page" style="display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; font-weight: 700; color: #0E2A3F; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M15.5 8.5l-2 5-5 2 2-5z"></path></svg>Découvrir</a>
+<a href="#" style="display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; font-weight: 700; color: #0E2A3F; text-decoration: none"><span style="width: 48px; height: 48px; border-radius: 999px; background: #F2C200; display: flex; align-items: center; justify-content: center; margin-top: -18px; border: 3px solid #FFFFFF"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>Agir</a>
+<a href="Carrefour-ZUMRA.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; font-weight: 600; color: #4A5B68; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"></path><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2.2.6 3.5 2.8 3.5 6"></path></svg>ZUMRA</a>
+<a href="Modifier-profil.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; font-weight: 600; color: #4A5B68; text-decoration: none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path></svg>Espace</a>
+</nav>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1750}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const people = [
+      { initials: 'AT', bg: '#DCEBF8', fg: '#0A4C85', name: 'Awa Traoré', city: 'Yamoussoukro',
+        gives: ['Comptabilité', 'Gestion de petit commerce', 'Tableur Excel'], learns: 'Vente sur WhatsApp · Anglais' },
+      { initials: 'YK', bg: '#FCE9D9', fg: '#8A3B00', name: 'Yao Kouassi', city: 'Abidjan, Cocody',
+        gives: ['Comptabilité', 'Fiscalité des entreprises'], learns: 'Gestion de projet' },
+      { initials: 'FD', bg: '#ECE6F8', fg: '#4B2F86', name: 'Fatoumata Diallo', city: 'Bouaké',
+        gives: ['Comptabilité', 'Micro-crédit'], learns: 'Informatique de base' },
+      { initials: 'SB', bg: '#DDF1E4', fg: '#1B5E33', name: 'Seydou Bamba', city: 'Korhogo',
+        gives: ['Comptabilité agricole', 'Gestion de coopérative'], learns: 'Transformation du karité' }
+    ];
+    return { people: people, count: people.length };
+  }
+}
+</script>
+</body>
+</html>
