@@ -90,8 +90,9 @@ diagnostic() {
         info "Nginx — fichiers de sites activés :"
         ls -1 /etc/nginx/sites-enabled /etc/nginx/conf.d 2>/dev/null | indente
         info "Nginx — lignes server_name :"
-        grep -RhE '^[[:space:]]*server_name[[:space:]]' /etc/nginx/sites-enabled /etc/nginx/conf.d 2>/dev/null \
-            | sed -E 's/^[[:space:]]+//' | sort -u | indente
+        # Lignes commentées ignorées ; seule la directive server_name est extraite, même écrite sur une seule ligne.
+        grep -Rh -v '^[[:space:]]*#' /etc/nginx/sites-enabled /etc/nginx/conf.d 2>/dev/null \
+            | grep -oE 'server_name[[:space:]]+[^;]+;' | sort -u | indente
         info "Nginx — sites qui prennent la place par défaut (default_server) :"
         grep -RlE 'listen[^;]*default_server' /etc/nginx/sites-enabled /etc/nginx/conf.d 2>/dev/null | indente
         trouve=1
@@ -201,16 +202,26 @@ diagnostic() {
 
     titre "Pare-feu"
     if a ufw; then
-        info "ufw : $(ufw status 2>/dev/null | head -1)"
-        ufw status 2>/dev/null | sed -n '2,20p' | indente
+        local etat_ufw; etat_ufw=$(ufw status 2>/dev/null)
+        if [ -n "$etat_ufw" ]; then
+            info "ufw : $(printf '%s\n' "$etat_ufw" | head -1)"
+            printf '%s\n' "$etat_ufw" | sed -n '2,20p' | indente
+        else
+            info "ufw : installé, mais son état n'est pas lisible (droits insuffisants)"
+        fi
     else
         info "ufw : absent"
     fi
     if a firewall-cmd; then info "firewalld : $(firewall-cmd --state 2>/dev/null || echo inactif)"; fi
     if a nft; then info "nftables : $(nft list ruleset 2>/dev/null | wc -l) lignes de règles"; fi
     if a iptables; then
-        info "iptables — politiques par défaut :"
-        iptables -S 2>/dev/null | grep -E '^-P' | indente
+        local pol; pol=$(iptables -S 2>/dev/null | grep -E '^-P')
+        if [ -n "$pol" ]; then
+            info "iptables — politiques par défaut :"
+            printf '%s\n' "$pol" | indente
+        else
+            info "iptables : présent, règles non lisibles (droits insuffisants)"
+        fi
     fi
 
     # ------------------------------------------------------- Ressources
