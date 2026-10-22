@@ -310,7 +310,7 @@ recapitulatif() {
     titre "Ce que je vais faire"
     cat <<E
   Site                : https://$DOMAINE (certificat HTTPS gratuit Let's Encrypt)
-  Compte du Président : ${PRESIDENT_NOM:-déjà créé} <${PRESIDENT_EMAIL:-}>
+  Compte du Président : ${PRESIDENT_EMAIL:+$PRESIDENT_NOM <$PRESIDENT_EMAIL>}${PRESIDENT_EMAIL:-déjà créé}
 
   Je vais CRÉER, aux noms ci-dessous, et rien d'autre :
     - un utilisateur système dédié        : $APP_USER
