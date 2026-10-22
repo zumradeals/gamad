@@ -20,6 +20,9 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        // Une adresse e-mail est unique sans tenir compte de la casse : « Kone@… » et « kone@… » sont le même compte.
+        DB::statement('create unique index users_email_lower_unique on users (lower(email))');
+
         DB::statement("alter table users add constraint users_platform_role_check check (platform_role in ('member', 'moderator', 'super_admin'))");
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
