@@ -131,7 +131,7 @@ class CarrefourBesoins extends Component
             'needs' => $needs,
             'viewer' => $viewer,
             'managed' => $viewer?->managedZumraIds() ?? [],
-            'states' => [NeedState::Open, NeedState::InProgress, NeedState::Resolved],
+            'states' => NeedState::cases(),
             'cities' => $cities,
             'domains' => $domains,
             'emitters' => self::EMITTERS,

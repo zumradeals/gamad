@@ -209,3 +209,11 @@ La nouvelle composition remplace la présentation des écrans 1 et 4 pour le Fil
 - Deux colonnes à partir de 1024 px, une en dessous. Cartes lisibles : icône générique de projet, état réel, nom et but ; pied de carte Porté par avec ZUMRA, domaine et ville et Voir le projet. Aucun pourcentage d’avancement ni donnée inventée.
 - État vide initial distinct de l’absence de résultat après filtrage ; l’invitation à explorer les ZUMRA rappelle que le fondateur ou un responsable y crée le projet. Aucun bouton global de création.
 - Le panneau « aperçu de l’état sans projet » de la maquette est un spécimen de conception : il n’est jamais affiché en même temps que des résultats réels.
+
+## 14. Carrefour Besoins éditorial (D-181)
+
+- Héros clair et illustration vectorielle locale d’entraide ; recherche par texte ou capacité, domaine et ville.
+- Boutons d’état avec état pressé accessible ; filtre émetteur et remise à zéro. Ouverts reste le choix par défaut. Le filtre existant Fermés sans suite devient visible.
+- Deux colonnes à partir de 1024 px, une en dessous. Cartes dédiées au Carrefour, sans changer celles du Fil : type d’émetteur, identité et localisation, auteur réel pour une publication de ZUMRA, texte, capacités renseignées, date et lien vers le besoin. Pour un projet : nom du projet et ZUMRA porteuse. Aucun indicateur d’urgence ou de popularité.
+- Les liens de profils et avatars respectent l’autorisation de lecture du profil. Les capacités conservent leur lien de recherche de personnes. Un seul bouton d’action vers le détail, pas de geste ni de signalement dans le Carrefour.
+- État vide initial distinct de l’absence de résultat ; Agir pour une personne connectée, inscription pour un visiteur. Le spécimen d’état vide de la maquette n’est pas affiché avec les résultats.
