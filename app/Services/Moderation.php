@@ -48,7 +48,7 @@ class Moderation
             $count = (clone $reports)->count();
             $reports->update(['resolution' => Report::HIDDEN, 'resolved_by' => $actor->getKey(), 'resolved_at' => now()]);
 
-            $locked->forceFill(['hidden_at' => now(), 'hidden_by' => $actor->getKey(), 'hidden_reason' => $reason, 'author_explanation' => null, 'explained_at' => null])->save();
+            $locked->forceFill(['hidden_at' => now(), 'hidden_by' => $actor->getKey(), 'hidden_reason' => $reason])->save();
 
             AdminJournal::record($actor, 'publication.hidden', $locked, $reason, ['author_id' => $locked->author_id, 'reports_closed' => $count]);
 

@@ -356,6 +356,17 @@ it('dit à l’auteur qu’une publication a été masquée et que la modératio
     Livewire::actingAs($this->auteur)->test(Espace::class)->assertDontSeeText('La modération attend votre explication');
 });
 
+it('ne propose plus d’accepter des réponses sur une publication masquée', function () {
+    $besoin = publication($this->auteur, data: ['body' => 'Un besoin avec une réponse']);
+    geste($this->p1, $besoin);
+
+    Livewire::actingAs($this->auteur)->test(Espace::class)->assertSeeText('1 réponse à traiter');
+
+    moderation()->hide($this->mod, $besoin, 'Motif');
+
+    Livewire::actingAs($this->auteur)->test(Espace::class)->assertDontSeeText('réponse à traiter');
+});
+
 it('dit à la modération combien de publications attendent un examen, et pas aux autres', function () {
     Livewire::actingAs($this->mod)->test(Espace::class)->assertSeeText('1 publication signalée')->assertSeeText('Examiner')->assertSee(route('moderation'), false);
     Livewire::actingAs($this->admin)->test(Espace::class)->assertSeeText('1 publication signalée');
