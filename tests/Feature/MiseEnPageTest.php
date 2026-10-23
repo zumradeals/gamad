@@ -66,7 +66,11 @@ it('garde la largeur de lecture pour un visiteur sans compte sur les pages publi
 it('range les cartes des carrefours en colonnes sur ordinateur, et en une seule sur téléphone', function () {
     $personne = person('Awa Traoré', ['Broderie']);
 
-    foreach ([route('zumras.index'), route('projets.index'), route('personnes.index')] as $url) {
+    // Variante éditoriale du Carrefour ZUMRA validée en D-162 : deux colonnes de missions.
+    expect($this->actingAs($personne)->get(route('zumras.index'))->assertOk()->getContent())
+        ->toContain('grid gap-5 lg:grid-cols-2')->not->toContain('xl:grid-cols-3');
+
+    foreach ([route('projets.index'), route('personnes.index')] as $url) {
         expect($this->actingAs($personne)->get($url)->assertOk()->getContent())->toContain('grid gap-4 md:grid-cols-2 xl:grid-cols-3');
     }
 });

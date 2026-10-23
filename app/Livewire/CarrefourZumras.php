@@ -2,7 +2,9 @@
 
 namespace App\Livewire;
 
+use App\Enums\ZumraFormat;
 use App\Models\City;
+use App\Models\Country;
 use App\Models\Domain;
 use App\Models\Zumra;
 use App\Support\Normalizer;
@@ -33,6 +35,12 @@ class CarrefourZumras extends Component
     #[Url(as: 'ville', except: '')]
     public string $city = '';
 
+    #[Url(as: 'pays', except: '')]
+    public string $country = '';
+
+    #[Url(as: 'format', except: '')]
+    public string $format = '';
+
     #[Url(as: 'domaine', except: '')]
     public string $domain = '';
 
@@ -50,6 +58,17 @@ class CarrefourZumras extends Component
         $this->resetPage();
     }
 
+    public function updatedCountry(): void
+    {
+        $this->city = '';
+        $this->resetPage();
+    }
+
+    public function updatingFormat(): void
+    {
+        $this->resetPage();
+    }
+
     public function updatingDomain(): void
     {
         $this->resetPage();
@@ -63,7 +82,7 @@ class CarrefourZumras extends Component
 
     public function clearFilters(): void
     {
-        $this->reset('query', 'city', 'domain', 'recognized');
+        $this->reset('query', 'city', 'country', 'format', 'domain', 'recognized');
         $this->resetPage();
     }
 
@@ -71,15 +90,19 @@ class CarrefourZumras extends Component
     {
         $key = Normalizer::key(Str::limit($this->query, 100, ''));
         $city = Str::isUuid($this->city) ? $this->city : '';
+        $country = Str::isUuid($this->country) ? $this->country : '';
+        $format = ZumraFormat::tryFrom($this->format);
         $domain = Str::isUuid($this->domain) ? $this->domain : '';
         $viewer = Auth::user();
 
         $zumras = Zumra::query()
             ->when($key !== '', fn (Builder $query) => $query->where('search', 'like', Normalizer::likeContains($key)))
             ->when($city !== '', fn (Builder $query) => $query->where('city_id', $city))
+            ->when($country !== '', fn (Builder $query) => $query->whereHas('city', fn (Builder $q) => $q->where('country_id', $country)))
+            ->when($format !== null, fn (Builder $query) => $query->where('format', $format->value))
             ->when($domain !== '', fn (Builder $query) => $query->where('domain_id', $domain))
             ->when($this->recognized, fn (Builder $query) => $query->whereNotNull('recognized_at'))
-            ->with(['domain', 'city'])
+            ->with(['domain', 'city.country'])
             ->withCount(['memberships as members_count' => fn (Builder $query) => $query->whereHas('user', fn (Builder $user) => $user->active())])
             ->orderBy('name_key')->orderBy('id')
             ->paginate(self::PER_PAGE);
@@ -93,8 +116,13 @@ class CarrefourZumras extends Component
 
         // Les listes proposent les valeurs actives, plus celle déjà choisie dans l'adresse si elle a été désactivée depuis.
         $cities = City::query()
-            ->where(fn (Builder $query) => $query->where('active', true)->when($city !== '', fn (Builder $q) => $q->orWhere('id', $city)))
+            ->where(fn (Builder $query) => $query->where(fn (Builder $q) => $q->where('active', true)
+                ->when($country !== '', fn (Builder $q) => $q->where('country_id', $country)))
+                ->when($city !== '', fn (Builder $q) => $q->orWhere('id', $city)))
             ->get()->sortBy(fn (City $c) => Normalizer::key($c->label()))->values();
+        $countries = Country::query()
+            ->where(fn (Builder $query) => $query->where('active', true)->when($country !== '', fn (Builder $q) => $q->orWhere('id', $country)))
+            ->get()->sortBy(fn (Country $c) => Normalizer::key($c->name))->values();
         $domains = Domain::query()
             ->where(fn (Builder $query) => $query->where('active', true)->when($domain !== '', fn (Builder $q) => $q->orWhere('id', $domain)))
             ->ordered()->get();
@@ -104,7 +132,9 @@ class CarrefourZumras extends Component
             'mine' => $mine,
             'cities' => $cities,
             'domains' => $domains,
-            'hasFilters' => $key !== '' || $city !== '' || $domain !== '' || $this->recognized,
+            'countries' => $countries,
+            'formats' => ZumraFormat::cases(),
+            'hasFilters' => $key !== '' || $city !== '' || $domain !== '' || $country !== '' || $format !== null || $this->recognized,
             'viewer' => $viewer,
             // Les ZUMRA de la page dans lesquelles la personne est déjà : pas de « Je veux rejoindre » pour elles.
             'memberOf' => $viewer ? $viewer->zumraMemberships()->whereIn('zumra_id', $zumras->pluck('id'))->pluck('zumra_id')->all() : [],
