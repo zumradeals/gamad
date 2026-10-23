@@ -22,7 +22,7 @@
                 <x-button :href="route('register')" variant="accent" class="gap-5">Créer un compte<x-icon name="arrow-right" :size="20" /></x-button>
                 <x-button :href="route('login')" variant="secondary">Se connecter</x-button>
             </div>
-            <p class="text-[11px] leading-relaxed text-muted">Un compte GAMAD ne vaut pas adhésion au Mouvement.</p>
+            <p class="text-[14px] leading-relaxed text-muted">Un compte GAMAD ne vaut pas adhésion au Mouvement.</p>
         </div>
 
         <figure class="landing-hero-visual">
@@ -61,7 +61,7 @@
                 @foreach ($directories as [$icon, $colors, $title, $description, $label, $route])
                     <a href="{{ route($route) }}" class="landing-card group flex min-w-0 items-start gap-4 p-5 text-ink no-underline transition hover:border-ink hover:text-ink">
                         <span class="flex size-12 shrink-0 items-center justify-center rounded-card {{ $colors }}"><x-icon :name="$icon" :size="27" /></span>
-                        <span class="flex min-w-0 flex-col"><span class="text-[16px] font-extrabold">{{ $title }}</span><span class="mt-1 text-[13px] leading-relaxed text-muted">{{ $description }}</span><span class="mt-4 inline-flex min-h-11 items-center gap-2 text-[13px] font-bold text-link group-hover:underline">{{ $label }}<x-icon name="arrow-right" :size="17" class="shrink-0" /></span></span>
+                        <span class="flex min-w-0 flex-col"><span class="text-[16px] font-extrabold">{{ $title }}</span><span class="mt-1 text-[14px] leading-relaxed text-muted">{{ $description }}</span><span class="mt-4 inline-flex min-h-11 items-center gap-2 text-[13px] font-bold text-link group-hover:underline">{{ $label }}<x-icon name="arrow-right" :size="17" class="shrink-0" /></span></span>
                     </a>
                 @endforeach
             </div>
@@ -73,21 +73,23 @@
                         @if ($figures !== [])
                             <ul class="flex flex-wrap gap-x-4 gap-y-2" aria-label="GAMAD en chiffres">
                                 @foreach ($figures as $label => $n)
-                                    <li class="text-[12px] text-muted"><strong class="font-extrabold text-ink">{{ $n }}</strong> {{ $label === 'personnes' && $n === 1 ? 'personne' : ($label === 'projets' && $n === 1 ? 'projet' : $label) }}</li>
+                                    <li class="text-[14px] text-muted"><strong class="font-extrabold text-ink">{{ $n }}</strong> {{ $label === 'personnes' && $n === 1 ? 'personne' : ($label === 'projets' && $n === 1 ? 'projet' : $label) }}</li>
                                 @endforeach
                             </ul>
                         @endif
                     </div>
                     @if ($recentZumras->isNotEmpty())
-                        <div class="landing-card divide-y divide-line-soft px-5">
-                            <h4 class="py-4 text-[14px] font-extrabold">{{ $recentZumras->count() === 1 ? 'Une communauté à découvrir' : 'Des communautés à découvrir' }}</h4>
-                            @foreach ($recentZumras as $zumra)
-                                <div class="flex flex-wrap items-center gap-3 py-4">
-                                    <x-zumra-initials :zumra="$zumra" :size="48" />
-                                    <div class="min-w-0 flex-1 basis-48"><a href="{{ route('zumras.show', $zumra) }}" class="inline-flex min-h-11 items-center break-words text-[15px] font-extrabold text-ink no-underline hover:text-link">{{ $zumra->name }}</a><p class="text-[12px] leading-relaxed text-muted">{{ collect([$zumra->domain->name, $zumra->city?->label()])->filter()->implode(' · ') }}</p></div>
-                                    <x-button :href="route('zumras.show', $zumra)" variant="secondary" class="!px-4 !text-[13px]">Découvrir</x-button>
-                                </div>
-                            @endforeach
+                        <div>
+                            <h4 class="mb-3 text-[15px] font-extrabold">{{ $recentZumras->count() === 1 ? 'Une communauté à découvrir' : 'Des communautés à découvrir' }}</h4>
+                            <div class="grid gap-4 lg:grid-cols-2">
+                                @foreach ($recentZumras as $zumra)
+                                    <div class="landing-card flex min-w-0 flex-wrap items-center gap-3 p-4">
+                                        <x-zumra-initials :zumra="$zumra" :size="48" />
+                                        <div class="min-w-0 flex-1 basis-40"><a href="{{ route('zumras.show', $zumra) }}" class="inline-flex min-h-11 items-center break-words text-[15px] font-extrabold text-ink no-underline hover:text-link">{{ $zumra->name }}</a><p class="text-[14px] leading-relaxed text-muted">{{ collect([$zumra->domain->name, $zumra->city?->label()])->filter()->implode(' · ') }}</p></div>
+                                        <x-button :href="route('zumras.show', $zumra)" variant="secondary" class="!px-4 !text-[13px]">Découvrir</x-button>
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
                     @endif
                     @if ($recentProjects->isNotEmpty())
@@ -95,7 +97,7 @@
                             @foreach ($recentProjects as $project)
                                 <a href="{{ route('projets.show', $project) }}" class="landing-card flex min-w-0 flex-col gap-2 p-4 text-ink no-underline hover:border-ink hover:text-ink">
                                     <span class="self-start rounded-chip px-2.5 py-1 text-[12px] font-bold {{ $project->state->badgeClasses() }}">{{ $project->state->label() }}</span>
-                                    <span class="break-words text-[15px] font-extrabold">{{ $project->name }}</span><span class="break-words text-[12px] text-muted">Projet de {{ $project->zumra->name }}</span>
+                                    <span class="break-words text-[15px] font-extrabold">{{ $project->name }}</span><span class="break-words text-[14px] text-muted">Projet de {{ $project->zumra->name }}</span>
                                 </a>
                             @endforeach
                         </div>
