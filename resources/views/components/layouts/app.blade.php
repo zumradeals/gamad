@@ -68,6 +68,8 @@
 
     <main @class(['mx-auto w-full flex-1 px-4 pt-4 md:px-6 md:pb-10 md:pt-6', 'max-w-[920px]' => $narrow, 'max-w-[1240px]' => ! $narrow, 'pb-[104px]' => auth()->check(), 'pb-10' => ! auth()->check()])>
         {{ $slot }}
+
+        <div class="mt-6">@include('partials.legal-links')</div>
     </main>
 
     @auth

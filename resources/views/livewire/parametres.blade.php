@@ -18,6 +18,12 @@
         </div>
     </section>
 
+    <section aria-labelledby="textes" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
+        <h2 id="textes" class="text-[18px] font-extrabold">Charte et mentions légales</h2>
+        <p class="text-[13px] text-muted">Relire, compléter et adopter les textes publics. Tant qu’ils ne sont pas adoptés, rien n’est publié.</p>
+        <x-button :href="route('espace.parametres.textes')" variant="secondary">Ouvrir</x-button>
+    </section>
+
     <form wire:submit="save" class="flex flex-col gap-4">
         <section aria-labelledby="courriel" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
             <h2 id="courriel" class="text-[18px] font-extrabold">Courriel</h2>

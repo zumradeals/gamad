@@ -102,6 +102,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'charter_accepted_at' => 'datetime',
             'password' => 'hashed',
             'platform_role' => PlatformRole::class,
         ];

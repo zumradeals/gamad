@@ -3,6 +3,7 @@
 namespace App\Actions\Fortify;
 
 use App\Models\User;
+use App\Services\LegalTexts;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -22,6 +23,8 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
+        $charter = app(LegalTexts::class)->charterAdopted();
+
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
             'email' => [
@@ -32,12 +35,21 @@ class CreateNewUser implements CreatesNewUsers
                 Rule::unique(User::class),
             ],
             'password' => $this->passwordRules(),
-        ])->validate();
+            // Une fois la charte adoptée (D-146), on s'inscrit en l'acceptant.
+            'charter' => $charter ? ['accepted'] : ['nullable'],
+        ], ['charter.accepted' => 'Acceptez la charte de conduite pour créer un compte.'])->validate();
 
-        return User::create([
+        $user = User::create([
             'name' => $input['name'],
             'email' => $input['email'],
             'password' => Hash::make($input['password']),
         ]);
+
+        // La date d'acceptation de la charte n'est gardée que si elle était adoptée à l'inscription.
+        if ($charter) {
+            $user->forceFill(['charter_accepted_at' => now()])->save();
+        }
+
+        return $user;
     }
 }
