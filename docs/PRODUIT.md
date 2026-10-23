@@ -60,6 +60,9 @@ Onglets V1 :
 | Modérateur | `platform_role = moderator` | Personne désignée par le super administrateur pour modérer. |
 | Journal d'administration | `AdminAction` | Trace non modifiable des actes d'administration et de modération. |
 | Signalement | `Report` | Alerte envoyée par une personne sur un contenu. |
+| Pays | `Country` | Pays où une personne indique vivre. Liste tenue par le super administrateur. |
+| Ville | `City` | Lieu rattaché à un seul pays. Liste tenue par le super administrateur. |
+| Territoire | `Country` + `City` | Le pays et la ville qu'une personne affiche sur son profil, tous deux facultatifs. |
 
 ## 4. Objets, états et droits
 

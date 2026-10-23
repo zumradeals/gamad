@@ -131,3 +131,22 @@ it('exige l’extension PHP gd (photos de profil du Lot 1) et sait quel paquet l
 
     expect($install)->toMatch('/for ext in [^;]*\bgd\b[^;]*; do/')->toContain('gd) paquet="php$PHP_V-gd"');
 });
+
+it('sauvegarde les photos de profil, avec la même rotation et sans rien toucher d’autre', function () {
+    $script = file_get_contents(dirname(__DIR__, 3).'/deploy/sauvegarde.sh');
+
+    expect($script)
+        ->toContain('$APP_DIR/shared/storage/app/private')
+        ->toContain('profile-photos')
+        ->toContain('photos-$HORODATAGE.tar.gz')
+        ->toContain('for motif in "$DB_NAME-*.dump" "env-*" "photos-*.tar.gz"; do')
+        ->toContain('tar -tzf')
+        // Aucune écriture hors du dossier de sauvegarde, aucun autre service : ni systemctl, ni nginx, ni apt.
+        ->not->toMatch('/\b(systemctl|nginx|apt|apt-get|service)\b/');
+});
+
+it('documente la restauration des photos dans LISEZMOI.md', function () {
+    $lisezmoi = file_get_contents(dirname(__DIR__, 3).'/deploy/LISEZMOI.md');
+
+    expect($lisezmoi)->toContain('photos-AAAA-MM-JJ_HHMMSS.tar.gz')->toContain('tar -xzf')->toContain('profile-photos');
+});

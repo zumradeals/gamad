@@ -15,6 +15,9 @@ lot en « Terminé ».
 | 5 | Ouverture (pilote) | À venir |
 | 6 | Contributions mensuelles | À venir |
 
+**Condition d'ouverture publique (D-078).** Avant toute ouverture publique de la plateforme, la fonction « Signaler » et la
+modération (Lot 2) doivent être livrées et essayées. D'ici là, la plateforme reste en essai fermé.
+
 ---
 
 ## Lot 0 — Socle (Terminé)
@@ -186,7 +189,8 @@ messagerie, paiements, données d'exemple en production.
 ## Lot 2 — Fil global et gestes (À venir)
 
 Publications typées, gestes, acceptation, conversation privée, besoin résolu avec remerciement ; première
-version de « À faire maintenant » dans Espace ; notifications dans l'application ; signalement et masquage.
+version de « À faire maintenant » dans Espace ; notifications dans l'application ; fonction « Signaler » (sur tout contenu
+affiché, y compris les profils) et masquage ; modération (condition d'ouverture publique, D-078).
 Terminé quand deux parcours passent de bout en bout sur téléphone : « J'ai besoin » → « Je peux aider » →
 remerciement ; « Je partage un savoir » → « Je veux apprendre » → apprenant accepté.
 
@@ -207,8 +211,9 @@ Terminé quand un visiteur sans compte comprend où en est un projet réel en mo
 ## Lot 5 — Ouverture (À venir)
 
 Page d'accueil publique complète, charte de conduite, mentions légales, outil de modération, test en connexion
-faible ; sauvegardes copiées hors du serveur (stockage externe), avec essai de restauration ; pilote fermé
-(taille suggérée : 30 à 50 personnes et 3 ZUMRA) puis ouverture.
+faible ; sauvegardes copiées hors du serveur (stockage externe), avec essai de restauration, y compris la sauvegarde
+hors serveur des photos de profil ; pilote fermé (taille suggérée : 30 à 50 personnes et 3 ZUMRA) puis ouverture, qui reste
+soumise à la condition d'ouverture publique (D-078 : « Signaler » et modération du Lot 2 livrés et essayés).
 
 ## Lot 6 — Contributions mensuelles (À venir)
 

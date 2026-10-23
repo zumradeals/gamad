@@ -4,6 +4,7 @@ use App\Livewire\Espace;
 use App\Livewire\ModifierProfil;
 use App\Models\Profile;
 use App\Models\User;
+use App\Services\ProfileEditor;
 use App\Services\ProfilePhoto;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -251,7 +252,8 @@ it('sert la photo avec les bons en-têtes à qui a le droit de la voir, et à lu
     $this->get($url)->assertOk()
         ->assertHeader('Content-Type', 'image/jpeg')
         ->assertHeader('X-Content-Type-Options', 'nosniff');
-    expect($this->get($url)->headers->get('Cache-Control'))->toContain('private');
+    $controle = $this->get($url)->headers->get('Cache-Control');
+    expect($controle)->toContain('private')->toContain('no-cache')->not->toContain('max-age')->not->toContain('public');
 
     $awa->profile->update(['visibility' => 'members']);
     $this->get($url)->assertNotFound();
@@ -267,4 +269,47 @@ it('répond 404 pour une personne sans photo ou inconnue', function () {
 
 it('ne propose pas d’envoyer une photo si le serveur ne sait pas la traiter', function () {
     expect(ProfilePhoto::available())->toBeTrue();
+});
+
+it('envoie un ETag et revalide à chaque affichage : 304 seulement après le contrôle d’accès', function () {
+    Storage::fake('local');
+    $awa = User::factory()->create();
+    Storage::disk('local')->put('profile-photos/a.jpg', ProfilePhoto::encode(jpegAvecMetadonnees(100, 100, gps: false)));
+    $awa->profile->update(['photo_path' => 'profile-photos/a.jpg']);
+    $url = route('personnes.photo', $awa->profile->public_id);
+
+    $premiere = $this->get($url)->assertOk();
+    $etag = $premiere->headers->get('ETag');
+    expect($etag)->toBe('"'.md5('profile-photos/a.jpg').'"');
+
+    $this->get($url, ['If-None-Match' => $etag])->assertStatus(304);
+    expect($this->get($url, ['If-None-Match' => '"autre-version"'])->getStatusCode())->toBe(200);
+
+    // Une nouvelle photo a un autre ETag.
+    Storage::disk('local')->put('profile-photos/b.jpg', ProfilePhoto::encode(jpegAvecMetadonnees(100, 100, gps: false)));
+    $awa->profile->update(['photo_path' => 'profile-photos/b.jpg']);
+    expect($this->get($url, ['If-None-Match' => $etag])->getStatusCode())->toBe(200);
+});
+
+it('ne sert plus la photo à un visiteur sans compte quand le profil passe de « public » à « inscrits seulement », même s’il l’avait déjà', function () {
+    Storage::fake('local');
+    $awa = User::factory()->create();
+    Storage::disk('local')->put('profile-photos/a.jpg', ProfilePhoto::encode(jpegAvecMetadonnees(100, 100, gps: false)));
+    $awa->profile->update(['photo_path' => 'profile-photos/a.jpg', 'visibility' => 'public']);
+    $url = route('personnes.photo', $awa->profile->public_id);
+
+    // Le visiteur a déjà la photo : son navigateur en garde l'ETag.
+    $etag = $this->get($url)->assertOk()->headers->get('ETag');
+    $this->get($url, ['If-None-Match' => $etag])->assertStatus(304);
+
+    // Le profil passe à « inscrits seulement » : la revalidation du visiteur n'aboutit plus (404, pas 304 ni 200).
+    (new ProfileEditor)->save($awa, ['name' => $awa->name, 'bio' => null, 'country_id' => null, 'city_id' => null, 'visibility' => 'members', 'offered' => [], 'wanted' => [], 'domain_ids' => []]);
+    expect($awa->fresh()->profile->visibility)->toBe('members');
+
+    $this->get($url, ['If-None-Match' => $etag])->assertNotFound();
+    $this->get($url)->assertNotFound();
+
+    // Connecté et vérifié, il la voit toujours ; le propriétaire aussi.
+    $this->actingAs(User::factory()->create())->get($url)->assertOk();
+    $this->actingAs($awa)->get($url)->assertOk();
 });
