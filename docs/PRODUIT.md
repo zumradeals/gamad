@@ -2,9 +2,10 @@
 
 Version 1.1 — 23 octobre 2026 (contributions et portefeuille ZAHAB, D-163 à D-173). Source : décisions du Président consignées dans docs/DECISIONS.md. Toute modification passe par une décision.
 
-## Périmètre actuellement ouvert — D-183
+## Périmètre actuellement ouvert — D-183, D-184
 
-Le parcours initial comprend **Fil, Personnes, Agir et Mon espace**. Les besoins sont des publications
+Le parcours initial comprend **Fil, Agir et Mon espace**. La recherche de personnes et les profils restent
+accessibles depuis le Fil, les capacités et les publications ; Personnes n’est plus une entrée permanente. Les besoins sont des publications
 actives du Fil (filtre Besoins), sans Carrefour distinct dans le parcours. Les profils, capacités,
 gestes, conversations privées, notifications, modération et protections existantes restent actifs.
 
@@ -148,3 +149,12 @@ Transport et Automobile · Justice et Droits de l'homme · Affaires commerciales
 Artisanat.
 
 « Artisanat » ne figure pas dans l'article 3 ; il est ajouté à titre provisoire (D-014).
+
+## Entraide accompagnée — D-184
+
+- Un même champ du Fil permet de chercher les publications (texte, capacités, nom d’auteur) et de rejoindre la recherche de personnes avec le même terme. Les résultats gardent chacun leurs règles de visibilité ; aucun classement de personnes. L’ordre du Fil reste chronologique. La recherche de personnes permet aussi de trouver ceux qui ne publient pas.
+- Un besoin peut être précisé par « Pour faire quoi ? » et « Où et quand ? ». Ces champs facultatifs sont assemblés dans le texte publié, toujours limité à 500 caractères, et annoncés comme publics selon la visibilité choisie. Le corps du besoin reste obligatoire. Aucun stockage parallèle de ces précisions.
+- Un geste peut préciser une disponibilité et un format (à distance / sur place). Ces éléments sont assemblés dans le mot existant, limité à 280 caractères au total ; ils sont consultables par les gestionnaires de la publication et ne constituent pas une disponibilité automatique du profil.
+- Dans une conversation existante, chaque participant peut proposer une prochaine action (280 caractères maximum), avec une date facultative, aujourd’hui ou plus tard en heure d’Abidjan. L’autre personne doit la confirmer ; l’auteur ne peut pas s’auto-confirmer. Une nouvelle proposition remplace l’action courante et annule toute confirmation précédente. Chacun peut retirer l’action.
+- Les écritures sont autorisées seulement aux participants vérifiés pouvant encore écrire dans la conversation. Une version vérifiée sous verrou empêche une réponse d’ancienne page de confirmer ou remplacer une action modifiée entre-temps. Les changements apparaissent aussi comme messages privés de leur auteur ; aucun rappel, calendrier, tâche publique ou nouveau monde.
+- L’action courante et sa date sont effacées si l’un des participants supprime son compte ; les messages suivent les règles existantes d’effacement de leur auteur. La confirmation ne recopie pas le contenu personnel proposé par l’autre.

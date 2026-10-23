@@ -34,6 +34,15 @@
                         @enderror
                     </div>
 
+                    <details class="rounded-button border border-line p-3" @if ($errors->has('availability') || $errors->has('helpFormat')) open @endif>
+                        <summary class="min-h-11 cursor-pointer content-center text-[14px] font-bold">Préciser ma proposition (facultatif)</summary>
+                        <div class="mt-2 flex flex-col gap-3">
+                            <x-wire-field name="availability" label="Mes disponibilités" maxlength="100" placeholder="Ex. Samedi matin, pendant une heure" />
+                            <div class="flex flex-col gap-1.5"><label for="help-format" class="text-[13px] font-semibold">Comment puis-je aider ?</label><select id="help-format" wire:model="helpFormat" class="zumra-filter"><option value="">À convenir ensemble</option><option value="remote">À distance</option><option value="onsite">Sur place</option></select>@error('helpFormat')<p role="alert" class="text-[13px] text-danger">{{ $message }}</p>@enderror</div>
+                            <p class="text-[12px] text-muted">Ces précisions accompagnent votre proposition, dans la limite totale de {{ \App\Models\Gesture::MESSAGE_MAX }} caractères. Vous conviendrez de la suite après acceptation.</p>
+                        </div>
+                    </details>
+
                     <p class="text-[12px] leading-normal text-muted">Votre profil (nom, ville, capacités) sera visible par {{ $firstName }}. Jamais votre e-mail ni votre téléphone.</p>
 
                     <x-button wire:loading.attr="disabled" wire:target="send" class="min-h-[52px]">

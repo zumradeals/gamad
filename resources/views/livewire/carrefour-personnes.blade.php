@@ -8,6 +8,7 @@
 @endphp
 
 <div class="person-directory flex flex-col gap-6">
+    @if (\App\Support\Experience::initial())<a href="{{ auth()->check() ? route('fil') : route('home') }}" class="inline-flex min-h-11 items-center gap-2 self-start text-[14px] font-semibold"><x-icon name="back" :size="18" />{{ auth()->check() ? 'Retour au Fil' : 'Accueil GAMAD' }}</a>@endif
     <header class="person-discovery-hero">
         <div class="flex min-w-0 flex-col gap-4">
             <span class="text-[12px] font-extrabold uppercase tracking-[2px]">CARREFOUR PERSONNES</span>

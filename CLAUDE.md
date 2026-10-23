@@ -1,8 +1,11 @@
 # CLAUDE.md — Réseau social d'action GAMAD
 
-## Priorité actuelle — recentrage décidé le 23 octobre 2026 (D-183)
+## Priorité actuelle — Fil, profils et entraide (D-183, D-184)
 
-Le Président demande un parcours initial **Fil + Personnes**, avec **Agir** et **Mon espace**.
+Le Président demande une entrée unifiée **Fil · Agir · Mon espace** (D-184). Les profils et la recherche
+de personnes restent accessibles depuis le Fil et les publications, sans menu Personnes permanent.
+La priorité est le parcours besoin → proposition précise → conversation → prochaine action confirmée.
+Les outils spécialisés (fichiers, audio/vidéo, formations, stockage, etc.) restent différés, sans choix technique engagé.
 Lire d'abord `docs/RECENTRAGE.md`, puis les quatre sources d'autorité ci-dessous.
 **Suspendre toute extension des ZUMRA, Projets, contributions et portefeuilles** : leur code et leurs données
 restent conservés, leurs nouvelles utilisations sont gelées selon le contrat de transition. Ne pas les

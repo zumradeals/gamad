@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Conversation;
+use App\Services\ConversationActions;
 use App\Services\Conversations;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -26,6 +27,49 @@ class PageConversation extends Component
     public string $conversationId;
 
     public string $body = '';
+
+    public string $actionText = '';
+
+    public string $actionDate = '';
+
+    public bool $editingAction = false;
+
+    #[Locked]
+    public int $actionRevision = 0;
+
+    public function beginAction(): void
+    {
+        $conversation = $this->conversation();
+        Gate::authorize('send', $conversation);
+        $this->actionRevision = $conversation->next_action_revision;
+        $this->reset('actionText', 'actionDate');
+        $this->resetErrorBag();
+        $this->editingAction = true;
+    }
+
+    public function closeAction(): void
+    {
+        $this->reset('editingAction', 'actionText', 'actionDate');
+        $this->resetErrorBag();
+    }
+
+    public function proposeAction(ConversationActions $actions): void
+    {
+        $actions->propose(Auth::user(), $this->conversation(), $this->actionText, $this->actionDate, $this->actionRevision);
+        $this->closeAction();
+    }
+
+    public function confirmAction(int $revision, ConversationActions $actions): void
+    {
+        $actions->confirm(Auth::user(), $this->conversation(), $revision);
+        $this->closeAction();
+    }
+
+    public function withdrawAction(int $revision, ConversationActions $actions): void
+    {
+        $actions->withdraw(Auth::user(), $this->conversation(), $revision);
+        $this->closeAction();
+    }
 
     public function mount(Conversation $conversation): void
     {

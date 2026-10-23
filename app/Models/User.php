@@ -44,6 +44,10 @@ class User extends Authenticatable implements MustVerifyEmail
             // Fondateur d'une ZUMRA : la fondation passe à un autre membre, ou la ZUMRA disparaît s'il n'y en a pas (D-115).
             app(Memberships::class)->passFoundationFrom($user);
 
+            // La prochaine action privée ne survit pas au départ d'un de ses deux participants (D-184).
+            Conversation::query()->where(fn ($q) => $q->where('owner_id', $user->getKey())->orWhere('helper_id', $user->getKey()))
+                ->update(['next_action' => null, 'next_action_date' => null, 'next_action_by' => null, 'next_action_confirmed_at' => null]);
+
             // Ses messages sont effacés : le corps disparaît, la conversation affichera « Message supprimé » (D-097).
             Message::query()->where('sender_id', $user->getKey())->update(['body' => null]);
         });
