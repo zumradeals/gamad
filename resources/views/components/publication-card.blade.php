@@ -4,9 +4,10 @@
     - viewer      : la personne qui regarde (ou null)
     - gesture     : son geste sur cette publication (ou null)
     - link        : vrai pour ajouter un lien vers la page de la publication (Fil)
+    - browse      : vrai dans un Carrefour (D-161) : un seul bouton « Voir … » mène à la publication, où se trouvent le geste et « Signaler »
     Pas de « Commenter » ni de « Partager » : ils ne font pas partie de ce lot (D-090). « Signaler » s'ajoute pour qui est connecté.
 --}}
-@props(['publication', 'viewer' => null, 'gesture' => null, 'link' => true, 'managed' => null, 'memberOf' => null, 'supported' => null, 'compact' => false])
+@props(['publication', 'viewer' => null, 'gesture' => null, 'link' => true, 'managed' => null, 'memberOf' => null, 'supported' => null, 'compact' => false, 'browse' => false])
 
 @php
     use App\Enums\GestureState;
@@ -68,7 +69,7 @@
                 <span class="feed-post-meta -mt-2 text-[12px] text-muted">{{ $meta }}</span>
             @endif
         </div>
-        @if ($compact && $viewer && ! $isOwner)
+        @if ($compact && ! $browse && $viewer && ! $isOwner)
             <a href="{{ route('publications.signaler', $publication) }}" class="inline-flex min-h-11 shrink-0 items-center self-start text-[11px] font-semibold text-muted underline-offset-4 hover:text-ink hover:underline">Signaler</a>
         @endif
     </div>
@@ -105,12 +106,14 @@
         <span class="text-[13px] font-semibold text-muted">{{ \App\Enums\PublicationType::supportFact($supports) }}</span>
     @endif
 
-    @if (! $compact && $viewer && ! $isOwner)
+    @if (! $compact && ! $browse && $viewer && ! $isOwner)
         <a href="{{ route('publications.signaler', $publication) }}" class="inline-flex min-h-11 items-center self-start text-[13px] font-semibold text-muted underline hover:text-ink">Signaler</a>
     @endif
 
     <div @class(['feed-post-actions flex flex-col items-start gap-2' => $compact, 'contents' => ! $compact])>
-        @if ($isOwner)
+        @if ($browse)
+            <x-button :href="route('publications.show', $publication)" variant="secondary">{{ $isOwner ? 'Voir mon besoin' : 'Voir le besoin' }}</x-button>
+        @elseif ($isOwner)
             @if ($link)
                 <x-button :href="route('publications.show', $publication)" variant="secondary">{{ $live > 0 ? 'Voir les réponses' : 'Voir ma publication' }}</x-button>
             @endif
