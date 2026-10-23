@@ -308,6 +308,9 @@ it('refuse à une requête Livewire d’une personne suspendue, même ouverte av
     suspendre($this->mod, $this->awa);
 
     $this->actingAs($this->awa->fresh())->withHeader('X-Livewire', 'true')->postJson('/livewire/update', ['components' => []])->assertForbidden();
+
+    // Même sans demander du JSON, l'en-tête Livewire suffit à refuser net.
+    $this->actingAs($this->awa->fresh())->withHeader('X-Livewire', 'true')->post('/livewire/update', ['components' => []])->assertForbidden();
 });
 
 it('laisse la personne suspendue se déconnecter et lire la charte adoptée', function () {
