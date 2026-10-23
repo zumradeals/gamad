@@ -14,6 +14,7 @@ use App\Support\Experience;
 use App\Support\Normalizer;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
@@ -39,6 +40,10 @@ class PublierPublication extends Component
     public string $slug = '';
 
     public string $body = '';
+
+    public string $needPurpose = '';
+
+    public string $needTiming = '';
 
     /** @var array<int, string> */
     public array $skills = [];
@@ -114,8 +119,27 @@ class PublierPublication extends Component
         // Les erreurs d'un envoi précédent ne survivent pas à un nouvel envoi.
         $this->resetErrorBag();
 
+        $body = $this->body;
+        if ($this->type()->isNeed()) {
+            $this->validate(['needPurpose' => ['nullable', 'string', 'max:150'], 'needTiming' => ['nullable', 'string', 'max:100']], [], ['needPurpose' => 'but du besoin', 'needTiming' => 'disponibilités']);
+            // Le besoin reste obligatoire : des précisions seules ne doivent pas fabriquer une demande vide.
+            $this->validate(['body' => ['required', 'string']], [], ['body' => 'besoin']);
+            $body = Normalizer::multiline($body);
+            if ($body === '') {
+                throw ValidationException::withMessages(['body' => 'Décrivez ce dont vous avez besoin.']);
+            }
+            $parts = [$body];
+            if (filled($this->needPurpose)) {
+                $parts[] = 'Pour : '.Normalizer::display($this->needPurpose);
+            }
+            if (filled($this->needTiming)) {
+                $parts[] = 'Où et quand : '.Normalizer::display($this->needTiming);
+            }
+            $body = implode("\n\n", $parts);
+        }
+
         $publication = $publications->publish(Auth::user(), $this->type(), [
-            'body' => $this->body,
+            'body' => $body,
             'domain_id' => $this->domain_id,
             'city_id' => $this->city_id,
             'visibility' => $this->visibility,

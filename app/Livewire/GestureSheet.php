@@ -6,6 +6,7 @@ use App\Models\Gesture;
 use App\Models\Publication;
 use App\Services\Gestures;
 use App\Services\Supports;
+use App\Support\Normalizer;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
@@ -25,6 +26,10 @@ class GestureSheet extends Component
 
     public string $message = '';
 
+    public string $availability = '';
+
+    public string $helpFormat = '';
+
     #[On('open-gesture')]
     public function open(string $id): void
     {
@@ -33,14 +38,14 @@ class GestureSheet extends Component
         $publication = Publication::query()->with('author')->findOrFail($id);
         Gate::authorize('gesture', $publication);
 
-        $this->reset('message');
+        $this->reset('message', 'availability', 'helpFormat');
         $this->resetErrorBag();
         $this->publicationId = $publication->id;
     }
 
     public function close(): void
     {
-        $this->reset('publicationId', 'message');
+        $this->reset('publicationId', 'message', 'availability', 'helpFormat');
         $this->resetErrorBag();
     }
 
@@ -48,7 +53,15 @@ class GestureSheet extends Component
     {
         $publication = Publication::query()->findOrFail($this->publicationId);
 
-        app(Gestures::class)->propose(Auth::user(), $publication, $this->message);
+        $this->validate(['availability' => ['nullable', 'string', 'max:100'], 'helpFormat' => ['nullable', 'in:onsite,remote']], [], ['availability' => 'disponibilités', 'helpFormat' => 'forme d’aide']);
+        $parts = [Normalizer::multiline($this->message)];
+        if (filled($this->availability)) {
+            $parts[] = 'Disponibilités : '.Normalizer::display($this->availability);
+        }
+        if ($this->helpFormat !== '') {
+            $parts[] = 'Format : '.($this->helpFormat === 'remote' ? 'à distance' : 'sur place');
+        }
+        app(Gestures::class)->propose(Auth::user(), $publication, implode("\n", array_filter($parts, fn ($part) => $part !== '')));
 
         $this->close();
         $this->dispatch('gesture-changed');
@@ -93,7 +106,7 @@ class GestureSheet extends Component
 
         // Une publication qu'on n'a pas le droit de voir n'est jamais affichée, même si l'identifiant a été changé en route.
         if ($publication && ! Gate::allows('view', $publication)) {
-            $this->reset('publicationId', 'message');
+            $this->reset('publicationId', 'message', 'availability', 'helpFormat');
             $publication = null;
         }
 

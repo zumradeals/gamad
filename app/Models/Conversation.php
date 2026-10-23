@@ -18,13 +18,15 @@ class Conversation extends Model
 
     public const MESSAGE_MAX = 1000;
 
+    public const ACTION_MAX = 280;
+
     protected $guarded = ['id'];
 
     protected $dateFormat = 'Y-m-d H:i:s.u';
 
     protected function casts(): array
     {
-        return ['owner_read_at' => 'datetime', 'helper_read_at' => 'datetime'];
+        return ['owner_read_at' => 'datetime', 'helper_read_at' => 'datetime', 'next_action_date' => 'date', 'next_action_confirmed_at' => 'datetime', 'next_action_revision' => 'integer'];
     }
 
     public function owner(): BelongsTo

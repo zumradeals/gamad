@@ -38,6 +38,17 @@
             <p class="text-[12px] leading-normal text-muted">Soyez précis : ce qu’il faut faire, où, et quand. Ne mettez ni téléphone ni e-mail ici. Le texte reste un texte simple : les adresses web n’y sont pas cliquables.</p>
         </div>
 
+        @if ($type->isNeed())
+            <details class="rounded-card border border-line bg-card p-4" @if ($errors->has('needPurpose') || $errors->has('needTiming')) open @endif>
+                <summary class="min-h-11 cursor-pointer content-center text-[15px] font-extrabold">Préciser mon besoin (facultatif)</summary>
+                <div class="mt-3 flex flex-col gap-3">
+                    <x-wire-field name="needPurpose" label="Pour faire quoi ?" maxlength="150" placeholder="Ex. Tenir les comptes de ma boutique" />
+                    <x-wire-field name="needTiming" label="Où et quand ?" maxlength="100" placeholder="Ex. À distance, samedi matin" />
+                    <p class="text-[12px] leading-relaxed text-muted">Ces précisions seront ajoutées au texte publié, dans la limite totale de {{ $bodyMax }} caractères. N’indiquez ni adresse privée, ni téléphone, ni e-mail.</p>
+                </div>
+            </details>
+        @endif
+
         @include('livewire.partials.skill-picker', [
             'list' => 'skills', 'items' => $skills, 'input' => $skillsInput, 'suggestions' => $suggestions, 'tone' => 'neutral', 'plain' => true,
             'max' => \App\Models\Publication::MAX_SKILLS,

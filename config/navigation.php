@@ -15,14 +15,12 @@
 return [
     'initial' => [
         'phone' => [
-            ['key' => 'fil', 'label' => 'Fil', 'route' => 'fil', 'icon' => 'feed', 'enabled' => true],
-            ['key' => 'personnes', 'label' => 'Personnes', 'route' => 'personnes.index', 'active' => 'personnes.*', 'icon' => 'group', 'enabled' => true],
+            ['key' => 'fil', 'label' => 'Fil', 'route' => 'fil', 'active' => ['fil', 'personnes.*'], 'icon' => 'feed', 'enabled' => true],
             ['key' => 'agir', 'label' => 'Agir', 'route' => 'agir', 'icon' => 'plus', 'enabled' => true, 'prominent' => true],
             ['key' => 'espace', 'label' => 'Mon espace', 'route' => 'espace', 'active' => ['espace', 'espace.*', 'conversations.*'], 'icon' => 'user', 'enabled' => true],
         ],
         'desktop' => [
-            ['key' => 'fil', 'label' => 'Fil', 'route' => 'fil', 'icon' => 'home', 'enabled' => true],
-            ['key' => 'personnes', 'label' => 'Personnes', 'route' => 'personnes.index', 'active' => 'personnes.*', 'icon' => 'group', 'enabled' => true],
+            ['key' => 'fil', 'label' => 'Fil', 'route' => 'fil', 'active' => ['fil', 'personnes.*'], 'icon' => 'home', 'enabled' => true],
         ],
     ],
 

@@ -8,7 +8,10 @@ use App\Models\Gesture;
 use App\Models\Publication;
 use App\Services\Supports;
 use App\Support\Experience;
+use App\Support\Normalizer;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
@@ -31,6 +34,25 @@ class Fil extends Component
     public string $filter = 'tout';
 
     public int $limit = self::PAGE_SIZE;
+
+    #[Url(as: 'q', except: '')]
+    public string $query = '';
+
+    public function updatingQuery(): void
+    {
+        $this->limit = self::PAGE_SIZE;
+    }
+
+    public function clearSearch(): void
+    {
+        $this->reset('query');
+        $this->limit = self::PAGE_SIZE;
+    }
+
+    public function findPeople(): void
+    {
+        $this->redirect(route('personnes.index', ['q' => Normalizer::display(Str::limit($this->query, 100, ''))]), navigate: false);
+    }
 
     /** Filtres du Fil (D-098) : clé d'adresse => type publié ; « tout » n'en filtre aucun. */
     public const FILTERS = [
@@ -71,10 +93,18 @@ class Fil extends Component
         $viewer = Auth::user();
         $filter = $this->knows($this->filter) ? $this->filter : 'tout';
 
+        $text = trim(Str::limit($this->query, 100, ''));
+        $key = Normalizer::key($text);
+
         $posts = Publication::query()
             ->visibleTo($viewer)
             // Une publication masquée n'apparaît jamais dans le Fil, même à son auteur ni à la modération (D-089).
             ->whereNull('hidden_at')
+            ->when($key !== '', fn (Builder $query) => $query->where(function (Builder $query) use ($text, $key) {
+                $query->where('body', 'ilike', Normalizer::likeContains($text))
+                    ->orWhereHas('skills', fn (Builder $skills) => $skills->where('skills.normalized', 'like', Normalizer::likeContains($key)))
+                    ->orWhereHas('author', fn (Builder $author) => $author->where('name_search', 'like', Normalizer::likeContains($key)));
+            }))
             ->when(array_key_exists($filter, self::FILTERS), fn ($query) => $query->where('type', self::FILTERS[$filter]->value))
             ->when($filter === self::ZUMRA_FILTER, fn ($query) => $query->whereNotNull('zumra_id'))
             ->when($filter === self::PROJECT_FILTER, fn ($query) => $query->whereNotNull('project_id'))
@@ -91,6 +121,7 @@ class Fil extends Component
 
         return view('livewire.fil', [
             'posts' => $posts,
+            'searchText' => $text,
             'hasMore' => $hasMore && $this->limit < self::MAX_SIZE,
             'gestures' => Gesture::query()->with('conversation')->where('user_id', $viewer->getKey())->whereIn('publication_id', $posts->pluck('id'))->get()->keyBy('publication_id'),
             'viewer' => $viewer,

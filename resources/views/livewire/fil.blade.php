@@ -16,7 +16,7 @@
     ];
     if (\App\Support\Experience::initial()) {
         $directories = [
-            ['Personnes', 'Trouver des capacités', 'personnes.index', 'group', 'bg-type-call-bg text-type-call-fg'],
+            ['Trouver une personne', 'Rechercher par capacité ou par nom', 'personnes.index', 'group', 'bg-type-call-bg text-type-call-fg'],
             ['Besoins dans le Fil', 'Voir où vous pouvez aider', 'fil', 'heart', 'bg-type-need-bg text-type-need-fg'],
         ];
     }
@@ -78,6 +78,15 @@
     </aside>
 
     <div class="feed-main">
+        <section aria-labelledby="recherche-fil" class="feed-panel p-4">
+            <h2 id="recherche-fil" class="mb-3 text-[17px] font-extrabold">Que cherchez-vous ?</h2>
+            <form wire:submit="$refresh" class="flex flex-col gap-3">
+                <label for="fil-query" class="text-[13px] font-semibold text-muted">Un savoir, un besoin ou une personne</label>
+                <div class="flex min-w-0 items-center gap-2 rounded-button border border-chip-line px-3 focus-within:outline focus-within:outline-[3px] focus-within:outline-link"><x-icon name="search" :size="20" class="shrink-0" /><input id="fil-query" type="search" wire:model.live.debounce.300ms="query" maxlength="100" placeholder="Une capacité, un mot ou un nom…" class="min-h-12 min-w-0 flex-1 border-0 bg-transparent text-[14px] outline-none"></div>
+                <div class="flex flex-wrap gap-2"><x-button type="submit" variant="secondary" class="!px-3 !text-[13px]">Dans le Fil</x-button><x-button type="button" wire:click="findPeople" variant="accent" class="gap-2 !px-3 !text-[13px]"><x-icon name="group" :size="18" />Trouver une personne</x-button>@if ($searchText !== '')<button type="button" wire:click="clearSearch" class="min-h-11 text-[13px] font-semibold underline">Effacer</button>@endif</div>
+            </form>
+            @if ($searchText !== '')<p class="mt-3 text-[13px] text-muted" role="status">Publications contenant « {{ $searchText }} » dans leur texte, leurs capacités ou le nom de leur auteur.</p>@endif
+        </section>
         <section aria-label="Publier" class="feed-panel p-4">
             <div class="flex items-center gap-3">
                 <x-avatar :profile="$profile" :size="44" />
@@ -113,7 +122,11 @@
             @empty
                 <section aria-labelledby="vide" class="feed-panel flex flex-col items-start gap-3 p-5 md:p-6">
                     <span class="flex size-11 items-center justify-center rounded-button bg-type-call-bg text-type-call-fg" aria-hidden="true"><x-icon name="idea" :size="24" /></span>
-                    @if ($filter === 'tout')
+                    @if ($searchText !== '')
+                        <h2 id="vide" class="text-[18px] font-extrabold">Aucune publication ne correspond à cette recherche.</h2>
+                        <p class="text-[14px] text-muted">Essayez un autre mot, ou cherchez une personne par ses capacités.</p>
+                        <x-button type="button" variant="secondary" wire:click="clearSearch">Effacer la recherche</x-button>
+                    @elseif ($filter === 'tout')
                         <p><strong id="vide" class="text-[18px] font-extrabold">Le Fil se remplira bientôt.</strong> <span class="text-muted"><a href="{{ route('espace.profil') }}" class="font-semibold">Commencez par compléter votre profil.</a></span></p>
                     @else
                         <h2 id="vide" class="text-[18px] font-extrabold">Rien dans cette catégorie pour l’instant.</h2>

@@ -54,14 +54,14 @@ it('active le parcours initial par défaut dans la configuration livrée', funct
     expect($defaults['initial_experience'])->toBeTrue()->and(Experience::initial())->toBeTrue();
 });
 
-it('ne propose que Fil Personnes Agir et Mon espace sans fenêtre de découverte', function () {
+it('ne propose que Fil Agir et Mon espace sans fenêtre de découverte', function () {
     $user = person('Nouvelle personne', ['Couture']);
 
     foreach (['fil', 'personnes.index', 'agir', 'espace'] as $route) {
         $html = $this->actingAs($user)->get(route($route))->assertOk()->getContent();
         preg_match_all('/<nav aria-label="Navigation principale".*?<\/nav>/s', $html, $navs);
         $text = trim(preg_replace('/\s+/', ' ', strip_tags(implode(' ', $navs[0]))));
-        expect($text)->toContain('Fil')->toContain('Personnes')->toContain('Agir')->toContain('Mon espace')
+        expect($text)->toContain('Fil')->not->toContain('Personnes')->toContain('Agir')->toContain('Mon espace')
             ->not->toContain('Découvrir')->not->toContain('ZUMRA')->not->toContain('Projets')->not->toContain('Besoins');
         expect($html)->not->toContain('aria-labelledby="decouvrir-titre"')
             ->not->toContain('href="'.route('zumras.index').'"')->not->toContain('href="'.route('projets.index').'"')

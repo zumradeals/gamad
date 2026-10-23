@@ -15,7 +15,7 @@ lot en « Terminé ».
 | 5 | Ouverture (pilote) | **Terminé** (PR 5a, 5b et 5c fusionnées, marqué terminé le 2026-10-23 sur instruction du Président ; restent à faire par lui : l'essai de restauration sur son stockage réel et le pilote fermé) |
 | 5.1 | Carrefour Besoins et Découvrir | **Terminé** (PR 5.1 fusionnée, marqué terminé le 2026-10-23 sur instruction du Président) |
 | 6 | Contributions mensuelles et portefeuille ZAHAB | **Suspendu** (D-183 : conserver le code et les données, aucune extension) |
-| R1 | Recentrage du parcours initial : Fil + Personnes | **En cours** (D-183, mission confiée à Codex) |
+| R1 | Entrée par le Fil et entraide accompagnée | **En cours** (D-183 et D-184, mission confiée à Codex) |
 
 **Priorité actuelle (D-183).** Le Lot R1 remplace le développement du Lot 6. Lire
 `docs/RECENTRAGE.md` avant toute intervention. Les lots antérieurs restent l'historique du système
@@ -23,11 +23,14 @@ construit ; leur validation ne réactive pas un module gelé. Ne pas commencer d
 
 ## Lot R1 — Recentrage du parcours initial (En cours)
 
-**But :** rendre GAMAD compréhensible par quatre entrées : Fil, Personnes, Agir, Mon espace.
+**But :** rendre GAMAD compréhensible par trois entrées : Fil, Agir, Mon espace ; trouver les personnes
+depuis le Fil et accompagner le parcours d’entraide (D-184).
 
 **Périmètre :** navigation et accueil cohérents ; besoins dans le Fil ; création et découverte des modules
 collectifs et financiers gelées ; accès aux activités antérieures conservés ; conversations personnelles
-retrouvables ; décision et contrat documentés pour la reprise par Claude. Aucun nouveau modèle ou table.
+retrouvables ; recherche depuis le Fil, besoins et propositions précisés, prochaine action confirmée dans
+la conversation ; décision et contrat documentés pour la reprise par Claude. Aucun nouveau modèle ou
+table ; D-184 autorise une migration additive de cinq colonnes sur conversations.
 
 **Critères de fin :** parcours sur téléphone, tests en mode initial et régression du système conservé,
 CI verte, aucune suppression de données ni rupture des confirmations de paiement ou de la visibilité.
