@@ -2,6 +2,7 @@
 
 use App\Enums\PublicationType;
 use App\Enums\ZumraRole;
+use App\Livewire\MondeZumra;
 use App\Livewire\PageConversation;
 use App\Models\City;
 use App\Models\Conversation;
@@ -13,6 +14,7 @@ use App\Models\Zumra;
 use App\Models\ZumraMembership;
 use App\Services\Conversations;
 use App\Services\Gestures;
+use App\Services\JoinRequests;
 use App\Services\ProfileEditor;
 use App\Services\Publications;
 use App\Services\Zumras;
@@ -134,8 +136,13 @@ function ajouteMembre(Zumra $zumra, User $personne, ZumraRole $role = ZumraRole:
 /** Une demande d'adhésion acceptée par le fondateur : la personne devient membre. */
 function admis(Zumra $zumra, User $personne): ZumraMembership
 {
-    $demande = app(\App\Services\JoinRequests::class)->propose($personne, $zumra);
-    app(\App\Services\JoinRequests::class)->accept($zumra->memberships()->where('role', 'founder')->first()->user, $demande);
+    $demande = app(JoinRequests::class)->propose($personne, $zumra);
+    app(JoinRequests::class)->accept($zumra->memberships()->where('role', 'founder')->first()->user, $demande);
 
     return $zumra->memberships()->where('user_id', $personne->id)->first();
+}
+
+function monde(User $qui, $zumra)
+{
+    return Livewire::actingAs($qui)->test(MondeZumra::class, ['zumra' => $zumra]);
 }

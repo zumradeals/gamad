@@ -53,6 +53,8 @@ return new class extends Migration
             $table->foreignUuid('zumra_id')->nullable()->constrained('zumras')->cascadeOnDelete();
         });
 
+        // Les noms des nouvelles sortes dépassent 24 caractères.
+        DB::statement('alter table user_notifications alter column kind type varchar(40)');
         DB::statement('alter table user_notifications drop constraint user_notifications_kind_check');
         DB::statement("alter table user_notifications add constraint user_notifications_kind_check check (kind in ('gesture_received', 'gesture_accepted', 'message_received', 'gratitude_received', 'publication_hidden', 'publication_restored', 'zumra_request_received', 'zumra_request_accepted', 'zumra_invitation_received', 'zumra_invitation_accepted', 'zumra_role_granted', 'zumra_member_removed', 'zumra_founder_transferred'))");
     }
