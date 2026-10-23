@@ -93,6 +93,12 @@ class Publication extends Model
         return $this->hasMany(Report::class);
     }
 
+    /** Les soutiens reçus (avancée de projet) : un engagement compté, jamais une approbation. */
+    public function supports(): HasMany
+    {
+        return $this->hasMany(PublicationSupport::class);
+    }
+
     public function gestures(): HasMany
     {
         return $this->hasMany(Gesture::class);

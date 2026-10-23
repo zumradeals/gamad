@@ -68,6 +68,31 @@ class PublicationPolicy
     }
 
     /**
+     * Soutenir une avancée de projet (D-139) : une personne vérifiée qui voit la publication, sans la gérer, tant qu'elle n'est pas
+     * masquée ; un seul soutien par personne, que l'on peut retirer.
+     */
+    public function support(User $user, Publication $publication): Response
+    {
+        if (! $publication->type->canBeSupported()) {
+            return Response::denyAsNotFound();
+        }
+
+        if (! $user->hasVerifiedEmail()) {
+            return Response::deny('Vérifiez votre adresse e-mail pour soutenir.');
+        }
+
+        if (! $this->view($user, $publication)->allowed() || $publication->isHidden()) {
+            return Response::denyAsNotFound();
+        }
+
+        if ($publication->isManagedBy($user)) {
+            return Response::deny('Vous ne soutenez pas votre propre avancée.');
+        }
+
+        return Response::allow();
+    }
+
+    /**
      * Envoyer un geste (D-082) : une personne vérifiée qui voit la publication, qui n'en est pas l'auteur, tant que la
      * publication accepte des gestes ; une seule fois, sauf après avoir retiré le sien.
      */

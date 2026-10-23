@@ -165,7 +165,7 @@
         @endif
 
         @forelse ($publications as $post)
-            <x-publication-card wire:key="zumra-publication-{{ $post->id }}" :publication="$post" :viewer="$viewer" :gesture="$gestures[$post->id] ?? null" :managed="$managed" :member-of="$memberOf" />
+            <x-publication-card wire:key="zumra-publication-{{ $post->id }}" :publication="$post" :viewer="$viewer" :gesture="$gestures[$post->id] ?? null" :supported="$supported" :managed="$managed" :member-of="$memberOf" />
         @empty
             <section class="rounded-card border border-line bg-card p-5">
                 <p class="text-[16px] font-extrabold">{{ $tab === 'formation' ? 'Aucun savoir partagé pour l’instant.' : 'Rien dans le Fil de cette ZUMRA pour l’instant.' }}</p>

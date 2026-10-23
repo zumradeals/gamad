@@ -12,9 +12,11 @@
         @forelse ($notifications as $notification)
             @php
                 $actor = $notification->actor;
-                $about = $notification->kind->isAboutZumra()
+                $about = $notification->kind->isAboutProject()
+                    ? $notification->project?->name
+                    : ($notification->kind->isAboutZumra()
                     ? $notification->zumra?->name
-                    : ($notification->publication ? \Illuminate\Support\Str::limit($notification->publication->body, 40) : null);
+                    : ($notification->publication ? \Illuminate\Support\Str::limit($notification->publication->body, 40) : null));
                 $isUnread = $notification->read_at === null;
             @endphp
             <a wire:key="notification-{{ $notification->id }}" href="{{ route('notifications.open', $notification) }}"

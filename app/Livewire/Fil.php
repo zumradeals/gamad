@@ -6,6 +6,7 @@ use App\Enums\GestureState;
 use App\Enums\PublicationType;
 use App\Models\Gesture;
 use App\Models\Publication;
+use App\Services\Supports;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
@@ -77,6 +78,7 @@ class Fil extends Component
             ->when($filter === self::ZUMRA_FILTER, fn ($query) => $query->whereNotNull('zumra_id'))
             ->when($filter === self::PROJECT_FILTER, fn ($query) => $query->whereNotNull('project_id'))
             ->with(['author.profile', 'domain', 'city', 'skills', 'zumra', 'project'])
+            ->withCount(['supports as supports_count'])
             ->withCount(['gestures as live_gestures_count' => fn ($query) => $query->whereIn('state', [GestureState::Sent->value, GestureState::Accepted->value])])
             ->orderByDesc('created_at')
             ->orderByDesc('id')
@@ -93,6 +95,7 @@ class Fil extends Component
             'viewer' => $viewer,
             'profile' => $viewer->ensureProfile()->load(['city', 'offeredSkills', 'wantedSkills']),
             'filter' => $filter,
+            'supported' => app(Supports::class)->supportedBy($viewer, $posts->pluck('id')),
             'managedZumraIds' => $viewer->managedZumraIds(),
             'memberOf' => $viewer->zumraMemberships()->pluck('zumra_id')->all(),
         ]);

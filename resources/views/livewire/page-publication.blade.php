@@ -74,6 +74,8 @@
             @endif
             @if ($type->takesGestures())
                 <span class="text-[13px] font-semibold text-muted">{{ $live > 0 ? $type->factLabel($live) : 'Personne n’a encore répondu.' }}</span>
+            @elseif ($type->canBeSupported())
+                <span class="text-[13px] font-semibold text-muted">{{ $publication->supports_count > 0 ? \App\Enums\PublicationType::supportFact($publication->supports_count) : 'Personne n’a encore soutenu cette avancée.' }}</span>
             @endif
             @unless ($publication->isPublic())
                 <span class="text-[12px] text-muted">Visible des personnes inscrites seulement.</span>

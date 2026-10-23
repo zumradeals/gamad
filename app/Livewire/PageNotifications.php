@@ -28,7 +28,7 @@ class PageNotifications extends Component
         return view('livewire.page-notifications', [
             'notifications' => UserNotification::query()
                 ->where('user_id', $user->getKey())
-                ->with(['actor', 'publication', 'zumra'])
+                ->with(['actor', 'publication', 'zumra', 'project'])
                 ->orderByDesc('created_at')->orderByDesc('id')
                 ->limit(self::SHOWN)->get(),
             'unread' => $notifier->unreadCount($user),

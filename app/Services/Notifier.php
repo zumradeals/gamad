@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\NotificationKind;
 use App\Models\Conversation;
+use App\Models\Project;
 use App\Models\Publication;
 use App\Models\User;
 use App\Models\UserNotification;
@@ -15,7 +16,7 @@ use App\Models\Zumra;
  */
 class Notifier
 {
-    public function push(?User $to, NotificationKind $kind, ?User $actor = null, ?Publication $publication = null, ?Conversation $conversation = null, ?Zumra $zumra = null): void
+    public function push(?User $to, NotificationKind $kind, ?User $actor = null, ?Publication $publication = null, ?Conversation $conversation = null, ?Zumra $zumra = null, ?Project $project = null): void
     {
         if ($to === null || $actor?->getKey() === $to->getKey()) {
             return;
@@ -40,6 +41,7 @@ class Notifier
         $notification->publication()->associate($publication);
         $notification->conversation()->associate($conversation);
         $notification->zumra()->associate($zumra);
+        $notification->project()->associate($project);
         $notification->save();
     }
 
