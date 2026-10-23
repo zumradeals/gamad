@@ -7,6 +7,7 @@ use App\Enums\PublicationType;
 use App\Models\Gesture;
 use App\Models\Publication;
 use App\Services\Supports;
+use App\Support\Experience;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
@@ -59,7 +60,7 @@ class Fil extends Component
     /** Un geste envoyé, retiré, accepté ou décliné : la page se redessine. */
     private function knows(string $filter): bool
     {
-        return array_key_exists($filter, self::FILTERS) || in_array($filter, [self::ZUMRA_FILTER, self::PROJECT_FILTER], true);
+        return array_key_exists($filter, self::FILTERS) || (! Experience::initial() && in_array($filter, [self::ZUMRA_FILTER, self::PROJECT_FILTER], true));
     }
 
     #[On('gesture-changed')]

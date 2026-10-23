@@ -3,22 +3,29 @@
 namespace App\Livewire;
 
 use App\Exceptions\WalletException;
+use App\Models\Conversation;
 use App\Models\User;
+use App\Models\Wallet;
+use App\Models\Zumra;
 use App\Services\AdminJournal;
 use App\Services\DisplayName;
 use App\Services\Todo;
 use App\Services\Wallets;
+use App\Support\Experience;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 #[Layout('components.layouts.app')]
 #[Title('Mon espace')]
 class Espace extends Component
 {
+    use WithPagination;
+
     public string $password = '';
 
     public string $name = '';
@@ -92,11 +99,24 @@ class Espace extends Component
     {
         $user = Auth::user();
 
+        $initial = Experience::initial();
+        $legacyZumras = $initial ? Zumra::query()->whereHas('memberships', fn ($q) => $q->where('user_id', $user->getKey()))->orderBy('name_key')->get() : collect();
+        $legacyWallets = $initial && app(Wallets::class)->enabled()
+            ? Wallet::query()->where(fn ($q) => $q
+                ->where(fn ($q) => $q->where('owner_type', Wallet::PERSON)->where('owner_id', $user->getKey()))
+                ->orWhere(fn ($q) => $q->where('owner_type', Wallet::ZUMRA)->whereIn('owner_id', $user->managedZumraIds())))->get()
+            : collect();
+
         return view('livewire.espace', [
+            'conversations' => Conversation::query()
+                ->where(fn ($q) => $q->where('owner_id', $user->getKey())->orWhere('helper_id', $user->getKey()))
+                ->with(['owner', 'helper'])->orderByDesc('updated_at')->orderByDesc('id')->paginate(10, ['*'], 'echanges'),
+            'legacyZumras' => $legacyZumras,
+            'legacyWallets' => $legacyWallets,
             'user' => $user,
             'profile' => $user->ensureProfile()->load(['offeredSkills', 'wantedSkills']),
             'todo' => app(Todo::class)->for($user),
-            'walletsEnabled' => app(Wallets::class)->enabled(),
+            'walletsEnabled' => ! $initial && app(Wallets::class)->enabled(),
             // Mes publications : le chemin vers « Mon besoin » et les réponses reçues.
             'publications' => $user->publications()
                 ->withCount(['gestures as live_gestures_count' => fn ($query) => $query->whereIn('state', ['sent', 'accepted'])])

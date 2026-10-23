@@ -12,6 +12,9 @@
 */
 
 return [
+    // D-183 : Fil + Personnes. Réouverture des modules collectifs et financiers sur nouvelle décision dans Git.
+    'initial_experience' => true,
+
     'limits' => [
         // Inscriptions par heure et par adresse IP (D-045).
         'register_per_hour' => 20,

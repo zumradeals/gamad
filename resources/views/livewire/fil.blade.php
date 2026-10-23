@@ -1,5 +1,8 @@
 @php
     $filters = ['tout' => 'Tout', 'besoins' => 'Besoins', 'savoirs' => 'Savoirs', 'apprendre' => 'Apprendre', 'aides' => 'Aides', 'zumra' => 'ZUMRA', 'projets' => 'Projets'];
+    if (\App\Support\Experience::initial()) {
+        unset($filters['zumra'], $filters['projets']);
+    }
     $shortcuts = [
         [\App\Enums\PublicationType::Need, 'idea', 'text-type-need-fg'],
         [\App\Enums\PublicationType::Knowledge, 'book', 'text-type-knowledge-fg'],
@@ -11,6 +14,16 @@
         ['ZUMRA', 'Découvrir les communautés', 'zumras.index', 'community', 'bg-type-learning-bg text-type-learning-fg'],
         ['Projets', 'Voir les actions en cours', 'projets.index', 'project', 'bg-type-knowledge-bg text-type-knowledge-fg'],
     ];
+    if (\App\Support\Experience::initial()) {
+        $directories = [
+            ['Personnes', 'Trouver des capacités', 'personnes.index', 'group', 'bg-type-call-bg text-type-call-fg'],
+            ['Besoins dans le Fil', 'Voir où vous pouvez aider', 'fil', 'heart', 'bg-type-need-bg text-type-need-fg'],
+        ];
+    }
+    $profileShortcuts = [['Mon profil', route('espace.profil'), 'user'], ['À faire maintenant', route('espace').'#afaire', 'tasks']];
+    if (! \App\Support\Experience::initial()) {
+        array_splice($profileShortcuts, 1, 0, [['Mes ZUMRA', route('zumras.index').'#mes-zumra', 'community']]);
+    }
 @endphp
 
 <div class="feed-layout">
@@ -58,7 +71,7 @@
         </section>
 
         <nav aria-label="Mes raccourcis" class="feed-panel divide-y divide-line-soft px-4">
-            @foreach ([['Mon profil', route('espace.profil'), 'user'], ['Mes ZUMRA', route('zumras.index').'#mes-zumra', 'community'], ['À faire maintenant', route('espace').'#afaire', 'tasks']] as [$label, $url, $icon])
+            @foreach ($profileShortcuts as [$label, $url, $icon])
                 <a href="{{ $url }}" class="feed-shortcut"><x-icon :name="$icon" :size="21" /><span class="min-w-0 flex-1">{{ $label }}</span><x-icon name="next" :size="15" /></a>
             @endforeach
         </nav>
@@ -121,7 +134,7 @@
             <h2 class="mb-2 text-[17px] font-extrabold">Explorer GAMAD</h2>
             <nav aria-label="Explorer GAMAD" class="flex flex-col">
                 @foreach ($directories as [$label, $description, $route, $icon, $colors])
-                    <a href="{{ route($route) }}" class="group flex min-h-20 items-center gap-3 rounded-button py-3 text-ink no-underline hover:text-ink">
+                    <a href="{{ route($route, $route === 'fil' ? ['filtre' => 'besoins'] : []) }}" class="group flex min-h-20 items-center gap-3 rounded-button py-3 text-ink no-underline hover:text-ink">
                         <span class="flex size-11 shrink-0 items-center justify-center rounded-button {{ $colors }}"><x-icon :name="$icon" :size="24" /></span>
                         <span class="min-w-0 flex-1"><span class="block text-[14px] font-extrabold group-hover:underline">{{ $label }}</span><span class="mt-0.5 block text-[12px] leading-relaxed text-muted">{{ $description }}</span></span>
                         <x-icon name="next" :size="16" />

@@ -2,10 +2,11 @@
 
 @php
     $enabled = fn (array $items) => array_values(array_filter($items, fn ($item) => $item['enabled'] ?? false));
-    $phoneItems = $enabled(config('navigation.phone'));
-    $desktopItems = $enabled(config('navigation.desktop'));
+    $navigationPrefix = \App\Support\Experience::initial() ? 'navigation.initial.' : 'navigation.';
+    $phoneItems = $enabled(config($navigationPrefix.'phone'));
+    $desktopItems = $enabled(config($navigationPrefix.'desktop'));
     // « Agir » : rond jaune au centre de la barre du bas (téléphone), bouton jaune dans la barre du haut (ordinateur).
-    $agir = collect(config('navigation.phone'))->firstWhere('key', 'agir');
+    $agir = collect(config($navigationPrefix.'phone'))->firstWhere('key', 'agir');
     $agir = ($agir['enabled'] ?? false) && auth()->check() ? $agir : null;
     $isActive = fn (array $item) => $item['route'] && request()->routeIs($item['active'] ?? [$item['route'], $item['route'].'.*']);
 @endphp
@@ -106,6 +107,7 @@
         </div>
     </nav>
 
+    @unless (\App\Support\Experience::initial())
     <div x-show="discover" x-cloak x-trap.noscroll="discover" x-on:keydown.escape.window="discover = false"
          class="fixed inset-0 z-30 lg:hidden" role="dialog" aria-modal="true" aria-labelledby="decouvrir-titre">
         <div x-show="discover" x-transition.opacity.duration.150ms class="absolute inset-0 bg-ink/55" x-on:click="discover = false" aria-hidden="true"></div>
@@ -123,6 +125,7 @@
             @include('partials.discover-cards')
         </div>
     </div>
+    @endunless
     </div>
     @endauth
 

@@ -15,6 +15,7 @@ use App\Models\Report;
 use App\Models\User;
 use App\Models\Wallet;
 use App\Models\Zumra;
+use App\Support\Experience;
 use Illuminate\Support\Str;
 
 /**
@@ -50,7 +51,7 @@ class Todo
     /** Rappel mensuel demandé par la personne ou par sa ZUMRA, sans contribution ce mois-ci : la demande de paiement (Lot 6c, D-163). */
     private function contributionReminders(User $user): array
     {
-        if (! app(Wallets::class)->enabled()) {
+        if (Experience::initial() || ! app(Wallets::class)->enabled()) {
             return [];
         }
 

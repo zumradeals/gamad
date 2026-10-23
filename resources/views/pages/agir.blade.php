@@ -20,6 +20,6 @@
             </a>
         @endforeach
 
-        <p class="text-[12px] leading-normal text-muted">Vous publiez en tant que vous-même ({{ auth()->user()->name }}).@if (auth()->user()->managedZumraIds() !== []) Pour publier au nom d’une ZUMRA que vous gérez, ouvrez-la dans l’onglet ZUMRA.@endif</p>
+        <p class="text-[12px] leading-normal text-muted">Vous publiez en tant que vous-même ({{ auth()->user()->name }}).@if (! \App\Support\Experience::initial() && auth()->user()->managedZumraIds() !== []) Pour publier au nom d’une ZUMRA que vous gérez, ouvrez-la dans l’onglet ZUMRA.@endif</p>
     </div>
 </x-layouts.app>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Profile;
 use App\Models\Zumra;
 use App\Services\Contributions;
+use App\Support\Experience;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -23,7 +24,7 @@ class PersonController extends Controller
         $isOwner = $viewer?->getKey() === $profile->user_id;
 
         // « Inviter dans ma ZUMRA » (D-110) : les ZUMRA que le visiteur gère et où cette personne n'est pas encore.
-        $inviteZumras = $viewer && ! $isOwner && $viewer->hasVerifiedEmail()
+        $inviteZumras = ! Experience::initial() && $viewer && ! $isOwner && $viewer->hasVerifiedEmail()
             ? Zumra::query()
                 ->whereHas('memberships', fn ($query) => $query->where('user_id', $viewer->getKey())->whereIn('role', ['founder', 'manager']))
                 ->whereDoesntHave('memberships', fn ($query) => $query->where('user_id', $profile->user_id))

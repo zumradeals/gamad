@@ -9,7 +9,9 @@
     <div class="flex flex-col gap-1">
         <a href="{{ $zumra ? route('zumras.portefeuille', $zumra) : route('portefeuille') }}" class="inline-flex min-h-11 items-center text-[14px] font-semibold">← {{ $zumra ? 'Portefeuille de la ZUMRA' : 'Mon portefeuille' }}</a>
         <h1 class="text-[24px] font-extrabold leading-tight">{{ $zumra ? 'Contribution de la ZUMRA' : 'Ma contribution' }}</h1>
+        @unless (\App\Support\Experience::initial())
         <p class="text-muted">La contribution est facultative et sans montant imposé : un signe d’engagement qui finance les projets des ZUMRA engagées. Elle ne donne ni rang, ni visibilité, ni pouvoir de décision. <a href="{{ route('rapport-contributions') }}" class="font-semibold underline">Lire le rapport public</a>.</p>
+        @endunless
     </div>
 
     @if ($message)
@@ -28,6 +30,7 @@
         </section>
     @endif
 
+    @unless (\App\Support\Experience::initial())
     <section aria-labelledby="etat" class="flex flex-col gap-1 rounded-card border border-line bg-card p-4 md:p-[18px]">
         <h2 id="etat" class="text-[13px] font-semibold text-muted">État</h2>
         @if ($engaged)
@@ -39,6 +42,9 @@
         @endif
     </section>
 
+    @endunless
+
+    @unless (\App\Support\Experience::initial())
     <form wire:submit="contribute" aria-labelledby="contribuer" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
         <h2 id="contribuer" class="text-[18px] font-extrabold">Contribuer</h2>
         @if ($sandbox)
@@ -95,6 +101,10 @@
             </label>
         @endunless
     </section>
+
+    @else
+        <p class="rounded-card border border-line bg-card p-4 text-[14px] text-muted">Les nouvelles contributions sont en pause. Vos contributions et les demandes en attente restent consultables ci-dessous.</p>
+    @endunless
 
     <section aria-labelledby="impact" class="flex flex-col gap-1 rounded-card border border-line bg-card p-4 md:p-[18px]">
         <h2 id="impact" class="text-[18px] font-extrabold">Mon rapport d’impact</h2>

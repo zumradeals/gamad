@@ -3,6 +3,7 @@
         ['vue-ensemble', 'Vue d’ensemble', 'grid'],
         ['profil', 'Mon profil', 'user'],
         ['publications', 'Mes publications', 'document'],
+        ['echanges', 'Mes échanges', 'chat'],
         ['compte', 'Mon compte', 'settings'],
     ];
 @endphp
@@ -138,6 +139,36 @@
                 @endif
             </section>
         </div>
+
+        <section aria-labelledby="echanges" class="space-panel flex min-w-0 flex-col gap-3 p-4 md:p-5">
+            <h2 id="echanges" class="flex items-center gap-2.5 text-[18px] font-extrabold"><x-icon name="chat" :size="23" />Mes échanges</h2>
+            <p class="text-[14px] text-muted">Vos conversations privées, ouvertes après une proposition acceptée.</p>
+            @forelse ($conversations as $conversation)
+                <a wire:key="espace-conversation-{{ $conversation->id }}" href="{{ route('conversations.show', $conversation) }}" class="flex min-h-11 items-center justify-between gap-3 border-t border-line-soft py-2 text-[14px] font-semibold"><span class="min-w-0 [overflow-wrap:anywhere]">{{ $conversation->otherPerson($user)?->name ?? 'Personne supprimée' }}</span><x-icon name="arrow-right" :size="18" class="shrink-0" /></a>
+            @empty
+                <p class="text-[14px] text-muted">Vos premiers échanges commenceront par un geste dans le Fil.</p>
+            @endforelse
+            {{ $conversations->links() }}
+        </section>
+
+        @if ($legacyZumras->isNotEmpty() || $legacyWallets->isNotEmpty())
+            <details class="space-panel p-4 md:p-5">
+                <summary class="min-h-11 cursor-pointer content-center text-[16px] font-extrabold">Mes activités antérieures</summary>
+                <p class="mb-3 text-[13px] leading-relaxed text-muted">Vos activités et historiques restent accessibles. Les nouvelles créations collectives, recharges et contributions sont en pause.</p>
+                <div class="flex flex-col gap-2">
+                    @foreach ($legacyZumras as $legacyZumra)
+                        <a href="{{ route('zumras.show', $legacyZumra) }}" class="inline-flex min-h-11 items-center text-[14px] font-semibold [overflow-wrap:anywhere]">{{ $legacyZumra->name }}</a>
+                    @endforeach
+                    @foreach ($legacyWallets as $legacyWallet)
+                        @php $legacyOwner = $legacyWallet->isPerson() ? null : $legacyZumras->firstWhere('id', $legacyWallet->owner_id); @endphp
+                        <div class="flex flex-wrap gap-3">
+                            <a href="{{ $legacyWallet->isPerson() ? route('portefeuille') : route('zumras.portefeuille', $legacyWallet->owner_id) }}" class="inline-flex min-h-11 items-center text-[14px] font-semibold">{{ $legacyWallet->isPerson() ? 'Mon historique de portefeuille' : 'Portefeuille : '.$legacyOwner?->name }}</a>
+                            <a href="{{ $legacyWallet->isPerson() ? route('contribution') : route('zumras.contribution', $legacyWallet->owner_id) }}" class="inline-flex min-h-11 items-center text-[14px] font-semibold">Historique des contributions</a>
+                        </div>
+                    @endforeach
+                </div>
+            </details>
+        @endif
 
         @if ($walletsEnabled)
             <section aria-labelledby="portefeuille" class="space-panel flex flex-col gap-3 p-4 md:p-5">

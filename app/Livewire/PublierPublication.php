@@ -10,6 +10,7 @@ use App\Models\Project;
 use App\Models\Publication;
 use App\Models\Zumra;
 use App\Services\Publications;
+use App\Support\Experience;
 use App\Support\Normalizer;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -58,6 +59,7 @@ class PublierPublication extends Component
         Gate::authorize('create', Publication::class);
 
         $zumra = $zumra?->exists ? $zumra : null;
+        abort_if(Experience::initial() && ($zumra || $project?->exists), 403, 'Les publications collectives sont en pause.');
 
         // Au nom d'un projet (D-127, D-134) : avancée ou réalisation, par le fondateur et les responsables de sa ZUMRA.
         if ($project?->exists) {

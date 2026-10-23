@@ -11,6 +11,7 @@ use App\Models\LedgerEntry;
 use App\Models\Payment;
 use App\Models\User;
 use App\Models\Wallet;
+use App\Support\Experience;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
@@ -32,7 +33,7 @@ class Payments
     /** La recharge n'est offerte que si les portefeuilles sont ouverts et les clés du mode courant renseignées. */
     public function available(): bool
     {
-        return $this->wallets->enabled() && $this->provider->configured();
+        return ! Experience::initial() && $this->wallets->enabled() && $this->provider->configured();
     }
 
     public function limits(): array

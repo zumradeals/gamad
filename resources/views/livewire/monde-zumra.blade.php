@@ -1,12 +1,14 @@
 @php
+    $initial = \App\Support\Experience::initial();
     $meta = collect([$zumra->domain->name, $zumra->city?->label(), $zumra->format->label()])->filter()->implode(' · ');
     $since = $zumra->created_at->copy()->locale('fr')->timezone('Africa/Abidjan')->translatedFormat('M Y');
 @endphp
 
 <div class="flex flex-col gap-3.5">
+    @if ($initial)<p class="rounded-card border border-line bg-card p-4 text-[14px] text-muted">Espace existant conservé. Les nouvelles créations, invitations et publications collectives sont en pause.</p>@endif
     <header class="-mx-4 -mt-4 flex flex-col gap-3.5 bg-ink px-4 pb-[26px] pt-3 text-white md:mx-0 md:mt-0 md:rounded-card md:p-6">
-        <a href="{{ route('zumras.index') }}" class="inline-flex min-h-11 items-center gap-1.5 self-start text-[13px] font-semibold text-white no-underline hover:text-white hover:underline">
-            <x-icon name="back" :size="18" />Carrefour ZUMRA
+        <a href="{{ $initial ? route('espace') : route('zumras.index') }}" class="inline-flex min-h-11 items-center gap-1.5 self-start text-[13px] font-semibold text-white no-underline hover:text-white hover:underline">
+            <x-icon name="back" :size="18" />{{ $initial ? 'Mon espace' : 'Carrefour ZUMRA' }}
         </a>
 
         <div class="flex items-center gap-3.5">
@@ -35,7 +37,7 @@
         @if ($manages)
             <div class="flex flex-col gap-2 md:flex-row md:self-start">
                 <x-button :href="route('zumras.edit', $zumra)" variant="accent" class="md:px-8">Modifier la ZUMRA</x-button>
-                @if ($walletsEnabled)
+                @if ($walletsEnabled && ! $initial)
                     <x-button :href="route('zumras.portefeuille', $zumra)" variant="secondary" class="md:px-8">Portefeuille de la ZUMRA</x-button>
                     <x-button :href="route('zumras.contribution', $zumra)" variant="secondary" class="md:px-8">Contribution de la ZUMRA</x-button>
                 @endif
@@ -97,7 +99,7 @@
                 <x-button type="button" variant="secondary" wire:click="refuseInvitation('{{ $myInvitation->id }}')" wire:loading.attr="disabled" wire:target="acceptInvitation, refuseInvitation" class="sm:flex-1">Refuser</x-button>
             </div>
         </section>
-    @elseif (! $role)
+    @elseif (! $role && (! $initial || $myRequest?->state === \App\Enums\JoinRequestState::Pending))
         <section id="rejoindre" aria-label="Rejoindre cette ZUMRA" class="flex flex-col gap-2.5 rounded-card border border-line bg-card p-4"
                  x-data="{ open: false }" x-init="open = location.hash === '#rejoindre'">
             @guest
@@ -146,14 +148,14 @@
             <section class="flex flex-col gap-1 rounded-card bg-type-call-bg p-4 text-type-call-fg" aria-label="Formation, travail, adoration">
                 <span class="text-[12px] font-extrabold tracking-[1.5px]">FORMATION · TRAVAIL · ADORATION</span>
                 <p class="text-[17px] font-extrabold leading-snug">Ici, on apprend avant de construire.</p>
-                @unless ($role)
+                @unless ($role || $initial)
                     <p class="text-[14px] font-semibold leading-snug">Rejoignez la ZUMRA pour suivre ses formations, ou partagez ce que vous savez.</p>
                 @endunless
             </section>
 
             <div class="flex items-center justify-between gap-2">
                 <h2 class="text-[18px] font-extrabold">Savoirs partagés</h2>
-                @if ($manages)
+                @if ($manages && ! $initial)
                     <a href="{{ route('zumras.publier', [$zumra, 'savoir']) }}" class="inline-flex min-h-11 items-center text-[14px] font-bold">Partager un savoir</a>
                 @endif
             </div>
@@ -161,7 +163,7 @@
             <div class="flex items-center justify-between gap-2">
                 <h2 class="text-[18px] font-extrabold">Fil de la ZUMRA</h2>
             </div>
-            @if ($manages)
+            @if ($manages && ! $initial)
                 <section aria-label="Publier au nom de la ZUMRA" class="flex flex-col gap-2 rounded-card border border-line bg-card p-3.5">
                     <span class="text-[13px] font-bold text-muted">Publier au nom de la ZUMRA</span>
                     <div class="flex flex-wrap gap-2">
@@ -181,7 +183,7 @@
         @empty
             <section @class(['rounded-card border border-line bg-card p-5', 'lg:col-span-2' => $tab === 'fil'])>
                 <p class="text-[16px] font-extrabold">{{ $tab === 'formation' ? 'Aucun savoir partagé pour l’instant.' : 'Rien dans le Fil de cette ZUMRA pour l’instant.' }}</p>
-                <p class="mt-1 text-muted">{{ $manages ? 'Publiez au nom de la ZUMRA : un savoir à partager, un besoin, une offre d’aide ou un appel à rejoindre.' : 'Les publications de la ZUMRA apparaîtront ici.' }}</p>
+                <p class="mt-1 text-muted">{{ $manages && ! $initial ? 'Publiez au nom de la ZUMRA : un savoir à partager, un besoin, une offre d’aide ou un appel à rejoindre.' : 'Les publications de la ZUMRA apparaîtront ici.' }}</p>
             </section>
         @endforelse
 
@@ -214,7 +216,7 @@
                     <p class="text-[14px] text-muted">Aucun souhait indiqué pour l’instant.</p>
                 @endif
 
-                @if ($manages)
+                @if ($manages && ! $initial)
                     <a href="{{ route('zumras.invite', $zumra) }}" class="inline-flex min-h-11 items-center text-[14px] font-bold">Inviter des personnes selon leurs capacités</a>
                 @endif
             </section>
@@ -228,7 +230,7 @@
         <section aria-labelledby="projets" class="flex flex-col gap-3">
             <div class="flex items-center justify-between gap-2">
                 <h2 id="projets" class="text-[17px] font-extrabold">Projets de la ZUMRA</h2>
-                @if ($manages)
+                @if ($manages && ! $initial)
                     <a href="{{ route('projets.create', $zumra) }}" class="inline-flex min-h-11 items-center text-[14px] font-bold">Créer un projet</a>
                 @endif
             </div>
@@ -355,7 +357,7 @@
                 @empty
                     <p class="text-[13px] text-muted">Aucune invitation en attente.</p>
                 @endforelse
-                <x-button :href="route('zumras.invite', $zumra)" variant="secondary">Inviter des personnes selon leurs capacités</x-button>
+                @unless ($initial)<x-button :href="route('zumras.invite', $zumra)" variant="secondary">Inviter des personnes selon leurs capacités</x-button>@endunless
             </div>
         @endif
 

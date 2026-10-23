@@ -1,4 +1,5 @@
 @php
+    $initial = \App\Support\Experience::initial();
     $zumra = $project->zumra;
     $meta = collect([$zumra->domain->name, $zumra->city?->label()])->filter()->implode(' · ');
     $date = fn ($d) => $d->copy()->locale('fr')->timezone('Africa/Abidjan')->translatedFormat('j F Y');
@@ -6,9 +7,10 @@
 @endphp
 
 <div class="flex flex-col gap-3.5">
+    @if ($initial)<p class="rounded-card border border-line bg-card p-4 text-[14px] text-muted">Projet existant conservé. Les nouvelles créations, participations et publications collectives sont en pause.</p>@endif
     <header class="-mx-4 -mt-4 flex flex-col gap-3.5 bg-ink px-4 pb-[26px] pt-3 text-white md:mx-0 md:mt-0 md:rounded-card md:p-6">
-        <a href="{{ route('projets.index') }}" class="inline-flex min-h-11 items-center gap-1.5 self-start text-[13px] font-semibold text-white no-underline hover:text-white hover:underline">
-            <x-icon name="back" :size="18" />Carrefour Projets
+        <a href="{{ $initial ? route('espace') : route('projets.index') }}" class="inline-flex min-h-11 items-center gap-1.5 self-start text-[13px] font-semibold text-white no-underline hover:text-white hover:underline">
+            <x-icon name="back" :size="18" />{{ $initial ? 'Mon espace' : 'Carrefour Projets' }}
         </a>
 
         <div class="flex flex-col gap-2">
@@ -147,7 +149,7 @@
         <section aria-labelledby="fil-projet" class="flex flex-col gap-3">
             <div class="flex flex-wrap items-center justify-between gap-2">
                 <h2 id="fil-projet" class="text-[17px] font-extrabold">Fil du projet</h2>
-                @if ($manages)
+                @if ($manages && ! $initial)
                     <div class="flex flex-wrap items-center gap-x-4" aria-label="Publier au nom du projet">
                         @foreach ([\App\Enums\PublicationType::ProjectUpdate, \App\Enums\PublicationType::Achievement] as $kind)
                             <a href="{{ route('projets.publier', [$project, $kind->slug()]) }}" class="inline-flex min-h-11 items-center text-[14px] font-bold">{{ $kind === \App\Enums\PublicationType::ProjectUpdate ? 'Publier une avancée' : 'Publier une réalisation' }}</a>
@@ -162,7 +164,7 @@
             @empty
                 <section class="rounded-card border border-line bg-card p-5 md:col-span-full">
                     <p class="text-[16px] font-extrabold">Rien dans le Fil de ce projet pour l’instant.</p>
-                    <p class="mt-1 text-muted">{{ $manages ? 'Publiez une avancée pour dire où en est le projet, ou une réalisation pour montrer ce qui a été fait.' : 'Les avancées et réalisations du projet apparaîtront ici.' }}</p>
+                    <p class="mt-1 text-muted">{{ $manages && ! $initial ? 'Publiez une avancée pour dire où en est le projet, ou une réalisation pour montrer ce qui a été fait.' : 'Les avancées et réalisations du projet apparaîtront ici.' }}</p>
                 </section>
             @endforelse
             </div>
@@ -263,12 +265,12 @@
                     <x-button type="button" variant="secondary" wire:click="withdrawParticipation" wire:loading.attr="disabled" wire:target="withdrawParticipation">Retirer ma demande</x-button>
                 @else
                     <p class="text-[14px] text-muted">{{ $participation->message() }}</p>
-                    @if (! $project->zumra->roleOf($viewer) && $viewer->hasVerifiedEmail())
+                    @if (! $initial && ! $project->zumra->roleOf($viewer) && $viewer->hasVerifiedEmail())
                         <x-button :href="route('zumras.show', $zumra).'#rejoindre'" variant="secondary">Voir la ZUMRA</x-button>
                     @endif
                 @endif
             </section>
-        @else
+        @elseif (! $initial)
             <section class="flex flex-col gap-2 rounded-card border border-line bg-card p-4">
                 <p class="text-[14px] text-muted">Connectez-vous pour participer à ce projet : il faut être membre de la ZUMRA.</p>
                 <x-button :href="route('login')" variant="secondary">Se connecter</x-button>
@@ -329,7 +331,7 @@
         <section aria-labelledby="besoins-projet" class="flex flex-col gap-3">
             <div class="flex flex-wrap items-center justify-between gap-2">
                 <h2 id="besoins-projet" class="text-[17px] font-extrabold">Besoins du projet</h2>
-                @if ($manages)
+                @if ($manages && ! $initial)
                     <a href="{{ route('projets.publier', [$project, 'besoin']) }}" class="inline-flex min-h-11 items-center text-[14px] font-bold">Publier un besoin</a>
                 @endif
             </div>
