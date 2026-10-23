@@ -248,6 +248,12 @@ it('cherche par capacité, sans tenir compte de la casse ni des accents, et éca
         ->set('query', 'yamoussoukro')->assertSeeText('Personne ne correspond');
 });
 
+it('ne propose dans la liste que les personnes qui ont indiqué une capacité, sauf celle choisie depuis son profil', function () {
+    $sansCapacite = person('Chantal Sans Capacité', []);
+
+    Livewire::actingAs($this->yao)->test(InviterPersonnes::class, ['zumra' => $this->zumra])->assertDontSeeText('Chantal Sans Capacité')->assertSeeText('Awa Traoré');
+});
+
 it('range les personnes par ordre alphabétique et n’affiche jamais leur e-mail', function () {
     $html = Livewire::actingAs($this->yao)->test(InviterPersonnes::class, ['zumra' => $this->zumra])->assertSeeTextInOrder(['Awa Traoré', 'Moussa Koné'])->html();
 
@@ -321,6 +327,12 @@ it('ne propose pas « Inviter » sur son propre profil, ni pour un membre, ni au
     $this->actingAs($this->moussa)->get(route('personnes.show', $this->awa->profile->public_id))->assertDontSeeText('Inviter dans');
     app('auth')->forgetGuards();
     $this->get(route('personnes.show', $this->awa->profile->public_id))->assertDontSeeText('Inviter dans');
+});
+
+it('ne propose pas « Inviter » à un fondateur dont l’adresse n’est plus vérifiée', function () {
+    $this->yao->forceFill(['email_verified_at' => null])->save();
+
+    $this->actingAs($this->yao->fresh())->get(route('personnes.show', $this->awa->profile->public_id))->assertDontSeeText('Inviter dans');
 });
 
 it('nomme la ZUMRA quand on en gère plusieurs', function () {

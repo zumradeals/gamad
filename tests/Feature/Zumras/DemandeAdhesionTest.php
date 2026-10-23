@@ -191,6 +191,22 @@ it('ne montre pas, et ne laisse pas retirer, la demande d’une personne qui n�
     expect($d->fresh()->state)->toBe(JoinRequestState::Pending);
 });
 
+it('ne laisse retirer qu’une demande en attente : une demande déclinée ou acceptée reste ce qu’elle est', function () {
+    $declinee = demandes()->propose($this->awa, $this->zumra);
+    demandes()->decline($this->yao, $declinee);
+
+    expect(fn () => demandes()->withdraw($this->awa, $declinee->fresh()))->toThrow(ValidationException::class, 'plus être retirée');
+    expect($declinee->fresh()->state)->toBe(JoinRequestState::Declined);
+
+    // Une demande déclinée ne se contourne pas en la « retirant » pour la refaire.
+    expect(fn () => demandes()->propose($this->awa, $this->zumra))->toThrow(AuthorizationException::class);
+
+    $acceptee = demandes()->propose($this->moussa, $this->zumra);
+    demandes()->accept($this->yao, $acceptee);
+    expect(fn () => demandes()->withdraw($this->moussa, $acceptee->fresh()))->toThrow(ValidationException::class)
+        ->and($acceptee->fresh()->state)->toBe(JoinRequestState::Accepted);
+});
+
 it('masque la demande d’une personne dont l’adresse n’est plus vérifiée', function () {
     demandes()->propose($this->awa, $this->zumra);
     $this->awa->forceFill(['email_verified_at' => null])->save();
@@ -207,6 +223,9 @@ it('affiche dans « À faire maintenant » les demandes à traiter, par ZUMRA, a
         Livewire::actingAs($g)->test(Espace::class)->assertSeeText('2 demandes d’adhésion à traiter')->assertSeeText('Dans la ZUMRA « Couture solidaire »')->assertSee(route('zumras.show', $this->zumra), false);
     }
     Livewire::actingAs($this->awa)->test(Espace::class)->assertDontSeeText('demandes d’adhésion à traiter');
+    // Un simple membre de la ZUMRA ne décide pas : aucune ligne pour lui.
+    ajouteMembre($this->zumra, $this->membreSimple = person('Membre Simple', []));
+    Livewire::actingAs($this->membreSimple)->test(Espace::class)->assertDontSeeText('d’adhésion à traiter');
 
     demandes()->accept($this->yao, JoinRequest::query()->where('user_id', $this->awa->id)->first());
     Livewire::actingAs($this->yao)->test(Espace::class)->assertSeeText('1 demande d’adhésion à traiter');
