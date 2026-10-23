@@ -369,7 +369,27 @@ Décidé par le Président le 2026-10-23, avant le Lot 6 (D-160). Une seule Pull
 
 **Terminé quand** un visiteur et une personne connectée trouvent un besoin émis par une personne, une ZUMRA ou un projet depuis le Carrefour Besoins ; le menu de l'ordinateur affiche cinq entrées ; la fenêtre « Découvrir » du téléphone ouvre les trois Carrefours ; `php artisan test` et la CI passent.
 
-## Lot 6 — Contributions mensuelles (À venir)
+## Lot 6 — Contributions mensuelles et portefeuille ZAHAB (À venir)
 
-Prestataire de paiement (Mobile Money), montants, avantages validés (D-019), reçus, tableau des contributions
-pour le Président. Peut passer avant le lot 5 sur décision du Président.
+Décisions : D-004, D-163 à D-171 ; D-019 est remplacée par D-166. Ce lot n'est pas commencé ; il le sera sur « Passe au Lot 6 » du Président.
+
+**Avant d'écrire du code (conditions préalables) :** décider les points de D-171 ; avis juridique sur le crédit prépayé interne et les fonds détenus pour autrui ; entité juridique bénéficiaire identifiée ; compte marchand GeniusPay ouvert par le Président et lecture de sa documentation officielle (D-169) ; aligner `docs/PRODUIT.md` (glossaire : Contribution, ZAHAB, Portefeuille, Fonds de contribution, ZUMRA engagée ; ZAHAB n'est plus « hors V1 ») sur instruction du Président.
+
+**Périmètre prévu (trois Pull Requests, chacune relue puis fusionnée avant la suivante) :**
+
+*PR 6a — Portefeuilles et registre (sans argent réel)*
+1. Portefeuille ZAHAB d'une personne et d'une ZUMRA ; registre des mouvements en ajout seul (contrainte de base comme le journal d'administration) ; solde calculé depuis le registre, jamais saisi.
+2. Écrans « Mon portefeuille » et « Portefeuille de la ZUMRA » : solde, mouvements, états vides. Aucun transfert entre utilisateurs, aucun retrait.
+3. Droits : un portefeuille de ZUMRA ne se lit et ne se dépense que par son fondateur et ses responsables ; chaque acte au journal d'administration.
+
+*PR 6b — Recharge par GeniusPay (mode d'essai d'abord)*
+4. Clés GeniusPay dans Espace → Paramètres ; création du paiement, page hébergée, rappel serveur de confirmation, crédit seulement après confirmation, rapprochement avec le relevé.
+5. Plafonds de recharge et de dépense ; reçus ; remboursements et litiges tracés. Le mode réel n'est activé qu'après l'avis juridique et sur décision du Président.
+
+*PR 6c — Contribution, engagement et avantages*
+6. Contribution mensuelle (minimum 500 FCFA, montant libre), rappel mensuel avec demande de paiement, fonds de contribution distinct du fonds des portefeuilles.
+7. États « Contributeur » et « ZUMRA engagée », badges (facultatif pour la personne), rapport d'impact, outils avancés de ZUMRA, éligibilité au financement (engagée et reconnue), affectation validée par le Président, tableau des contributions pour le Président, rapport public sans noms.
+
+**Hors périmètre :** transferts entre utilisateurs, retraits, achats (aucun catalogue), assistant IA, paliers ou palmarès de contributeurs, toute visibilité achetée.
+
+**Terminé quand** une personne et une ZUMRA rechargent un portefeuille et contribuent en mode d'essai, le registre se réconcilie avec le relevé du prestataire, aucun mouvement ne peut être modifié ni effacé, le Président affecte le fonds de contribution et voit le tableau, `php artisan test` et la CI passent, et l'avis juridique est obtenu avant tout argent réel.
