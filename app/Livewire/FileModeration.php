@@ -19,7 +19,7 @@ use Livewire\Component;
  * auteur. Masquer, Rétablir, Classer sans suite ; chaque acte est inscrit au journal d'administration. Réservé au super
  * administrateur et aux modérateurs, revérifié à chaque affichage et à chaque acte. Écran sobre, sans maquette.
  */
-#[Layout('components.layouts.app')]
+#[Layout('components.layouts.app', ['narrow' => true])]
 #[Title('Modération')]
 class FileModeration extends Component
 {

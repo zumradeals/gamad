@@ -22,7 +22,7 @@ use Livewire\Component;
  * Décliner, puis « Marquer comme résolu » et « Fermer sans suite ». Pour les autres, la publication seule et le bouton de réponse.
  * Une publication qu'on n'a pas le droit de voir répond 404 (D-085).
  */
-#[Layout('components.layouts.app')]
+#[Layout('components.layouts.app', ['narrow' => true])]
 class PagePublication extends Component
 {
     /**

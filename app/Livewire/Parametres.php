@@ -19,7 +19,7 @@ use Throwable;
  * Page « Paramètres » : réglages métier modifiables par le super administrateur seul (D-049).
  * Le mot de passe SMTP n'est jamais chargé dans la page : un champ vide le laisse inchangé.
  */
-#[Layout('components.layouts.app')]
+#[Layout('components.layouts.app', ['narrow' => true])]
 #[Title('Paramètres')]
 class Parametres extends Component
 {

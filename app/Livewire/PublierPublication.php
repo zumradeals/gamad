@@ -22,7 +22,7 @@ use Livewire\Component;
  * Publier (écrans 8 et 9) : un écran pour les quatre types de publication du Lot 2 (D-081). Le texte est un texte brut de
  * 500 caractères au plus ; toutes les règles sont vérifiées par App\Services\Publications, côté serveur.
  */
-#[Layout('components.layouts.app')]
+#[Layout('components.layouts.app', ['narrow' => true])]
 #[Title('Publier')]
 class PublierPublication extends Component
 {

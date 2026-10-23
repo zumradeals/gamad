@@ -63,6 +63,7 @@
 
     <p class="text-[13px] font-bold text-muted" role="status" aria-live="polite">{{ $summary }}</p>
 
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
     @forelse ($people as $profile)
         <article wire:key="personne-{{ $profile->id }}" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
             <div class="flex items-center gap-3">
@@ -96,7 +97,7 @@
             <x-button :href="route('personnes.show', $profile->public_id)" variant="secondary">Voir le profil</x-button>
         </article>
     @empty
-        <section aria-labelledby="vide" class="flex flex-col gap-3 rounded-card border border-line bg-card p-5">
+        <section aria-labelledby="vide" class="flex flex-col gap-3 rounded-card border border-line bg-card p-5 md:col-span-full">
             <h2 id="vide" class="text-[18px] font-extrabold">
                 @if ($hasFilters)
                     Personne ne correspond à cette recherche.
@@ -120,6 +121,7 @@
             @endif
         </section>
     @endforelse
+    </div>
 
     @if ($people->hasPages())
         <nav aria-label="Pages de résultats" class="flex items-center justify-between gap-3">

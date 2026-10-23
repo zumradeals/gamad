@@ -19,7 +19,7 @@ use Livewire\Component;
  * Créer une ZUMRA, ou modifier sa mission, sa ville et son format (D-114 : le nom et le domaine ne changent pas). Écran sobre,
  * sans maquette, construit avec les composants existants.
  */
-#[Layout('components.layouts.app')]
+#[Layout('components.layouts.app', ['narrow' => true])]
 class FormulaireZumra extends Component
 {
     #[Locked]

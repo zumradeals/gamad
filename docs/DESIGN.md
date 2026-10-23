@@ -118,6 +118,8 @@ Police unique : **Plus Jakarta Sans** (graisses 400, 500, 600, 700, 800), auto-h
 - Une fois connecté, **aucune bannière publicitaire** : le contenu utile commence en haut de l'écran. Les
   grandes illustrations sont réservées à la page d'accueil publique.
 - L'écran de référence est le téléphone (390 px). L'ordinateur réorganise en colonnes ; il n'ajoute pas de
-  fonctions.
+  fonctions. Sur ordinateur (D-143), le contenu prend la largeur de 1 240 px du Fil, avec des marges de 24 px :
+  les listes de cartes sur 2 puis 3 colonnes, les Mondes sur deux colonnes ou en grilles ; seuls les formulaires et
+  écrans de saisie gardent une largeur de lecture de 920 px.
 - Un module non construit est **masqué** dans la navigation, jamais simulé.
 - Chaque liste a un état vide qui propose une action concrète (« Créer ma ZUMRA », « Compléter mon profil »).

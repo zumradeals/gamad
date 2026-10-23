@@ -23,14 +23,14 @@
             </a>
         </div>
 
-        <p class="whitespace-pre-line break-words text-[15px] leading-relaxed text-[#eaf0f5]">{{ $project->goal }}</p>
+        <p class="whitespace-pre-line break-words text-[15px] leading-relaxed text-[#eaf0f5] md:max-w-3xl">{{ $project->goal }}</p>
 
         @if (session('status'))
             <x-status>{{ session('status') }}</x-status>
         @endif
 
         @if ($manages)
-            <x-button :href="route('projets.edit', $project)" variant="accent">Modifier le projet</x-button>
+            <x-button :href="route('projets.edit', $project)" variant="accent" class="md:self-start md:px-8">Modifier le projet</x-button>
         @endif
     </header>
 
@@ -44,7 +44,8 @@
     <div wire:loading.delay wire:target="setTab, more" class="text-[13px] font-semibold text-muted" role="status">Chargement…</div>
 
     @if ($tab === 'avancement')
-        <section aria-labelledby="avancement" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
+        <div class="flex flex-col gap-3.5 lg:grid lg:grid-cols-[minmax(0,1fr)_420px] lg:grid-rows-[auto_auto_1fr] lg:items-start lg:gap-x-6">
+        <section aria-labelledby="avancement" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px] lg:col-start-2 lg:row-start-1">
             <h2 id="avancement" class="text-[17px] font-extrabold">Avancement</h2>
             <p class="text-[15px]"><strong>{{ $project->state->label() }}</strong> depuis le {{ $date($project->state_changed_at) }}.</p>
 
@@ -58,7 +59,7 @@
             @endif
         </section>
 
-        <section aria-labelledby="etapes" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
+        <section aria-labelledby="etapes" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px] lg:col-start-1 lg:row-span-3 lg:row-start-1">
             <h2 id="etapes" class="text-[17px] font-extrabold">Étapes</h2>
 
             @forelse ($steps as $step)
@@ -111,7 +112,7 @@
             @endif
         </section>
 
-        <section aria-labelledby="histoire" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
+        <section aria-labelledby="histoire" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px] lg:col-start-2 lg:row-start-2">
             <h2 id="histoire" class="text-[17px] font-extrabold">Histoire du projet</h2>
             <ol class="flex flex-col gap-2.5" aria-label="Changements d’état">
                 @foreach ($changes as $change)
@@ -124,7 +125,7 @@
         </section>
 
         @if ($manages)
-            <section aria-labelledby="etat" class="flex flex-col gap-2.5 rounded-card border border-line bg-card p-4" x-data="{ confirming: null }">
+            <section aria-labelledby="etat" class="flex flex-col gap-2.5 rounded-card border border-line bg-card p-4 lg:col-start-2 lg:row-start-3" x-data="{ confirming: null }">
                 <h2 id="etat" class="text-[15px] font-extrabold">Changer l’état du projet</h2>
                 <p class="text-[13px] text-muted">Seuls le fondateur et les responsables de la ZUMRA changent l’état. Chaque changement est gardé dans l’histoire du projet.</p>
                 <div class="flex flex-col gap-2">
@@ -141,6 +142,7 @@
                 </div>
             </section>
         @endif
+        </div>
     @elseif ($tab === 'fil')
         <section aria-labelledby="fil-projet" class="flex flex-col gap-3">
             <div class="flex flex-wrap items-center justify-between gap-2">
@@ -154,20 +156,24 @@
                 @endif
             </div>
 
+            <div class="grid gap-3.5 md:grid-cols-2">
             @forelse ($publications as $post)
                 <x-publication-card wire:key="projet-publication-{{ $post->id }}" :publication="$post" :viewer="$viewer" :gesture="null" :supported="$supported" :managed="$managed" :member-of="$memberOf" />
             @empty
-                <section class="rounded-card border border-line bg-card p-5">
+                <section class="rounded-card border border-line bg-card p-5 md:col-span-full">
                     <p class="text-[16px] font-extrabold">Rien dans le Fil de ce projet pour l’instant.</p>
                     <p class="mt-1 text-muted">{{ $manages ? 'Publiez une avancée pour dire où en est le projet, ou une réalisation pour montrer ce qui a été fait.' : 'Les avancées et réalisations du projet apparaîtront ici.' }}</p>
                 </section>
             @endforelse
+            </div>
 
             @if ($hasMore)
                 <x-button type="button" variant="secondary" wire:click="more" wire:loading.attr="disabled" wire:target="more">Voir plus de publications</x-button>
             @endif
         </section>
     @elseif ($tab === 'equipe')
+        <div class="flex flex-col gap-3.5 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
+        <div class="flex flex-col gap-3.5">
         <section aria-labelledby="equipe" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
             <h2 id="equipe" class="text-[17px] font-extrabold">Équipe du projet</h2>
             <p class="text-[14px]"><strong>{{ $teamCount }}</strong> {{ $teamCount > 1 ? 'personnes participent' : 'personne participe' }} à ce projet. L’équipe se compose de membres de la ZUMRA.</p>
@@ -269,7 +275,9 @@
             </section>
         @endif
 
+        </div>
         @if ($manages)
+            <div class="flex flex-col gap-3.5">
             <section aria-labelledby="demandes" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
                 <h2 id="demandes" class="text-[17px] font-extrabold">Demandes de participation</h2>
                 @forelse ($requests as $request)
@@ -314,7 +322,9 @@
                     <p class="text-[14px] text-muted">Tous les membres de la ZUMRA sont déjà dans l’équipe.</p>
                 @endforelse
             </section>
+        </div>
         @endif
+        </div>
     @else
         <section aria-labelledby="besoins-projet" class="flex flex-col gap-3">
             <div class="flex flex-wrap items-center justify-between gap-2">
@@ -324,14 +334,16 @@
                 @endif
             </div>
 
+            <div class="grid gap-3.5 md:grid-cols-2">
             @forelse ($publications as $post)
                 <x-publication-card wire:key="projet-besoin-{{ $post->id }}" :publication="$post" :viewer="$viewer" :gesture="$gestures[$post->id] ?? null" :supported="$supported" :managed="$managed" :member-of="$memberOf" />
             @empty
-                <section class="rounded-card border border-line bg-card p-5">
+                <section class="rounded-card border border-line bg-card p-5 md:col-span-full">
                     <p class="text-[16px] font-extrabold">Aucun besoin pour ce projet pour l’instant.</p>
                     <p class="mt-1 text-muted">{{ $manages ? 'Publiez un besoin : ce qui manque au projet pour avancer. Des personnes pourront proposer leur aide.' : 'Les besoins du projet apparaîtront ici.' }}</p>
                 </section>
             @endforelse
+            </div>
 
             @if ($hasMore)
                 <x-button type="button" variant="secondary" wire:click="more" wire:loading.attr="disabled" wire:target="more">Voir plus de besoins</x-button>

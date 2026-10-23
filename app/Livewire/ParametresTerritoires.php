@@ -16,7 +16,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 /** Paramètres › Territoires (D-068) : pays et villes. Ajouter, renommer, désactiver ; jamais supprimer. Chaque acte est journalisé. */
-#[Layout('components.layouts.app')]
+#[Layout('components.layouts.app', ['narrow' => true])]
 #[Title('Territoires')]
 class ParametresTerritoires extends Component
 {

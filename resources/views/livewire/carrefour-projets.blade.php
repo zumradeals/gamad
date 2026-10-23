@@ -58,6 +58,7 @@
     </div>
     <p class="-mt-2 text-[13px] font-bold text-muted" role="status" aria-live="polite">{{ $summary }}</p>
 
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
     @forelse ($projects as $project)
         @php
             $zumra = $project->zumra;
@@ -77,7 +78,7 @@
             <x-button :href="route('projets.show', $project)" variant="secondary">Voir le projet</x-button>
         </article>
     @empty
-        <section aria-labelledby="vide" class="flex flex-col gap-3 rounded-card border border-line bg-card p-5">
+        <section aria-labelledby="vide" class="flex flex-col gap-3 rounded-card border border-line bg-card p-5 md:col-span-full">
             <h2 id="vide" class="text-[18px] font-extrabold">{{ $hasFilters ? 'Aucun projet ne correspond à cette recherche.' : 'Aucun projet pour l’instant.' }}</h2>
             @if ($hasFilters)
                 <p class="text-muted">Essayez un autre mot, ou élargissez la recherche.</p>
@@ -88,6 +89,7 @@
             @endif
         </section>
     @endforelse
+    </div>
 
     @if ($projects->hasPages())
         <nav aria-label="Pages de résultats" class="flex items-center justify-between gap-3">

@@ -24,7 +24,7 @@ use Livewire\WithFileUploads;
  * Modifier mon profil (écran 6). Les modifications restent dans la page jusqu'à « Enregistrer » : c'est alors seulement que
  * les capacités nouvelles sont créées, et que toutes les règles sont vérifiées côté serveur (App\Services\ProfileEditor).
  */
-#[Layout('components.layouts.app')]
+#[Layout('components.layouts.app', ['narrow' => true])]
 #[Title('Modifier mon profil')]
 class ModifierProfil extends Component
 {

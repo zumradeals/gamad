@@ -5,6 +5,8 @@
         <x-status>{{ session('status') }}</x-status>
     @endif
 
+    {{-- Ordinateur : les cartes se rangent sur deux colonnes ; sur téléphone, une seule. --}}
+    <div class="flex flex-col gap-4 lg:block lg:columns-2 lg:gap-6 lg:*:mb-4 lg:*:break-inside-avoid">
     <section aria-labelledby="afaire" wire:poll.30s class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
         <div class="flex items-center justify-between gap-2">
             <h2 id="afaire" class="text-[18px] font-extrabold">À faire maintenant</h2>
@@ -140,4 +142,5 @@
             </div>
         </form>
     </section>
+    </div>
 </div>

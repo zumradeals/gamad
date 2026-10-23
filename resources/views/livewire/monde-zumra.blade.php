@@ -23,14 +23,14 @@
             <span class="self-start rounded-chip bg-type-call-bg px-3 py-1 text-[12px] font-bold text-type-call-fg">Active · en attente de reconnaissance par GAMAD</span>
         @endif
 
-        <p class="whitespace-pre-line break-words text-[15px] leading-relaxed text-[#eaf0f5]">{{ $zumra->mission }}</p>
+        <p class="whitespace-pre-line break-words text-[15px] leading-relaxed text-[#eaf0f5] md:max-w-3xl">{{ $zumra->mission }}</p>
 
         @if (session('status'))
             <x-status>{{ session('status') }}</x-status>
         @endif
 
         @if ($manages)
-            <x-button :href="route('zumras.edit', $zumra)" variant="accent">Modifier la ZUMRA</x-button>
+            <x-button :href="route('zumras.edit', $zumra)" variant="accent" class="md:self-start md:px-8">Modifier la ZUMRA</x-button>
         @endif
     </header>
 
@@ -164,18 +164,22 @@
             @endif
         @endif
 
+        {{-- Ordinateur : la Formation met ses savoirs à gauche et les capacités à droite ; le Fil range ses cartes sur deux colonnes. --}}
+        <div @class(['flex flex-col gap-3.5', 'lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start lg:gap-6' => $tab === 'formation', 'lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-6' => $tab === 'fil'])>
+        <div @class(['flex flex-col gap-3.5' => $tab === 'formation', 'contents' => $tab === 'fil'])>
         @forelse ($publications as $post)
             <x-publication-card wire:key="zumra-publication-{{ $post->id }}" :publication="$post" :viewer="$viewer" :gesture="$gestures[$post->id] ?? null" :supported="$supported" :managed="$managed" :member-of="$memberOf" />
         @empty
-            <section class="rounded-card border border-line bg-card p-5">
+            <section @class(['rounded-card border border-line bg-card p-5', 'lg:col-span-2' => $tab === 'fil'])>
                 <p class="text-[16px] font-extrabold">{{ $tab === 'formation' ? 'Aucun savoir partagé pour l’instant.' : 'Rien dans le Fil de cette ZUMRA pour l’instant.' }}</p>
                 <p class="mt-1 text-muted">{{ $manages ? 'Publiez au nom de la ZUMRA : un savoir à partager, un besoin, une offre d’aide ou un appel à rejoindre.' : 'Les publications de la ZUMRA apparaîtront ici.' }}</p>
             </section>
         @endforelse
 
         @if ($hasMore)
-            <x-button type="button" variant="secondary" wire:click="more" wire:loading.attr="disabled" wire:target="more">Voir plus de publications</x-button>
+            <x-button type="button" variant="secondary" wire:click="more" wire:loading.attr="disabled" wire:target="more" @class(['lg:col-span-2' => $tab === 'fil'])>Voir plus de publications</x-button>
         @endif
+        </div>
 
         @if ($tab === 'formation')
             <section aria-labelledby="capacites" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4">
@@ -206,6 +210,7 @@
                 @endif
             </section>
         @endif
+        </div>
 
         <livewire:gesture-sheet />
     @endif
@@ -219,6 +224,7 @@
                 @endif
             </div>
 
+            <div class="grid gap-3.5 md:grid-cols-2 xl:grid-cols-3">
             @forelse ($projects as $project)
                 <a wire:key="projet-{{ $project->id }}" href="{{ route('projets.show', $project) }}" class="flex flex-col gap-2 rounded-card border border-line bg-card p-4 text-ink no-underline hover:text-ink">
                     <span class="self-start rounded-chip px-2.5 py-1 text-[12px] font-bold {{ $project->state->badgeClasses() }}">{{ $project->state->label() }}</span>
@@ -226,11 +232,12 @@
                     <span class="whitespace-pre-line break-words text-[14px] leading-normal">{{ \Illuminate\Support\Str::limit($project->goal, 160) }}</span>
                 </a>
             @empty
-                <section class="rounded-card border border-line bg-card p-5">
+                <section class="rounded-card border border-line bg-card p-5 md:col-span-full">
                     <p class="text-[16px] font-extrabold">Aucun projet pour l’instant.</p>
                     <p class="mt-1 text-muted">{{ $manages ? 'Créez le premier projet de la ZUMRA : une action avec un but, un état et une page publique.' : 'Les projets de la ZUMRA apparaîtront ici.' }}</p>
                 </section>
             @endforelse
+            </div>
         </section>
     @endif
 
@@ -344,7 +351,7 @@
         @endif
 
         @if ($canSeeMembers)
-            <ul class="flex flex-col divide-y divide-line-soft">
+            <ul class="flex flex-col divide-y divide-line-soft md:grid md:grid-cols-2 md:gap-x-8 md:divide-y-0">
                 @foreach ($members as $membership)
                     @php
                         $person = $membership->user;
@@ -352,7 +359,7 @@
                         $profile?->setRelation('user', $person);
                         $canSee = $profile && Gate::forUser($viewer)->allows('view', $profile);
                     @endphp
-                    <li wire:key="membre-{{ $membership->id }}" class="flex flex-col gap-2 py-2.5 first:pt-0 last:pb-0" x-data="{ confirming: false }">
+                    <li wire:key="membre-{{ $membership->id }}" class="flex flex-col gap-2 py-2.5 first:pt-0 last:pb-0 md:border-b md:border-line-soft md:first:pt-2.5 md:last:pb-2.5" x-data="{ confirming: false }">
                         <div class="flex items-center gap-3">
                         @if ($canSee)
                             <x-avatar :profile="$profile" :size="44" />
