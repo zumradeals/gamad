@@ -33,9 +33,12 @@ it('affiche des pages d’erreur en français', function () {
 
 it('explique comment GAMAD marche, avec les quatre idées du réseau et ce qu’il ne fait pas', function () {
     $this->get('/')->assertOk()
-        ->assertSeeText('Comment cela marche')->assertSeeText('Vous venez avec ce que vous êtes')->assertSeeText('Des ZUMRA regroupent les personnes')
-        ->assertSeeText('Des projets naissent dans les ZUMRA')->assertSeeText('Le Fil montre ce qui se fait')
-        ->assertSeeText('Ce que GAMAD ne fait pas')->assertSeeText('Pas de compteur de « j’aime »')->assertSeeText('Votre adresse e-mail et votre téléphone ne sont jamais montrés');
+        ->assertSeeText('Le Réseau GAMAD')
+        ->assertSeeText('Comment ça marche')->assertSeeText('Partagez vos capacités')->assertSeeText('Trouvez votre ZUMRA')
+        ->assertSeeText('Faites avancer un projet')->assertSeeText('Passez à l’action')
+        ->assertSeeText('Un réseau fondé sur l’action et le respect')->assertSeeText('Des engagements, pas des « j’aime »')
+        ->assertSeeText('Votre e-mail et votre téléphone restent privés.')
+        ->assertSee('images/gamad-accueil-hero.webp', false);
 });
 
 it('ne montre aucune section « en ce moment » tant qu’il n’y a rien de réel à montrer', function () {

@@ -2,6 +2,7 @@
 
 @php
     $paths = [
+        'menu' => '<path d="M4 6h16M4 12h16M4 18h16"></path>',
         'grid' => '<rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect>',
         'document' => '<path d="M14 2H5v20h14V7zM14 2v5h5M8 12h8M8 16h8"></path>',
         'settings' => '<path d="M9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1z"></path><circle cx="12" cy="12" r="3"></circle>',

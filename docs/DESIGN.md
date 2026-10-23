@@ -162,3 +162,12 @@ La nouvelle composition remplace la présentation des écrans 1 et 4 pour le Fil
 - Suppression du compte dans une section native repliée, avec l’avertissement définitif et la confirmation existante par mot de passe. Une erreur de mot de passe la laisse ouverte avec le message d’erreur.
 - Mobile : une colonne, titre puis ancres défilantes, mêmes sections, déconnexion dans Mon compte ; navigation basse conservée. Ancres décalées sous la barre supérieure fixe, cibles de 44 px et états de chargement des formulaires conservés.
 - Couleurs, couverture et cartes reprennent les styles du Fil validé. L’onglet Mon espace de la barre supérieure est identifié comme actif.
+
+## 8. Accueil public validé le 23 octobre 2026 (D-159)
+
+- Gabarit visiteur dédié, indépendant de la connexion et des pages légales : largeur 1 240 px, marges de 16 px sur téléphone et 24 px sur ordinateur. Navigation Accueil / Comment ça marche / Explorer, Se connecter et Créer un compte ; menu natif repliable sur mobile.
+- Héros : libellé informatif **Le Réseau GAMAD**, accroche et présentation décidées conservées, inscription jaune et connexion secondaire. Photo illustrative de la maquette conservée, sans nouvelle génération, dans `public/images/gamad-accueil-hero.webp` ; légende des gestes d’action présentée comme illustration, sans bouton sans effet.
+- Quatre étapes : Partagez vos capacités, Trouvez votre ZUMRA, Faites avancer un projet, Passez à l’action. Puis accès aux trois Carrefours existants.
+- La section Ce qui se passe en ce moment conserve les chiffres réels et les trois ZUMRA et projets les plus récents ; aucun nom de la maquette n’est écrit dans l’application. Sans données, cette section disparaît ; les liens d’exploration restent disponibles.
+- Engagements dans un bandeau bleu profond : pas de classement, vie privée, compte distinct de l’adhésion au Mouvement. Invitation finale à créer un compte, logo et devise en pied de page ; liens légaux seulement après adoption, selon la règle existante.
+- Sur mobile : colonnes empilées, boutons tactiles et menu utilisable sans JavaScript. Le complément JavaScript ferme le menu après un choix. Aucun script Livewire n’est nécessaire à cet accueil statique ; les polices et la photo sont servies localement.
