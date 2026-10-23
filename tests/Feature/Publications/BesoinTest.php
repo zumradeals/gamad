@@ -206,7 +206,11 @@ it('liste mes publications dans Espace, et seulement les miennes', function () {
         ->assertSeeText('Mes publications')->assertSeeText('Mon texte à moi')->assertSeeText('1 personne propose son aide')
         ->assertDontSeeText('Le texte d’un autre')->assertSee(route('publications.show', $mienne), false);
 
-    $this->actingAs(User::factory()->create())->get('/espace')->assertDontSeeText('Mes publications');
+    $this->actingAs(User::factory()->create())->get('/espace')
+        ->assertSeeText('Mes publications')
+        ->assertSeeText('Votre première action commence ici')
+        ->assertSee('href="'.route('agir').'"', false)
+        ->assertDontSeeText('Mon texte à moi');
 });
 
 it('affiche l’état de son besoin dans Espace quand il n’est plus ouvert', function () {

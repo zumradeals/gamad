@@ -148,3 +148,13 @@ La nouvelle composition remplace la présentation des écrans 1 et 4 pour le Fil
 - Droite : liens vers les trois Carrefours et invitation à Agir. Aucune recommandation, statistique ou donnée fictive.
 - Barre d'application commune : icônes et libellés, onglet actif souligné, Notifications, Mon espace, Agir. Devise Formation — Travail — Adoration sous le logo. Le menu ordinateur apparaît à 1 024 px pour éviter le débordement sur tablette.
 - Cartes du Fil : rayon 12 px, bordure `line`, ombre très discrète ; police et couleurs du référentiel conservées. Cibles tactiles de 44 px minimum.
+
+## 7. Mon Espace validé le 23 octobre 2026 (D-155)
+
+- Conteneur de 1 240 px conservé. Dès 1 024 px, menu personnel de 228 px à gauche et contenu flexible à droite, gouttière de 24 px ; profil réel ou initiales sur une couverture décorative, ancres vers les sections et déconnexion.
+- À droite : titre « Mon espace », accès « Voir mon profil », « À faire maintenant » avec lignes réelles ou état « Vous êtes à jour » ; cartes « Mon profil » et « Mes publications » côte à côte dès 1 280 px.
+- Profil : capacités réelles Je peux apporter / Je veux apprendre, texte d’aide si vide, Modifier mon profil. Publications : liste des dix dernières avec états et engagements, ou invitation à la première action. Le bouton jaune est **Agir**, vers le parcours existant, conformément à la correction du Président.
+- Mon compte : nom affiché et enregistrement, adresse e-mail du propriétaire seulement, indication de confidentialité. Modération et administration conservent leurs contrôles d’accès et les fonctions livrées au Lot 5b.
+- Suppression du compte dans une section native repliée, avec l’avertissement définitif et la confirmation existante par mot de passe. Une erreur de mot de passe la laisse ouverte avec le message d’erreur.
+- Mobile : une colonne, titre puis ancres défilantes, mêmes sections, déconnexion dans Mon compte ; navigation basse conservée. Ancres décalées sous la barre supérieure fixe, cibles de 44 px et états de chargement des formulaires conservés.
+- Couleurs, couverture et cartes reprennent les styles du Fil validé. L’onglet Mon espace de la barre supérieure est identifié comme actif.
