@@ -17,7 +17,7 @@
         <div class="ml-2 flex min-w-0 flex-1 flex-col">
             <h1 class="truncate text-[15px] font-extrabold">{{ $other?->name ?? 'Personne supprimée' }}</h1>
             @if ($conversation->publication && Gate::forUser($viewer)->allows('view', $conversation->publication))
-                <a href="{{ route('publications.show', $conversation->publication) }}" class="truncate text-[12px] font-semibold">À propos de : {{ $about }}</a>
+                <a href="{{ route('publications.show', $conversation->publication) }}" class="-my-3.5 truncate py-3.5 text-[12px] font-semibold">À propos de : {{ $about }}</a>
             @elseif (! $conversation->publication)
                 <span class="text-[12px] text-muted">Publication supprimée</span>
             @endif
