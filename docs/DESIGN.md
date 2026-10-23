@@ -172,3 +172,11 @@ La nouvelle composition remplace la présentation des écrans 1 et 4 pour le Fil
 - La section Ce qui se passe en ce moment conserve les chiffres réels et les trois ZUMRA et projets les plus récents ; aucun nom de la maquette n’est écrit dans l’application. Sans données, cette section disparaît ; les liens d’exploration restent disponibles.
 - Engagements dans un bandeau bleu profond : pas de classement, vie privée, compte distinct de l’adhésion au Mouvement. Invitation finale à créer un compte, logo et devise en pied de page ; liens légaux seulement après adoption, selon la règle existante.
 - Sur mobile : colonnes empilées, boutons tactiles et menu utilisable sans JavaScript. Le complément JavaScript ferme le menu après un choix. Aucun script Livewire n’est nécessaire à cet accueil statique ; les polices et la photo sont servies localement.
+
+## 9. Carrefour ZUMRA éditorial (D-162)
+
+- Héros clair : accroche « Ensemble, faites grandir vos idées. » et illustration locale, distincte des communautés réelles.
+- Recherche par nom ou mission ; pays, ville dépendante, domaine, format, reconnaissance et remise à zéro. Les contrôles sont visibles et empilés sur téléphone, horizontaux sur ordinateur.
+- Mes ZUMRA : bandeau compact avec rôle réel et lien de création.
+- Cartes : deux colonnes à partir de 1024 px ; une en dessous. Couverture graphique avec initiales, domaine, nom, mission, localisation et pays si renseignés, format, membres réels, Découvrir et accès au parcours d’adhésion existant. Les photographies de la maquette sont illustratives et ne deviennent pas des photos de communautés.
+- États vide, sans résultat, chargement et pagination conservés ; aucun classement ni fausse commande de tri.

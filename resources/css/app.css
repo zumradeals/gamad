@@ -334,3 +334,32 @@
         .landing-photo-caption { margin-top: -26px; margin-right: 12px; padding: 16px; }
     }
 }
+
+/* Carrefour ZUMRA : les communautés et leurs missions au premier plan. */
+@layer components {
+    .zumra-directory { --color-muted: #3d4f5e; }
+    .zumra-discovery-hero { display: grid; align-items: center; gap: 28px; padding-block: 12px 8px; }
+    .zumra-discovery-title { max-width: 680px; font-size: clamp(34px, 4vw, 52px); font-weight: 800; line-height: 1.12; letter-spacing: -1.2px; }
+    .zumra-searchbar { display: grid; gap: 10px; padding: 10px; border: 1px solid var(--color-line); border-radius: 12px; background: var(--color-card); }
+    .zumra-filter { min-height: 44px; width: 100%; max-width: 100%; border: 1px solid var(--color-line); border-radius: 8px; padding: 8px 32px 8px 12px; background-color: var(--color-card); color: var(--color-ink); font-size: 14px; }
+    .zumra-mission-card { display: flex; min-width: 0; overflow: hidden; border: 1px solid var(--color-line); border-radius: 12px; background: var(--color-card); }
+    .zumra-mission-cover { position: relative; display: flex; width: 104px; flex-shrink: 0; align-items: center; justify-content: center; overflow: hidden; background: var(--color-soft-blue); }
+    .zumra-mission-cover::before, .zumra-mission-cover::after { position: absolute; width: 150px; height: 150px; border: 20px solid rgb(14 42 63 / 6%); border-radius: 50%; content: ''; }
+    .zumra-mission-cover::before { top: -65px; left: -70px; }
+    .zumra-mission-cover::after { bottom: -65px; right: -70px; }
+    .zumra-mission-cover > span { z-index: 1; }
+    @media (max-width: 479px) {
+        .zumra-mission-card { flex-direction: column; }
+        .zumra-mission-cover { width: 100%; min-height: 100px; }
+    }
+    @media (min-width: 768px) {
+        .zumra-discovery-hero { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 32px; padding-block: 24px; }
+        .zumra-searchbar { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .zumra-searchbar > :first-child { grid-column: 1 / -1; }
+        .zumra-searchbar > :last-child { grid-column: 1 / -1; }
+    }
+    @media (min-width: 1024px) {
+        .zumra-searchbar { grid-template-columns: minmax(0, 1.8fr) repeat(3, minmax(0, 1fr)) auto; }
+        .zumra-searchbar > :first-child, .zumra-searchbar > :last-child { grid-column: auto; }
+    }
+}

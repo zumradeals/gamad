@@ -3,6 +3,7 @@
 use App\Enums\ZumraRole;
 use App\Livewire\CarrefourZumras;
 use App\Models\City;
+use App\Models\Country;
 use App\Models\Domain;
 use App\Models\User;
 use App\Models\Zumra;
@@ -25,7 +26,7 @@ function carrefour(?User $qui = null)
 it('est ouvert aux visiteurs sans compte, qui voient les ZUMRA', function () {
     zumra($this->yao, 'Couture solidaire');
 
-    $this->get(route('zumras.index'))->assertOk()->assertSeeText('CARREFOUR')->assertSeeText('Couture solidaire')->assertSeeText('Entrer')->assertSeeText('Créer un compte');
+    $this->get(route('zumras.index'))->assertOk()->assertSeeText('CARREFOUR')->assertSeeText('Couture solidaire')->assertSeeText('Découvrir')->assertSeeText('Créer un compte');
 });
 
 it('affiche la carte d’une ZUMRA : nom, domaine · ville · format, mission, nombre de membres', function () {
@@ -144,4 +145,49 @@ it('donne à chaque ZUMRA une adresse qui n’en révèle que l’identifiant', 
     expect(route('zumras.show', $z))->toContain($z->id)->not->toContain('couture');
     $this->get('/zumra/'.Str::uuid())->assertNotFound();
     $this->get('/zumra/pas-un-identifiant')->assertNotFound();
+});
+
+it('filtre par pays et réduit la liste des villes, puis efface la ville au changement de pays', function () {
+    $ci = City::findOrFail($this->bouake)->country_id;
+    $senegal = Country::query()->create(['name' => 'Pays de test']);
+    $dakar = City::query()->create(['name' => 'Ville de test', 'country_id' => $senegal->id]);
+    zumra($this->yao, 'Communauté ivoirienne', ['city_id' => $this->bouake]);
+    zumra(User::factory()->create(), 'Communauté extérieure', ['city_id' => $dakar->id]);
+    zumra(User::factory()->create(), 'Communauté en ligne', ['city_id' => null, 'format' => 'online']);
+
+    carrefour()->set('country', $ci)->assertSeeText('Communauté ivoirienne')->assertDontSeeText('Communauté extérieure')->assertDontSeeText('Communauté en ligne')
+        ->assertViewHas('cities', fn ($cities) => $cities->every(fn ($city) => $city->country_id === $ci))
+        ->set('city', $this->bouake)->set('country', $senegal->id)->assertSet('city', '')
+        ->assertSeeText('Communauté extérieure')->assertDontSeeText('Communauté ivoirienne')
+        ->call('clearFilters')->assertSet('country', '')->assertSeeText('Communauté en ligne');
+});
+
+it('combine le format aux autres filtres et ignore les valeurs invalides', function () {
+    zumra($this->yao, 'Apprendre en ligne', ['format' => 'online', 'city_id' => null]);
+    zumra(User::factory()->create(), 'Apprendre sur place', ['format' => 'onsite', 'city_id' => $this->bouake]);
+
+    carrefour()->set('format', 'online')->assertSeeText('Apprendre en ligne')->assertDontSeeText('Apprendre sur place')
+        ->set('city', $this->bouake)->assertSeeText('Aucune ZUMRA ne correspond')
+        ->call('clearFilters')->assertSet('format', '')->set('format', 'inconnu')->set('country', 'incorrect')
+        ->assertSeeText('Apprendre en ligne')->assertSeeText('Apprendre sur place');
+});
+
+it('revient à la première page après un changement de pays ou de format', function () {
+    foreach (range(1, 12) as $i) {
+        zumra(User::factory()->create(), sprintf('Communauté %02d', $i), ['format' => 'onsite', 'city_id' => $this->bouake]);
+    }
+    carrefour()->call('nextPage')->set('format', 'onsite')->assertSeeText('Page 1 sur 2')
+        ->call('nextPage')->set('country', City::findOrFail($this->bouake)->country_id)->assertSeeText('Page 1 sur 2');
+});
+
+it('conserve les territoires désactivés déjà sélectionnés dans une adresse', function () {
+    $ville = City::findOrFail($this->bouake);
+    $ville->country->update(['active' => false]);
+    $ville->update(['active' => false]);
+    zumra($this->yao, 'Communauté locale', ['city_id' => $ville->id]);
+
+    Livewire::withQueryParams(['pays' => $ville->country_id, 'ville' => $ville->id])->test(CarrefourZumras::class)
+        ->assertSeeText('Communauté locale')
+        ->assertViewHas('cities', fn ($cities) => $cities->contains('id', $ville->id))
+        ->assertViewHas('countries', fn ($countries) => $countries->contains('id', $ville->country_id));
 });
