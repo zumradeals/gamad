@@ -50,7 +50,7 @@ Couleurs des types de publication (fond / texte) :
 | Je veux apprendre | `#DCEBF8` | `#0A4C85` |
 | Avancée de projet | `#ECE6F8` | `#4B2F86` |
 | Appel à rejoindre | `#FBF1C7` | `#6B5200` |
-| Je propose mon aide | `#F5F3EE` (bordure `line`) | `#0E2A3F` |
+| Je propose mon aide | `#DFF0EF` | `#0F5A5A` |
 
 Badge « Reconnue par GAMAD » : fond `#DDF1E4`, texte `#1B5E33`, icône coche.
 État « Active · en attente de reconnaissance » : fond `#FBF1C7`, texte `#6B5200`.
