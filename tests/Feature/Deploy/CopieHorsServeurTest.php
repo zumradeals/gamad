@@ -195,6 +195,25 @@ it('échoue franchement quand la vérification de la copie échoue, sans préten
     expect($r['code'])->toBe(1)->and($r['sortie'])->not->toContain('réussie')->and($r['journal'])->toContain('ÉCHEC (copier')->not->toContain('Copie hors serveur réussie');
 })->skip(fn () => ! rcloneDisponible(), 'rclone absent');
 
+it('ne déclare pas réussie une copie dont la relecture ne correspond pas, et ne supprime alors aucune ancienne copie', function () {
+    $env = preparerCopie();
+    // Une ancienne copie, assez vieille pour être retirée si la copie était déclarée réussie.
+    file_put_contents("$env[dossier]/ancienne", 'ancienne copie');
+    touch("$env[dossier]/ancienne", time() - 86400 * 40);
+    Process::run(['rclone', '--config', "$env[dossier]/rclone.conf", 'copyto', "$env[dossier]/ancienne", 'gamad-copie:base/ancienne'])->throw();
+
+    // Faux rclone : fait la vraie copie, puis abîme les fichiers distants (stockage défaillant).
+    $vrai = trim((string) shell_exec('command -v rclone'));
+    file_put_contents("$env[faux]/rclone", "#!/bin/sh\n\"$vrai\" \"\$@\"\ncode=\$?\ncase \" \$* \" in\n*\" copy \"*) find \"\$FAUX_CORROMPRE\" -type f -newer \"\$FAUX_REPERE\" -exec sh -c ': >\"\$1\"' _ {} \\; ;;\nesac\nexit \$code\n");
+    chmod("$env[faux]/rclone", 0755);
+    touch("$env[dossier]/repere");
+
+    $r = lancerCopie($env, 'copier', [], ['FAUX_CORROMPRE' => "$env[dossier]/distant", 'FAUX_REPERE' => "$env[dossier]/repere"]);
+
+    expect($r['code'])->toBe(1)->and($r['sortie'])->not->toContain('réussie et vérifiée')->and($r['journal'])->toContain('ÉCHEC (copier')->not->toContain('Copie hors serveur réussie');
+    expect(Process::run(['rclone', '--config', "$env[dossier]/rclone.conf", 'lsf', '--files-only', 'gamad-copie:base'])->output())->toContain('ancienne');
+})->skip(fn () => ! rcloneDisponible(), 'rclone absent');
+
 // ─── Rapatrier et restaurer ──────────────────────────────────────────────────
 
 it('rapatrie la dernière copie déchiffrée et exige un dossier neuf', function () {
