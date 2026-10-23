@@ -12,7 +12,7 @@ lot en « Terminé ».
 | 2 | Fil global et gestes | **Terminé** (PR 2a, 2b et 2c fusionnées, marqué terminé par le Président le 2026-10-23) |
 | 3 | ZUMRA | **Terminé** (PR 3a, 3b et 3c fusionnées, marqué terminé le 2026-10-23 sur instruction du Président) |
 | 4 | Projets | **Terminé** (PR 4a, 4b et 4c fusionnées, marqué terminé le 2026-10-23 sur instruction du Président) |
-| 5 | Ouverture (pilote) | **En cours** |
+| 5 | Ouverture (pilote) | **Terminé** (PR 5a, 5b et 5c fusionnées, marqué terminé le 2026-10-23 sur instruction du Président ; restent à faire par lui : l'essai de restauration sur son stockage réel et le pilote fermé) |
 | 6 | Contributions mensuelles | À venir |
 
 **Condition d'ouverture publique (D-078).** Avant toute ouverture publique de la plateforme, la fonction « Signaler » et la
@@ -329,7 +329,7 @@ Livré en trois Pull Requests, chacune relue puis fusionnée avant la suivante (
 
 **Terminé quand** un visiteur sans compte comprend où en est un projet réel en moins d'une minute.
 
-## Lot 5 — Ouverture (En cours)
+## Lot 5 — Ouverture (Terminé)
 
 Décisions : D-078, D-144 à D-147. Livré en trois Pull Requests, chacune relue puis fusionnée avant la suivante (D-144).
 
