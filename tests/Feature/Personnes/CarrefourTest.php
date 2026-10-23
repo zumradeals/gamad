@@ -110,7 +110,8 @@ it('affiche le décompte et les capacités de chaque personne, sans « j’aime 
         ->assertSeeText('4 personnes peuvent apporter « comptabilité »')
         ->assertSeeText('PEUT APPORTER')
         ->assertSeeText('VEUT APPRENDRE')
-        ->assertSeeText('Vente sur WhatsApp · Anglais')
+        ->assertSeeText('Vente sur WhatsApp')
+        ->assertSeeText('Anglais')
         ->assertSeeText('Abidjan, Cocody')
         ->assertSeeText('Voir le profil')
         ->assertDontSeeText('Inviter');

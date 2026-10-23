@@ -405,3 +405,31 @@
         .need-searchbar > :first-child, .need-searchbar > :last-child { grid-column: auto; }
     }
 }
+
+/* Carrefour Personnes : capacités à partager et envies d’apprendre. */
+@layer components {
+    .person-directory { --color-muted: #3d4f5e; }
+    .person-discovery-hero { display: grid; align-items: center; gap: 20px; padding-top: 12px; }
+    .person-searchbar { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--color-line); border-radius: 12px; background: var(--color-card); }
+    .person-searchbar:focus-within { outline: 3px solid var(--color-link); outline-offset: 2px; }
+    .person-mode { display: flex; min-width: 0; min-height: 88px; align-items: center; gap: 16px; border: 2px solid var(--color-line); border-radius: 10px; padding: 14px 18px; text-align: left; overflow-wrap: anywhere; }
+    .person-mode-offered { color: var(--color-type-knowledge-fg); }
+    .person-mode-wanted { color: var(--color-type-learning-fg); }
+    .person-mode-offered[aria-pressed="true"] { border-color: var(--color-type-knowledge-fg); background: var(--color-type-knowledge-bg); }
+    .person-mode-wanted[aria-pressed="true"] { border-color: var(--color-type-learning-fg); background: var(--color-type-learning-bg); }
+    .person-mode:hover { border-color: currentColor; }
+    .person-discovery-cover { height: 76px; border-radius: 11px 11px 0 0; background: radial-gradient(circle at 64% -10%, #cfdfed 0 64px, transparent 65px), radial-gradient(circle at 113% 110%, #faf0d9 0 112px, transparent 113px), #f1f5f9; }
+    .person-discovery-card:nth-child(even) .person-discovery-cover { background-position: 60px 0, -30px 0; }
+    .person-discovery-identity { display: grid; min-width: 0; grid-template-columns: 88px minmax(0, 1fr); align-items: start; gap: 12px; margin-top: -52px; }
+    .person-name { display: block; min-height: 44px; align-content: center; color: var(--color-ink); font-size: 17px; font-weight: 800; text-decoration: none; overflow-wrap: anywhere; }
+    .person-name:hover { text-decoration: underline; }
+    @media (min-width: 768px) {
+        .person-discovery-hero { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 32px; }
+        .person-searchbar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .person-searchbar > :first-child, .person-searchbar > :last-child { grid-column: 1 / -1; }
+    }
+    @media (min-width: 1024px) {
+        .person-searchbar { grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr)) auto; }
+        .person-searchbar > :first-child, .person-searchbar > :last-child { grid-column: auto; }
+    }
+}

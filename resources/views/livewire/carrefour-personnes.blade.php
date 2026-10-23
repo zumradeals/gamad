@@ -7,95 +7,63 @@
         : 'à découvrir');
 @endphp
 
-<div class="flex flex-col gap-4">
-    <header class="-mx-4 -mt-4 flex flex-col gap-3.5 bg-ink px-4 pb-[22px] pt-3.5 text-white md:mx-0 md:mt-0 md:rounded-card md:p-6">
-        <div class="flex flex-col gap-1.5">
-            <span class="text-[12px] font-bold tracking-[1.5px] text-accent">CARREFOUR</span>
-            <h1 class="text-[28px] font-extrabold leading-tight tracking-[-0.5px]">Personnes</h1>
-            <p class="text-[14px] leading-normal text-[#d6e0e8]">Trouvez qui peut vous aider, ou qui veut apprendre ce que vous savez.</p>
+<div class="person-directory flex flex-col gap-6">
+    <header class="person-discovery-hero">
+        <div class="flex min-w-0 flex-col gap-4">
+            <span class="text-[12px] font-extrabold uppercase tracking-[2px]">CARREFOUR PERSONNES</span>
+            <h1 class="zumra-discovery-title">Des personnes à rencontrer. Des savoirs à partager.</h1>
+            <p class="max-w-xl text-[17px] leading-relaxed text-muted">Trouvez qui peut vous aider, ou qui veut apprendre ce que vous savez.</p>
         </div>
-
-        <div class="flex min-h-12 items-center gap-2.5 rounded-button bg-card px-3.5 text-muted focus-within:outline focus-within:outline-[3px] focus-within:outline-offset-2 focus-within:outline-white">
-            <x-icon name="search" :size="20" />
-            <label for="recherche" class="sr-only">Rechercher une capacité ou un nom</label>
-            <input id="recherche" type="search" wire:model.live.debounce.300ms="query" maxlength="100" autocomplete="off"
-                   placeholder="Une capacité ou un nom"
-                   class="min-h-11 min-w-0 flex-1 border-0 bg-transparent text-[15px] text-ink outline-none placeholder:text-muted">
-        </div>
+        <x-people-illustration class="mx-auto block h-auto w-full max-w-[520px]" />
     </header>
 
-    <fieldset class="flex flex-col gap-2">
-        <legend class="mb-2 text-[13px] font-bold text-muted">Je cherche quelqu’un qui…</legend>
-        <div class="grid grid-cols-2 gap-2">
-            <button type="button" wire:click="setMode('offered')" aria-pressed="{{ $offered ? 'true' : 'false' }}"
-                    @class(['min-h-12 rounded-button px-3 text-[14px]', 'border-2 border-type-knowledge-fg bg-type-knowledge-bg font-extrabold text-type-knowledge-fg' => $offered, 'border border-chip-line bg-card font-semibold text-ink' => ! $offered])>
-                peut l’apporter
+    <form wire:submit="$refresh" aria-label="Rechercher une personne" class="person-searchbar">
+        <div class="flex min-w-0 items-center gap-3 px-3">
+            <x-icon name="search" :size="22" class="shrink-0" />
+            <label for="recherche" class="sr-only">Rechercher une capacité ou un nom</label>
+            <input id="recherche" type="search" wire:model.live.debounce.300ms="query" maxlength="100" autocomplete="off" placeholder="Une capacité ou un nom…" class="min-h-12 min-w-0 flex-1 border-0 bg-transparent text-[15px] outline-none placeholder:text-muted">
+        </div>
+        <div>
+            <label for="filtre-ville" class="sr-only">Ville</label>
+            <select id="filtre-ville" wire:model.live="city" class="zumra-filter">
+                <option value="">Toutes les villes</option>
+                @foreach ($cities as $ville)<option value="{{ $ville->id }}">{{ $ville->label() }}</option>@endforeach
+            </select>
+        </div>
+        <div>
+            <label for="filtre-domaine" class="sr-only">Domaine</label>
+            <select id="filtre-domaine" wire:model.live="domain" class="zumra-filter">
+                <option value="">Tous les domaines</option>
+                @foreach ($domains as $domaine)<option value="{{ $domaine->id }}">{{ $domaine->name }}</option>@endforeach
+            </select>
+        </div>
+        <x-button type="submit" variant="accent">Rechercher</x-button>
+    </form>
+
+    <fieldset class="min-w-0 rounded-card border border-line bg-card p-4 md:p-5">
+        <legend class="sr-only">Je cherche quelqu’un qui…</legend>
+        <p aria-hidden="true" class="mb-3 text-[16px] font-extrabold">Je cherche quelqu’un qui…</p>
+        <div class="grid gap-3 md:grid-cols-2">
+            <button type="button" wire:click="setMode('offered')" aria-pressed="{{ $offered ? 'true' : 'false' }}" class="person-mode person-mode-offered">
+                <x-icon name="group" :size="36" class="shrink-0" />
+                <span class="min-w-0"><span class="block text-[18px] font-extrabold">Peut l’apporter</span><span class="mt-1 block text-[14px] leading-relaxed">Une personne qui peut partager cette capacité.</span></span>
             </button>
-            <button type="button" wire:click="setMode('wanted')" aria-pressed="{{ $offered ? 'false' : 'true' }}"
-                    @class(['min-h-12 rounded-button px-3 text-[14px]', 'border-2 border-type-learning-fg bg-type-learning-bg font-extrabold text-type-learning-fg' => ! $offered, 'border border-chip-line bg-card font-semibold text-ink' => $offered])>
-                veut l’apprendre
+            <button type="button" wire:click="setMode('wanted')" aria-pressed="{{ $offered ? 'false' : 'true' }}" class="person-mode person-mode-wanted">
+                <x-icon name="book" :size="36" class="shrink-0" />
+                <span class="min-w-0"><span class="block text-[18px] font-extrabold">Veut l’apprendre</span><span class="mt-1 block text-[14px] leading-relaxed">Une personne qui souhaite apprendre cette capacité.</span></span>
             </button>
         </div>
     </fieldset>
 
-    <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        <div class="flex flex-col gap-1">
-            <label for="filtre-ville" class="sr-only">Ville</label>
-            <select id="filtre-ville" wire:model.live="city" class="min-h-11 w-full rounded-[10px] border border-chip-line bg-card px-3 text-[13px] font-semibold text-ink">
-                <option value="">Toutes les villes</option>
-                @foreach ($cities as $ville)
-                    <option value="{{ $ville->id }}">{{ $ville->label() }}</option>
-                @endforeach
-            </select>
+    <section aria-labelledby="les-personnes" class="flex flex-col gap-4">
+        <div class="flex flex-wrap items-end justify-between gap-3">
+            <div><h2 id="les-personnes" class="text-[28px] font-extrabold leading-tight">Des capacités à découvrir</h2><p class="mt-2 text-[14px] font-semibold text-muted" role="status" aria-live="polite">{{ $summary }}</p></div>
+            <div class="flex flex-wrap items-center gap-4"><span class="text-[13px] font-semibold text-muted">Ordre alphabétique</span>@if ($hasFilters)<button type="button" wire:click="clearFilters" class="min-h-11 text-[14px] font-semibold text-link underline">Réinitialiser</button>@endif</div>
         </div>
-        <div class="flex flex-col gap-1">
-            <label for="filtre-domaine" class="sr-only">Domaine</label>
-            <select id="filtre-domaine" wire:model.live="domain" class="min-h-11 w-full rounded-[10px] border border-chip-line bg-card px-3 text-[13px] font-semibold text-ink">
-                <option value="">Tous les domaines</option>
-                @foreach ($domains as $domaine)
-                    <option value="{{ $domaine->id }}">{{ $domaine->name }}</option>
-                @endforeach
-            </select>
-        </div>
-    </div>
-
-    <div wire:loading.delay class="text-[13px] font-semibold text-muted" role="status">Recherche en cours…</div>
-
-    <p class="text-[13px] font-bold text-muted" role="status" aria-live="polite">{{ $summary }}</p>
-
-    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-    @forelse ($people as $profile)
-        <article wire:key="personne-{{ $profile->id }}" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
-            <div class="flex items-center gap-3">
-                <x-avatar :profile="$profile" :size="52" />
-                <div class="flex min-w-0 flex-col">
-                    <a href="{{ route('personnes.show', $profile->public_id) }}" class="inline-flex min-h-11 items-center break-words text-[16px] font-extrabold text-ink no-underline hover:text-ink hover:underline">{{ $profile->user->name }}</a>
-                    @if ($profile->city)
-                        <span class="text-[12px] font-semibold text-muted">{{ $profile->city->label() }}</span>
-                    @endif
-                </div>
-            </div>
-
-            @if ($profile->offeredSkills->isNotEmpty())
-                <div class="flex flex-col gap-1.5">
-                    <span class="text-[11px] font-extrabold tracking-[0.8px] text-type-knowledge-fg">PEUT APPORTER</span>
-                    <ul class="flex flex-wrap gap-1.5">
-                        @foreach ($profile->offeredSkills as $skill)
-                            <li class="rounded-chip bg-type-knowledge-bg px-2.5 py-[5px] text-[13px] font-bold text-type-knowledge-fg">{{ $skill->name }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
-            @if ($profile->wantedSkills->isNotEmpty())
-                <div class="flex flex-col gap-1.5">
-                    <span class="text-[11px] font-extrabold tracking-[0.8px] text-type-learning-fg">VEUT APPRENDRE</span>
-                    <p class="text-[13px]">{{ $profile->wantedSkills->pluck('name')->implode(' · ') }}</p>
-                </div>
-            @endif
-
-            <x-button :href="route('personnes.show', $profile->public_id)" variant="secondary">Voir le profil</x-button>
-        </article>
+        <div wire:loading.delay class="text-[14px] font-semibold text-muted" role="status">Recherche en cours…</div>
+        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3" wire:loading.class="opacity-60">
+        @forelse ($people as $profile)
+            <x-person-discovery-card wire:key="personne-{{ $profile->id }}" :profile="$profile" />
     @empty
         <section aria-labelledby="vide" class="flex flex-col gap-3 rounded-card border border-line bg-card p-5 md:col-span-full">
             <h2 id="vide" class="text-[18px] font-extrabold">
@@ -121,8 +89,7 @@
             @endif
         </section>
     @endforelse
-    </div>
-
+        </div>
     @if ($people->hasPages())
         <nav aria-label="Pages de résultats" class="flex items-center justify-between gap-3">
             <x-button type="button" variant="secondary" wire:click="previousPage" :disabled="$people->onFirstPage()">Précédent</x-button>
@@ -130,4 +97,13 @@
             <x-button type="button" variant="secondary" wire:click="nextPage" :disabled="! $people->hasMorePages()">Suivant</x-button>
         </nav>
     @endif
+    </section>
+
+    @if ($people->isNotEmpty())
+        <section aria-labelledby="partager-capacites" class="flex flex-wrap items-center justify-between gap-5 rounded-card bg-ink p-6 text-white">
+            <div class="flex min-w-0 flex-1 basis-80 items-start gap-4"><x-icon name="user" :size="40" class="shrink-0 text-accent" /><div><h2 id="partager-capacites" class="text-[23px] font-extrabold leading-tight">Et vous, que pouvez-vous apporter ?</h2><p class="mt-2 text-[15px] leading-relaxed text-white/90">Indiquez vos capacités et vos envies d’apprendre pour que d’autres vous trouvent.</p></div></div>
+            <x-button :href="$guest ? route('register') : route('espace.profil')" variant="accent" class="gap-2">{{ $guest ? 'Créer un compte' : 'Compléter mon profil' }}<x-icon name="arrow-right" :size="18" /></x-button>
+        </section>
+    @endif
+    <p class="flex items-center justify-center gap-2 text-center text-[13px] text-muted"><x-icon name="lock" :size="16" class="shrink-0" />Votre e-mail et votre téléphone restent privés.</p>
 </div>
