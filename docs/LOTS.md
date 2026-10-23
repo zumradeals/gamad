@@ -9,7 +9,7 @@ lot en « Terminé ».
 | 0 | Socle | **Terminé** (essai du Président réussi sur reseau.dgafrique.com le 2026-10-22) |
 | 0.1 | Mise en ligne et paramètres | **Terminé** (essai du Président réussi sur reseau.dgafrique.com le 2026-10-22) |
 | 1 | Personne | **En cours** |
-| 2 | Fil global et gestes | **En cours** |
+| 2 | Fil global et gestes | **Terminé** (PR 2a, 2b et 2c fusionnées, marqué terminé par le Président le 2026-10-23) |
 | 3 | ZUMRA | À venir |
 | 4 | Projets | À venir |
 | 5 | Ouverture (pilote) | À venir |
@@ -186,7 +186,7 @@ messagerie, paiements, données d'exemple en production.
 
 ---
 
-## Lot 2 — Fil global et gestes (En cours)
+## Lot 2 — Fil global et gestes (Terminé)
 
 Maquettes : écrans 1 et 4 (Fil), puis 8 à 16 de `docs/DESIGN.md`. Décisions : D-079 à D-090. Livré en trois Pull Requests
 successives, chacune relue par l'architecte et fusionnée par le Président avant la suivante : **2a**, **2b**, **2c**.
