@@ -17,6 +17,7 @@ use App\Models\ZumraPost;
 use App\Services\Invitations;
 use App\Services\JoinRequests;
 use App\Services\Memberships;
+use App\Services\Supports;
 use App\Services\ZumraPosts;
 use App\Services\Zumras;
 use App\Support\Normalizer;
@@ -226,6 +227,7 @@ class MondeZumra extends Component
             $found = Publication::query()->visibleTo($viewer)->where('zumra_id', $zumra->id)
                 ->when($tab === 'formation', fn (Builder $query) => $query->where('type', PublicationType::Knowledge->value))
                 ->with(['author.profile', 'domain', 'city', 'skills', 'zumra', 'project'])
+                ->withCount(['supports as supports_count'])
                 ->withCount(['gestures as live_gestures_count' => fn ($query) => $query->whereIn('state', ['sent', 'accepted'])])
                 ->orderByDesc('created_at')->orderByDesc('id')
                 ->limit($this->limit + 1)->get();
@@ -257,6 +259,7 @@ class MondeZumra extends Component
             'gestures' => $gestures,
             'projects' => $projects,
             'projectsCount' => Project::query()->where('zumra_id', $zumra->id)->count(),
+            'supported' => app(Supports::class)->supportedBy($viewer, $publications->pluck('id')),
             'managed' => $managed,
             'memberOf' => $viewer ? $viewer->zumraMemberships()->pluck('zumra_id')->all() : [],
             'skills' => $tab === 'formation' ? $this->skills($zumra, $viewer) : ['offered' => collect(), 'wanted' => collect()],

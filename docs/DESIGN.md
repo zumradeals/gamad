@@ -106,8 +106,12 @@ Police unique : **Plus Jakarta Sans** (graisses 400, 500, 600, 700, 800), auto-h
     badge À faire · En cours · Franchie ; pour les gestionnaires : liste d'état, Monter, Descendre, Retirer avec
     confirmation, champ « Nouvelle étape »), « Histoire du projet », « Changer l'état du projet ». **Fil** : cartes de
     publication des avancées et réalisations (badges violet et vert des jetons existants, lien « Projet : … »), liens
-    « Publier une avancée » et « Publier une réalisation » pour les gestionnaires. Page publique. Les onglets Équipe et
-    Besoins viennent avec la PR 4c ; ils restent masqués.
+    « Publier une avancée » et « Publier une réalisation » pour les gestionnaires. Page publique. Quatre onglets en tout
+    (Lot 4c) : **Équipe** (« N personnes participent », liste des personnes pour les inscrits, encadré « Participer à ce
+    projet » avec le mot facultatif, états « Demande envoyée » / « Vous êtes dans l'équipe » ; pour les gestionnaires,
+    « Demandes de participation » avec Accepter · Décliner, « Ajouter des membres de la ZUMRA », Retirer de l'équipe avec
+    confirmation) et **Besoins** (cartes de besoin, lien « Publier un besoin » pour les gestionnaires). Sur une avancée, le
+    bouton « Je soutiens » (ou « Vous soutenez cette avancée » + « Retirer mon soutien ») et le fait « N personnes soutiennent ».
 
 ## 5. Règles d'interface
 

@@ -20,6 +20,10 @@ enum NotificationKind: string
     case ZumraFounderTransferred = 'zumra_founder_transferred';
     case ZumraRecognized = 'zumra_recognized';
     case ZumraRecognitionWithdrawn = 'zumra_recognition_withdrawn';
+    case ProjectParticipationRequested = 'project_participation_requested';
+    case ProjectParticipationAccepted = 'project_participation_accepted';
+    case ProjectMemberAdded = 'project_member_added';
+    case ProjectMemberRemoved = 'project_member_removed';
 
     /** Le texte de la notification commence-t-il par le nom d'une personne ? (Non pour un transfert de fondation.) */
     public function showsActor(): bool
@@ -31,6 +35,12 @@ enum NotificationKind: string
     public function isAboutZumra(): bool
     {
         return str_starts_with($this->value, 'zumra_');
+    }
+
+    /** Une notification qui parle d'un projet (son nom prend la place de l'extrait de publication). */
+    public function isAboutProject(): bool
+    {
+        return str_starts_with($this->value, 'project_');
     }
 
     /** Phrase qui suit le nom de la personne : « Awa Traoré a proposé son aide… ». */
@@ -54,6 +64,10 @@ enum NotificationKind: string
             self::ZumraFounderTransferred => "La fondation de{$about} vous a été confiée : son fondateur a supprimé son compte.",
             self::ZumraRecognized => "a reconnu officiellement{$about} : elle porte le badge « Reconnue par GAMAD ».",
             self::ZumraRecognitionWithdrawn => "a retiré la reconnaissance officielle de{$about}.",
+            self::ProjectParticipationRequested => "veut participer au projet{$about}.",
+            self::ProjectParticipationAccepted => "a accepté votre participation au projet{$about}.",
+            self::ProjectMemberAdded => "vous a ajouté à l'équipe du projet{$about}.",
+            self::ProjectMemberRemoved => "vous a retiré de l'équipe du projet{$about}.",
         };
     }
 }

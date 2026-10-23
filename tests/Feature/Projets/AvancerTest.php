@@ -269,7 +269,7 @@ it('cache les étapes à qui a été rétrogradé, même avec l’écran déjà 
 
 it('laisse les gestionnaires publier une avancée et une réalisation au nom du projet, qui sont aussi des publications de la ZUMRA', function () {
     foreach ([$this->yao, $this->resp] as $qui) {
-        foreach (PublicationType::forProject() as $type) {
+        foreach ([PublicationType::ProjectUpdate, PublicationType::Achievement] as $type) {
             $p = avancee($qui, $this->projet, type: $type);
 
             expect($p->project_id)->toBe($this->projet->id)->and($p->zumra_id)->toBe($this->zumra->id)->and($p->author_id)->toBe($qui->id)
@@ -286,12 +286,12 @@ it('refuse de publier au nom du projet à un membre, à une personne extérieure
     expect(Publication::count())->toBe(0);
 });
 
-it('n’admet au nom d’un projet que l’avancée et la réalisation, et ces deux types que pour un projet', function () {
-    foreach ([PublicationType::Need, PublicationType::Knowledge, PublicationType::Offer, PublicationType::LearningWish, PublicationType::ZumraCall] as $type) {
+it('n’admet au nom d’un projet que l’avancée, la réalisation et le besoin, et les deux premiers types que pour un projet', function () {
+    foreach ([PublicationType::Knowledge, PublicationType::Offer, PublicationType::LearningWish, PublicationType::ZumraCall] as $type) {
         expect(fn () => avancee($this->yao, $this->projet, type: $type))->toThrow(ValidationException::class, 'n’existe pas pour un projet');
     }
 
-    foreach (PublicationType::forProject() as $type) {
+    foreach ([PublicationType::ProjectUpdate, PublicationType::Achievement] as $type) {
         expect(fn () => publication($this->yao, $type))->toThrow(ValidationException::class, 'au nom d’un projet');
         expect(fn () => app(Publications::class)->publish($this->yao, $type, ['body' => 'x'], $this->zumra))->toThrow(ValidationException::class, 'au nom d’un projet');
     }
@@ -313,7 +313,8 @@ it('garantit en base qu’une avancée ou une réalisation a un projet, que seul
     $mauvais = [
         ['type' => 'project_update'],
         ['type' => 'achievement', 'zumra_id' => $this->zumra->id],
-        ['type' => 'need', 'need_state' => 'open', 'project_id' => $this->projet->id, 'zumra_id' => $this->zumra->id],
+        ['type' => 'knowledge', 'project_id' => $this->projet->id, 'zumra_id' => $this->zumra->id],
+        ['type' => 'need', 'need_state' => 'open', 'project_id' => $this->projet->id],
         ['type' => 'project_update', 'project_id' => $this->projet->id],
     ];
     foreach ($mauvais as $data) {
@@ -347,7 +348,7 @@ it('ferme l’écran de publication d’un projet aux autres, aux types qui n’
     foreach ([$this->membre, $this->dehors] as $qui) {
         $this->actingAs($qui)->get(route('projets.publier', [$this->projet, 'avancee']))->assertNotFound();
     }
-    foreach (['besoin', 'savoir', 'appel', 'n-importe-quoi'] as $slug) {
+    foreach (['savoir', 'aide', 'apprendre', 'appel', 'n-importe-quoi'] as $slug) {
         $this->actingAs($this->yao)->get(route('projets.publier', [$this->projet, $slug]))->assertNotFound();
     }
 });
@@ -430,16 +431,18 @@ it('ouvre les onglets Avancement et Fil, et ignore un onglet inconnu', function 
     projet_monde($this->dehors, $this->projet)->call('setTab', 'fil')->assertSet('tab', 'fil')->call('setTab', 'inconnu')->assertSet('tab', 'avancement')->assertSeeText('Histoire du projet');
 });
 
-it('ne montre ni Équipe ni Besoins : ils viennent avec la PR 4c', function () {
-    projet_monde($this->yao, $this->projet)->assertDontSeeText('Équipe')->assertDontSeeText('Besoins')->assertDontSeeText('Je soutiens')->assertDontSeeText('Je veux participer');
+it('montre les quatre onglets : Avancement, Fil, Équipe et Besoins', function () {
+    foreach ([$this->yao, $this->dehors, null] as $qui) {
+        projet_monde($qui, $this->projet)->assertSeeText('Avancement')->assertSeeText('Fil')->assertSeeText('Équipe')->assertSeeText('Besoins');
+    }
 });
 
 // ─── Pas de geste sur une publication de projet ──────────────────────────────
 
-it('n’admet aucun geste sur une avancée ou une réalisation, et n’affiche aucun bouton sans effet', function () {
+it('n’admet aucun geste sur une avancée ou une réalisation (le soutien est autre chose), et n’affiche aucun bouton de réponse', function () {
     $p = avancee($this->yao, $this->projet);
 
-    foreach (PublicationType::forProject() as $type) {
+    foreach ([PublicationType::ProjectUpdate, PublicationType::Achievement] as $type) {
         expect($type->takesGestures())->toBeFalse();
     }
     expect($p->acceptsGestures())->toBeFalse();
@@ -448,7 +451,7 @@ it('n’admet aucun geste sur une avancée ou une réalisation, et n’affiche a
     }
 
     foreach ([$this->dehors, $this->membre, null] as $qui) {
-        projet_monde($qui, $this->projet, 'fil')->assertDontSeeText('Se connecter pour répondre')->assertDontSeeText('Je soutiens')->assertDontSeeText('Je peux aider')
+        projet_monde($qui, $this->projet, 'fil')->assertDontSeeText('Se connecter pour répondre')->assertDontSeeText('Je peux aider')
             ->assertDontSeeText('Ça m’intéresse')->assertDontSeeText('Voir ma publication');
     }
     expect(PublicationType::Need->takesGestures())->toBeTrue()->and(PublicationType::ZumraCall->takesGestures())->toBeFalse();

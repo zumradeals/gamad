@@ -64,9 +64,15 @@ enum PublicationType: string
             self::LearningWish => 'Je peux transmettre',
             self::Offer => "Ça m'intéresse",
             self::ZumraCall => 'Je veux rejoindre',
-            // Une avancée ou une réalisation n'a pas encore de geste (« Je soutiens » vient avec la PR 4c).
+            // Une avancée reçoit un soutien (« Je soutiens », D-139) et non un geste ; une réalisation ne reçoit rien.
             self::ProjectUpdate, self::Achievement => '',
         };
+    }
+
+    /** Soutien compté sous une avancée : « 4 personnes soutiennent » (jamais une approbation, D-139). */
+    public static function supportFact(int $count): string
+    {
+        return $count.' '.($count > 1 ? 'personnes soutiennent' : 'personne soutient');
     }
 
     /** Fait d'engagement réel, compté à partir des gestes (jamais d'approbation) : « 2 personnes proposent leur aide ». */
@@ -137,19 +143,25 @@ enum PublicationType: string
         return [self::Need, self::Knowledge, self::Offer, self::ZumraCall];
     }
 
-    /** Types publiés au nom d'un projet (D-134) : l'avancée de projet et la réalisation. */
+    /** Types publiés au nom d'un projet (D-135, D-138) : l'avancée de projet, la réalisation et le besoin. */
     public static function forProject(): array
     {
-        return [self::ProjectUpdate, self::Achievement];
+        return [self::ProjectUpdate, self::Achievement, self::Need];
     }
 
-    /** Publiée au nom d'un projet. */
+    /** Une avancée de projet reçoit des soutiens (« Je soutiens », D-139) ; aucun autre type. */
+    public function canBeSupported(): bool
+    {
+        return $this === self::ProjectUpdate;
+    }
+
+    /** Propre aux projets : l'avancée et la réalisation n'existent qu'au nom d'un projet (le besoin, lui, existe aussi ailleurs). */
     public function isProject(): bool
     {
         return $this === self::ProjectUpdate || $this === self::Achievement;
     }
 
-    /** Ce type reçoit des gestes : ni l'Appel à rejoindre (demande d'adhésion), ni les publications de projet (PR 4b). */
+    /** Ce type reçoit des gestes : ni l'Appel à rejoindre (demande d'adhésion), ni l'avancée ni la réalisation (soutien, D-139). */
     public function takesGestures(): bool
     {
         return ! $this->isCall() && ! $this->isProject();

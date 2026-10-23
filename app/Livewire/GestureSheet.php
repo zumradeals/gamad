@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Gesture;
 use App\Models\Publication;
 use App\Services\Gestures;
+use App\Services\Supports;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
@@ -61,6 +62,27 @@ class GestureSheet extends Component
         $gesture = Gesture::query()->where('publication_id', $id)->where('user_id', Auth::id())->firstOrFail();
 
         app(Gestures::class)->withdraw(Auth::user(), $gesture);
+
+        $this->dispatch('gesture-changed');
+    }
+
+    /** « Je soutiens » sur une avancée de projet (D-139). */
+    #[On('support')]
+    public function support(string $id): void
+    {
+        abort_unless(Str::isUuid($id), 404);
+
+        app(Supports::class)->support(Auth::user(), Publication::query()->find($id) ?? abort(404));
+
+        $this->dispatch('gesture-changed');
+    }
+
+    #[On('unsupport')]
+    public function unsupport(string $id): void
+    {
+        abort_unless(Str::isUuid($id), 404);
+
+        app(Supports::class)->withdraw(Auth::user(), Publication::query()->find($id) ?? abort(404));
 
         $this->dispatch('gesture-changed');
     }

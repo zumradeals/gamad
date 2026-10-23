@@ -104,6 +104,7 @@ class PagePublication extends Component
             $this->explanation = (string) $publication->author_explanation;
         }
         $publication->live_gestures_count = $publication->liveGesturesCount();
+        $publication->supports_count = $publication->supports()->count();
         $type = $publication->type;
         // « isAuthor » : la personne qui gère la publication, son auteur ou, pour une ZUMRA, son fondateur et ses responsables (D-116).
         $isAuthor = $publication->isManagedBy($viewer);

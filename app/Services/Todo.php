@@ -9,6 +9,7 @@ use App\Models\Conversation;
 use App\Models\Gesture;
 use App\Models\Invitation;
 use App\Models\Message;
+use App\Models\Project;
 use App\Models\Publication;
 use App\Models\Report;
 use App\Models\User;
@@ -36,6 +37,7 @@ class Todo
             ...$this->reportsToReview($user),
             ...$this->zumraInvitations($user),
             ...$this->joinRequestsToDecide($user),
+            ...$this->participationRequestsToDecide($user),
             ...$this->proposals($user),
             ...$this->unreadMessages($user),
             ...$this->thanks($user),
@@ -105,6 +107,25 @@ class Todo
                 'detail' => 'Dans la ZUMRA « '.Str::limit($zumra->name, 40).' »',
                 'action' => 'Voir',
                 'url' => route('zumras.show', $zumra),
+            ])->all();
+    }
+
+    /** Pour le fondateur et les responsables : des demandes de participation à un projet attendent une décision (une ligne par projet). */
+    private function participationRequestsToDecide(User $user): array
+    {
+        $pending = fn ($query) => $query->where('state', JoinRequestState::Pending->value)->whereHas('user', fn ($person) => $person->whereNotNull('email_verified_at'));
+
+        return Project::query()
+            ->whereIn('zumra_id', $user->managedZumraIds())
+            ->whereHas('participationRequests', $pending)
+            ->withCount(['participationRequests as pending_count' => $pending])
+            ->orderBy('name_key')->limit(self::MAX_LINES)->get()
+            ->map(fn (Project $project) => [
+                'key' => 'participation-'.$project->getKey(),
+                'title' => $project->pending_count.($project->pending_count > 1 ? ' demandes de participation à traiter' : ' demande de participation à traiter'),
+                'detail' => 'Dans le projet « '.Str::limit($project->name, 40).' »',
+                'action' => 'Voir',
+                'url' => route('projets.show', ['project' => $project, 'onglet' => 'equipe']),
             ])->all();
     }
 

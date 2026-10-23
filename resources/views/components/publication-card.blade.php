@@ -6,7 +6,7 @@
     - link        : vrai pour ajouter un lien vers la page de la publication (Fil)
     Pas de « Commenter » ni de « Partager » : ils ne font pas partie de ce lot (D-090). « Signaler » s'ajoute pour qui est connecté.
 --}}
-@props(['publication', 'viewer' => null, 'gesture' => null, 'link' => true, 'managed' => null, 'memberOf' => null])
+@props(['publication', 'viewer' => null, 'gesture' => null, 'link' => true, 'managed' => null, 'memberOf' => null, 'supported' => null])
 
 @php
     use App\Enums\GestureState;
@@ -28,6 +28,7 @@
         $publication->created_at->copy()->locale('fr')->timezone('Africa/Abidjan')->diffForHumans(['short' => true]),
     ])->filter()->implode(' · ');
     $live = (int) ($publication->live_gestures_count ?? 0);
+    $supports = (int) ($publication->supports_count ?? 0);
     $state = $publication->need_state;
     $stateClasses = match ($state) {
         NeedState::InProgress => 'bg-type-call-bg text-type-call-fg',
@@ -83,6 +84,10 @@
         <span class="text-[13px] font-semibold text-muted">{{ $type->factLabel($live) }}</span>
     @endif
 
+    @if ($type->canBeSupported() && $supports > 0)
+        <span class="text-[13px] font-semibold text-muted">{{ \App\Enums\PublicationType::supportFact($supports) }}</span>
+    @endif
+
     @if ($viewer && ! $isOwner)
         <a href="{{ route('publications.signaler', $publication) }}" class="inline-flex min-h-11 items-center self-start text-[13px] font-semibold text-muted underline hover:text-ink">Signaler</a>
     @endif
@@ -90,6 +95,20 @@
     @if ($isOwner)
         @if ($link)
             <x-button :href="route('publications.show', $publication)" variant="secondary">{{ $live > 0 ? 'Voir les réponses' : 'Voir ma publication' }}</x-button>
+        @endif
+    @elseif ($type->canBeSupported())
+        {{-- « Je soutiens » (D-139) : un engagement compté, retirable ; pas de geste, pas de conversation. --}}
+        @if ($viewer && $viewer->hasVerifiedEmail())
+            @if (in_array($publication->id, $supported ?? app(\App\Services\Supports::class)->supportedBy($viewer, [$publication->id]), true))
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <span class="inline-flex min-h-11 flex-1 items-center gap-1.5 text-[14px] font-extrabold text-type-knowledge-fg"><x-icon name="check" :size="16" :stroke="3" />Vous soutenez cette avancée</span>
+                    <x-button type="button" variant="secondary" wire:click="$dispatch('unsupport', { id: '{{ $publication->id }}' })">Retirer mon soutien</x-button>
+                </div>
+            @else
+                <x-button type="button" wire:click="$dispatch('support', { id: '{{ $publication->id }}' })">Je soutiens</x-button>
+            @endif
+        @elseif (! $viewer)
+            <x-button :href="route('login')">Se connecter pour soutenir</x-button>
         @endif
     @elseif ($type->isProject())
         {{-- Une avancée ou une réalisation n'a pas de geste pour l'instant : rien à répondre, sans bouton sans effet. --}}

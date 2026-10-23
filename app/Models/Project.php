@@ -49,7 +49,18 @@ class Project extends Model
         return $this->hasMany(ProjectStep::class)->orderBy('position');
     }
 
-    /** Les avancées et réalisations publiées au nom du projet. */
+    /** L'équipe : les membres de la ZUMRA qui participent au projet. */
+    public function members(): HasMany
+    {
+        return $this->hasMany(ProjectMember::class);
+    }
+
+    public function participationRequests(): HasMany
+    {
+        return $this->hasMany(ParticipationRequest::class);
+    }
+
+    /** Les publications faites au nom du projet : avancées, réalisations et besoins. */
     public function publications(): HasMany
     {
         return $this->hasMany(Publication::class);

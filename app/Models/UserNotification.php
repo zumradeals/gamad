@@ -41,6 +41,11 @@ class UserNotification extends Model
         return $this->belongsTo(Zumra::class);
     }
 
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
+    }
+
     public function conversation(): BelongsTo
     {
         return $this->belongsTo(Conversation::class);
