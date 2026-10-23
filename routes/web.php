@@ -50,6 +50,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/zumra/{zumra}/modifier', FormulaireZumra::class)->whereUuid('zumra')->name('zumras.edit');
     Route::get('/zumra/{zumra}/projets/creer', FormulaireProjet::class)->whereUuid('zumra')->name('projets.create');
     Route::get('/projets/{project}/modifier', FormulaireProjet::class)->whereUuid('project')->name('projets.edit');
+    Route::get('/projets/{project}/publier/{slug}', PublierPublication::class)->whereUuid('project')->name('projets.publier');
     Route::get('/fil', Fil::class)->name('fil');
     Route::view('/agir', 'pages.agir')->name('agir');
     Route::get('/agir/{slug}', PublierPublication::class)->name('agir.publier');

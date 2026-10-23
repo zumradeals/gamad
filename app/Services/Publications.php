@@ -6,6 +6,7 @@ use App\Enums\NeedState;
 use App\Enums\PublicationType;
 use App\Models\City;
 use App\Models\Domain;
+use App\Models\Project;
 use App\Models\Publication;
 use App\Models\Skill;
 use App\Models\User;
@@ -31,19 +32,30 @@ class Publications
      *
      * @throws ValidationException
      */
-    public function publish(User $author, PublicationType $type, array $data, ?Zumra $zumra = null): Publication
+    public function publish(User $author, PublicationType $type, array $data, ?Zumra $zumra = null, ?Project $project = null): Publication
     {
         Gate::forUser($author)->authorize('create', Publication::class);
 
-        if ($zumra) {
+        if ($project) {
+            // Publier au nom d'un projet : le fondateur et les responsables de sa ZUMRA seulement (D-127) ; la publication est
+            // aussi une publication de cette ZUMRA.
+            Gate::forUser($author)->authorize('update', $project);
+            $zumra = $project->zumra;
+
+            if (! in_array($type, PublicationType::forProject(), true)) {
+                throw ValidationException::withMessages(['body' => 'Ce type de publication n’existe pas pour un projet.']);
+            }
+        } elseif ($zumra) {
             // Publier au nom d'une ZUMRA : son fondateur et ses responsables seulement (D-116).
             Gate::forUser($author)->authorize('manage', $zumra);
         }
 
-        if (! in_array($type, $zumra ? PublicationType::forZumra() : PublicationType::forPerson(), true)) {
-            throw ValidationException::withMessages(['body' => $zumra
-                ? 'Ce type de publication n’existe pas pour une ZUMRA.'
-                : 'Ce type de publication se fait au nom d’une ZUMRA.']);
+        if (! $project && ! in_array($type, $zumra ? PublicationType::forZumra() : PublicationType::forPerson(), true)) {
+            throw ValidationException::withMessages(['body' => match (true) {
+                $type->isProject() => 'Une avancée ou une réalisation se publie au nom d’un projet.',
+                (bool) $zumra => 'Ce type de publication n’existe pas pour une ZUMRA.',
+                default => 'Ce type de publication se fait au nom d’une ZUMRA.',
+            }]);
         }
 
         $body = Normalizer::multiline((string) ($data['body'] ?? ''));
@@ -72,7 +84,7 @@ class Publications
             [config('gamad.limits.publications_per_day'), 86400, 'Vous avez atteint la limite de publications pour aujourd’hui.'],
         ], 'body');
 
-        return DB::transaction(function () use ($author, $type, $body, $visibility, $domainId, $cityId, $skills, $zumra) {
+        return DB::transaction(function () use ($author, $type, $body, $visibility, $domainId, $cityId, $skills, $zumra, $project) {
             $publication = new Publication([
                 'type' => $type,
                 'body' => $body,
@@ -83,6 +95,7 @@ class Publications
             ]);
             $publication->author()->associate($author);
             $publication->zumra()->associate($zumra);
+            $publication->project()->associate($project);
             $publication->save();
 
             $publication->skills()->attach(collect($skills)->mapWithKeys(

@@ -34,11 +34,13 @@ it('propose les quatre types sur l’écran Agir, chacun menant à son formulair
     }
 });
 
-it('ne propose pas, dans Agir, les types du Lot 4 ni l’Appel à rejoindre, qui se publie au nom d’une ZUMRA', function () {
-    expect(PublicationType::forPerson())->toHaveCount(4)->and(PublicationType::cases())->toHaveCount(5);
+it('ne propose pas, dans Agir, les types de projet ni l’Appel à rejoindre, qui se publient au nom d’une ZUMRA ou d’un projet', function () {
+    expect(PublicationType::forPerson())->toHaveCount(4)->and(PublicationType::cases())->toHaveCount(7);
 
     $this->actingAs(User::factory()->create())->get('/agir')->assertDontSeeText('Avancée de projet')->assertDontSeeText('Appel à rejoindre');
     $this->actingAs(User::factory()->create())->get('/agir/projet')->assertNotFound();
+    $this->actingAs(User::factory()->create())->get('/agir/avancee')->assertNotFound();
+    $this->actingAs(User::factory()->create())->get('/agir/realisation')->assertNotFound();
     $this->actingAs(User::factory()->create())->get('/agir/appel')->assertNotFound();
     $this->actingAs(User::factory()->create())->get('/agir/n-importe-quoi')->assertNotFound();
 

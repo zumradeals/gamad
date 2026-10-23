@@ -69,12 +69,18 @@
                     @endforeach
                 </ul>
             @endif
-            <span class="text-[13px] font-semibold text-muted">{{ $live > 0 ? $type->factLabel($live) : 'Personne n’a encore répondu.' }}</span>
+            @if ($publication->project)
+                <a href="{{ route('projets.show', $publication->project) }}" class="inline-flex min-h-11 items-center self-start text-[13px] font-bold text-link">Projet : {{ $publication->project->name }}</a>
+            @endif
+            @if ($type->takesGestures())
+                <span class="text-[13px] font-semibold text-muted">{{ $live > 0 ? $type->factLabel($live) : 'Personne n’a encore répondu.' }}</span>
+            @endif
             @unless ($publication->isPublic())
                 <span class="text-[12px] text-muted">Visible des personnes inscrites seulement.</span>
             @endunless
         </section>
 
+        @if ($type->takesGestures())
         <h2 class="mt-1 text-[15px] font-extrabold">{{ $type->receivedTitle() }}</h2>
 
         @forelse ($received as $item)
@@ -136,6 +142,7 @@
                 <p class="text-[14px] text-muted">Aucune réponse pour l’instant. Elles apparaîtront ici dès qu’une personne vous répondra.</p>
             </section>
         @endforelse
+        @endif
 
         @if ($type->isNeed() && $active)
             <p class="text-[12px] leading-normal text-muted">Vous pouvez accepter plusieurs propositions.</p>

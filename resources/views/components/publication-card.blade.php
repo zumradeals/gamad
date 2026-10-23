@@ -75,6 +75,10 @@
         </ul>
     @endif
 
+    @if ($publication->project)
+        <a href="{{ route('projets.show', $publication->project) }}" class="inline-flex min-h-11 items-center gap-1.5 self-start text-[13px] font-bold text-link">Projet : {{ $publication->project->name }}</a>
+    @endif
+
     @if ($live > 0)
         <span class="text-[13px] font-semibold text-muted">{{ $type->factLabel($live) }}</span>
     @endif
@@ -87,6 +91,8 @@
         @if ($link)
             <x-button :href="route('publications.show', $publication)" variant="secondary">{{ $live > 0 ? 'Voir les réponses' : 'Voir ma publication' }}</x-button>
         @endif
+    @elseif ($type->isProject())
+        {{-- Une avancée ou une réalisation n'a pas de geste pour l'instant : rien à répondre, sans bouton sans effet. --}}
     @elseif ($type->isCall())
         {{-- Un Appel à rejoindre n'a pas de geste : « Je veux rejoindre » est une demande d'adhésion (D-116). --}}
         @if ($viewer && in_array($zumra->id, $memberOf ?? $viewer->zumraMemberships()->pluck('zumra_id')->all(), true))

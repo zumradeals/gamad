@@ -4,6 +4,8 @@
         'knowledge' => ['Partager un savoir', 'Votre savoir', 'Publier mon savoir', 'Ex. Atelier ouvert à tous : tenir les comptes d’un petit commerce. Samedi à 10 h, en ligne.'],
         'learning_wish' => ['Je veux apprendre', 'Ce que vous voulez apprendre', 'Publier ma demande', 'Ex. Je veux apprendre à installer et réparer des panneaux solaires. Je suis disponible le week-end.'],
         'zumra_call' => ['Appel à rejoindre', 'Votre appel', 'Publier l’appel', 'Ex. Nous cherchons des couturières et des couturiers pour rejoindre la ZUMRA : atelier chaque samedi matin.'],
+        'project_update' => ['Avancée de projet', 'Votre avancée', 'Publier l’avancée', 'Ex. Les trois premières écoles ont validé la commande : nous commençons la coupe lundi.'],
+        'achievement' => ['Réalisation', 'Ce qui a été fait', 'Publier la réalisation', 'Ex. 120 uniformes ont été livrés aux élèves de deux écoles du quartier.'],
         'offer' => ['Proposer mon aide', 'Votre aide', 'Publier mon offre', 'Ex. Je peux aider à tenir les comptes d’une petite boutique, le soir après 18 h.'],
     ][$type->value];
     [$heading, $label, $button, $placeholder] = $titles;
@@ -11,13 +13,15 @@
 
 <div class="flex flex-col gap-3.5">
     <div class="-mx-4 -mt-4 flex min-h-14 items-center gap-1 border-b border-line bg-card px-2 py-1.5 md:mx-0 md:mt-0 md:rounded-card md:border">
-        <a href="{{ route('agir') }}" aria-label="Retour au choix du type" class="flex size-11 items-center justify-center text-ink hover:text-ink"><x-icon name="back" /></a>
+        <a href="{{ $project ? route('projets.show', ['project' => $project, 'onglet' => 'fil']) : route('agir') }}" aria-label="Retour au choix du type" class="flex size-11 items-center justify-center text-ink hover:text-ink"><x-icon name="back" /></a>
         <h1 class="flex-1 text-[17px] font-extrabold">{{ $heading }}</h1>
     </div>
 
     <form wire:submit="publish" class="flex flex-col gap-3.5">
         <span class="self-start rounded-chip px-2.5 py-1 text-[12px] font-bold {{ $type->badgeClasses() }}">{{ $type->label() }}</span>
-        @if ($zumra)
+        @if ($project)
+            <p class="rounded-button bg-soft-blue px-3 py-2.5 text-[13px] font-semibold">Vous publiez au nom du projet <strong>{{ $project->name }}</strong> ({{ $zumra->name }}).</p>
+        @elseif ($zumra)
             <p class="rounded-button bg-soft-blue px-3 py-2.5 text-[13px] font-semibold">Vous publiez au nom de <strong>{{ $zumra->name }}</strong>.</p>
         @endif
 
@@ -89,6 +93,10 @@
             <span wire:loading wire:target="publish">Publication…</span>
         </x-button>
 
-        <p class="text-[12px] leading-normal text-muted">Aucun chiffre d’approbation n’est affiché. On verra seulement combien de personnes {{ $type->isNeed() ? 'proposent leur aide' : 'répondent' }}.</p>
+        @if ($type->takesGestures())
+            <p class="text-[12px] leading-normal text-muted">Aucun chiffre d’approbation n’est affiché. On verra seulement combien de personnes {{ $type->isNeed() ? 'proposent leur aide' : 'répondent' }}.</p>
+        @else
+            <p class="text-[12px] leading-normal text-muted">Aucun chiffre d’approbation n’est affiché.</p>
+        @endif
     </form>
 </div>

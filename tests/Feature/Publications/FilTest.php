@@ -101,16 +101,17 @@ it('filtre : Tout, Besoins, Savoirs, Apprendre, Aides', function () {
     fil()->call('setFilter', 'savoirs')->assertSeeText('Texte savoir')->assertDontSeeText('Texte besoin')->assertDontSeeText('Texte apprendre');
     fil()->call('setFilter', 'apprendre')->assertSeeText('Texte apprendre')->assertDontSeeText('Texte savoir')->assertDontSeeText('Texte besoin')->assertDontSeeText('Texte aide');
     fil()->call('setFilter', 'aides')->assertSeeText('Texte aide')->assertDontSeeText('Texte apprendre')->assertDontSeeText('Texte besoin')->assertDontSeeText('Texte savoir');
-    fil()->call('setFilter', 'projets')->assertSet('filter', 'tout');
+    fil()->call('setFilter', 'projets')->assertSet('filter', 'projets');
+    fil()->call('setFilter', 'inconnu')->assertSet('filter', 'tout');
     Livewire::withQueryParams(['filtre' => 'besoins'])->actingAs(User::factory()->create())->test(Fil::class)->assertSet('filter', 'besoins')->assertDontSeeText('Texte savoir');
 });
 
-it('ne propose que les filtres Tout, Besoins, Savoirs, Apprendre, Aides et ZUMRA : Projets reste masqué (D-098)', function () {
+it('ne propose que les filtres Tout, Besoins, Savoirs, Apprendre, Aides, ZUMRA et Projets (D-098)', function () {
     $html = fil()->html();
     preg_match('/<nav aria-label="Filtrer le Fil".*?<\/nav>/s', $html, $nav);
     $filtres = array_map(fn ($t) => trim(strip_tags($t)), explode('</button>', $nav[0]));
 
-    expect(array_values(array_filter($filtres)))->toBe(['Tout', 'Besoins', 'Savoirs', 'Apprendre', 'Aides', 'ZUMRA']);
+    expect(array_values(array_filter($filtres)))->toBe(['Tout', 'Besoins', 'Savoirs', 'Apprendre', 'Aides', 'ZUMRA', 'Projets']);
 });
 
 it('n’affiche ni Commenter, ni Partager, ni compteur d’approbation, et « Signaler » seulement sur la publication d’un autre', function () {

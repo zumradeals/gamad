@@ -6,6 +6,7 @@ use App\Enums\PublicationType;
 use App\Livewire\Concerns\PicksSkills;
 use App\Models\City;
 use App\Models\Domain;
+use App\Models\Project;
 use App\Models\Publication;
 use App\Models\Zumra;
 use App\Services\Publications;
@@ -30,6 +31,10 @@ class PublierPublication extends Component
     #[Locked]
     public ?string $zumraId = null;
 
+    /** Le projet au nom duquel on publie une avancée ou une réalisation (Lot 4b) ; sa ZUMRA est alors `zumraId`. */
+    #[Locked]
+    public ?string $projectId = null;
+
     public string $slug = '';
 
     public string $body = '';
@@ -45,7 +50,7 @@ class PublierPublication extends Component
 
     public string $visibility = Publication::PUBLIC;
 
-    public function mount(string $slug, ?Zumra $zumra = null): void
+    public function mount(string $slug, ?Zumra $zumra = null, ?Project $project = null): void
     {
         $type = PublicationType::fromSlug($slug);
         abort_unless($type, 404);
@@ -53,6 +58,22 @@ class PublierPublication extends Component
         Gate::authorize('create', Publication::class);
 
         $zumra = $zumra?->exists ? $zumra : null;
+
+        // Au nom d'un projet (D-127, D-134) : avancée ou réalisation, par le fondateur et les responsables de sa ZUMRA.
+        if ($project?->exists) {
+            Gate::authorize('update', $project);
+            abort_unless(in_array($type, PublicationType::forProject(), true), 404);
+
+            $zumra = $project->zumra;
+            $this->projectId = $project->id;
+            $this->zumraId = $zumra->id;
+            $this->slug = $slug;
+            $this->domain_id = $zumra->domain_id;
+            $this->city_id = (string) $zumra->city_id;
+            $this->visibility = Publication::PUBLIC;
+
+            return;
+        }
 
         // Au nom d'une ZUMRA (D-116) : son fondateur et ses responsables, avec les types qui existent pour une ZUMRA ; sinon les
         // types d'une personne (l'Appel à rejoindre n'existe que pour une ZUMRA).
@@ -88,13 +109,16 @@ class PublierPublication extends Component
 
     public function publish(Publications $publications)
     {
+        // Les erreurs d'un envoi précédent ne survivent pas à un nouvel envoi.
+        $this->resetErrorBag();
+
         $publication = $publications->publish(Auth::user(), $this->type(), [
             'body' => $this->body,
             'domain_id' => $this->domain_id,
             'city_id' => $this->city_id,
             'visibility' => $this->visibility,
             'skills' => $this->skills,
-        ], $this->zumra());
+        ], $this->zumra(), $this->project());
 
         session()->flash('status', 'Publié. Elle apparaît dans le Fil.');
 
@@ -111,6 +135,7 @@ class PublierPublication extends Component
             'bodyMax' => Publication::BODY_MAX,
             'profileHasCity' => (bool) Auth::user()->ensureProfile()->city_id,
             'zumra' => $this->zumra(),
+            'project' => $this->project(),
         ]);
     }
 
@@ -126,6 +151,20 @@ class PublierPublication extends Component
         Gate::authorize('manage', $zumra);
 
         return $zumra;
+    }
+
+    /** Le projet au nom duquel on publie, après avoir revérifié le droit de le gérer. */
+    private function project(): ?Project
+    {
+        if ($this->projectId === null) {
+            return null;
+        }
+
+        $project = Project::query()->with('zumra')->findOrFail($this->projectId);
+
+        Gate::authorize('update', $project);
+
+        return $project;
     }
 
     private function type(): PublicationType

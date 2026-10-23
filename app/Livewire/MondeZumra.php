@@ -225,7 +225,7 @@ class MondeZumra extends Component
         if (in_array($tab, ['formation', 'fil'], true)) {
             $found = Publication::query()->visibleTo($viewer)->where('zumra_id', $zumra->id)
                 ->when($tab === 'formation', fn (Builder $query) => $query->where('type', PublicationType::Knowledge->value))
-                ->with(['author.profile', 'domain', 'city', 'skills', 'zumra'])
+                ->with(['author.profile', 'domain', 'city', 'skills', 'zumra', 'project'])
                 ->withCount(['gestures as live_gestures_count' => fn ($query) => $query->whereIn('state', ['sent', 'accepted'])])
                 ->orderByDesc('created_at')->orderByDesc('id')
                 ->limit($this->limit + 1)->get();
