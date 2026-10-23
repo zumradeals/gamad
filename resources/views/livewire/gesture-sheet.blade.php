@@ -2,7 +2,8 @@
     @if ($publication)
         @php
             $type = $publication->type;
-            $firstName = Str::before(trim($publication->author->name), ' ');
+            // Pour une publication de ZUMRA, c'est la ZUMRA qui reçoit la réponse (ses responsables décident).
+            $firstName = $publication->zumra?->name ?? Str::before(trim($publication->author->name), ' ');
         @endphp
         <div class="fixed inset-0 z-30 flex items-end justify-center md:items-center" x-data x-on:keydown.escape.window="$wire.close()">
             <div class="absolute inset-0 bg-ink/55" wire:click="close" aria-hidden="true"></div>

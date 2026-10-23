@@ -3,42 +3,120 @@
 namespace App\Livewire;
 
 use App\Enums\JoinRequestState;
+use App\Enums\PublicationType;
+use App\Models\Gesture;
 use App\Models\Invitation;
 use App\Models\JoinRequest;
+use App\Models\Profile;
+use App\Models\Publication;
 use App\Models\User;
 use App\Models\Zumra;
 use App\Models\ZumraMembership;
+use App\Models\ZumraPost;
 use App\Services\Invitations;
 use App\Services\JoinRequests;
 use App\Services\Memberships;
+use App\Services\ZumraPosts;
+use App\Services\Zumras;
+use App\Support\Normalizer;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\On;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
- * Monde d'une ZUMRA : l'en-tête est public, la liste des membres est réservée aux personnes connectées et vérifiées, avec la règle
- * de visibilité de chaque profil (D-112). Les onglets Formation, Fil et Discussion viennent avec la PR 3c, Projets avec le Lot 4.
+ * Monde d'une ZUMRA : l'en-tête, la Formation et le Fil sont publics (selon le niveau de chaque publication) ; la liste des
+ * membres est réservée aux personnes connectées et vérifiées, avec la règle de visibilité de chaque profil ; la Discussion est
+ * réservée aux membres (404 pour les autres, D-112). L'onglet Projets vient avec le Lot 4.
  */
 #[Layout('components.layouts.app')]
 class MondeZumra extends Component
 {
     public const MEMBERS_SHOWN = 100;
 
+    public const PAGE_SIZE = 10;
+
+    public const MAX_SIZE = 100;
+
+    public const POSTS_SHOWN = 100;
+
+    public const SKILLS_SHOWN = 12;
+
+    public const TABS = ['formation', 'fil', 'membres', 'discussion'];
+
     #[Locked]
     public string $zumraId;
 
+    #[Url(as: 'onglet', except: 'formation')]
+    public string $tab = 'formation';
+
+    public int $limit = self::PAGE_SIZE;
+
     /** Le mot facultatif de « Je veux rejoindre » (D-110). */
     public string $joinWord = '';
+
+    /** Le message de la Discussion en cours d'écriture. */
+    public string $postBody = '';
+
+    /** Motif du retrait de la reconnaissance (super administrateur). */
+    public string $recognitionReason = '';
 
     public function mount(Zumra $zumra): void
     {
         Gate::authorize('view', $zumra);
 
         $this->zumraId = $zumra->id;
+    }
+
+    public function setTab(string $tab): void
+    {
+        $this->tab = in_array($tab, self::TABS, true) ? $tab : 'formation';
+        $this->limit = self::PAGE_SIZE;
+        $this->resetErrorBag();
+    }
+
+    public function more(): void
+    {
+        $this->limit = min($this->limit + self::PAGE_SIZE, self::MAX_SIZE);
+    }
+
+    /** Un geste envoyé, retiré, accepté ou décliné sur une publication de la ZUMRA : la page se redessine. */
+    #[On('gesture-changed')]
+    public function refresh(): void {}
+
+    public function sendPost(ZumraPosts $posts): void
+    {
+        $posts->post(Auth::user(), $this->zumra(), $this->postBody);
+
+        $this->reset('postBody');
+        $this->resetErrorBag();
+    }
+
+    public function deletePost(string $id, ZumraPosts $posts): void
+    {
+        abort_unless(Str::isUuid($id), 404);
+
+        $posts->delete(Auth::user(), ZumraPost::query()->where('zumra_id', $this->zumraId)->findOrFail($id));
+    }
+
+    public function recognize(Zumras $zumras): void
+    {
+        $zumras->recognize(Auth::user(), $this->zumra());
+        session()->flash('status', 'ZUMRA reconnue : elle porte désormais le badge « Reconnue par GAMAD ».');
+    }
+
+    public function withdrawRecognition(Zumras $zumras): void
+    {
+        $zumras->withdrawRecognition(Auth::user(), $this->zumra(), $this->recognitionReason);
+
+        $this->reset('recognitionReason');
+        session()->flash('status', 'Reconnaissance retirée.');
     }
 
     public function requestJoin(JoinRequests $requests): void
@@ -118,6 +196,11 @@ class MondeZumra extends Component
         Gate::authorize('view', $zumra);
 
         $canSeeMembers = Gate::forUser($viewer)->allows('viewMembers', $zumra);
+        $canDiscuss = Gate::forUser($viewer)->allows('discuss', $zumra);
+
+        // La Discussion n'existe pas pour qui n'est pas membre : « page introuvable » (D-112).
+        $tab = in_array($this->tab, self::TABS, true) ? $this->tab : 'formation';
+        abort_if($tab === 'discussion' && ! $canDiscuss, 404);
 
         // Les personnes dont l'adresse n'est pas vérifiée n'existent pas pour les autres : elles ne figurent ni dans la liste ni dans le compte.
         $members = $canSeeMembers
@@ -132,6 +215,27 @@ class MondeZumra extends Component
 
         $role = $zumra->roleOf($viewer);
         $manages = (bool) $role?->manages();
+        $managed = $viewer ? $viewer->managedZumraIds() : [];
+
+        // Les publications de la ZUMRA que la personne a le droit de voir, de la plus récente à la plus ancienne.
+        $publications = collect();
+        $hasMore = false;
+
+        if (in_array($tab, ['formation', 'fil'], true)) {
+            $found = Publication::query()->visibleTo($viewer)->where('zumra_id', $zumra->id)
+                ->when($tab === 'formation', fn (Builder $query) => $query->where('type', PublicationType::Knowledge->value))
+                ->with(['author.profile', 'domain', 'city', 'skills', 'zumra'])
+                ->withCount(['gestures as live_gestures_count' => fn ($query) => $query->whereIn('state', ['sent', 'accepted'])])
+                ->orderByDesc('created_at')->orderByDesc('id')
+                ->limit($this->limit + 1)->get();
+
+            $hasMore = $found->count() > $this->limit && $this->limit < self::MAX_SIZE;
+            $publications = $found->take($this->limit);
+        }
+
+        $gestures = $viewer && $publications->isNotEmpty()
+            ? Gesture::query()->with('conversation')->where('user_id', $viewer->getKey())->whereIn('publication_id', $publications->pluck('id'))->get()->keyBy('publication_id')
+            : collect();
 
         return view('livewire.monde-zumra', [
             'zumra' => $zumra,
@@ -140,6 +244,17 @@ class MondeZumra extends Component
             'members' => $members,
             'role' => $role,
             'manages' => $manages,
+            'tab' => $tab,
+            'canDiscuss' => $canDiscuss,
+            'publications' => $publications,
+            'hasMore' => $hasMore,
+            'gestures' => $gestures,
+            'managed' => $managed,
+            'memberOf' => $viewer ? $viewer->zumraMemberships()->pluck('zumra_id')->all() : [],
+            'skills' => $tab === 'formation' ? $this->skills($zumra, $viewer) : ['offered' => collect(), 'wanted' => collect()],
+            'discussion' => $tab === 'discussion'
+                ? ZumraPost::query()->where('zumra_id', $zumra->id)->with('author')->orderByDesc('created_at')->orderByDesc('id')->limit(self::POSTS_SHOWN)->get()->reverse()->values()
+                : collect(),
             // Pour une personne qui n'est pas dans la ZUMRA : sa demande, et l'invitation ouverte qu'elle a reçue.
             'myRequest' => $viewer && ! $role ? JoinRequest::query()->where('zumra_id', $zumra->id)->where('user_id', $viewer->getKey())->first() : null,
             'myInvitation' => $viewer && ! $role ? Invitation::query()->open()->where('zumra_id', $zumra->id)->where('user_id', $viewer->getKey())->with('inviter')->first() : null,
@@ -153,6 +268,24 @@ class MondeZumra extends Component
                 ? Invitation::query()->open()->where('zumra_id', $zumra->id)->with('user')->orderBy('created_at')->get()
                 : collect(),
         ])->title($zumra->name);
+    }
+
+    /**
+     * Ce que les membres savent faire, et ce que des personnes veulent apprendre ici : les capacités des profils que la personne qui
+     * regarde a le droit de voir, sans doublon, par ordre alphabétique (aucun classement, aucun compte).
+     *
+     * @return array{offered: Collection, wanted: Collection}
+     */
+    private function skills(Zumra $zumra, ?User $viewer): array
+    {
+        $profiles = Profile::query()->visibleTo($viewer)
+            ->whereIn('user_id', ZumraMembership::query()->where('zumra_id', $zumra->id)->select('user_id'))
+            ->with(['offeredSkills', 'wantedSkills'])->get();
+
+        $names = fn (string $relation) => $profiles->flatMap(fn (Profile $profile) => $profile->{$relation})
+            ->unique('id')->sortBy(fn ($skill) => Normalizer::key($skill->name))->take(self::SKILLS_SHOWN)->values();
+
+        return ['offered' => $names('offeredSkills'), 'wanted' => $names('wantedSkills')];
     }
 
     private function zumra(): Zumra

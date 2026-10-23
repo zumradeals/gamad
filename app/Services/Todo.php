@@ -46,7 +46,7 @@ class Todo
     private function hiddenPublications(User $user): array
     {
         return Publication::query()
-            ->where('author_id', $user->getKey())
+            ->managedBy($user)
             ->whereNotNull('hidden_at')
             ->whereNull('explained_at')
             ->orderByDesc('hidden_at')->limit(self::MAX_LINES)->get()
@@ -112,7 +112,7 @@ class Todo
     private function proposals(User $user): array
     {
         $publications = Publication::query()
-            ->where('author_id', $user->getKey())
+            ->managedBy($user)
             ->whereNull('hidden_at')
             ->where(fn ($query) => $query->whereNull('need_state')->orWhereIn('need_state', [NeedState::Open->value, NeedState::InProgress->value]))
             ->whereHas('gestures', fn ($query) => $query->where('state', GestureState::Sent->value))
@@ -153,7 +153,7 @@ class Todo
     private function thanks(User $user): array
     {
         return Publication::query()
-            ->where('author_id', $user->getKey())
+            ->managedBy($user)
             ->where('need_state', NeedState::Resolved->value)
             ->where('resolved_at', '>=', now()->subDays(self::THANK_WITHIN_DAYS))
             ->whereDoesntHave('gratitude')

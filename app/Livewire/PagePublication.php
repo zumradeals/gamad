@@ -98,14 +98,15 @@ class PagePublication extends Component
     public function render()
     {
         $viewer = Auth::user();
-        $publication = $this->publication()->load(['author.profile', 'domain', 'city', 'skills']);
+        $publication = $this->publication()->load(['author.profile', 'domain', 'city', 'skills', 'zumra']);
 
         if ($this->explanation === '' && $publication->explained_at) {
             $this->explanation = (string) $publication->author_explanation;
         }
         $publication->live_gestures_count = $publication->liveGesturesCount();
         $type = $publication->type;
-        $isAuthor = $viewer && $viewer->getKey() === $publication->author_id;
+        // « isAuthor » : la personne qui gère la publication, son auteur ou, pour une ZUMRA, son fondateur et ses responsables (D-116).
+        $isAuthor = $publication->isManagedBy($viewer);
 
         $received = $isAuthor
             ? $publication->gestures()

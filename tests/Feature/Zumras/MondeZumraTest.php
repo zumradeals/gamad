@@ -22,14 +22,14 @@ beforeEach(function () {
 // ─── Le Monde d'une ZUMRA ────────────────────────────────────────────────────
 
 it('montre l’en-tête à un visiteur sans compte : nom, domaine · ville · format, état, mission, chiffres réels', function () {
-    $this->get(route('zumras.show', $this->zumra))->assertOk()
+    $this->get(route('zumras.show', [$this->zumra, 'onglet' => 'membres']))->assertOk()
         ->assertSeeText('Couture solidaire')->assertSeeText('Économie et Finances')->assertSeeText('Cocody')->assertSeeText('Hybride')
         ->assertSeeText('Active')->assertSeeText('Former des couturières et couturiers')->assertSeeText('membre')->assertSeeText('création')
         ->assertSeeText('Carrefour ZUMRA');
 });
 
 it('ne montre pas aux visiteurs la liste des membres : seulement une invitation à se connecter (D-112)', function () {
-    $html = $this->get(route('zumras.show', $this->zumra))->assertOk()
+    $html = $this->get(route('zumras.show', [$this->zumra, 'onglet' => 'membres']))->assertOk()
         ->assertSeeText('Les membres d’une ZUMRA sont visibles des personnes inscrites.')->assertSee(route('login'), false)->getContent();
 
     expect($html)->not->toContain('Yao Kouassi')->not->toContain($this->yao->profile->public_id);
@@ -39,14 +39,14 @@ it('montre la liste des membres aux personnes connectées et vérifiées, le fon
     ajouteMembre($this->zumra, $this->awa);
     ajouteMembre($this->zumra, person('Moussa Koné', []), ZumraRole::Manager);
 
-    $html = $this->actingAs(User::factory()->create())->get(route('zumras.show', $this->zumra))->assertOk()
+    $html = $this->actingAs(User::factory()->create())->get(route('zumras.show', [$this->zumra, 'onglet' => 'membres']))->assertOk()
         ->assertSeeTextInOrder(['Yao Kouassi', 'Fondateur', 'Moussa Koné', 'Responsable', 'Awa Traoré'])->getContent();
 
     expect($html)->toContain(route('personnes.show', $this->yao->profile->public_id))->toContain(route('personnes.show', $this->awa->profile->public_id));
 });
 
 it('ne montre pas la liste des membres à une personne dont l’adresse n’est pas vérifiée', function () {
-    Livewire::actingAs(User::factory()->unverified()->create())->test(MondeZumra::class, ['zumra' => $this->zumra])
+    Livewire::actingAs(User::factory()->unverified()->create())->test(MondeZumra::class, ['zumra' => $this->zumra])->set('tab', 'membres')
         ->assertSeeText('Couture solidaire')->assertSeeText('visibles des personnes inscrites')->assertDontSeeText('Yao Kouassi');
 });
 
@@ -55,21 +55,21 @@ it('ne montre pas, et ne compte pas, un membre dont l’adresse n’est plus vé
     ajouteMembre($this->zumra, $membre);
     $membre->forceFill(['email_verified_at' => null])->save();
 
-    Livewire::actingAs($this->awa)->test(MondeZumra::class, ['zumra' => $this->zumra])->assertDontSeeText('Chantal Disparue')->assertDontSee('2 membres');
+    Livewire::actingAs($this->awa)->test(MondeZumra::class, ['zumra' => $this->zumra])->set('tab', 'membres')->assertDontSeeText('Chantal Disparue')->assertDontSee('2 membres');
 });
 
 it('respecte la visibilité du profil : le nom d’un membre est un lien vers son profil pour qui peut le voir', function () {
     $discret = person('Auteur Discret', [], visibility: 'members');
     ajouteMembre($this->zumra, $discret);
 
-    $html = $this->actingAs($this->awa)->get(route('zumras.show', $this->zumra))->getContent();
+    $html = $this->actingAs($this->awa)->get(route('zumras.show', [$this->zumra, 'onglet' => 'membres']))->getContent();
     expect($html)->toContain(route('personnes.show', $discret->profile->public_id));
 });
 
-it('masque ce qui n’existe pas encore : Suivre, Projets, Formation, Fil, Discussion, Reconnue', function () {
+it('masque ce qui n’existe pas encore : Suivre et Projets (Lot 4), et la Discussion à qui n’est pas membre', function () {
     $this->actingAs($this->awa)->get(route('zumras.show', $this->zumra))->assertOk()
-        ->assertDontSeeText('Suivre')->assertDontSeeText('Projet')->assertDontSeeText('Formation')
-        ->assertDontSeeText('Discussion')->assertDontSeeText('Reconnue')->assertDontSeeText('Savoirs partagés');
+        ->assertDontSeeText('Suivre')->assertDontSeeText('Projet')->assertDontSeeText('Discussion')->assertDontSeeText('Reconnue par GAMAD')
+        ->assertSeeText('Formation')->assertSeeText('Fil')->assertSeeText('Membres');
 });
 
 it('montre « Modifier la ZUMRA » au fondateur et aux responsables seulement', function () {
@@ -79,13 +79,13 @@ it('montre « Modifier la ZUMRA » au fondateur et aux responsables seulement', 
     ajouteMembre($this->zumra, $membre);
 
     foreach ([$this->yao, $responsable] as $qui) {
-        $this->actingAs($qui)->get(route('zumras.show', $this->zumra))->assertSeeText('Modifier la ZUMRA')->assertSee(route('zumras.edit', $this->zumra), false);
+        $this->actingAs($qui)->get(route('zumras.show', [$this->zumra, 'onglet' => 'membres']))->assertSeeText('Modifier la ZUMRA')->assertSee(route('zumras.edit', $this->zumra), false);
     }
     foreach ([$membre, $this->awa] as $qui) {
-        $this->actingAs($qui)->get(route('zumras.show', $this->zumra))->assertDontSeeText('Modifier la ZUMRA');
+        $this->actingAs($qui)->get(route('zumras.show', [$this->zumra, 'onglet' => 'membres']))->assertDontSeeText('Modifier la ZUMRA');
     }
     app('auth')->forgetGuards();
-    $this->get(route('zumras.show', $this->zumra))->assertDontSeeText('Modifier la ZUMRA');
+    $this->get(route('zumras.show', [$this->zumra, 'onglet' => 'membres']))->assertDontSeeText('Modifier la ZUMRA');
 });
 
 it('verrouille la ZUMRA du composant', function () {

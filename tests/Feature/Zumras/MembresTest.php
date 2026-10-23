@@ -47,7 +47,7 @@ function ligne(Zumra $zumra, User $personne): ZumraMembership
 // ─── Quitter ─────────────────────────────────────────────────────────────────
 
 it('laisse un membre ou un responsable quitter la ZUMRA, puis redemander à la rejoindre', function () {
-    Livewire::actingAs($this->awa)->test(MondeZumra::class, ['zumra' => $this->zumra])->assertSeeText('Quitter la ZUMRA')->call('leave')->assertHasNoErrors();
+    Livewire::actingAs($this->awa)->test(MondeZumra::class, ['zumra' => $this->zumra])->set('tab', 'membres')->assertSeeText('Quitter la ZUMRA')->call('leave')->assertHasNoErrors();
     lignes()->leave($this->resp, $this->zumra);
 
     expect($this->zumra->roleOf($this->awa))->toBeNull()->and($this->zumra->roleOf($this->resp))->toBeNull();

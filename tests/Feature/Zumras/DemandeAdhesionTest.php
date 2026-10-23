@@ -103,7 +103,7 @@ it('refuse la demande d’un membre, d’une personne non vérifiée, et demande
     monde(User::factory()->unverified()->create(), $this->zumra)->assertSeeText('Vérifiez votre adresse e-mail')->assertDontSeeText('Un mot pour le fondateur');
 
     app('auth')->forgetGuards();
-    $this->get(route('zumras.show', $this->zumra))->assertSeeText('Connectez-vous pour demander à rejoindre')->assertSee(route('login'), false);
+    $this->get(route('zumras.show', [$this->zumra, 'onglet' => 'membres']))->assertSeeText('Connectez-vous pour demander à rejoindre')->assertSee(route('login'), false);
     expect(JoinRequest::count())->toBe(0);
 });
 
@@ -146,7 +146,7 @@ it('accepte une demande : la personne devient membre, la demande est close, elle
     $n = UserNotification::query()->where('user_id', $this->awa->id)->sole();
     expect($n->kind)->toBe(NotificationKind::ZumraRequestAccepted)->and($n->actor_id)->toBe($this->resp->id);
 
-    monde($this->moussa, $this->zumra)->assertSeeTextInOrder(['3', 'membres', 'création']);
+    expect(monde($this->moussa, $this->zumra)->html())->toMatch('/>\s*3\s*<\/span>\s*<span[^>]*>\s*membres/');
 });
 
 it('décline une demande sans prévenir la personne, qui reste hors de la ZUMRA', function () {
