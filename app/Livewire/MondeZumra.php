@@ -18,6 +18,7 @@ use App\Services\Invitations;
 use App\Services\JoinRequests;
 use App\Services\Memberships;
 use App\Services\Supports;
+use App\Services\Wallets;
 use App\Services\ZumraPosts;
 use App\Services\Zumras;
 use App\Support\Normalizer;
@@ -218,6 +219,7 @@ class MondeZumra extends Component
         $role = $zumra->roleOf($viewer);
         $manages = (bool) $role?->manages();
         $managed = $viewer ? $viewer->managedZumraIds() : [];
+        $walletsEnabled = $manages && app(Wallets::class)->enabled();
 
         // Les publications de la ZUMRA que la personne a le droit de voir, de la plus récente à la plus ancienne.
         $publications = collect();
@@ -261,6 +263,7 @@ class MondeZumra extends Component
             'projectsCount' => Project::query()->where('zumra_id', $zumra->id)->count(),
             'supported' => app(Supports::class)->supportedBy($viewer, $publications->pluck('id')),
             'managed' => $managed,
+            'walletsEnabled' => $walletsEnabled,
             'memberOf' => $viewer ? $viewer->zumraMemberships()->pluck('zumra_id')->all() : [],
             'skills' => $tab === 'formation' ? $this->skills($zumra, $viewer) : ['offered' => collect(), 'wanted' => collect()],
             'discussion' => $tab === 'discussion'

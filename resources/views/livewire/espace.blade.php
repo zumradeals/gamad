@@ -139,6 +139,14 @@
             </section>
         </div>
 
+        @if ($walletsEnabled)
+            <section aria-labelledby="portefeuille" class="space-panel flex flex-col gap-3 p-4 md:p-5">
+                <h2 id="portefeuille" class="flex items-center gap-2.5 text-[18px] font-extrabold"><x-icon name="lock" :size="23" />Mon portefeuille</h2>
+                <p class="text-[13px] text-muted">Vos ZAHAB et leurs mouvements. Privé : vous seul le voyez.</p>
+                <x-button :href="route('portefeuille')" variant="secondary" class="md:self-start">Ouvrir mon portefeuille</x-button>
+            </section>
+        @endif
+
         <section aria-labelledby="compte" class="space-panel flex flex-col gap-4 p-4 md:p-5">
             <div class="flex flex-wrap items-center justify-between gap-2 border-b border-line-soft pb-3">
                 <h2 id="compte" class="flex items-center gap-2.5 text-[18px] font-extrabold"><x-icon name="settings" :size="23" />Mon compte</h2>

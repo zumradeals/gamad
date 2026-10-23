@@ -2,10 +2,12 @@
 
 namespace App\Livewire;
 
+use App\Exceptions\WalletException;
 use App\Models\User;
 use App\Services\AdminJournal;
 use App\Services\DisplayName;
 use App\Services\Todo;
+use App\Services\Wallets;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -58,6 +60,12 @@ class Espace extends Component
             throw ValidationException::withMessages(['password' => __('auth.password')]);
         }
 
+        try {
+            app(Wallets::class)->assertAccountCanBeDeleted($user);
+        } catch (WalletException $e) {
+            throw ValidationException::withMessages(['password' => $e->getMessage()]);
+        }
+
         DB::transaction(function () use ($user) {
             // Les actes d'un modérateur ou du super administrateur sont toujours tracés (CLAUDE.md, règle 8).
             if ($user->can('moderate')) {
@@ -88,6 +96,7 @@ class Espace extends Component
             'user' => $user,
             'profile' => $user->ensureProfile()->load(['offeredSkills', 'wantedSkills']),
             'todo' => app(Todo::class)->for($user),
+            'walletsEnabled' => app(Wallets::class)->enabled(),
             // Mes publications : le chemin vers « Mon besoin » et les réponses reçues.
             'publications' => $user->publications()
                 ->withCount(['gestures as live_gestures_count' => fn ($query) => $query->whereIn('state', ['sent', 'accepted'])])

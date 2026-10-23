@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\PlatformRole;
 use App\Services\Memberships;
+use App\Services\Wallets;
 use App\Support\Normalizer;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -35,6 +36,9 @@ class User extends Authenticatable implements MustVerifyEmail
 
         // Aucune photo ne survit au compte (données personnelles).
         static::deleting(function (User $user) {
+            // Filet de sécurité : aucun compte ne disparaît avec des ZAHAB dedans (D-172). Le formulaire le vérifie avant, avec un message.
+            app(Wallets::class)->assertAccountCanBeDeleted($user);
+
             $user->profile?->deletePhotoFile();
 
             // Fondateur d'une ZUMRA : la fondation passe à un autre membre, ou la ZUMRA disparaît s'il n'y en a pas (D-115).
@@ -45,10 +49,17 @@ class User extends Authenticatable implements MustVerifyEmail
         });
 
         // Une conversation dont les deux personnes ont disparu n'intéresse plus personne.
-        static::deleted(function () {
+        static::deleted(function (User $user) {
             Conversation::query()->whereNull('owner_id')->whereNull('helper_id')->delete();
 
+            // Les portefeuilles du titulaire disparu sont fermés ; leur registre reste, en ajout seul.
+            $wallets = app(Wallets::class);
+            $wallets->closeFor(Wallet::PERSON, $user->getKey());
+
             // Une ZUMRA sans personne est supprimée avec son dernier compte.
+            foreach (Zumra::query()->withoutMembers()->pluck('id') as $zumraId) {
+                $wallets->closeFor(Wallet::ZUMRA, $zumraId);
+            }
             Zumra::query()->withoutMembers()->delete();
         });
     }
