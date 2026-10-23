@@ -24,6 +24,8 @@ return [
         'gestures_per_hour' => 30,
         'gestures_per_day' => 100,
         'zumras_per_day' => 3,
+        'join_requests_per_day' => 10,
+        'invitations_per_day' => 30,
         'reports_per_hour' => 10,
         'reports_per_day' => 30,
         'messages_per_minute' => 20,

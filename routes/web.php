@@ -8,6 +8,7 @@ use App\Livewire\Espace;
 use App\Livewire\Fil;
 use App\Livewire\FileModeration;
 use App\Livewire\FormulaireZumra;
+use App\Livewire\InviterPersonnes;
 use App\Livewire\ModifierProfil;
 use App\Livewire\MondeZumra;
 use App\Livewire\PageConversation;
@@ -37,6 +38,7 @@ Route::get('/publications/{publication}', PagePublication::class)->whereUuid('pu
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/zumra/creer', FormulaireZumra::class)->name('zumras.create');
+    Route::get('/zumra/{zumra}/inviter', InviterPersonnes::class)->whereUuid('zumra')->name('zumras.invite');
     Route::get('/zumra/{zumra}/modifier', FormulaireZumra::class)->whereUuid('zumra')->name('zumras.edit');
     Route::get('/fil', Fil::class)->name('fil');
     Route::view('/agir', 'pages.agir')->name('agir');

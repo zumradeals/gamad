@@ -3,13 +3,16 @@
 namespace App\Services;
 
 use App\Enums\GestureState;
+use App\Enums\JoinRequestState;
 use App\Enums\NeedState;
 use App\Models\Conversation;
 use App\Models\Gesture;
+use App\Models\Invitation;
 use App\Models\Message;
 use App\Models\Publication;
 use App\Models\Report;
 use App\Models\User;
+use App\Models\Zumra;
 use Illuminate\Support\Str;
 
 /**
@@ -31,6 +34,8 @@ class Todo
         return [
             ...$this->hiddenPublications($user),
             ...$this->reportsToReview($user),
+            ...$this->zumraInvitations($user),
+            ...$this->joinRequestsToDecide($user),
             ...$this->proposals($user),
             ...$this->unreadMessages($user),
             ...$this->thanks($user),
@@ -70,6 +75,37 @@ class Todo
             'action' => 'Examiner',
             'url' => route('moderation'),
         ]];
+    }
+
+    /** Une invitation à rejoindre une ZUMRA attend la réponse de la personne invitée. */
+    private function zumraInvitations(User $user): array
+    {
+        return Invitation::query()->open()->where('user_id', $user->getKey())->with(['zumra', 'inviter'])
+            ->orderByDesc('created_at')->limit(self::MAX_LINES)->get()
+            ->map(fn (Invitation $invitation) => [
+                'key' => 'invitation-'.$invitation->getKey(),
+                'title' => 'Invitation à rejoindre « '.Str::limit($invitation->zumra->name, 40).' »',
+                'detail' => ($invitation->inviter ? 'De la part de '.$invitation->inviter->name : 'Une invitation vous attend').', valable jusqu’au '.$invitation->expires_at->copy()->locale('fr')->timezone('Africa/Abidjan')->translatedFormat('j F'),
+                'action' => 'Voir',
+                'url' => route('zumras.show', $invitation->zumra),
+            ])->all();
+    }
+
+    /** Pour le fondateur et les responsables : des demandes d'adhésion attendent une décision (une ligne par ZUMRA). */
+    private function joinRequestsToDecide(User $user): array
+    {
+        return Zumra::query()
+            ->whereHas('memberships', fn ($query) => $query->where('user_id', $user->getKey())->whereIn('role', ['founder', 'manager']))
+            ->whereHas('joinRequests', fn ($query) => $query->where('state', JoinRequestState::Pending->value)->whereHas('user', fn ($person) => $person->whereNotNull('email_verified_at')))
+            ->withCount(['joinRequests as pending_count' => fn ($query) => $query->where('state', JoinRequestState::Pending->value)->whereHas('user', fn ($person) => $person->whereNotNull('email_verified_at'))])
+            ->orderBy('name_key')->limit(self::MAX_LINES)->get()
+            ->map(fn (Zumra $zumra) => [
+                'key' => 'requests-'.$zumra->getKey(),
+                'title' => $zumra->pending_count.($zumra->pending_count > 1 ? ' demandes d’adhésion à traiter' : ' demande d’adhésion à traiter'),
+                'detail' => 'Dans la ZUMRA « '.Str::limit($zumra->name, 40).' »',
+                'action' => 'Voir',
+                'url' => route('zumras.show', $zumra),
+            ])->all();
     }
 
     /** Une ligne par publication qui a des réponses en attente et qui peut encore les accepter. */

@@ -95,6 +95,8 @@ class CarrefourZumras extends Component
             'domains' => $domains,
             'hasFilters' => $key !== '' || $city !== '' || $domain !== '',
             'viewer' => $viewer,
+            // Les ZUMRA de la page dans lesquelles la personne est déjà : pas de « Je veux rejoindre » pour elles.
+            'memberOf' => $viewer ? $viewer->zumraMemberships()->whereIn('zumra_id', $zumras->pluck('id'))->pluck('zumra_id')->all() : [],
         ]);
     }
 }

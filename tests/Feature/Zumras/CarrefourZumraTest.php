@@ -53,7 +53,7 @@ it('ne montre que des chiffres réels : le nombre de membres, ni projets, ni sav
     ajouteMembre($z, User::factory()->create());
 
     carrefour()->assertSeeText('2')->assertSeeText('membres')
-        ->assertDontSeeText('projet')->assertDontSeeText('savoirs partagés')->assertDontSeeText('Reconnue')->assertDontSeeText('Je veux rejoindre');
+        ->assertDontSeeText('projet')->assertDontSeeText('savoirs partagés')->assertDontSeeText('Reconnue');
 });
 
 it('ne compte pas, parmi les membres, une personne dont l’adresse n’est plus vérifiée', function () {

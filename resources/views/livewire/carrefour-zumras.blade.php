@@ -87,7 +87,12 @@
                 <span class="text-[18px] font-extrabold">{{ $zumra->members_count }}</span>
                 <span class="text-[12px] text-muted">{{ $zumra->members_count > 1 ? 'membres' : 'membre' }}</span>
             </div>
-            <x-button :href="route('zumras.show', $zumra)" variant="secondary">Entrer</x-button>
+            <div class="grid grid-cols-2 gap-2">
+                <x-button :href="route('zumras.show', $zumra)" variant="secondary">Entrer</x-button>
+                @unless (in_array($zumra->id, $memberOf, true))
+                    <x-button :href="route('zumras.show', $zumra).'#rejoindre'">Je veux rejoindre</x-button>
+                @endunless
+            </div>
         </article>
     @empty
         <section aria-labelledby="vide" class="flex flex-col gap-3 rounded-card border border-line bg-card p-5">

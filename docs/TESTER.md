@@ -244,7 +244,32 @@ Il vous faut le **compte 1** (le vôtre) et le **compte 2** (votre seconde adres
 
 **Limite normale.** Pour freiner l'abus, une personne peut créer 3 ZUMRA par jour. **Supprimer son compte** supprime la ZUMRA dont on est le seul membre (le transfert de la fondation vient en 3b).
 
-## 9. Ce qu'il faut regarder à chaque écran
+## 9. Essayer le Lot 3, deuxième étape (3b) : entrer dans une ZUMRA
+
+Il vous faut trois comptes, tous vérifiés : le **compte 1** (le vôtre, fondateur d'une ZUMRA créée au §8), le **compte 2** (votre seconde adresse) et un **compte 3** (une troisième adresse, ou un ami).
+
+**Demander à rejoindre.**
+
+1. Compte 2 : ouvrez la ZUMRA du compte 1 (Carrefour ZUMRA → **Entrer**, ou **Je veux rejoindre** sur la carte). Touchez **Je veux rejoindre**, écrivez un mot si vous voulez (280 caractères) et **Envoyer ma demande**. L'écran affiche **Demande envoyée** et **Retirer ma demande**.
+2. Compte 1 : une notification arrive (cloche) et **Espace → À faire maintenant** affiche « 1 demande d'adhésion à traiter ». Ouvrez la ZUMRA : sous **Membres**, **Demandes d'adhésion** montre le nom, les capacités et le mot de la personne, jamais son e-mail. Touchez **Accepter** : la personne devient membre et en est informée. **Décliner** écarte la demande sans prévenir la personne, qui ne peut alors plus redemander.
+3. Compte 2 : retirez une demande (**Retirer ma demande**) puis refaites-la : c'est permis.
+
+**Inviter par capacité.**
+
+4. Compte 1, sur la ZUMRA, **Membres → Inviter des personnes selon leurs capacités**. Écrivez une capacité (par exemple « informatique ») : les personnes qui la proposent s'affichent par ordre alphabétique, **sans classement**. Touchez **Inviter** sous une personne, écrivez un mot facultatif, **Envoyer l'invitation**. Sur le profil d'une personne, **Inviter dans ma ZUMRA** mène au même écran.
+5. Compte 3 : une notification et « À faire maintenant » annoncent l'invitation. Sur la ZUMRA, un encadré propose **Accepter** ou **Refuser**. L'invitation vaut **14 jours**, après quoi elle ne peut plus être acceptée.
+6. Compte 1 : sous **Membres**, **Invitations en attente** liste les invitations ; **Annuler** en retire une.
+
+**Gérer les membres.**
+
+7. Compte 1 (fondateur) : sous un membre, **Nommer responsable** (il en est informé et peut alors modifier la ZUMRA, traiter les demandes et inviter) ou **Retirer le rôle de responsable**, et **Retirer de la ZUMRA** (une confirmation est demandée). Un **responsable** peut retirer un simple membre, pas un autre responsable ni le fondateur.
+8. Un membre ou un responsable touche **Quitter la ZUMRA** (il peut ensuite redemander à la rejoindre). **Le fondateur ne peut pas quitter sa ZUMRA.**
+
+**Supprimer son compte de fondateur.** Compte 1 : **Espace → Supprimer mon compte**. Si la ZUMRA a d'autres membres, **la fondation passe au responsable le plus ancien** (à défaut, au membre le plus ancien), qui en est informé ; l'acte est inscrit au journal d'administration. Si le fondateur est seul, la ZUMRA est supprimée avec lui.
+
+**Limites normales.** Une personne peut envoyer 10 demandes par jour ; un responsable peut envoyer 30 invitations par jour.
+
+## 10. Ce qu'il faut regarder à chaque écran
 
 - [ ] Le texte se lit sans zoomer, rien ne dépasse de l'écran, aucun défilement de côté.
 - [ ] Les boutons sont faciles à toucher du pouce.
@@ -252,7 +277,7 @@ Il vous faut le **compte 1** (le vôtre) et le **compte 2** (votre seconde adres
 - [ ] Les messages d'erreur sont clairs et en français.
 - [ ] Tout bouton ou lien visible mène à une vraie page.
 
-## 10. Les mises à jour se font toutes seules
+## 11. Les mises à jour se font toutes seules
 
 Chaque fois qu'un changement est fusionné dans `main`, le site se met à jour tout seul en **5 à 10 minutes** : rechargez la page après ce délai.
 Si une mise à jour échoue, la version actuelle reste en ligne et l'échec est noté dans un journal côté serveur ; si une mise à jour
@@ -261,7 +286,7 @@ sait revenir en arrière (voir `deploy/LISEZMOI.md`, réservé à l'administrati
 
 Les données sont sauvegardées chaque nuit (7 jours conservés).
 
-## 11. Ce qui n'existe pas encore (c'est normal)
+## 12. Ce qui n'existe pas encore (c'est normal)
 
-adhésion et invitation à une ZUMRA (étape 3b), publier, discuter et reconnaître une ZUMRA (étape 3c), projets, la consultation du journal d'administration, « Commenter », « Partager », « Suivre », « Inviter », recherche générale, paiement : ces modules sont masqués tant que leur lot
+publier, discuter et reconnaître une ZUMRA (étape 3c), projets, la consultation du journal d'administration, « Commenter », « Partager », « Suivre », « Inviter », recherche générale, paiement : ces modules sont masqués tant que leur lot
 n'est pas construit.

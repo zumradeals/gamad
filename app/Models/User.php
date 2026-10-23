@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\PlatformRole;
+use App\Services\Memberships;
 use App\Support\Normalizer;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -34,6 +35,9 @@ class User extends Authenticatable implements MustVerifyEmail
         static::deleting(function (User $user) {
             $user->profile?->deletePhotoFile();
 
+            // Fondateur d'une ZUMRA : la fondation passe à un autre membre, ou la ZUMRA disparaît s'il n'y en a pas (D-115).
+            app(Memberships::class)->passFoundationFrom($user);
+
             // Ses messages sont effacés : le corps disparaît, la conversation affichera « Message supprimé » (D-097).
             Message::query()->where('sender_id', $user->getKey())->update(['body' => null]);
         });
@@ -42,7 +46,7 @@ class User extends Authenticatable implements MustVerifyEmail
         static::deleted(function () {
             Conversation::query()->whereNull('owner_id')->whereNull('helper_id')->delete();
 
-            // Une ZUMRA sans personne est supprimée avec son dernier compte (le transfert de la fondation vient en 3b, D-115).
+            // Une ZUMRA sans personne est supprimée avec son dernier compte.
             Zumra::query()->withoutMembers()->delete();
         });
     }
@@ -60,6 +64,16 @@ class User extends Authenticatable implements MustVerifyEmail
     public function zumraMemberships(): HasMany
     {
         return $this->hasMany(ZumraMembership::class);
+    }
+
+    public function joinRequests(): HasMany
+    {
+        return $this->hasMany(JoinRequest::class);
+    }
+
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(Invitation::class);
     }
 
     public function profile(): HasOne

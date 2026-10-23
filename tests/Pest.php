@@ -2,6 +2,7 @@
 
 use App\Enums\PublicationType;
 use App\Enums\ZumraRole;
+use App\Livewire\MondeZumra;
 use App\Livewire\PageConversation;
 use App\Models\City;
 use App\Models\Conversation;
@@ -13,6 +14,7 @@ use App\Models\Zumra;
 use App\Models\ZumraMembership;
 use App\Services\Conversations;
 use App\Services\Gestures;
+use App\Services\JoinRequests;
 use App\Services\ProfileEditor;
 use App\Services\Publications;
 use App\Services\Zumras;
@@ -29,7 +31,7 @@ pest()->extend(TestCase::class)
         config([
             'gamad.limits.publications_per_hour' => 10000, 'gamad.limits.publications_per_day' => 10000,
             'gamad.limits.gestures_per_hour' => 10000, 'gamad.limits.gestures_per_day' => 10000,
-            'gamad.limits.zumras_per_day' => 10000, 'gamad.limits.reports_per_hour' => 10000, 'gamad.limits.reports_per_day' => 10000,
+            'gamad.limits.zumras_per_day' => 10000, 'gamad.limits.join_requests_per_day' => 10000, 'gamad.limits.invitations_per_day' => 10000, 'gamad.limits.reports_per_hour' => 10000, 'gamad.limits.reports_per_day' => 10000,
             'gamad.limits.messages_per_minute' => 10000, 'gamad.limits.messages_per_day' => 10000,
         ]);
     })
@@ -129,4 +131,18 @@ function ajouteMembre(Zumra $zumra, User $personne, ZumraRole $role = ZumraRole:
     $membre->save();
 
     return $membre;
+}
+
+/** Une demande d'adhésion acceptée par le fondateur : la personne devient membre. */
+function admis(Zumra $zumra, User $personne): ZumraMembership
+{
+    $demande = app(JoinRequests::class)->propose($personne, $zumra);
+    app(JoinRequests::class)->accept($zumra->memberships()->where('role', 'founder')->first()->user, $demande);
+
+    return $zumra->memberships()->where('user_id', $personne->id)->first();
+}
+
+function monde(User $qui, $zumra)
+{
+    return Livewire::actingAs($qui)->test(MondeZumra::class, ['zumra' => $zumra]);
 }

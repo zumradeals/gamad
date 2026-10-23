@@ -54,6 +54,16 @@ class Zumra extends Model
         return $this->hasMany(ZumraMembership::class);
     }
 
+    public function joinRequests(): HasMany
+    {
+        return $this->hasMany(JoinRequest::class);
+    }
+
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(Invitation::class);
+    }
+
     /** Rôle de `$user` dans cette ZUMRA, ou null s'il n'en fait pas partie. */
     public function roleOf(?User $user): ?ZumraRole
     {

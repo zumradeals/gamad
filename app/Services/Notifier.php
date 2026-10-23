@@ -7,6 +7,7 @@ use App\Models\Conversation;
 use App\Models\Publication;
 use App\Models\User;
 use App\Models\UserNotification;
+use App\Models\Zumra;
 
 /**
  * Écrit les notifications de l'application (écran 15). Personne n'est jamais notifié de son propre acte ; un message ne
@@ -14,7 +15,7 @@ use App\Models\UserNotification;
  */
 class Notifier
 {
-    public function push(?User $to, NotificationKind $kind, ?User $actor = null, ?Publication $publication = null, ?Conversation $conversation = null): void
+    public function push(?User $to, NotificationKind $kind, ?User $actor = null, ?Publication $publication = null, ?Conversation $conversation = null, ?Zumra $zumra = null): void
     {
         if ($to === null || $actor?->getKey() === $to->getKey()) {
             return;
@@ -38,6 +39,7 @@ class Notifier
         $notification->actor()->associate($actor);
         $notification->publication()->associate($publication);
         $notification->conversation()->associate($conversation);
+        $notification->zumra()->associate($zumra);
         $notification->save();
     }
 
