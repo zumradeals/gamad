@@ -64,7 +64,11 @@ it('départage deux publications simultanées de façon stable', function () {
     $premier = fil()->html();
     $second = fil()->html();
 
-    expect(strpos($premier, 'Un') < strpos($premier, 'Deux'))->toBe(strpos($second, 'Un') < strpos($second, 'Deux'));
+    // On repère les paragraphes des publications, pas de simples sous-chaînes : le HTML contient des jetons aléatoires.
+    $position = fn (string $html, string $texte) => strpos($html, '>'.$texte.'</p>');
+
+    expect($position($premier, 'Un'))->not->toBeFalse()->and($position($premier, 'Deux'))->not->toBeFalse();
+    expect($position($premier, 'Un') < $position($premier, 'Deux'))->toBe($position($second, 'Un') < $position($second, 'Deux'));
 });
 
 it('montre le type, l’auteur, le domaine, la ville et l’ancienneté de chaque publication', function () {
