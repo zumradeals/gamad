@@ -98,7 +98,7 @@ class Publications
 
             Gate::forUser($actor)->authorize('changeNeedState', $locked);
 
-            $locked->update(['need_state' => $state]);
+            $locked->update(['need_state' => $state, 'resolved_at' => $state === NeedState::Resolved ? now() : null]);
             $publication->setRawAttributes($locked->getAttributes(), true);
         });
     }

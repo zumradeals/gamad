@@ -15,10 +15,10 @@ it('n’affiche que Fil, Découvrir, Agir, Personnes et Espace dans la navigatio
 
     expect($texte)->toContain('Fil')->toContain('Découvrir')->toContain('Personnes')->toContain('Agir')->toContain('Espace')
         ->not->toContain('ZUMRA')->not->toContain('Besoins')->not->toContain('Projets')
-        ->not->toContain('Rechercher')->not->toContain('Notifications');
+        ->not->toContain('Rechercher');
 
-    // Aucune cloche, aucune recherche générale dans la page : ils viennent avec leurs lots.
-    expect($html)->not->toContain('aria-label="Notifications"')->not->toContain('aria-label="Rechercher"');
+    // La cloche des notifications existe depuis le Lot 2b ; la recherche générale vient avec son lot.
+    expect($html)->toContain('aria-label="Notifications"')->not->toContain('aria-label="Rechercher"');
 });
 
 it('affiche le message d’état vide du Fil, avec un lien vers « Modifier mon profil »', function () {

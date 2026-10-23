@@ -42,6 +42,7 @@
             <span class="flex-1"></span>
 
             @auth
+                <livewire:notification-bell />
                 @if ($agir)
                     <a href="{{ route($agir['route']) }}"
                        class="hidden min-h-11 items-center gap-1.5 rounded-button bg-accent px-[18px] text-[15px] font-extrabold text-ink no-underline hover:text-ink md:flex">

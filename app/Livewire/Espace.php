@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\User;
 use App\Services\AdminJournal;
 use App\Services\DisplayName;
+use App\Services\Todo;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -85,6 +86,7 @@ class Espace extends Component
 
         return view('livewire.espace', [
             'user' => $user,
+            'todo' => app(Todo::class)->for($user),
             // Mes publications : le chemin vers « Mon besoin » et les réponses reçues.
             'publications' => $user->publications()
                 ->withCount(['gestures as live_gestures_count' => fn ($query) => $query->whereIn('state', ['sent', 'accepted'])])

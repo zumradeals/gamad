@@ -66,13 +66,15 @@ it('décline une proposition sans changer l’état du besoin', function () {
     expect($this->besoin->fresh()->need_state)->toBe(NeedState::Open);
 });
 
-it('ne montre pas encore les conversations ni les remerciements, qui viennent dans une autre étape du lot', function () {
-    $geste = geste(User::factory()->create(), $this->besoin);
-    app(Gestures::class)->accept($this->auteur, $geste);
+it('propose d’écrire à la personne dont la proposition est acceptée, et seulement à elle', function () {
+    $acceptee = geste(User::factory()->create(), $this->besoin);
+    $enAttente = geste(User::factory()->create(), $this->besoin);
+    app(Gestures::class)->accept($this->auteur, $acceptee);
 
-    $this->actingAs($this->auteur)->get(route('publications.show', $this->besoin))->assertOk()
-        ->assertDontSeeText('Ouvrir la conversation')->assertDontSeeText('remercier')->assertDontSeeText('Remerciement')
-        ->assertDontSeeText('ouvre une conversation privée');
+    $html = $this->actingAs($this->auteur)->get(route('publications.show', $this->besoin))->assertOk()->getContent();
+
+    expect($html)->toContain(route('conversations.show', $acceptee->conversation))
+        ->and(substr_count($html, '/conversations/'))->toBe(1);
 });
 
 it('ne montre pas les gestes retirés', function () {

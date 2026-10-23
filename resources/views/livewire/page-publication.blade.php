@@ -89,7 +89,12 @@
                         <x-button type="button" variant="secondary" wire:click="decline('{{ $item->id }}')" wire:loading.attr="disabled" wire:target="accept, decline" class="flex-1 !text-[14px]">Décliner</x-button>
                     </div>
                 @elseif ($item->state === GestureState::Accepted)
-                    <span class="inline-flex min-h-11 items-center gap-1.5 text-[13px] font-extrabold text-type-knowledge-fg"><x-icon name="check" :size="14" :stroke="3" />Acceptée</span>
+                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <span class="inline-flex min-h-11 flex-1 items-center gap-1.5 text-[13px] font-extrabold text-type-knowledge-fg"><x-icon name="check" :size="14" :stroke="3" />Acceptée</span>
+                        @if ($item->conversation)
+                            <x-button :href="route('conversations.show', $item->conversation)" class="!text-[14px]">Écrire</x-button>
+                        @endif
+                    </div>
                 @elseif ($item->state === GestureState::Declined)
                     <span class="inline-flex min-h-11 items-center text-[13px] font-semibold text-muted">Déclinée</span>
                 @else
@@ -111,9 +116,13 @@
                     <button type="button" x-on:click="confirming = 'close'" class="inline-flex min-h-11 items-center justify-center text-[14px] font-semibold text-link underline">Fermer sans suite</button>
                 </div>
 
-                <div x-show="confirming === 'resolve'" x-cloak class="flex flex-col gap-2 rounded-card border border-line bg-card p-4">
-                    <p class="text-[14px] font-semibold">Marquer ce besoin comme résolu ? Il n’acceptera plus de proposition.</p>
-                    <x-button type="button" variant="accent" wire:click="resolve" wire:loading.attr="disabled" wire:target="resolve">Oui, il est résolu</x-button>
+                <div x-show="confirming === 'resolve'" x-cloak class="flex flex-col gap-3 rounded-card border border-line bg-card p-4">
+                    @if ($accepted->isNotEmpty())
+                        @include('livewire.partials.gratitude-form', ['mode' => 'resolve'])
+                    @else
+                        <p class="text-[14px] font-semibold">Marquer ce besoin comme résolu ? Il n’acceptera plus de proposition.</p>
+                        <x-button type="button" variant="accent" wire:click="resolve" wire:loading.attr="disabled" wire:target="resolve">Oui, il est résolu</x-button>
+                    @endif
                     <x-button type="button" variant="secondary" x-on:click="confirming = null">Annuler</x-button>
                 </div>
 
@@ -125,6 +134,19 @@
             </div>
         @elseif ($type->isNeed())
             <p class="rounded-button border border-line bg-card px-4 py-3 text-[14px] font-semibold">{{ $state === NeedState::Resolved ? 'Ce besoin est résolu.' : 'Ce besoin est fermé sans suite.' }}</p>
+
+            @if ($state === NeedState::Resolved && $gratitude)
+                <section aria-labelledby="merci" class="flex flex-col gap-1.5 rounded-card border border-line bg-card p-4">
+                    <h2 id="merci" class="text-[15px] font-extrabold">Votre remerciement</h2>
+                    <p class="whitespace-pre-line break-words text-[14px] leading-normal">« {{ $gratitude->body }} »</p>
+                    <span class="text-[13px] text-muted">Pour {{ $gratitude->helper->name }}.@if ($gratitude->isHidden()) Cette personne l’a masqué de son profil.@endif</span>
+                </section>
+            @elseif ($state === NeedState::Resolved && $accepted->isNotEmpty())
+                <section aria-labelledby="remercier" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4">
+                    <h2 id="remercier" class="text-[15px] font-extrabold">Remercier une personne</h2>
+                    @include('livewire.partials.gratitude-form', ['mode' => 'thank'])
+                </section>
+            @endif
         @endif
     @else
         <x-publication-card :publication="$publication" :viewer="$viewer" :gesture="$gesture" :link="false" />

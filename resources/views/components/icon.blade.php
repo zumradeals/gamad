@@ -16,6 +16,8 @@
         'heart' => '<path d="M12 21s-7-4.5-9-9a5 5 0 0 1 9-3 5 5 0 0 1 9 3c-2 4.5-9 9-9 9z"></path>',
         'next' => '<path d="M9 6l6 6-6 6"></path>',
         'book' => '<path d="M4 19.5V6a2 2 0 0 1 2-2h12v14H6a2 2 0 0 0-2 1.5zM6 18h12v3H6a2 2 0 0 1 0-3z"></path>',
+        'send' => '<path d="M22 2L11 13"></path><path d="M22 2l-7 20-4-9-9-4z"></path>',
+        'bell' => '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"></path><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"></path>',
         'mail' => '<rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 7l9 6 9-6"></path>',
     ];
 @endphp

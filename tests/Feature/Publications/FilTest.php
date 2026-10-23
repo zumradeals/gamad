@@ -64,7 +64,11 @@ it('départage deux publications simultanées de façon stable', function () {
     $premier = fil()->html();
     $second = fil()->html();
 
-    expect(strpos($premier, 'Un') < strpos($premier, 'Deux'))->toBe(strpos($second, 'Un') < strpos($second, 'Deux'));
+    // On repère les paragraphes des publications, pas de simples sous-chaînes : le HTML contient des jetons aléatoires.
+    $position = fn (string $html, string $texte) => strpos($html, '>'.$texte.'</p>');
+
+    expect($position($premier, 'Un'))->not->toBeFalse()->and($position($premier, 'Deux'))->not->toBeFalse();
+    expect($position($premier, 'Un') < $position($premier, 'Deux'))->toBe($position($second, 'Un') < $position($second, 'Deux'));
 });
 
 it('montre le type, l’auteur, le domaine, la ville et l’ancienneté de chaque publication', function () {
@@ -85,7 +89,7 @@ it('montre le type, l’auteur, le domaine, la ville et l’ancienneté de chaqu
         ->assertSeeText('Je peux aider');
 });
 
-it('filtre : Tout, Besoins, Savoirs', function () {
+it('filtre : Tout, Besoins, Savoirs, Apprendre, Aides', function () {
     $auteur = User::factory()->create(['name' => 'Yao Kouassi']);
     publication($auteur, PublicationType::Need, ['body' => 'Texte besoin']);
     publication($auteur, PublicationType::Knowledge, ['body' => 'Texte savoir']);
@@ -95,16 +99,18 @@ it('filtre : Tout, Besoins, Savoirs', function () {
     fil()->assertSeeText('Texte besoin')->assertSeeText('Texte savoir')->assertSeeText('Texte apprendre')->assertSeeText('Texte aide');
     fil()->call('setFilter', 'besoins')->assertSeeText('Texte besoin')->assertDontSeeText('Texte savoir')->assertDontSeeText('Texte apprendre')->assertDontSeeText('Texte aide');
     fil()->call('setFilter', 'savoirs')->assertSeeText('Texte savoir')->assertDontSeeText('Texte besoin')->assertDontSeeText('Texte apprendre');
+    fil()->call('setFilter', 'apprendre')->assertSeeText('Texte apprendre')->assertDontSeeText('Texte savoir')->assertDontSeeText('Texte besoin')->assertDontSeeText('Texte aide');
+    fil()->call('setFilter', 'aides')->assertSeeText('Texte aide')->assertDontSeeText('Texte apprendre')->assertDontSeeText('Texte besoin')->assertDontSeeText('Texte savoir');
     fil()->call('setFilter', 'projets')->assertSet('filter', 'tout');
     Livewire::withQueryParams(['filtre' => 'besoins'])->actingAs(User::factory()->create())->test(Fil::class)->assertSet('filter', 'besoins')->assertDontSeeText('Texte savoir');
 });
 
-it('ne propose que les filtres Tout, Besoins et Savoirs : Projets et ZUMRA restent masqués', function () {
+it('ne propose que les filtres Tout, Besoins, Savoirs, Apprendre et Aides : Projets et ZUMRA restent masqués (D-098)', function () {
     $html = fil()->html();
     preg_match('/<nav aria-label="Filtrer le Fil".*?<\/nav>/s', $html, $nav);
     $filtres = array_map(fn ($t) => trim(strip_tags($t)), explode('</button>', $nav[0]));
 
-    expect(array_values(array_filter($filtres)))->toBe(['Tout', 'Besoins', 'Savoirs']);
+    expect(array_values(array_filter($filtres)))->toBe(['Tout', 'Besoins', 'Savoirs', 'Apprendre', 'Aides']);
 });
 
 it('n’affiche ni Commenter, ni Partager, ni Signaler, ni compteur d’approbation', function () {

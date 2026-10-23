@@ -112,8 +112,7 @@ La liste des villes ivoiriennes (31 chefs-lieux de région, 2 districts autonome
 
 ## 5. Essayer le Lot 2, première étape (2a) : publier, répondre, accepter
 
-Même équipement que le §4 : le **compte 1** (le vôtre) et le **compte 2** (votre seconde adresse). À cette étape, les gestes
-s'acceptent mais **la conversation privée, le remerciement, les notifications et « Signaler » n'existent pas encore** (étapes 2b et 2c).
+Même équipement que le §4 : le **compte 1** (le vôtre) et le **compte 2** (votre seconde adresse). Cette section décrit la première étape ; la conversation, le remerciement et les notifications sont au §6.
 
 **Publier.**
 
@@ -126,7 +125,7 @@ s'acceptent mais **la conversation privée, le remerciement, les notifications e
 
 **Le Fil.**
 
-5. **Fil** : votre publication est en haut. Les filtres **Tout**, **Besoins** et **Savoirs** trient ; **Voir plus de publications** charge la suite.
+5. **Fil** : votre publication est en haut. Les filtres **Tout**, **Besoins**, **Savoirs**, **Apprendre** et **Aides** trient ; **Voir plus de publications** charge la suite.
    L'ordre est toujours du plus récent au plus ancien. Il n'y a ni « Commenter », ni « Partager », ni « j'aime ».
 6. Sur ordinateur, à gauche : votre profil tel que les autres le voient.
 
@@ -159,7 +158,38 @@ s'acceptent mais **la conversation privée, le remerciement, les notifications e
 **Limites normales.** Texte de publication : 500 caractères ; mot d'un geste : 280 ; trois capacités. Pour freiner le spam, une personne peut
 publier 10 fois par heure (30 par jour) et répondre 30 fois par heure (100 par jour) ; au-delà, un message clair le dit.
 
-## 6. Ce qu'il faut regarder à chaque écran
+## 6. Essayer le Lot 2, deuxième étape (2b) : parler, remercier, être prévenu
+
+Même équipement : le **compte 1** (le vôtre, qui publie) et le **compte 2** (votre seconde adresse, qui répond). Les deux adresses doivent être vérifiées.
+
+**La conversation.**
+
+1. Compte 1 : publiez un besoin. Compte 2 : dans le Fil, touchez **Je peux aider** et envoyez. Compte 1 : ouvrez le besoin (**Espace → Mes publications**) et touchez **Accepter**.
+2. Sous la proposition acceptée apparaît **Écrire**. Touchez-le : la conversation s'ouvre, avec le rappel « Votre e-mail et votre téléphone restent privés ». Écrivez un message (1 000 caractères au plus) et touchez la flèche d'envoi.
+3. Compte 2 : le Fil affiche **Acceptée** et **Ouvrir la conversation**. Ouvrez-la : le message est là. Répondez.
+4. Laissez la conversation ouverte sur le compte 1 : la réponse du compte 2 s'affiche **toute seule, en 10 secondes au plus**, sans recharger.
+5. Écrivez une adresse web ou du HTML dans un message : il s'affiche en texte simple, jamais cliquable.
+
+**Les notifications.**
+
+6. Une **cloche** est en haut de l'écran. Un chiffre jaune indique les notifications non lues (réponse reçue, proposition acceptée, nouveau message, remerciement). Touchez la cloche : la liste s'ouvre, la plus récente en premier.
+7. Touchez une notification : elle est marquée lue et vous arrivez directement sur la publication, la conversation ou votre profil. **Tout marquer lu** les marque toutes.
+8. Trois messages d'affilée ne créent **qu'une** notification tant que le premier n'est pas lu. Il n'y a jamais d'e-mail ni de SMS, et jamais l'e-mail ni le téléphone de quelqu'un.
+
+**À faire maintenant** (en haut d'Espace).
+
+9. Compte 1, après qu'une réponse est arrivée : « 1 réponse à traiter » avec le bouton **Voir**. Après un message non lu : « 1 message non lu » avec **Lire**. Chaque ligne **disparaît** quand l'action est faite. Quand tout est traité : « Rien ne vous attend pour l'instant. »
+
+**Remercier.**
+
+10. Compte 1, sur **Mon besoin** : touchez **Marquer comme résolu**. Un écran demande **Qui vous a aidé ?** (les personnes acceptées, ou « Quelqu'un d'autre ou personne en particulier »). Choisissez le compte 2, écrivez un remerciement (280 caractères au plus ; un aperçu s'affiche), puis **Marquer résolu et remercier**.
+11. Ouvrez le profil du compte 2 (dans une fenêtre privée aussi) : la section **Remerciements reçus** montre le texte, qui remercie et pour quel besoin. Il n'y a **aucun compteur ni note**.
+12. Compte 2 : sur son propre profil, **Masquer de mon profil** retire le remerciement pour les autres ; **Afficher à nouveau** le rétablit.
+13. Si vous marquez « résolu sans remerciement », Espace propose pendant 7 jours « Remercier … ? » ; vous pouvez aussi remercier depuis le besoin.
+
+**Supprimer un compte.** Si le compte 2 est supprimé (**Espace → Supprimer mon compte**), ses messages sont effacés ; le compte 1 relit la conversation avec « Personne supprimée » et « Message supprimé », ses propres messages restant lisibles, et ne peut plus écrire.
+
+## 7. Ce qu'il faut regarder à chaque écran
 
 - [ ] Le texte se lit sans zoomer, rien ne dépasse de l'écran, aucun défilement de côté.
 - [ ] Les boutons sont faciles à toucher du pouce.
@@ -167,7 +197,7 @@ publier 10 fois par heure (30 par jour) et répondre 30 fois par heure (100 par 
 - [ ] Les messages d'erreur sont clairs et en français.
 - [ ] Tout bouton ou lien visible mène à une vraie page.
 
-## 7. Les mises à jour se font toutes seules
+## 8. Les mises à jour se font toutes seules
 
 Chaque fois qu'un changement est fusionné dans `main`, le site se met à jour tout seul en **5 à 10 minutes** : rechargez la page après ce délai.
 Si une mise à jour échoue, la version actuelle reste en ligne et l'échec est noté dans un journal côté serveur ; si une mise à jour
@@ -176,7 +206,7 @@ sait revenir en arrière (voir `deploy/LISEZMOI.md`, réservé à l'administrati
 
 Les données sont sauvegardées chaque nuit (7 jours conservés).
 
-## 8. Ce qui n'existe pas encore (c'est normal)
+## 9. Ce qui n'existe pas encore (c'est normal)
 
-ZUMRA, projets, conversation privée, remerciements, notifications, « Signaler », « Commenter », « Partager », « Suivre », « Inviter », recherche générale, paiement : ces modules sont masqués tant que leur lot
+ZUMRA, projets, « Signaler » et la modération (étape 2c), « Commenter », « Partager », « Suivre », « Inviter », recherche générale, paiement : ces modules sont masqués tant que leur lot
 n'est pas construit.

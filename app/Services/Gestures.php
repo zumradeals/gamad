@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\GestureState;
 use App\Enums\NeedState;
+use App\Enums\NotificationKind;
 use App\Models\Gesture;
 use App\Models\Publication;
 use App\Models\User;
@@ -20,6 +21,8 @@ use Illuminate\Validation\ValidationException;
  */
 class Gestures
 {
+    public function __construct(private readonly Notifier $notifier, private readonly Conversations $conversations) {}
+
     /**
      * Envoie un geste. Une personne n'a qu'un geste par publication ; après l'avoir retiré, elle peut en envoyer un nouveau.
      *
@@ -46,14 +49,14 @@ class Gestures
 
             if ($gesture) {
                 $gesture->update($values);
-
-                return $gesture;
+            } else {
+                $gesture = new Gesture($values);
+                $gesture->publication()->associate($locked);
+                $gesture->author()->associate($user);
+                $gesture->save();
             }
 
-            $gesture = new Gesture($values);
-            $gesture->publication()->associate($locked);
-            $gesture->author()->associate($user);
-            $gesture->save();
+            $this->notifier->push($locked->author, NotificationKind::GestureReceived, $user, $locked);
 
             return $gesture;
         });
@@ -89,6 +92,9 @@ class Gestures
             if ($publication->isNeed() && $publication->need_state === NeedState::Open) {
                 $publication->update(['need_state' => NeedState::InProgress]);
             }
+
+            // Accepter ouvre la conversation privée entre les deux personnes (PRODUIT §4) et prévient la personne acceptée.
+            $this->conversations->open($fresh->setRelation('publication', $publication));
 
             $gesture->setRawAttributes($fresh->getAttributes(), true);
         });

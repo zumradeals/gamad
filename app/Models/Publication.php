@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * Publication d'une personne dans le Fil (D-081). Un besoin est une publication de type « J'ai besoin » qui porte un état.
@@ -35,6 +36,7 @@ class Publication extends Model
         return [
             'type' => PublicationType::class,
             'need_state' => NeedState::class,
+            'resolved_at' => 'datetime',
         ];
     }
 
@@ -56,6 +58,11 @@ class Publication extends Model
     public function skills(): BelongsToMany
     {
         return $this->belongsToMany(Skill::class, 'publication_skill')->withPivot('position')->orderByPivot('position');
+    }
+
+    public function gratitude(): HasOne
+    {
+        return $this->hasOne(Gratitude::class);
     }
 
     public function gestures(): HasMany
