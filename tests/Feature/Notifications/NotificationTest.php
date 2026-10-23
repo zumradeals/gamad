@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\UserNotification;
 use App\Services\Gestures;
 use App\Services\Gratitudes;
+use App\Services\Notifier;
 use Livewire\Livewire;
 
 beforeEach(function () {
@@ -190,4 +191,10 @@ it('affiche la cloche dans la barre du haut, avec le nombre de non lues, et pas 
 
     app('auth')->forgetGuards();
     $this->get(route('personnes.index'))->assertOk()->assertDontSee('aria-label="Notifications', false);
+});
+
+it('ne notifie jamais une personne de son propre acte, même si le service est appelé ainsi', function () {
+    app(Notifier::class)->push($this->auteur, NotificationKind::GestureReceived, $this->auteur, $this->besoin);
+
+    expect(UserNotification::count())->toBe(0);
 });

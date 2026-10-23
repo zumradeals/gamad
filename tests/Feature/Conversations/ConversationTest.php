@@ -296,3 +296,15 @@ it('ne laisse aucun geste accepté orphelin : la suppression du compte de l’au
 
     expect(Publication::count())->toBe(0)->and(Gesture::where('state', GestureState::Accepted->value)->count())->toBe(0);
 });
+
+it('ne compte jamais mes propres messages comme non lus, même sans marque de lecture', function () {
+    $conversation = conversationDe($this->auteur, $this->aidant, $this->besoin);
+
+    // Un message écrit hors du service (donc sans mise à jour de « lu jusqu'à ») ne devient pas « non lu » pour son auteur.
+    $message = new Message(['body' => 'Bonjour']);
+    $message->conversation()->associate($conversation);
+    $message->sender()->associate($this->auteur);
+    $message->save();
+
+    expect(Conversation::unreadFor($this->auteur)->count())->toBe(0)->and(Conversation::unreadFor($this->aidant)->count())->toBe(1);
+});
