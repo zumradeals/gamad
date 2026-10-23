@@ -11,6 +11,25 @@ enum NotificationKind: string
     case GratitudeReceived = 'gratitude_received';
     case PublicationHidden = 'publication_hidden';
     case PublicationRestored = 'publication_restored';
+    case ZumraRequestReceived = 'zumra_request_received';
+    case ZumraRequestAccepted = 'zumra_request_accepted';
+    case ZumraInvitationReceived = 'zumra_invitation_received';
+    case ZumraInvitationAccepted = 'zumra_invitation_accepted';
+    case ZumraRoleGranted = 'zumra_role_granted';
+    case ZumraMemberRemoved = 'zumra_member_removed';
+    case ZumraFounderTransferred = 'zumra_founder_transferred';
+
+    /** Le texte de la notification commence-t-il par le nom d'une personne ? (Non pour un transfert de fondation.) */
+    public function showsActor(): bool
+    {
+        return $this !== self::ZumraFounderTransferred;
+    }
+
+    /** Une notification qui parle d'une ZUMRA (son nom prend la place de l'extrait de publication). */
+    public function isAboutZumra(): bool
+    {
+        return str_starts_with($this->value, 'zumra_');
+    }
 
     /** Phrase qui suit le nom de la personne : « Awa Traoré a proposé son aide… ». */
     public function sentence(?string $about): string
@@ -24,6 +43,13 @@ enum NotificationKind: string
             self::GratitudeReceived => 'vous remercie sur votre profil.',
             self::PublicationHidden => "a masqué votre publication{$about}. Vous pouvez vous expliquer.",
             self::PublicationRestored => "a rétabli votre publication{$about}.",
+            self::ZumraRequestReceived => "demande à rejoindre{$about}.",
+            self::ZumraRequestAccepted => "a accepté votre demande de rejoindre{$about}.",
+            self::ZumraInvitationReceived => "vous invite à rejoindre{$about}.",
+            self::ZumraInvitationAccepted => "a accepté votre invitation à rejoindre{$about}.",
+            self::ZumraRoleGranted => "vous a confié un rôle de responsable dans{$about}.",
+            self::ZumraMemberRemoved => "vous a retiré de{$about}.",
+            self::ZumraFounderTransferred => "La fondation de{$about} vous a été confiée : son fondateur a supprimé son compte.",
         };
     }
 }
