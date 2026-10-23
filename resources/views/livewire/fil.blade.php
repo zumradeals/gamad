@@ -7,6 +7,7 @@
     ];
     $directories = [
         ['Personnes', 'Trouver des capacités', 'personnes.index', 'group', 'bg-type-call-bg text-type-call-fg'],
+        ['Besoins', 'Voir ce qui manque', 'besoins.index', 'heart', 'bg-type-need-bg text-type-need-fg'],
         ['ZUMRA', 'Découvrir les communautés', 'zumras.index', 'community', 'bg-type-learning-bg text-type-learning-fg'],
         ['Projets', 'Voir les actions en cours', 'projets.index', 'project', 'bg-type-knowledge-bg text-type-knowledge-fg'],
     ];

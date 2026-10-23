@@ -129,6 +129,7 @@ Police unique : **Plus Jakarta Sans** (graisses 400, 500, 600, 700, 800), auto-h
     réussie, dernier essai de restauration, alerte rouge au-delà de 36 h), formulaire des accès (champs de clés en mot de passe,
     bouton « Enregistrer et tester la connexion »), encadré de la phrase de secours (bordure épaisse, police à chasse fixe,
     « J'ai noté la phrase »), puis réaffichage de la phrase sur mot de passe.
+15. **Carrefour Besoins et fenêtre Découvrir** (Lot 5.1, D-160, D-161) : Carrefour Besoins sur le gabarit des autres Carrefours (bandeau sombre, recherche, quatre menus : état, émetteur, domaine, ville) avec les cartes de publication en mode « parcourir » (un seul bouton « Voir le besoin »). « Découvrir » (téléphone) : fenêtre montante arrondie « Que cherchez-vous ? » (poignée, titre, croix de 48 px, trois cartes de 84 px : icône sur fond jaune, titre, description, chevron), fond assombri, focus gardé dans la fenêtre, Échap et croix ferment ; même contenu en page `/decouvrir`.
 
 ## 5. Règles d'interface
 

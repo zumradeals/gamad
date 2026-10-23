@@ -416,7 +416,21 @@ Le pilote réunit **30 à 50 personnes et 3 ZUMRA pendant 4 semaines** (D-158). 
 
 **Ce que le pilote ne fait pas :** pas de paiement (Lot 6), pas de mécanisme d'invitation ou de fermeture des inscriptions (à décider si le pilote doit être fermé techniquement), pas de statistiques d'usage au-delà des chiffres réels déjà visibles (personnes, ZUMRA, projets).
 
-## 18. Ce qu'il faut regarder à chaque écran
+## 18. Essayer le Lot 5.1 : Carrefour Besoins et Découvrir
+
+Il vous faut un téléphone, un second compte, et au moins un besoin publié (Agir → « J'ai besoin ») par une personne, un autre par une ZUMRA, un autre au nom d'un projet.
+
+1. **Découvrir (téléphone).** Dans la barre du bas, touchez **Découvrir** : une fenêtre « Que cherchez-vous ? » monte du bas, avec trois choix : **Personnes**, **Besoins**, **Projets**. Touchez la croix ou en dehors de la fenêtre pour la fermer. Chaque choix mène à son Carrefour.
+2. **Sans fenêtre.** Si votre navigateur n'exécute pas le JavaScript, **Découvrir** ouvre la page `/decouvrir` qui montre les mêmes trois choix.
+3. **Ordinateur.** La barre du haut affiche **Fil, Personnes, Besoins, Projets, ZUMRA**.
+4. **Carrefour Besoins.** Ouvrez **Besoins**. Chaque carte dit qui exprime le besoin (la personne, la ZUMRA ou le projet) et son état. Par défaut, seuls les besoins **ouverts** s'affichent ; le premier menu propose « En cours », « Résolu » et « Tous les états ».
+5. **Chercher.** Tapez un mot du besoin ou une capacité demandée (accents et majuscules sans importance). Filtrez par domaine, ville, ou par émetteur (Personnes, ZUMRA, Projets seulement). **Effacer la recherche** remet tout.
+6. **Répondre.** Touchez **Voir le besoin** : vous arrivez sur la publication, où se trouve le bouton d'action (« Je peux aider ») et « Signaler ». Le Carrefour ne répond pas lui-même.
+7. **Sans compte.** Dans une fenêtre privée, `/besoins` s'ouvre ; seuls les besoins publics s'y voient. Un besoin masqué par la modération n'apparaît jamais, ni pour son auteur ni pour la modération.
+
+**Ce qui n'existe pas encore :** les organisations comme émetteurs de besoins (« une prochaine fois », D-160) ; un sélecteur à trois onglets en haut des Carrefours.
+
+## 19. Ce qu'il faut regarder à chaque écran
 
 - [ ] Le texte se lit sans zoomer, rien ne dépasse de l'écran, aucun défilement de côté.
 - [ ] Les boutons sont faciles à toucher du pouce.
@@ -424,7 +438,7 @@ Le pilote réunit **30 à 50 personnes et 3 ZUMRA pendant 4 semaines** (D-158). 
 - [ ] Les messages d'erreur sont clairs et en français.
 - [ ] Tout bouton ou lien visible mène à une vraie page.
 
-## 19. Les mises à jour se font toutes seules
+## 20. Les mises à jour se font toutes seules
 
 Chaque fois qu'un changement est fusionné dans `main`, le site se met à jour tout seul en **5 à 10 minutes** : rechargez la page après ce délai.
 Si une mise à jour échoue, la version actuelle reste en ligne et l'échec est noté dans un journal côté serveur ; si une mise à jour
@@ -433,7 +447,7 @@ sait revenir en arrière (voir `deploy/LISEZMOI.md`, réservé à l'administrati
 
 Les données sont sauvegardées chaque nuit (7 jours conservés).
 
-## 20. Ce qui n'existe pas encore (c'est normal)
+## 21. Ce qui n'existe pas encore (c'est normal)
 
 « Commenter », « Partager », « Suivre », « Inviter », recherche générale, paiement : ces modules sont masqués tant que leur lot
 n'est pas construit.

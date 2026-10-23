@@ -16,7 +16,8 @@ return [
     // Barre du bas, téléphone. « Agir » est le rond jaune surélevé au centre.
     'phone' => [
         ['key' => 'fil', 'label' => 'Fil', 'route' => 'fil', 'icon' => 'feed', 'enabled' => true],
-        ['key' => 'decouvrir', 'label' => 'Découvrir', 'route' => 'personnes.index', 'active' => 'personnes.*', 'icon' => 'compass', 'enabled' => true],
+        // « Découvrir » ouvre une fenêtre à trois choix (`sheet`, D-160) ; sans JavaScript, il mène à la page /decouvrir.
+        ['key' => 'decouvrir', 'label' => 'Découvrir', 'route' => 'decouvrir', 'active' => ['decouvrir', 'personnes.*', 'besoins.*', 'projets.*'], 'icon' => 'compass', 'enabled' => true, 'sheet' => true],
         ['key' => 'agir', 'label' => 'Agir', 'route' => 'agir', 'icon' => 'plus', 'enabled' => true, 'prominent' => true],
         ['key' => 'zumra', 'label' => 'ZUMRA', 'route' => 'zumras.index', 'active' => 'zumras.*', 'icon' => 'group', 'enabled' => true],
         ['key' => 'espace', 'label' => 'Espace', 'route' => 'espace', 'icon' => 'user', 'enabled' => true],
@@ -26,8 +27,15 @@ return [
     'desktop' => [
         ['key' => 'fil', 'icon' => 'home', 'label' => 'Fil', 'route' => 'fil', 'enabled' => true],
         ['key' => 'personnes', 'icon' => 'group', 'label' => 'Personnes', 'route' => 'personnes.index', 'active' => 'personnes.*', 'enabled' => true],
-        ['key' => 'besoins', 'label' => 'Besoins', 'route' => null, 'enabled' => false],
+        ['key' => 'besoins', 'icon' => 'heart', 'label' => 'Besoins', 'route' => 'besoins.index', 'active' => 'besoins.*', 'enabled' => true],
         ['key' => 'projets', 'icon' => 'project', 'label' => 'Projets', 'route' => 'projets.index', 'active' => 'projets.*', 'enabled' => true],
         ['key' => 'zumra', 'icon' => 'community', 'label' => 'ZUMRA', 'route' => 'zumras.index', 'active' => 'zumras.*', 'enabled' => true],
+    ],
+
+    // Les trois choix de « Découvrir » (fenêtre du téléphone et page /decouvrir) : chacun mène à son Carrefour (D-160).
+    'discover' => [
+        ['key' => 'personnes', 'label' => 'Personnes', 'description' => 'Trouver des capacités et des personnes qui peuvent aider.', 'route' => 'personnes.index', 'icon' => 'group'],
+        ['key' => 'besoins', 'label' => 'Besoins', 'description' => 'Voir ce qui manque pour faire avancer une action.', 'route' => 'besoins.index', 'icon' => 'heart'],
+        ['key' => 'projets', 'label' => 'Projets', 'description' => 'Découvrir les initiatives et leur prochaine étape.', 'route' => 'projets.index', 'icon' => 'project'],
     ],
 ];

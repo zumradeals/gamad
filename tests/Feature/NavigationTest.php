@@ -8,13 +8,12 @@ function pageDuFil(): TestResponse
     return test()->actingAs(User::factory()->create())->get('/fil');
 }
 
-it('n’affiche que Fil, Découvrir, Agir, ZUMRA, Personnes, Projets et Espace dans la navigation', function () {
+it('n’affiche que Fil, Découvrir, Agir, ZUMRA, Personnes, Besoins, Projets et Espace dans la navigation', function () {
     $html = pageDuFil()->assertOk()->getContent();
     preg_match_all('/<nav aria-label="Navigation principale".*?<\/nav>/s', $html, $navs);
     $texte = trim(preg_replace('/\s+/', ' ', strip_tags(implode(' ', $navs[0]))));
 
-    expect($texte)->toContain('Fil')->toContain('Découvrir')->toContain('Personnes')->toContain('Projets')->toContain('Agir')->toContain('Espace')->toContain('ZUMRA')
-        ->not->toContain('Besoins')
+    expect($texte)->toContain('Fil')->toContain('Découvrir')->toContain('Personnes')->toContain('Besoins')->toContain('Projets')->toContain('Agir')->toContain('Espace')->toContain('ZUMRA')
         ->not->toContain('Rechercher');
 
     // La cloche des notifications existe depuis le Lot 2b ; la recherche générale vient avec son lot.
@@ -56,10 +55,10 @@ it('affiche l’initiale de la personne dans la barre d’ordinateur, qui mène 
         ->assertSee('href="'.route('espace').'"', false);
 });
 
-it('active Découvrir sur téléphone et Personnes sur ordinateur, vers le Carrefour Personnes', function () {
+it('active Découvrir sur téléphone et Personnes sur ordinateur sur le Carrefour Personnes, Découvrir menant à la page des trois choix', function () {
     $page = $this->actingAs(User::factory()->create())->get('/fil')->assertOk();
 
-    $page->assertSee('href="'.route('personnes.index').'"', false);
+    $page->assertSee('href="'.route('personnes.index').'"', false)->assertSee('href="'.route('decouvrir').'"', false);
 
     $html = $this->actingAs(User::factory()->create())->get('/personnes')->assertOk()->getContent();
     preg_match_all('/<a href="[^"]*"\s+aria-current="page"[^>]*>(.*?)<\/a>/s', $html, $actifs);
@@ -75,20 +74,15 @@ it('garde Découvrir actif sur le Monde d’une personne', function () {
     expect($html)->toMatch('/aria-current="page"[^>]*>\s*<svg.*?<\/svg>\s*Découvrir/s');
 });
 
-it('garde masqué Besoins sur le Carrefour, avec ou sans compte (ZUMRA n’est dans la navigation que pour les personnes connectées)', function () {
-    foreach ([null, User::factory()->create()] as $user) {
-        $page = ($user ? $this->actingAs($user) : $this)->get('/personnes')->assertOk();
+it('affiche Besoins dans la barre d’ordinateur d’une personne connectée, dans l’ordre Fil, Personnes, Besoins, Projets, ZUMRA, et rien de la navigation à un visiteur', function () {
+    $this->get('/personnes')->assertOk()->assertDontSeeText('Besoins')->assertDontSeeText('Inviter')->assertDontSeeText('Notifications');
 
-        $page->assertDontSeeText('Besoins')->assertDontSeeText('Inviter');
+    $html = $this->actingAs(User::factory()->create())->get('/personnes')->assertOk()
+        ->assertSee('aria-label="Notifications"', false)->assertSee('href="'.route('notifications').'"', false)->getContent();
+    preg_match('/<nav aria-label="Navigation principale" class="hidden.*?<\/nav>/s', $html, $barre);
+    $texte = trim(preg_replace('/\s+/', ' ', strip_tags($barre[0])));
 
-        if ($user) {
-            // La barre harmonisée affiche maintenant le libellé du module de notifications déjà livré.
-            $page->assertSee('aria-label="Notifications"', false)
-                ->assertSee('href="'.route('notifications').'"', false);
-        } else {
-            $page->assertDontSeeText('Notifications');
-        }
-    }
+    expect($texte)->toBe('Fil Personnes Besoins Projets ZUMRA')->and($barre[0])->toContain('href="'.route('besoins.index').'"');
 });
 
 it('propose à un visiteur sans compte de se connecter ou de créer un compte, sans la navigation de l’application', function () {

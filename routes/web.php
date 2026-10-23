@@ -6,6 +6,7 @@ use App\Http\Controllers\SuspendedController;
 use App\Http\Controllers\TextesController;
 use App\Http\Controllers\WelcomeController;
 use App\Livewire\AvisModeration;
+use App\Livewire\CarrefourBesoins;
 use App\Livewire\CarrefourPersonnes;
 use App\Livewire\CarrefourProjets;
 use App\Livewire\CarrefourZumras;
@@ -40,6 +41,8 @@ Route::get('/mentions-legales', [TextesController::class, 'mentions'])->name('me
 
 // Le Carrefour Personnes et le Monde d'une personne sont ouverts aux visiteurs sans compte ; chaque profil applique
 // sa propre visibilité (D-067).
+Route::view('/decouvrir', 'pages.decouvrir')->name('decouvrir');
+Route::get('/besoins', CarrefourBesoins::class)->name('besoins.index');
 Route::get('/personnes', CarrefourPersonnes::class)->name('personnes.index');
 Route::get('/personnes/{profile:public_id}', [PersonController::class, 'show'])->name('personnes.show');
 Route::get('/personnes/{profile:public_id}/photo', [PersonController::class, 'photo'])->name('personnes.photo');
