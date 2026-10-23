@@ -41,11 +41,12 @@
         </div>
     </div>
 
-    <div class="flex">
+    <div class="flex flex-wrap items-center gap-2">
         <button type="button" wire:click="toggleRecognized" aria-pressed="{{ $recognized ? 'true' : 'false' }}"
                 @class(['inline-flex min-h-11 items-center gap-1.5 rounded-chip px-4 text-[13px]', 'bg-ink font-bold text-white' => $recognized, 'border border-chip-line bg-card font-semibold text-ink' => ! $recognized])>
             <x-icon name="check" :size="14" :stroke="3" />Reconnues par GAMAD
         </button>
+        <a href="{{ route('projets.index') }}" class="inline-flex min-h-11 items-center rounded-chip border border-chip-line bg-card px-4 text-[13px] font-semibold text-ink no-underline hover:text-ink">Voir les projets</a>
     </div>
 
     @if ($viewer)

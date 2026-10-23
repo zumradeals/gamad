@@ -97,6 +97,12 @@ Police unique : **Plus Jakarta Sans** (graisses 400, 500, 600, 700, 800), auto-h
    jaune + action secondaire. Bandeau de chiffres en carte blanche chevauchant l'en-tête.
 8. **Onglets de monde** : barre blanche défilante, onglet actif souligné de 3 px `accent`. L'onglet
    Discussion porte un cadenas (réservé aux membres).
+9. **Carte de projet** (Lot 4a, D-129, sans maquette) : badge d'état (Idée · En cours · Terminé · Abandonné, couleurs des
+   jetons existants) → nom du projet → but → ligne ZUMRA (avatar carré 36 px, nom, domaine · ville) → bouton
+   « Voir le projet ». Même gabarit que la carte de carrefour ZUMRA ; aucun chiffre inventé, aucun classement.
+10. **Monde d'un projet** (Lot 4a) : même en-tête de monde que la ZUMRA (badge d'état, nom, lien vers la ZUMRA, but,
+    « Modifier le projet » pour les gestionnaires), puis la carte « Avancement » : état et date, histoire des changements
+    d'état. Page publique. Les onglets Fil, Équipe et Besoins viennent avec les PR 4b et 4c ; ils restent masqués.
 
 ## 5. Règles d'interface
 

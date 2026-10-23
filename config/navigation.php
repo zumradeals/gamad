@@ -27,7 +27,7 @@ return [
         ['key' => 'fil', 'label' => 'Fil', 'route' => 'fil', 'enabled' => true],
         ['key' => 'personnes', 'label' => 'Personnes', 'route' => 'personnes.index', 'active' => 'personnes.*', 'enabled' => true],
         ['key' => 'besoins', 'label' => 'Besoins', 'route' => null, 'enabled' => false],
-        ['key' => 'projets', 'label' => 'Projets', 'route' => null, 'enabled' => false],
+        ['key' => 'projets', 'label' => 'Projets', 'route' => 'projets.index', 'active' => 'projets.*', 'enabled' => true],
         ['key' => 'zumra', 'label' => 'ZUMRA', 'route' => 'zumras.index', 'active' => 'zumras.*', 'enabled' => true],
     ],
 ];

@@ -39,11 +39,6 @@ function lignes(): Memberships
     return app(Memberships::class);
 }
 
-function ligne(Zumra $zumra, User $personne): ZumraMembership
-{
-    return $zumra->memberships()->where('user_id', $personne->id)->firstOrFail();
-}
-
 // ─── Quitter ─────────────────────────────────────────────────────────────────
 
 it('laisse un membre ou un responsable quitter la ZUMRA, puis redemander à la rejoindre', function () {
