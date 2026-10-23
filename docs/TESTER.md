@@ -189,7 +189,38 @@ Même équipement : le **compte 1** (le vôtre, qui publie) et le **compte 2** (
 
 **Supprimer un compte.** Si le compte 2 est supprimé (**Espace → Supprimer mon compte**), ses messages sont effacés ; le compte 1 relit la conversation avec « Personne supprimée » et « Message supprimé », ses propres messages restant lisibles, et ne peut plus écrire.
 
-## 7. Ce qu'il faut regarder à chaque écran
+## 7. Essayer le Lot 2, troisième étape (2c) : signaler et modérer
+
+Il vous faut trois comptes : le **compte 1** (le vôtre, super administrateur, qui modère), le **compte 2** (qui publie) et le **compte 3** (qui signale). Les trois adresses doivent être vérifiées.
+
+**Signaler.**
+
+1. Compte 2 : publiez quelque chose (par exemple un savoir). Compte 3 : dans le **Fil**, sous la publication, touchez **Signaler** (le lien n'existe pas sur vos propres publications).
+2. L'écran **Signaler cette publication** propose six raisons (contenu offensant, arnaque, fausse information, publicité ou spam, atteinte à la vie privée, autre) et un champ « Précisez si vous le souhaitez… » (280 caractères). Choisissez une raison et touchez **Envoyer le signalement** : « Merci. Un modérateur examinera votre signalement. »
+3. Signalez la même publication une seconde fois : « Vous avez déjà signalé cette publication. » Compte 2 : rien ne dit qui a signalé, ni dans la publication, ni dans les notifications.
+
+**La file de modération.**
+
+4. Compte 1 : **Espace**. En haut, « À faire maintenant » indique « 1 publication signalée » avec **Examiner** ; plus bas, la section **Modération** mène à la file.
+5. La file affiche, sous **À examiner**, le texte entier de la publication, son auteur, le nombre de signalements et leurs raisons. **Le nom des personnes qui ont signalé n'apparaît pas.**
+6. Touchez **Classer sans suite** : le signalement est clos, la publication reste visible. Signalez-la de nouveau avec le compte 3, puis revenez dans la file.
+7. Écrivez un **motif** (obligatoire : l'auteur le verra) et touchez **Masquer**. La publication disparaît du Fil pour tout le monde. Essayez de masquer sans motif : un message vous le demande.
+
+**Côté auteur.**
+
+8. Compte 2 : une notification « … a masqué votre publication. Vous pouvez vous expliquer. » arrive. **Espace → À faire maintenant** affiche « Une publication a été masquée — La modération attend votre explication » et **Expliquer**.
+9. Ouvrez la publication : le bandeau « Cette publication est masquée » donne le motif et un champ **Votre explication** (500 caractères). Envoyez-la ; vous pouvez la modifier tant que la publication est masquée. Avec le compte 3 ou dans une fenêtre privée, l'adresse de la publication répond « page introuvable ».
+
+**Rétablir.**
+
+10. Compte 1 : **Modération → Masquées** : la publication, son motif et **l'explication de l'auteur**. Touchez **Rétablir** (une raison est facultative). La publication revient dans le Fil et le compte 2 en est informé.
+11. Vous ne pouvez pas masquer ni rétablir une publication dont **vous êtes l'auteur** : un autre modérateur ou le super administrateur doit le faire.
+
+**Qui voit quoi.** Une personne ordinaire qui ouvre `/moderation` obtient « accès refusé ». Chaque masquage, rétablissement et classement sans suite est inscrit au **journal d'administration**, qui ne peut être ni modifié ni effacé.
+
+**Limites normales.** Raison et précision de 280 caractères au plus ; motif et explication de 500 ; pour freiner l'abus du signalement lui-même, 10 signalements par heure et 30 par jour et par personne.
+
+## 8. Ce qu'il faut regarder à chaque écran
 
 - [ ] Le texte se lit sans zoomer, rien ne dépasse de l'écran, aucun défilement de côté.
 - [ ] Les boutons sont faciles à toucher du pouce.
@@ -197,7 +228,7 @@ Même équipement : le **compte 1** (le vôtre, qui publie) et le **compte 2** (
 - [ ] Les messages d'erreur sont clairs et en français.
 - [ ] Tout bouton ou lien visible mène à une vraie page.
 
-## 8. Les mises à jour se font toutes seules
+## 9. Les mises à jour se font toutes seules
 
 Chaque fois qu'un changement est fusionné dans `main`, le site se met à jour tout seul en **5 à 10 minutes** : rechargez la page après ce délai.
 Si une mise à jour échoue, la version actuelle reste en ligne et l'échec est noté dans un journal côté serveur ; si une mise à jour
@@ -206,7 +237,7 @@ sait revenir en arrière (voir `deploy/LISEZMOI.md`, réservé à l'administrati
 
 Les données sont sauvegardées chaque nuit (7 jours conservés).
 
-## 9. Ce qui n'existe pas encore (c'est normal)
+## 10. Ce qui n'existe pas encore (c'est normal)
 
-ZUMRA, projets, « Signaler » et la modération (étape 2c), « Commenter », « Partager », « Suivre », « Inviter », recherche générale, paiement : ces modules sont masqués tant que leur lot
+ZUMRA, projets, la consultation du journal d'administration, « Commenter », « Partager », « Suivre », « Inviter », recherche générale, paiement : ces modules sont masqués tant que leur lot
 n'est pas construit.
