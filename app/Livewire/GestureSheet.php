@@ -72,7 +72,7 @@ class GestureSheet extends Component
     {
         abort_unless(Str::isUuid($id), 404);
 
-        app(Supports::class)->support(Auth::user(), Publication::query()->findOrFail($id));
+        app(Supports::class)->support(Auth::user(), Publication::query()->find($id) ?? abort(404));
 
         $this->dispatch('gesture-changed');
     }
@@ -82,7 +82,7 @@ class GestureSheet extends Component
     {
         abort_unless(Str::isUuid($id), 404);
 
-        app(Supports::class)->withdraw(Auth::user(), Publication::query()->findOrFail($id));
+        app(Supports::class)->withdraw(Auth::user(), Publication::query()->find($id) ?? abort(404));
 
         $this->dispatch('gesture-changed');
     }
