@@ -33,16 +33,14 @@ class Zumras
     {
         Gate::forUser($founder)->authorize('create', Zumra::class);
 
-        $name = Normalizer::display((string) ($data['name'] ?? ''));
-
-        if (mb_strlen($name) < Zumra::NAME_MIN || mb_strlen($name) > Zumra::NAME_MAX) {
-            throw ValidationException::withMessages(['name' => 'Le nom doit avoir entre '.Zumra::NAME_MIN.' et '.Zumra::NAME_MAX.' caractères.']);
-        }
-
-        $domainId = $this->activeId(Domain::class, $data['domain_id'] ?? null, 'domain_id', 'Choisissez un domaine dans la liste.', required: true);
-        $cityId = $this->activeId(City::class, $data['city_id'] ?? null, 'city_id', 'Choisissez une ville dans la liste.');
-        $format = $this->format($data['format'] ?? null);
-        $mission = $this->mission($data['mission'] ?? null);
+        // Toutes les erreurs remontent ensemble, chacune sous son champ.
+        [$name, $domainId, $cityId, $format, $mission] = $this->all(
+            fn () => $this->name($data['name'] ?? null),
+            fn () => $this->activeId(Domain::class, $data['domain_id'] ?? null, 'domain_id', 'Choisissez un domaine dans la liste.', required: true),
+            fn () => $this->activeId(City::class, $data['city_id'] ?? null, 'city_id', 'Choisissez une ville dans la liste.'),
+            fn () => $this->format($data['format'] ?? null),
+            fn () => $this->mission($data['mission'] ?? null),
+        );
 
         $this->throttle($founder);
 
@@ -78,11 +76,52 @@ class Zumras
     {
         Gate::forUser($actor)->authorize('update', $zumra);
 
-        $cityId = $this->activeId(City::class, $data['city_id'] ?? null, 'city_id', 'Choisissez une ville dans la liste.', keep: $zumra->city_id);
-        $format = $this->format($data['format'] ?? null);
-        $mission = $this->mission($data['mission'] ?? null);
+        [$cityId, $format, $mission] = $this->all(
+            fn () => $this->activeId(City::class, $data['city_id'] ?? null, 'city_id', 'Choisissez une ville dans la liste.', keep: $zumra->city_id),
+            fn () => $this->format($data['format'] ?? null),
+            fn () => $this->mission($data['mission'] ?? null),
+        );
 
         $zumra->update(['city_id' => $cityId, 'format' => $format, 'mission' => $mission]);
+    }
+
+    /**
+     * Exécute chaque contrôle, et ne lève qu'à la fin une seule erreur qui les réunit.
+     *
+     * @return array<int, mixed>
+     *
+     * @throws ValidationException
+     */
+    private function all(callable ...$checks): array
+    {
+        $values = [];
+        $errors = [];
+
+        foreach ($checks as $check) {
+            try {
+                $values[] = $check();
+            } catch (ValidationException $e) {
+                $errors = [...$errors, ...$e->errors()];
+                $values[] = null;
+            }
+        }
+
+        if ($errors !== []) {
+            throw ValidationException::withMessages($errors);
+        }
+
+        return $values;
+    }
+
+    private function name(?string $name): string
+    {
+        $name = Normalizer::display((string) $name);
+
+        if (mb_strlen($name) < Zumra::NAME_MIN || mb_strlen($name) > Zumra::NAME_MAX) {
+            throw ValidationException::withMessages(['name' => 'Le nom doit avoir entre '.Zumra::NAME_MIN.' et '.Zumra::NAME_MAX.' caractères.']);
+        }
+
+        return $name;
     }
 
     private function nameTaken(): ValidationException
