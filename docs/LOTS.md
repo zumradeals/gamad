@@ -11,7 +11,7 @@ lot en « Terminé ».
 | 1 | Personne | **Terminé** (marqué terminé le 2026-10-23 sur instruction du Président) |
 | 2 | Fil global et gestes | **Terminé** (PR 2a, 2b et 2c fusionnées, marqué terminé par le Président le 2026-10-23) |
 | 3 | ZUMRA | **Terminé** (PR 3a, 3b et 3c fusionnées, marqué terminé le 2026-10-23 sur instruction du Président) |
-| 4 | Projets | À venir |
+| 4 | Projets | **En cours** |
 | 5 | Ouverture (pilote) | À venir |
 | 6 | Contributions mensuelles | À venir |
 
@@ -300,11 +300,34 @@ archivée, images, liens cliquables, e-mails de notification.
 
 ---
 
-## Lot 4 — Projets (À venir)
+## Lot 4 — Projets (En cours)
 
-Projet dans une ZUMRA ; Monde du projet et page publique ; équipe, étapes, réalisations, besoins, soutiens ;
-Carrefour Projets.
-Terminé quand un visiteur sans compte comprend où en est un projet réel en moins d'une minute.
+Maquettes : aucune fournie ; écrans dessinés à partir du gabarit Monde (D-129). Décisions : D-005, D-126 à D-129.
+Livré en trois Pull Requests, chacune relue puis fusionnée avant la suivante (D-126).
+
+**Périmètre :**
+
+*PR 4a — Créer et trouver*
+1. Projet (`Project`) rattaché à une seule ZUMRA : nom, but, état (idée · en cours · terminé · abandonné), domaine et lieu repris de la ZUMRA.
+2. Création et modification par le fondateur et les responsables de la ZUMRA (D-127), avec journal des changements d'état.
+3. Monde du projet : en-tête (nom, ZUMRA, état) et onglet Avancement ; page publique lisible sans compte.
+4. Onglet Projets de la ZUMRA et compte réel de projets dans son en-tête.
+5. Carrefour Projets (recherche, filtres domaine, ville et état) et filtre « Projets » du Fil.
+
+*PR 4b — Avancer*
+6. Étapes d'un projet (à faire · en cours · franchie), ordonnées, gérées par les responsables.
+7. Avancées (`project_update`) et réalisations (`achievement`) publiées au nom du projet, onglet Fil du projet, présentes dans le Fil global.
+8. Avancement affiché à partir des étapes réelles, jamais d'un pourcentage inventé.
+
+*PR 4c — Équipe, besoins et soutiens*
+9. Équipe : membres de la ZUMRA désignés ou admis sur demande « Je veux participer » (D-128), onglet Équipe.
+10. Besoins du projet : besoins publiés au nom du projet, onglet Besoins.
+11. Geste « Je soutiens » sur une avancée : engagement réel compté (« 4 personnes soutiennent »), jamais un « j'aime ».
+12. Notifications et « À faire maintenant » des responsables du projet.
+
+**Hors périmètre :** investissement, paiement, startup issue d'un projet (voir `docs/PLUS-TARD.md`).
+
+**Terminé quand** un visiteur sans compte comprend où en est un projet réel en moins d'une minute.
 
 ## Lot 5 — Ouverture (À venir)
 
