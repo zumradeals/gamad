@@ -113,11 +113,17 @@ it('ne propose que les filtres Tout, Besoins, Savoirs, Apprendre et Aides : Proj
     expect(array_values(array_filter($filtres)))->toBe(['Tout', 'Besoins', 'Savoirs', 'Apprendre', 'Aides']);
 });
 
-it('n’affiche ni Commenter, ni Partager, ni Signaler, ni compteur d’approbation', function () {
+it('n’affiche ni Commenter, ni Partager, ni compteur d’approbation, et « Signaler » seulement sur la publication d’un autre', function () {
     publication(User::factory()->create(), data: ['body' => 'Un besoin']);
 
-    fil()->assertDontSeeText('Commenter')->assertDontSeeText('Partager')->assertDontSeeText('Signaler')
-        ->assertDontSeeText('J’aime')->assertDontSeeText('Like')->assertDontSee('aria-label="Signaler"', false);
+    fil()->assertDontSeeText('Commenter')->assertDontSeeText('Partager')
+        ->assertDontSeeText('J’aime')->assertDontSeeText('Like')->assertSeeText('Signaler');
+
+    // Sur sa propre publication, on ne se signale pas soi-même.
+    $moi = User::factory()->create();
+    publication($moi, data: ['body' => 'Mon besoin à moi']);
+    $html = Livewire::actingAs($moi)->test(Fil::class)->html();
+    expect(substr_count($html, 'Signaler'))->toBe(1);
 });
 
 it('ne montre que les publications visibles pour celui qui regarde, règle côté serveur', function () {

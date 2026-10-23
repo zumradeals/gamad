@@ -23,6 +23,36 @@
         <x-status>{{ session('status') }}</x-status>
     @endif
 
+    @if ($publication->isHidden() && ($isAuthor || ($viewer && $viewer->can('moderate'))))
+        <section aria-labelledby="masquee" class="flex flex-col gap-2.5 rounded-card border border-danger bg-card p-4">
+            <h2 id="masquee" class="text-[15px] font-extrabold text-danger">Cette publication est masquée</h2>
+            <p class="text-[14px] leading-normal"><strong>Motif :</strong> {{ $publication->hidden_reason }}</p>
+            @if ($isAuthor)
+                <p class="text-[13px] leading-normal text-muted">Personne d’autre que vous et la modération ne la voit. Vous pouvez vous expliquer : la modération lira votre explication avant de décider.</p>
+                <form wire:submit="explain" class="flex flex-col gap-2" x-data="{ n: {{ mb_strlen($explanation) }} }">
+                    <label for="explication" class="text-[14px] font-extrabold">Votre explication</label>
+                    <textarea id="explication" wire:model="explanation" rows="4" maxlength="{{ \App\Services\Moderation::EXPLANATION_MAX }}" x-on:input="n = $el.value.length"
+                              @class(['w-full rounded-button border bg-card px-3.5 py-3 text-[15px]', $errors->has('explanation') ? 'border-danger' : 'border-chip-line'])
+                              @if ($errors->has('explanation')) aria-invalid="true" aria-describedby="explication-erreur" @endif></textarea>
+                    <div class="flex justify-between gap-2">
+                        @error('explanation')
+                            <p id="explication-erreur" role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>
+                        @else
+                            <span></span>
+                        @enderror
+                        <span class="text-[12px] text-muted"><span x-text="n"></span> / {{ \App\Services\Moderation::EXPLANATION_MAX }}</span>
+                    </div>
+                    <x-button wire:loading.attr="disabled" wire:target="explain">{{ $publication->explained_at ? 'Mettre à jour mon explication' : 'Envoyer mon explication' }}</x-button>
+                    @if ($publication->explained_at)
+                        <p class="text-[12px] text-muted">Explication envoyée. Vous pouvez la modifier tant que la publication est masquée.</p>
+                    @endif
+                </form>
+            @else
+                <a href="{{ route('moderation', ['onglet' => 'masquees']) }}" class="inline-flex min-h-11 items-center text-[14px] font-bold">Ouvrir la file de modération</a>
+            @endif
+        </section>
+    @endif
+
     @if ($isAuthor)
         <section aria-label="Ma publication" class="flex flex-col gap-2.5 rounded-card border border-line bg-card p-4">
             <div class="flex items-center justify-between gap-2">

@@ -37,12 +37,20 @@ class Publication extends Model
             'type' => PublicationType::class,
             'need_state' => NeedState::class,
             'resolved_at' => 'datetime',
+            'hidden_at' => 'datetime',
+            'explained_at' => 'datetime',
         ];
     }
 
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author_id');
+    }
+
+    /** La personne de la modération qui a masqué la publication (vide si son compte n'existe plus). */
+    public function hider(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'hidden_by');
     }
 
     public function domain(): BelongsTo
@@ -65,6 +73,11 @@ class Publication extends Model
         return $this->hasOne(Gratitude::class);
     }
 
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class);
+    }
+
     public function gestures(): HasMany
     {
         return $this->hasMany(Gesture::class);
@@ -73,10 +86,21 @@ class Publication extends Model
     /**
      * Publications que `$viewer` a le droit de voir (D-085, règle côté serveur) : celles d'une personne dont l'adresse e-mail
      * est vérifiée, publiques pour tout le monde, « inscrits seulement » pour une personne connectée et vérifiée ; chacun voit
-     * toujours les siennes. Même règle que App\Policies\PublicationPolicy::view().
+     * toujours les siennes. Une publication masquée n'est vue que par son auteur et la modération. Même règle que App\Policies\PublicationPolicy::view().
      */
     public function scopeVisibleTo(Builder $query, ?User $viewer): Builder
     {
+        // Une publication masquée n'existe plus que pour son auteur et la modération (D-089).
+        if (! $viewer?->can('moderate')) {
+            $query->where(function (Builder $query) use ($viewer) {
+                $query->whereNull('hidden_at');
+
+                if ($viewer) {
+                    $query->orWhere('author_id', $viewer->getKey());
+                }
+            });
+        }
+
         return $query->where(function (Builder $query) use ($viewer) {
             $query->where(function (Builder $query) use ($viewer) {
                 $query->whereHas('author', fn (Builder $author) => $author->whereNotNull('email_verified_at'));
@@ -92,6 +116,12 @@ class Publication extends Model
         });
     }
 
+    /** Masquée par la modération (D-089) : seuls son auteur et la modération la voient encore. */
+    public function isHidden(): bool
+    {
+        return $this->hidden_at !== null;
+    }
+
     public function isNeed(): bool
     {
         return $this->type === PublicationType::Need;
@@ -105,6 +135,10 @@ class Publication extends Model
     /** Un besoin résolu ou fermé ne reçoit plus de geste ; les autres types restent toujours ouverts. */
     public function acceptsGestures(): bool
     {
+        if ($this->isHidden()) {
+            return false;
+        }
+
         return ! $this->isNeed() || ($this->need_state?->isActive() ?? false);
     }
 

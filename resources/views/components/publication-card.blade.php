@@ -4,7 +4,7 @@
     - viewer      : la personne qui regarde (ou null)
     - gesture     : son geste sur cette publication (ou null)
     - link        : vrai pour ajouter un lien vers la page de la publication (Fil)
-    Pas de « Commenter », de « Partager » ni de « Signaler » : ils ne font pas partie de ce lot (D-090).
+    Pas de « Commenter » ni de « Partager » : ils ne font pas partie de ce lot (D-090). « Signaler » s'ajoute pour qui est connecté.
 --}}
 @props(['publication', 'viewer' => null, 'gesture' => null, 'link' => true])
 
@@ -70,6 +70,10 @@
 
     @if ($live > 0)
         <span class="text-[13px] font-semibold text-muted">{{ $type->factLabel($live) }}</span>
+    @endif
+
+    @if ($viewer && ! $isOwner)
+        <a href="{{ route('publications.signaler', $publication) }}" class="inline-flex min-h-11 items-center self-start text-[13px] font-semibold text-muted underline hover:text-ink">Signaler</a>
     @endif
 
     @if ($isOwner)

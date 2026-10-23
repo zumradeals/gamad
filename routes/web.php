@@ -5,6 +5,7 @@ use App\Http\Controllers\PersonController;
 use App\Livewire\CarrefourPersonnes;
 use App\Livewire\Espace;
 use App\Livewire\Fil;
+use App\Livewire\FileModeration;
 use App\Livewire\ModifierProfil;
 use App\Livewire\PageConversation;
 use App\Livewire\PageNotifications;
@@ -13,6 +14,7 @@ use App\Livewire\Parametres;
 use App\Livewire\ParametresDomaines;
 use App\Livewire\ParametresTerritoires;
 use App\Livewire\PublierPublication;
+use App\Livewire\SignalerPublication;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => auth()->check() ? redirect()->route('fil') : view('pages.welcome'))->name('home');
@@ -30,6 +32,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/fil', Fil::class)->name('fil');
     Route::view('/agir', 'pages.agir')->name('agir');
     Route::get('/agir/{slug}', PublierPublication::class)->name('agir.publier');
+    Route::get('/publications/{publication}/signaler', SignalerPublication::class)->whereUuid('publication')->name('publications.signaler');
+    Route::get('/moderation', FileModeration::class)->middleware('can:moderate')->name('moderation');
     Route::get('/conversations/{conversation}', PageConversation::class)->whereUuid('conversation')->name('conversations.show');
     Route::get('/notifications', PageNotifications::class)->name('notifications');
     Route::get('/notifications/{notification}', [NotificationController::class, 'open'])->whereUuid('notification')->name('notifications.open');

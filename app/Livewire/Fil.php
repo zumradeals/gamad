@@ -60,6 +60,8 @@ class Fil extends Component
 
         $posts = Publication::query()
             ->visibleTo($viewer)
+            // Une publication masquée n'apparaît jamais dans le Fil, même à son auteur ni à la modération (D-089).
+            ->whereNull('hidden_at')
             ->when($filter !== 'tout', fn ($query) => $query->where('type', self::FILTERS[$filter]->value))
             ->with(['author.profile', 'domain', 'city', 'skills'])
             ->withCount(['gestures as live_gestures_count' => fn ($query) => $query->whereIn('state', [GestureState::Sent->value, GestureState::Accepted->value])])
