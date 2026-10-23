@@ -326,7 +326,20 @@ Il vous faut le **compte 1** (fondateur), le **compte 2** (membre de la ZUMRA), 
 
 **Ce qui doit marcher de bout en bout (fin du Lot 4).** Un visiteur sans compte comprend où en est un projet réel en moins d'une minute : état, but, étapes franchies, avancées publiques, nombre de personnes de l'équipe et de soutiens.
 
-## 14. Ce qu'il faut regarder à chaque écran
+## 14. Essayer le Lot 5, première étape (5a) : accueil public, charte et mentions légales
+
+Il vous faut votre compte de **super administrateur** et une fenêtre privée (visiteur sans compte).
+
+1. **Accueil public.** Fenêtre privée, ouvrez l'adresse du site : accroche, **Créer un compte** / **Se connecter**, « Comment cela marche » (quatre cartes), « Ce que GAMAD ne fait pas ». Une section « Ce qui se passe en ce moment » montre le nombre réel de personnes, de ZUMRA et de projets, et les plus récents ; sur un site vide, elle n'apparaît pas. Aucun lien « Charte » ni « Mentions légales » n'est visible : rien n'est adopté.
+2. **Lire les projets de textes.** Super administrateur : **Espace → Administration → Paramètres → Charte et mentions légales**. **Lire la charte** ouvre le projet, marqué « Projet de charte, non adopté ». Dans la fenêtre privée, `/charte` répond « page introuvable ».
+3. **Mentions légales.** Renseignez l'éditeur, le responsable de la publication, l'adresse e-mail de contact et l'hébergeur, **Enregistrer les champs**, puis **Lire les mentions légales**. Le bouton **Adopter les mentions légales** ne marche qu'une fois les quatre champs remplis.
+4. **Adopter.** **Adopter la charte** (confirmation Oui/Non) : la charte devient publique, avec sa date. Dans la fenêtre privée, les liens **Charte de conduite** (et **Mentions légales** une fois adoptées) apparaissent en pied de page, et la page s'ouvre.
+5. **Inscription.** Dans la fenêtre privée, **Créer un compte** demande maintenant de cocher « J'ai lu et j'accepte la charte de conduite » (lien vers la charte) : sans la case, l'inscription est refusée avec un message. **Retirer l'adoption** remet tout comme avant (page introuvable, case absente).
+6. Chaque adoption, retrait et changement de champ est inscrit au journal d'administration (lisible dès la PR 5b).
+
+**Ce qui n'existe pas encore :** lecture du journal et suspension d'une personne (5b) ; sauvegardes hors serveur et préparation du pilote (5c). Les personnes déjà inscrites ne sont pas invitées à accepter la charte (voir D-150).
+
+## 15. Ce qu'il faut regarder à chaque écran
 
 - [ ] Le texte se lit sans zoomer, rien ne dépasse de l'écran, aucun défilement de côté.
 - [ ] Les boutons sont faciles à toucher du pouce.
@@ -334,7 +347,7 @@ Il vous faut le **compte 1** (fondateur), le **compte 2** (membre de la ZUMRA), 
 - [ ] Les messages d'erreur sont clairs et en français.
 - [ ] Tout bouton ou lien visible mène à une vraie page.
 
-## 15. Les mises à jour se font toutes seules
+## 16. Les mises à jour se font toutes seules
 
 Chaque fois qu'un changement est fusionné dans `main`, le site se met à jour tout seul en **5 à 10 minutes** : rechargez la page après ce délai.
 Si une mise à jour échoue, la version actuelle reste en ligne et l'échec est noté dans un journal côté serveur ; si une mise à jour
@@ -343,7 +356,7 @@ sait revenir en arrière (voir `deploy/LISEZMOI.md`, réservé à l'administrati
 
 Les données sont sauvegardées chaque nuit (7 jours conservés).
 
-## 16. Ce qui n'existe pas encore (c'est normal)
+## 17. Ce qui n'existe pas encore (c'est normal)
 
 la consultation du journal d'administration, « Commenter », « Partager », « Suivre », « Inviter », recherche générale, paiement : ces modules sont masqués tant que leur lot
 n'est pas construit.

@@ -112,6 +112,13 @@ Police unique : **Plus Jakarta Sans** (graisses 400, 500, 600, 700, 800), auto-h
     « Demandes de participation » avec Accepter · Décliner, « Ajouter des membres de la ZUMRA », Retirer de l'équipe avec
     confirmation) et **Besoins** (cartes de besoin, lien « Publier un besoin » pour les gestionnaires). Sur une avancée, le
     bouton « Je soutiens » (ou « Vous soutenez cette avancée » + « Retirer mon soutien ») et le fait « N personnes soutiennent ».
+11. **Accueil public** (Lot 5a, D-148) : gabarit visiteur élargi (1 100 px) sans carte autour du contenu ; accroche en grand,
+    deux boutons côte à côte sur ordinateur ; quatre cartes « Comment cela marche » (une colonne sur téléphone, deux puis
+    quatre sur ordinateur) ; rangée de chiffres réels et cartes de ZUMRA et de projets (masquées sans donnée) ; carte « Ce
+    que GAMAD ne fait pas » ; pied de page des textes adoptés.
+12. **Pages de texte** (Lot 5a, D-149) : charte et mentions légales en articles de lecture (largeur de 920 px), titres
+    numérotés ; un bandeau « Projet … non adopté » visible du seul Président avant l'adoption ; la date d'adoption sous
+    le titre ensuite.
 
 ## 5. Règles d'interface
 
