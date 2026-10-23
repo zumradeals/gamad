@@ -7,20 +7,23 @@
 #
 # Il copie la sauvegarde locale la plus récente (base, .env, photos de profil) vers un stockage objet compatible S3 qui
 # n'appartient pas au serveur, à travers rclone. Les fichiers sont chiffrés AVANT de quitter le serveur (rclone « crypt » :
-# contenu et noms de fichiers) : le fournisseur du stockage ne lit rien. La clé de chiffrement est dérivée d'une phrase de
-# secours que le Président conserve hors du serveur : sans elle, personne ne peut relire les copies.
+# contenu et noms de fichiers) : le fournisseur du stockage ne lit rien. La clé de chiffrement est une phrase de secours que
+# le Président conserve hors du serveur : sans elle, personne ne peut relire les copies.
 #
-# Les accès au stockage ne sont jamais dans le dépôt : ils sont saisis sur le serveur par « configurer » et gardés dans
-# /etc/gamad-reseau/rclone.conf, lisible par l'administrateur seul.
+# Les accès au stockage ne sont ni dans le dépôt ni dans ce script : le Président les saisit dans Espace → Paramètres → Copie
+# hors serveur (D-155). Ils sont chiffrés en base ; à chaque lancement, ce script demande à l'application sa configuration rclone
+# (php artisan gamad:copie-configuration), la range dans un fichier temporaire à droits restreints et le supprime à la fin.
 #
 # Commandes :
 #   copier               (par défaut, lancée chaque nuit) copie et vérifie la dernière sauvegarde, puis retire les copies
 #                        de plus de 15 jours ; rien n'est supprimé avant que la nouvelle copie soit vérifiée.
-#   configurer           enregistre le stockage, génère la phrase de secours, teste l'écriture puis la relecture.
 #   etat                 dit si la copie est configurée, la dernière réussite, le dernier échec, le dernier essai.
 #   telecharger DOSSIER  rapatrie la dernière copie (déchiffrée) dans un dossier neuf, pour restaurer à la main.
 #   essai-restauration   rapatrie la dernière copie, la restaure dans une base temporaire, compte ce qu'elle contient,
 #                        puis supprime la base temporaire. Ne touche jamais à la base de production.
+#
+# L'état (dernière copie réussie, dernier essai, dernier incident) est aussi écrit dans un petit fichier lisible par l'application,
+# qui l'affiche dans Espace → Paramètres → Copie hors serveur.
 
 set -Eeuo pipefail
 umask 077
@@ -32,7 +35,11 @@ CONF="${GAMAD_CONF:-/etc/gamad-reseau/deploy.conf}"
 
 LOG_FILE_OFFSITE="${LOG_FILE_OFFSITE:-/var/log/gamad-reseau/copie-hors-serveur.log}"
 OFFSITE_KEEP_DAYS="${OFFSITE_KEEP_DAYS:-15}"
-RCLONE_CONF="${GAMAD_RCLONE_CONF:-/etc/gamad-reseau/rclone.conf}"
+# Fichier d'état lu par l'application (une ligne « clé=valeur » par information).
+STATE_FILE="${GAMAD_BACKUP_STATE_FILE:-/var/lib/gamad-reseau/copie-etat}"
+# GAMAD_RCLONE_CONF (essais) désigne un fichier de configuration rclone déjà prêt ; sinon il est demandé à l'application.
+RCLONE_CONF="${GAMAD_RCLONE_CONF:-}"
+CONFIGURE="non"
 # Une sauvegarde locale plus ancienne que cela (en jours) n'est pas copiée : c'est la sauvegarde qui est en panne.
 LOCALE_MAX_AGE_DAYS=2
 DISTANT="gamad-copie:"
@@ -41,8 +48,10 @@ TMP=""
 
 journal() { printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >>"$LOG_FILE_OFFSITE"; }
 dire() { printf '%s\n' "$*"; }
+CONF_TEMP=""
 nettoyer() {
     if [ -n "$TMP" ]; then rm -rf "$TMP"; fi
+    if [ -n "$CONF_TEMP" ]; then rm -f "$CONF_TEMP"; fi
 }
 trap nettoyer EXIT
 en_cas_d_echec() {
@@ -51,6 +60,7 @@ en_cas_d_echec() {
     [ "$BASHPID" = "$$" ] || exit 1
     trap - ERR
     journal "ÉCHEC ($COMMANDE, ligne $ligne)."
+    etat_ecrire dernier_echec "$(date -Iseconds)|ÉCHEC ($COMMANDE, ligne $ligne), voir $LOG_FILE_OFFSITE" || true
     printf 'ÉCHEC (%s, ligne %s). Détails : %s\n' "$COMMANDE" "$ligne" "$LOG_FILE_OFFSITE" >&2
     exit 1
 }
@@ -60,6 +70,9 @@ trap 'en_cas_d_echec $LINENO' ERR
 refuser() {
     trap - ERR
     journal "REFUS ($COMMANDE) : $*"
+    case "$COMMANDE" in
+        copier | telecharger | essai-restauration) etat_ecrire dernier_echec "$(date -Iseconds)|$(printf '%s' "$*" | tr -d '\n\r|"\\' | cut -c1-200)" || true ;;
+    esac
     printf '%s\n' "$*" >&2
     exit 1
 }
@@ -69,12 +82,41 @@ mkdir -p "$(dirname "$LOG_FILE_OFFSITE")"
 # Délais courts : un stockage injoignable doit donner une réponse nette, pas une attente de plusieurs minutes.
 rc() { rclone --config "$RCLONE_CONF" --retries 3 --low-level-retries 3 --contimeout 15s --timeout 120s "$@"; }
 
+# Écrit une information dans le fichier d'état (remplace l'ancienne valeur de la même clé). Sans dossier d'état, on ne fait rien :
+# l'état est une commodité d'affichage, jamais une raison de faire échouer la copie.
+etat_ecrire() {
+    local cle=$1 valeur=$2 dossier tmp
+    dossier="$(dirname "$STATE_FILE")"
+    [ -d "$dossier" ] && [ -w "$dossier" ] || return 0
+    tmp="$(mktemp "$dossier/.etat.XXXXXX")"
+    { grep -v "^$cle=" "$STATE_FILE" 2>/dev/null || true; printf '%s=%s\n' "$cle" "$valeur"; } >"$tmp"
+    chmod 644 "$tmp"
+    mv -f "$tmp" "$STATE_FILE"
+}
+
+# Prépare la configuration rclone : fichier fourni (essais) ou demandée à l'application. CONFIGURE vaut « oui » ou « non ».
+charger_configuration() {
+    if [ -n "$RCLONE_CONF" ]; then
+        if [ -f "$RCLONE_CONF" ]; then CONFIGURE="oui"; fi
+        return 0
+    fi
+    local code=0
+    CONF_TEMP="$(mktemp)"
+    RCLONE_CONF="$CONF_TEMP"
+    runuser -u "${APP_USER:-gamad-reseau}" -- "${PHP_BIN:-php}" "$APP_DIR/current/artisan" gamad:copie-configuration >"$CONF_TEMP" 2>/dev/null || code=$?
+    case "$code" in
+        0) CONFIGURE="oui" ;;
+        2) CONFIGURE="non" ;;
+        *) refuser "Impossible de lire la configuration de la copie dans l'application (code $code) : voir $APP_DIR/current/storage/logs." ;;
+    esac
+}
+
 exiger_rclone() {
     command -v rclone >/dev/null 2>&1 || refuser "rclone n'est pas installé sur ce serveur. Relancez la ligne d'installation de GAMAD, ou installez-le avec : sudo apt-get install -y rclone"
 }
 
 exiger_configuration() {
-    [ -f "$RCLONE_CONF" ] || refuser "La copie hors serveur n'est pas configurée. Lancez : sudo gamad-reseau-copie-hors-serveur configurer"
+    [ "$CONFIGURE" = "oui" ] || refuser "La copie hors serveur n'est pas configurée : renseignez les accès dans Espace → Paramètres → Copie hors serveur."
 }
 
 # Dernier fichier d'une sorte dans le dossier de sauvegarde locale (les noms portent la date et l'heure).
@@ -92,8 +134,8 @@ dernier_distant() {
 # ───────────────────────────────────────────── copier
 
 copier() {
-    if [ ! -f "$RCLONE_CONF" ]; then
-        journal "Copie hors serveur non configurée : rien n'a été copié. Lancez : sudo gamad-reseau-copie-hors-serveur configurer"
+    if [ "$CONFIGURE" != "oui" ]; then
+        journal "Copie hors serveur non configurée : rien n'a été copié. Renseignez les accès dans Espace → Paramètres → Copie hors serveur."
         dire "La copie hors serveur n'est pas configurée : rien n'a été copié."
         return 0
     fi
@@ -129,112 +171,8 @@ copier() {
     noms="$(basename "$dump"), $(basename "$env")"
     if [ -n "$photos" ]; then noms="$noms, $(basename "$photos")"; fi
     journal "Copie hors serveur réussie et vérifiée : $noms."
+    etat_ecrire derniere_reussite "$(date -Iseconds)"
     dire "Copie hors serveur réussie et vérifiée : $noms."
-}
-
-# ───────────────────────────────────────────── configurer
-
-demander() {
-    local nom=$1 question=$2 secret=${3:-non} valeur
-    valeur="${!nom:-}"
-    if [ -z "$valeur" ]; then
-        [ -t 0 ] || refuser "Information manquante : $question (variable $nom)."
-        if [ "$secret" = "oui" ]; then
-            read -r -s -p "$question : " valeur
-            printf '\n' >&2
-        else
-            read -r -p "$question : " valeur
-        fi
-    fi
-    printf -v "$nom" '%s' "$valeur"
-}
-
-generer_phrase() {
-    # 32 caractères alphanumériques (environ 190 bits), par groupes de 4 pour être recopiés sans erreur.
-    local brut
-    brut="$(head -c 48 /dev/urandom | base64 | tr -d '=+/\n' | cut -c1-32)"
-    printf '%s' "$brut" | sed -E 's/(.{4})/\1-/g; s/-$//'
-}
-
-configurer() {
-    exiger_rclone
-
-    if [ -f "$RCLONE_CONF" ] && [ "${2:-}" != "--forcer" ]; then
-        refuser "La copie hors serveur est déjà configurée. La reconfigurer avec une autre phrase de secours rendrait illisibles les copies déjà faites. Pour la reconfigurer quand même : sudo gamad-reseau-copie-hors-serveur configurer --forcer"
-    fi
-
-    local GAMAD_S3_ENDPOINT="${GAMAD_S3_ENDPOINT:-}" GAMAD_S3_BUCKET="${GAMAD_S3_BUCKET:-}" GAMAD_S3_ACCESS_KEY="${GAMAD_S3_ACCESS_KEY:-}" GAMAD_S3_SECRET_KEY="${GAMAD_S3_SECRET_KEY:-}" GAMAD_S3_REGION="${GAMAD_S3_REGION:-}"
-    demander GAMAD_S3_ENDPOINT "Adresse du stockage (https://…)"
-    demander GAMAD_S3_BUCKET "Nom du bucket"
-    demander GAMAD_S3_ACCESS_KEY "Clé d'accès"
-    demander GAMAD_S3_SECRET_KEY "Clé secrète (invisible pendant la saisie)" oui
-
-    case "$GAMAD_S3_ENDPOINT" in
-        https://*) ;;
-        # Seul un stockage sur ce même serveur (essais) peut se passer de https.
-        http://127.0.0.1[:/]* | http://localhost[:/]*) ;;
-        *) refuser "L'adresse du stockage doit commencer par https:// : une copie ne doit pas voyager sans chiffrement de la connexion." ;;
-    esac
-    [[ "$GAMAD_S3_BUCKET" =~ ^[a-z0-9][a-z0-9.-]{1,62}$ ]] || refuser "Le nom du bucket n'est pas valide (lettres minuscules, chiffres, points et tirets, de 2 à 63 caractères)."
-    case "$GAMAD_S3_ACCESS_KEY$GAMAD_S3_SECRET_KEY" in
-        *[[:space:]]*) refuser "Les clés d'accès ne doivent contenir aucun espace." ;;
-    esac
-
-    # Phrase de secours : fournie (nouveau serveur, mêmes copies à relire) ou générée.
-    local phrase="${GAMAD_PHRASE_SECOURS:-}" generee="non"
-    if [ -z "$phrase" ]; then
-        phrase="$(generer_phrase)"
-        generee="oui"
-    fi
-    [ "${#phrase}" -ge 16 ] || refuser "La phrase de secours est trop courte (16 caractères au moins)."
-
-    local mot1 sel mot2
-    mot1="$(printf '%s' "$phrase" | rclone obscure -)"
-    sel="$(printf '%s' "gamad-sel:$phrase" | sha256sum | cut -c1-40)"
-    mot2="$(printf '%s' "$sel" | rclone obscure -)"
-
-    local ancien=""
-    if [ -f "$RCLONE_CONF" ]; then
-        ancien="$(mktemp)"
-        cp "$RCLONE_CONF" "$ancien"
-    fi
-    mkdir -p "$(dirname "$RCLONE_CONF")"
-    {
-        printf '[gamad-s3]\ntype = s3\nprovider = Other\nenv_auth = false\n'
-        printf 'access_key_id = %s\nsecret_access_key = %s\nendpoint = %s\n' "$GAMAD_S3_ACCESS_KEY" "$GAMAD_S3_SECRET_KEY" "$GAMAD_S3_ENDPOINT"
-        if [ -n "$GAMAD_S3_REGION" ]; then printf 'region = %s\n' "$GAMAD_S3_REGION"; fi
-        printf '\n[gamad-copie]\ntype = crypt\nremote = gamad-s3:%s/gamad-reseau\n' "$GAMAD_S3_BUCKET"
-        printf 'filename_encryption = standard\ndirectory_name_encryption = true\npassword = %s\npassword2 = %s\n' "$mot1" "$mot2"
-    } >"$RCLONE_CONF"
-    chmod 600 "$RCLONE_CONF"
-
-    # Essai réel : écrire, relire et effacer un petit fichier à travers le chiffrement. Sans cela, la configuration n'est pas gardée.
-    local temoin="gamad-essai-$(date +%s)" lu="" erreur=""
-    if erreur="$(printf '%s' "$temoin" | rc rcat "${DISTANT}essai/connexion.txt" 2>&1)"; then
-        lu="$(rc cat "${DISTANT}essai/connexion.txt" 2>/dev/null || true)"
-        rc deletefile "${DISTANT}essai/connexion.txt" 2>/dev/null || true
-    fi
-    if [ "$lu" != "$temoin" ]; then
-        if [ -n "$ancien" ]; then cp "$ancien" "$RCLONE_CONF"; rm -f "$ancien"; else rm -f "$RCLONE_CONF"; fi
-        # La réponse de rclone ne contient jamais les clés : elle explique le refus (accès, bucket, réseau).
-        journal "Essai d'écriture refusé par le stockage : $(printf '%s' "$erreur" | tail -n 1)"
-        refuser "Le stockage n'a pas accepté l'essai d'écriture et de relecture : vérifiez l'adresse, le nom du bucket et les clés. Rien n'a été enregistré."
-    fi
-    if [ -n "$ancien" ]; then rm -f "$ancien"; fi
-
-    journal "Copie hors serveur configurée : stockage $GAMAD_S3_ENDPOINT, bucket $GAMAD_S3_BUCKET. Essai d'écriture et de relecture réussi."
-    dire "Copie hors serveur configurée : l'essai d'écriture et de relecture a réussi."
-    if [ "$generee" = "oui" ]; then
-        dire ""
-        dire "PHRASE DE SECOURS — à noter maintenant, hors de ce serveur (gestionnaire de mots de passe, papier en lieu sûr) :"
-        dire ""
-        dire "    $phrase"
-        dire ""
-        dire "Elle ne sera plus jamais affichée. Sans elle, les copies sont illisibles pour tout le monde, y compris pour GAMAD."
-        dire "Avec elle, un nouveau serveur peut relire toutes les copies : configurer → essai-restauration."
-    fi
-    dire ""
-    dire "Étape suivante : sudo gamad-reseau-copie-hors-serveur copier   (puis essai-restauration)"
 }
 
 # ───────────────────────────────────────────── telecharger, essai de restauration
@@ -302,6 +240,7 @@ essai_restauration() {
     fi
 
     journal "ESSAI DE RESTAURATION RÉUSSI : $NOM_DUMP restauré dans une base temporaire ($tables tables, $migrations migrations, $personnes personnes), puis supprimée ; $NOM_ENV lisible${NOM_PHOTOS:+ ; $NOM_PHOTOS lisible}."
+    etat_ecrire dernier_essai "$(date -Iseconds)"
     dire "ESSAI DE RESTAURATION RÉUSSI : $NOM_DUMP"
     dire "  base restaurée : $tables tables, $migrations migrations, $personnes personnes (base d'essai supprimée)"
     dire "  fichier .env lisible : $NOM_ENV"
@@ -316,9 +255,9 @@ derniere_ligne() {
 }
 
 etat() {
-    if [ ! -f "$RCLONE_CONF" ]; then
+    if [ "$CONFIGURE" != "oui" ]; then
         dire "Copie hors serveur : NON CONFIGURÉE. Aucune copie n'existe hors du serveur."
-        dire "Pour la configurer : sudo gamad-reseau-copie-hors-serveur configurer"
+        dire "Pour la configurer : Espace → Paramètres → Copie hors serveur."
         return 0
     fi
     local reussite echec essai
@@ -336,10 +275,15 @@ etat() {
 }
 
 case "$COMMANDE" in
+    copier | etat | telecharger | essai-restauration) ;;
+    *) refuser "Commande inconnue : $COMMANDE. Commandes : copier, etat, telecharger, essai-restauration." ;;
+esac
+
+charger_configuration
+
+case "$COMMANDE" in
     copier) copier ;;
-    configurer) configurer "$@" ;;
     etat) etat ;;
     telecharger) telecharger "${2:-}" ;;
     essai-restauration) essai_restauration ;;
-    *) refuser "Commande inconnue : $COMMANDE. Commandes : copier, configurer, etat, telecharger, essai-restauration." ;;
 esac

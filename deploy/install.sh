@@ -940,10 +940,8 @@ resume() {
     - copie hors serveur : $LOG_DIR/copie-hors-serveur.log
 
   Copie hors serveur (à faire avant d'inviter des personnes) : tant qu'elle n'est pas configurée, aucune sauvegarde
-  n'existe hors de ce serveur. Avec les accès de votre stockage compatible S3 :
-    sudo gamad-reseau-copie-hors-serveur configurer
-    sudo gamad-reseau-copie-hors-serveur copier
-    sudo gamad-reseau-copie-hors-serveur essai-restauration
+  n'existe hors de ce serveur. Sur le site : Espace > Paramètres > Copie hors serveur, avec les accès de votre
+  stockage compatible S3 (ils sont essayés avant d'être enregistrés).
 
   En cas de problème après une mise à jour :
     sudo gamad-reseau-retour-arriere        (revient à la version précédente)

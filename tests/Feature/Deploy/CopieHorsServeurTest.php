@@ -1,6 +1,11 @@
 <?php
 
+use App\Models\User;
+use App\Services\BackupStorage;
+use App\Services\Settings;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Process;
+use Illuminate\Validation\ValidationException;
 
 /*
  * Essais de deploy/copie-hors-serveur.sh avec le vrai rclone : le « stockage distant » est un dossier local derrière le même
@@ -309,10 +314,65 @@ it('refuse une commande inconnue', function () {
     expect($r['code'])->toBe(1)->and($r['sortie'])->toContain('Commande inconnue');
 })->skip(fn () => ! rcloneDisponible(), 'rclone absent');
 
-// ─── Configurer (vrai serveur compatible S3 pour l'essai) ────────────────────
+// ─── Configuration demandée à l'application, état écrit pour l'application ───
+
+it('demande sa configuration à l’application quand aucun fichier n’est fourni, et supprime le fichier temporaire', function () {
+    $env = preparerCopie();
+    $conf = file_get_contents("$env[dossier]/rclone.conf");
+    unlink("$env[dossier]/rclone.conf");
+    // Faux « php artisan » : écrit la configuration préparée, ou sort avec le code demandé.
+    file_put_contents("$env[faux]/php", "#!/bin/sh\ncase \"\$FAUX_ARTISAN_CODE\" in\n\"\") cat \"$env[dossier]/conf-appli\";;\n*) exit \"\$FAUX_ARTISAN_CODE\";;\nesac\n");
+    chmod("$env[faux]/php", 0755);
+    file_put_contents("$env[dossier]/conf-appli", $conf);
+    file_put_contents("$env[dossier]/deploy.conf", file_get_contents("$env[dossier]/deploy.conf")."APP_USER=gamad-reseau\nPHP_BIN=php\n");
+
+    $avant = glob(sys_get_temp_dir().'/tmp.*') ?: [];
+    $r = lancerCopie($env, 'copier', [], ['GAMAD_RCLONE_CONF' => '']);
+
+    expect($r['code'])->toBe(0)->and($r['sortie'])->toContain('Copie hors serveur réussie et vérifiée')->and(fichiersDistants($env))->toHaveCount(3);
+    expect(array_diff(glob(sys_get_temp_dir().'/tmp.*') ?: [], $avant))->toBe([]);
+
+    // Code 2 : pas configurée (ce n'est pas une panne) ; autre code : panne.
+    $nonConfiguree = lancerCopie($env, 'copier', [], ['GAMAD_RCLONE_CONF' => '', 'FAUX_ARTISAN_CODE' => '2']);
+    expect($nonConfiguree['code'])->toBe(0)->and($nonConfiguree['sortie'])->toContain('n\'est pas configurée');
+
+    $panne = lancerCopie($env, 'copier', [], ['GAMAD_RCLONE_CONF' => '', 'FAUX_ARTISAN_CODE' => '1']);
+    expect($panne['code'])->toBe(1)->and($panne['sortie'])->toContain('Impossible de lire la configuration');
+})->skip(fn () => ! rcloneDisponible(), 'rclone absent');
+
+it('écrit l’état pour l’application : dernière réussite, dernier essai, dernier incident', function () {
+    $env = preparerCopie();
+    mkdir("$env[dossier]/etat");
+    $variables = ['GAMAD_BACKUP_STATE_FILE' => "$env[dossier]/etat/copie-etat"];
+
+    lancerCopie($env, 'copier', [], $variables);
+    $etat = file_get_contents("$env[dossier]/etat/copie-etat");
+    expect($etat)->toMatch('/^derniere_reussite=\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/m')->not->toContain('dernier_essai')->not->toContain('dernier_echec');
+    expect(decoct(fileperms("$env[dossier]/etat/copie-etat") & 0777))->toBe('644');
+
+    lancerCopie($env, 'essai-restauration', [], $variables);
+    expect(file_get_contents("$env[dossier]/etat/copie-etat"))->toMatch('/^dernier_essai=/m')->toMatch('/^derniere_reussite=/m');
+
+    // Un refus s'écrit sans guillemets ni barre verticale ; la dernière réussite reste.
+    Process::run(['rm', '-f', ...glob("$env[dossier]/sauvegardes/*.dump")]);
+    lancerCopie($env, 'copier', [], $variables);
+    $apres = file_get_contents("$env[dossier]/etat/copie-etat");
+    expect($apres)->toMatch('/^dernier_echec=\d{4}-[^|]+\|Aucune sauvegarde locale/m')->toMatch('/^derniere_reussite=/m');
+    expect(substr_count($apres, 'derniere_reussite='))->toBe(1);
+})->skip(fn () => ! rcloneDisponible(), 'rclone absent');
+
+it('ne fait pas échouer la copie quand le dossier d’état n’existe pas', function () {
+    $env = preparerCopie();
+
+    $r = lancerCopie($env, 'copier', [], ['GAMAD_BACKUP_STATE_FILE' => "$env[dossier]/absent/copie-etat"]);
+
+    expect($r['code'])->toBe(0)->and(file_exists("$env[dossier]/absent"))->toBeFalse();
+})->skip(fn () => ! rcloneDisponible(), 'rclone absent');
+
+// ─── Chaîne complète avec un vrai serveur compatible S3 (moto) ───────────────
 
 /**
- * Lance moto sur un port libre, crée le bucket, exécute le callback puis arrête le serveur.
+ * Lance moto sur un port libre, crée le bucket, exécute l'essai puis arrête le serveur.
  *
  * @param  callable(string $adresse): mixed  $essai
  */
@@ -321,6 +381,9 @@ function avecStockageS3(callable $essai): mixed
     $port = random_int(20000, 40000);
     $serveur = Process::start([motoServeur(), '-p', (string) $port]);
     $adresse = "http://127.0.0.1:$port";
+    // Un certificat d'autorité de l'environnement de développement fait échouer certaines versions de rclone : hors de portée de l'essai.
+    $ancien = getenv('AWS_CA_BUNDLE');
+    putenv('AWS_CA_BUNDLE');
 
     try {
         for ($i = 0; $i < 50; $i++) {
@@ -332,103 +395,67 @@ function avecStockageS3(callable $essai): mixed
 
         $conf = tempnam(sys_get_temp_dir(), 'gamad-s3-');
         file_put_contents($conf, "[s]\ntype = s3\nprovider = Other\nenv_auth = false\naccess_key_id = cle\nsecret_access_key = secret\nendpoint = $adresse\n");
-        Process::env(['AWS_CA_BUNDLE' => '', 'NO_PROXY' => '127.0.0.1'])->run(['rclone', '--config', $conf, 'mkdir', 's:gamad-essai'])->throw();
+        Process::env(['NO_PROXY' => '127.0.0.1'])->run(['rclone', '--config', $conf, 'mkdir', 's:gamad-essai'])->throw();
         unlink($conf);
 
         return $essai($adresse);
     } finally {
         $serveur->stop();
+        if ($ancien !== false) {
+            putenv("AWS_CA_BUNDLE=$ancien");
+        }
     }
 }
 
-function configurerS3(array $env, string $adresse, array $variables = []): array
-{
-    return lancerCopie($env, 'configurer', [], $variables + [
-        'GAMAD_S3_ENDPOINT' => $adresse, 'GAMAD_S3_BUCKET' => 'gamad-essai',
-        'GAMAD_S3_ACCESS_KEY' => 'cle-d-acces-de-test', 'GAMAD_S3_SECRET_KEY' => 'SECRET-TRES-SECRET',
-    ]);
-}
-
-it('configure un vrai stockage S3 : essai d’écriture, phrase de secours affichée une fois, accès protégés, copie puis rapatriement', function () {
+it('chaîne complète avec un vrai S3 : accès saisis dans l’application, copie chiffrée, rapatriement avec la seule phrase, essai de restauration', function () {
+    $admin = User::factory()->superAdmin()->create(['password' => 'motdepasse-solide']);
     $env = preparerCopie(['configure' => false]);
 
-    avecStockageS3(function (string $adresse) use ($env) {
-        $r = configurerS3($env, $adresse);
+    avecStockageS3(function (string $adresse) use ($admin, $env) {
+        $stockage = app(BackupStorage::class);
+        $phrase = $stockage->save($admin, ['endpoint' => $adresse, 'bucket' => 'gamad-essai', 'access_key' => 'cle-d-acces', 'secret_key' => 'cle-secrete']);
+        expect($phrase)->not->toBeNull()->and($stockage->configured())->toBeTrue();
 
-        expect($r['code'])->toBe(0)->and($r['sortie'])->toContain('l\'essai d\'écriture et de relecture a réussi')->toContain('PHRASE DE SECOURS');
-        preg_match('/^\s{4}([A-Za-z0-9]{4}(?:-[A-Za-z0-9]{4}){7})$/m', $r['sortie'], $phrase);
-        expect($phrase)->not->toBeEmpty();
-
-        // Les accès sont dans un fichier lisible par l'administrateur seul ; la phrase n'y figure pas en clair, ni au journal.
-        $conf = "$env[dossier]/rclone.conf";
-        expect(decoct(fileperms($conf) & 0777))->toBe('600')
-            ->and(file_get_contents($conf))->toContain('cle-d-acces-de-test')->not->toContain($phrase[1]);
-        expect($r['journal'])->not->toContain($phrase[1])->not->toContain('SECRET-TRES-SECRET');
-
-        // Copie et rapatriement à travers le vrai S3.
-        expect(lancerCopie($env)['code'])->toBe(0);
+        // Ce que le script reçoit de l'application, puis la copie et l'essai de restauration à travers le vrai S3.
+        file_put_contents("$env[dossier]/rclone.conf", $stockage->rcloneConfig());
+        expect(lancerCopie($env)['sortie'])->toContain('Copie hors serveur réussie et vérifiée');
         expect(lancerCopie($env, 'essai-restauration')['sortie'])->toContain('ESSAI DE RESTAURATION RÉUSSI');
 
-        // Nouveau serveur : mêmes accès, même phrase → les copies sont lisibles. Autre phrase → rien de lisible.
+        // Chez le fournisseur : rien de lisible.
+        $contenu = Process::env(['NO_PROXY' => '127.0.0.1'])->run(['bash', '-c', 'curl -s --noproxy "*" '.escapeshellarg("$adresse/gamad-essai?list-type=2")])->output();
+        expect($contenu)->not->toContain('gamad_essai')->not->toContain('photos-2026');
+
+        // Nouveau serveur, mêmes accès, MÊME PHRASE : les copies se relisent. Une autre phrase ne relit rien.
+        DB::table('settings')->where('key', 'like', 'backup_%')->delete();
+        app()->forgetInstance(Settings::class);
+        app()->singleton(Settings::class);
         $nouveau = preparerCopie(['configure' => false, 'sauvegarde' => false, 'env' => false, 'photos' => false]);
-        $ok = configurerS3($nouveau, $adresse, ['GAMAD_PHRASE_SECOURS' => $phrase[1]]);
-        expect($ok['code'])->toBe(0)->and($ok['sortie'])->not->toContain('PHRASE DE SECOURS');
+        $stockageNeuf = app(BackupStorage::class);
+        $stockageNeuf->save($admin, ['endpoint' => $adresse, 'bucket' => 'gamad-essai', 'access_key' => 'cle-d-acces', 'secret_key' => 'cle-secrete', 'passphrase' => $phrase]);
+        file_put_contents("$nouveau[dossier]/rclone.conf", $stockageNeuf->rcloneConfig());
         $relu = lancerCopie($nouveau, 'telecharger', ["$nouveau[dossier]/retour"]);
         expect($relu['code'])->toBe(0)->and(file_get_contents("$nouveau[dossier]/retour/gamad_essai-2026-10-23_033000.dump"))->toBe("FAUX-DUMP-SECRET\n");
 
+        DB::table('settings')->where('key', 'like', 'backup_%')->delete();
+        app()->forgetInstance(Settings::class);
+        app()->singleton(Settings::class);
         $autre = preparerCopie(['configure' => false, 'sauvegarde' => false, 'env' => false, 'photos' => false]);
-        configurerS3($autre, $adresse, ['GAMAD_PHRASE_SECOURS' => 'une-autre-phrase-de-secours-tres-longue']);
+        $stockageAutre = app(BackupStorage::class);
+        $stockageAutre->save($admin, ['endpoint' => $adresse, 'bucket' => 'gamad-essai', 'access_key' => 'cle-d-acces', 'secret_key' => 'cle-secrete', 'passphrase' => 'une-autre-phrase-de-secours-longue']);
+        file_put_contents("$autre[dossier]/rclone.conf", $stockageAutre->rcloneConfig());
         $illisible = lancerCopie($autre, 'telecharger', ["$autre[dossier]/retour"]);
         expect($illisible['code'])->toBe(1)->and($illisible['sortie'])->toContain('Aucune copie de la base lisible');
     });
 })->skip(fn () => ! rcloneDisponible() || motoServeur() === null, 'rclone ou moto absent');
 
-it('refuse de reconfigurer sans --forcer, et garde l’ancienne configuration si le nouvel essai échoue', function () {
-    $env = preparerCopie(['configure' => false]);
+it('refuse d’enregistrer des accès quand le vrai stockage est injoignable, et n’enregistre rien', function () {
+    $admin = User::factory()->superAdmin()->create();
 
-    avecStockageS3(function (string $adresse) use ($env) {
-        expect(configurerS3($env, $adresse)['code'])->toBe(0);
-        $avant = file_get_contents("$env[dossier]/rclone.conf");
+    $erreur = rescue(fn () => app(BackupStorage::class)->save($admin, ['endpoint' => 'http://127.0.0.1:1', 'bucket' => 'gamad-essai', 'access_key' => 'a-a-a', 'secret_key' => 'SECRET-DE-L-ESSAI-RATE']), fn ($e) => $e, false);
 
-        $refus = configurerS3($env, $adresse);
-        expect($refus['code'])->toBe(1)->and($refus['sortie'])->toContain('déjà configurée')->toContain('--forcer')->and(file_get_contents("$env[dossier]/rclone.conf"))->toBe($avant);
-
-        $echec = lancerCopie($env, 'configurer', ['--forcer'], [
-            'GAMAD_S3_ENDPOINT' => 'http://127.0.0.1:1', 'GAMAD_S3_BUCKET' => 'gamad-essai',
-            'GAMAD_S3_ACCESS_KEY' => 'a', 'GAMAD_S3_SECRET_KEY' => 'SECRET-DE-L-ESSAI-RATE',
-        ]);
-        expect($echec['code'])->toBe(1)->and($echec['sortie'])->toContain('Rien n\'a été enregistré')
-            ->and(file_get_contents("$env[dossier]/rclone.conf"))->toBe($avant)
-            ->and($echec['journal'])->not->toContain('SECRET-DE-L-ESSAI-RATE');
-    });
-})->skip(fn () => ! rcloneDisponible() || motoServeur() === null, 'rclone ou moto absent');
-
-it('n’enregistre rien quand le stockage refuse l’essai d’écriture', function () {
-    $env = preparerCopie(['configure' => false]);
-
-    $r = configurerS3($env, 'http://127.0.0.1:1');
-
-    expect($r['code'])->toBe(1)->and($r['sortie'])->toContain('Rien n\'a été enregistré')->and(file_exists("$env[dossier]/rclone.conf"))->toBeFalse()
-        ->and($r['journal'])->not->toContain('SECRET-TRES-SECRET');
+    expect($erreur)->toBeInstanceOf(ValidationException::class)->and($erreur->errors()['storage'][0])->toContain('Rien n’a été enregistré')->not->toContain('SECRET-DE-L-ESSAI-RATE');
+    expect(DB::table('settings')->where('key', 'like', 'backup_%')->count())->toBe(0);
 })->skip(fn () => ! rcloneDisponible(), 'rclone absent');
-
-it('valide les informations du stockage avant tout essai', function (array $variables, string $message) {
-    $env = preparerCopie(['configure' => false]);
-
-    $r = lancerCopie($env, 'configurer', [], $variables + [
-        'GAMAD_S3_ENDPOINT' => 'https://s3.exemple.test', 'GAMAD_S3_BUCKET' => 'gamad-copies',
-        'GAMAD_S3_ACCESS_KEY' => 'cle', 'GAMAD_S3_SECRET_KEY' => 'secret',
-    ]);
-
-    expect($r['code'])->toBe(1)->and($r['sortie'])->toContain($message)->and(file_exists("$env[dossier]/rclone.conf"))->toBeFalse();
-})->with([
-    'adresse sans chiffrement' => [['GAMAD_S3_ENDPOINT' => 'http://s3.exemple.test'], 'doit commencer par https://'],
-    'adresse locale lookalike' => [['GAMAD_S3_ENDPOINT' => 'http://127.0.0.1.exemple.test'], 'doit commencer par https://'],
-    'bucket invalide' => [['GAMAD_S3_BUCKET' => 'Mauvais Nom/avec espace'], 'Le nom du bucket n\'est pas valide'],
-    'clé avec espace' => [['GAMAD_S3_SECRET_KEY' => 'a b'], 'ne doivent contenir aucun espace'],
-    'phrase trop courte' => [['GAMAD_PHRASE_SECOURS' => 'courte'], 'trop courte'],
-    'information manquante' => [['GAMAD_S3_ACCESS_KEY' => ''], 'Information manquante'],
-])->skip(fn () => ! rcloneDisponible(), 'rclone absent');
 
 // ─── Installation ────────────────────────────────────────────────────────────
 
@@ -438,7 +465,7 @@ it('installe la copie hors serveur avec son minuteur nocturne, sa commande et sa
 
     expect($install)
         ->toContain('command -v rclone >/dev/null 2>&1 || A_INSTALLER+=(rclone)')
-        ->toContain('copie-hors-serveur.sh "$LIB_DIR/copie-hors-serveur.sh"')
+        ->toContain('"$LIB_DIR/copie-hors-serveur.sh"')
         ->toContain('/usr/local/sbin/gamad-reseau-copie-hors-serveur')
         ->toContain('gamad-reseau-copie-hors-serveur.service')
         ->toContain('OnCalendar=*-*-* 04:30:00')
@@ -453,7 +480,8 @@ it('installe la copie hors serveur avec son minuteur nocturne, sa commande et sa
 it('ne met aucun accès ni aucune phrase de secours dans le dépôt', function () {
     $script = file_get_contents(base_path('deploy/copie-hors-serveur.sh'));
 
-    expect($script)->toContain('chmod 600 "$RCLONE_CONF"')
-        ->and($script)->toContain('rclone obscure -')
-        ->and($script)->not->toMatch('/(secret_access_key|access_key_id)\s*=\s*[A-Za-z0-9]{12,}/');
+    expect($script)->toContain('gamad:copie-configuration')
+        ->toContain('rm -f "$CONF_TEMP"')
+        ->and($script)->not->toMatch('/(secret_access_key|access_key_id)\s*=\s*[A-Za-z0-9]{12,}/')
+        ->and($script)->not->toContain('configurer()');
 });

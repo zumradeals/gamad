@@ -42,6 +42,13 @@ jobs:
           node-version: 22
           cache: npm
 
+      - name: Installer rclone et un serveur S3 de test (essais de la copie hors serveur)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq rclone
+          python3 -m pip install --quiet "moto[server]"
+          echo "GAMAD_MOTO_SERVER=$(python3 -c 'import shutil;print(shutil.which("moto_server") or "")')" >> "$GITHUB_ENV"
+
       - name: Installer les dépendances PHP
         run: composer install --no-interaction --prefer-dist --no-progress
 

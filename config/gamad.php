@@ -41,4 +41,9 @@ return [
         // Jours laissés à une personne pour s'expliquer après un avis de la modération, avant qu'une suspension soit possible (D-152).
         'explanation_days' => 7,
     ],
+
+    'backup' => [
+        // Fichier d'état écrit par la copie nocturne (deploy/copie-hors-serveur.sh) et lu par Espace → Paramètres → Copie hors serveur.
+        'state_file' => env('GAMAD_BACKUP_STATE_FILE', '/var/lib/gamad-reseau/copie-etat'),
+    ],
 ];
