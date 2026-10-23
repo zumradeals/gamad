@@ -12,15 +12,19 @@
         @forelse ($notifications as $notification)
             @php
                 $actor = $notification->actor;
-                $about = $notification->publication ? \Illuminate\Support\Str::limit($notification->publication->body, 40) : null;
+                $about = $notification->kind->isAboutZumra()
+                    ? $notification->zumra?->name
+                    : ($notification->publication ? \Illuminate\Support\Str::limit($notification->publication->body, 40) : null);
                 $isUnread = $notification->read_at === null;
             @endphp
             <a wire:key="notification-{{ $notification->id }}" href="{{ route('notifications.open', $notification) }}"
                @class(['flex min-h-14 items-center gap-3 rounded-card border p-3.5 text-ink no-underline hover:text-ink', 'border-line bg-card' => ! $isUnread, 'border-chip-line bg-soft-blue' => $isUnread])>
-                <span class="flex size-11 shrink-0 items-center justify-center rounded-full bg-type-learning-bg text-[15px] font-extrabold text-type-learning-fg" aria-hidden="true">{{ $actor?->initials() ?: '?' }}</span>
+                <span class="flex size-11 shrink-0 items-center justify-center rounded-full bg-type-learning-bg text-[15px] font-extrabold text-type-learning-fg" aria-hidden="true">{{ $notification->kind->showsActor() ? ($actor?->initials() ?: '?') : 'ZU' }}</span>
                 <span class="flex min-w-0 flex-1 flex-col gap-0.5">
                     <span class="break-words text-[14px] leading-snug">
-                        <strong class="font-extrabold">{{ $actor?->name ?? 'Personne supprimée' }}</strong>
+                        @if ($notification->kind->showsActor())
+                            <strong class="font-extrabold">{{ $actor?->name ?? 'Personne supprimée' }}</strong>
+                        @endif
                         {{ $notification->kind->sentence($about) }}
                         @if ($isUnread)<span class="sr-only"> (non lue)</span>@endif
                     </span>

@@ -27,6 +27,10 @@
                 <p class="whitespace-pre-line break-words text-[15px] leading-relaxed">{{ $profile->bio }}</p>
             @endif
 
+            @foreach ($inviteZumras as $inviteZumra)
+                <x-button :href="route('zumras.invite', [$inviteZumra, 'personne' => $profile->public_id])" variant="secondary">{{ $inviteZumras->count() === 1 ? 'Inviter dans ma ZUMRA' : 'Inviter dans '.$inviteZumra->name }}</x-button>
+            @endforeach
+
             @if ($isOwner)
                 <x-button :href="route('espace.profil')" variant="secondary">Modifier mon profil</x-button>
                 @unless ($profile->isPublic())

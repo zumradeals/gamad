@@ -130,3 +130,12 @@ function ajouteMembre(Zumra $zumra, User $personne, ZumraRole $role = ZumraRole:
 
     return $membre;
 }
+
+/** Une demande d'adhésion acceptée par le fondateur : la personne devient membre. */
+function admis(Zumra $zumra, User $personne): ZumraMembership
+{
+    $demande = app(\App\Services\JoinRequests::class)->propose($personne, $zumra);
+    app(\App\Services\JoinRequests::class)->accept($zumra->memberships()->where('role', 'founder')->first()->user, $demande);
+
+    return $zumra->memberships()->where('user_id', $personne->id)->first();
+}

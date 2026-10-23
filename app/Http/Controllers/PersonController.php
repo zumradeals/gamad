@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Profile;
+use App\Models\Zumra;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -17,7 +18,18 @@ class PersonController extends Controller
 
         $profile->load(['user', 'country', 'city', 'offeredSkills', 'wantedSkills', 'domains']);
 
-        return view('pages.personne', ['profile' => $profile, 'isOwner' => auth()->id() === $profile->user_id]);
+        $viewer = auth()->user();
+        $isOwner = $viewer?->getKey() === $profile->user_id;
+
+        // « Inviter dans ma ZUMRA » (D-110) : les ZUMRA que le visiteur gère et où cette personne n'est pas encore.
+        $inviteZumras = $viewer && ! $isOwner && $viewer->hasVerifiedEmail()
+            ? Zumra::query()
+                ->whereHas('memberships', fn ($query) => $query->where('user_id', $viewer->getKey())->whereIn('role', ['founder', 'manager']))
+                ->whereDoesntHave('memberships', fn ($query) => $query->where('user_id', $profile->user_id))
+                ->orderBy('name_key')->get()
+            : collect();
+
+        return view('pages.personne', ['profile' => $profile, 'isOwner' => $isOwner, 'inviteZumras' => $inviteZumras]);
     }
 
     /**

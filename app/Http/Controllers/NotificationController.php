@@ -28,6 +28,11 @@ class NotificationController extends Controller
                 : ($publication && Gate::forUser($user)->allows('view', $publication) ? route('publications.show', $publication) : null),
             NotificationKind::GestureReceived => $publication && Gate::forUser($user)->allows('view', $publication) ? route('publications.show', $publication) : null,
             NotificationKind::GratitudeReceived => route('personnes.show', $user->ensureProfile()->public_id),
+            NotificationKind::PublicationHidden, NotificationKind::PublicationRestored => $publication && Gate::forUser($user)->allows('view', $publication) ? route('publications.show', $publication) : null,
+            // Toutes les notifications d'une ZUMRA mènent à son Monde (la ZUMRA est publique : elle existe pour tous).
+            NotificationKind::ZumraRequestReceived, NotificationKind::ZumraRequestAccepted, NotificationKind::ZumraInvitationReceived,
+            NotificationKind::ZumraInvitationAccepted, NotificationKind::ZumraRoleGranted, NotificationKind::ZumraMemberRemoved,
+            NotificationKind::ZumraFounderTransferred => $notification->zumra ? route('zumras.show', $notification->zumra) : null,
         };
 
         // Ce que la notification annonçait n'existe plus (publication ou conversation supprimée) : retour à la liste.

@@ -66,10 +66,10 @@ it('respecte la visibilité du profil : le nom d’un membre est un lien vers so
     expect($html)->toContain(route('personnes.show', $discret->profile->public_id));
 });
 
-it('masque ce qui n’existe pas encore : Je veux rejoindre, Suivre, Projets, Formation, Fil, Discussion, Reconnue', function () {
+it('masque ce qui n’existe pas encore : Suivre, Projets, Formation, Fil, Discussion, Reconnue', function () {
     $this->actingAs($this->awa)->get(route('zumras.show', $this->zumra))->assertOk()
-        ->assertDontSeeText('Je veux rejoindre')->assertDontSeeText('Suivre')->assertDontSeeText('Projet')->assertDontSeeText('Formation')
-        ->assertDontSeeText('Discussion')->assertDontSeeText('Reconnue')->assertDontSeeText('Inviter')->assertDontSeeText('Savoirs partagés');
+        ->assertDontSeeText('Suivre')->assertDontSeeText('Projet')->assertDontSeeText('Formation')
+        ->assertDontSeeText('Discussion')->assertDontSeeText('Reconnue')->assertDontSeeText('Savoirs partagés');
 });
 
 it('montre « Modifier la ZUMRA » au fondateur et aux responsables seulement', function () {
