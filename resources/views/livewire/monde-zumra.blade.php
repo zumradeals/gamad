@@ -168,7 +168,8 @@
                         $profile?->setRelation('user', $person);
                         $canSee = $profile && Gate::forUser($viewer)->allows('view', $profile);
                     @endphp
-                    <li wire:key="membre-{{ $membership->id }}" class="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+                    <li wire:key="membre-{{ $membership->id }}" class="flex flex-col gap-2 py-2.5 first:pt-0 last:pb-0" x-data="{ confirming: false }">
+                        <div class="flex items-center gap-3">
                         @if ($canSee)
                             <x-avatar :profile="$profile" :size="44" />
                         @else
@@ -187,13 +188,13 @@
                         @if ($membership->role !== \App\Enums\ZumraRole::Member)
                             <span class="rounded-chip bg-type-call-bg px-2.5 py-1 text-[12px] font-bold text-type-call-fg">{{ $membership->role->label() }}</span>
                         @endif
-                    </li>
+                        </div>
                     @if ($manages && $membership->role !== \App\Enums\ZumraRole::Founder && $membership->user_id !== $viewer->getKey())
                         @php
                             $mayRemove = $membership->role === \App\Enums\ZumraRole::Member || $role === \App\Enums\ZumraRole::Founder;
                             $isFounder = $role === \App\Enums\ZumraRole::Founder;
                         @endphp
-                        <li wire:key="actions-{{ $membership->id }}" class="flex flex-wrap gap-2 pb-2.5" x-data="{ confirming: false }">
+                        <div class="flex flex-wrap gap-2">
                             @if ($isFounder)
                                 @if ($membership->role === \App\Enums\ZumraRole::Member)
                                     <x-button type="button" variant="secondary" wire:click="promote('{{ $membership->id }}')" wire:loading.attr="disabled" wire:target="promote, demote, removeMember" class="!px-4 !text-[14px]">Nommer responsable</x-button>
@@ -209,8 +210,9 @@
                                     <x-button type="button" variant="secondary" x-on:click="confirming = false" class="!px-4 !text-[14px]">Annuler</x-button>
                                 </span>
                             @endif
-                        </li>
+                        </div>
                     @endif
+                    </li>
                 @endforeach
             </ul>
         @else
