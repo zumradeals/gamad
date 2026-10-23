@@ -19,6 +19,8 @@ final class Registry
 
     public const GROUP_WALLET = 'portefeuille';
 
+    public const GROUP_PAYMENT = 'paiement';
+
     /** @var array<string, Definition>|null */
     private static ?array $definitions = null;
 
@@ -69,6 +71,18 @@ final class Registry
             ]),
             new Definition('wallet_max_balance_person', self::GROUP_WALLET, 'Solde maximum d’une personne (ZAHAB)', Definition::INTEGER, 500000, ['required', 'integer', 'between:1,100000000']),
             new Definition('wallet_max_balance_zumra', self::GROUP_WALLET, 'Solde maximum d’une ZUMRA (ZAHAB)', Definition::INTEGER, 5000000, ['required', 'integer', 'between:1,1000000000']),
+
+            // Recharge par GeniusPay (Lot 6b, D-169) : clés saisies par le Président ; mode d'essai tant qu'il n'a pas décidé autrement.
+            new Definition('geniuspay_mode', self::GROUP_PAYMENT, 'Mode', Definition::ENUM, 'sandbox', ['required', 'in:sandbox,live'], [
+                'sandbox' => 'Essai : paiements simulés, aucun argent réel',
+                'live' => 'Réel : de l’argent réel circule',
+            ]),
+            new Definition('geniuspay_base_url', self::GROUP_PAYMENT, 'Adresse de l’API', Definition::STRING, 'https://geniuspay.ci/api/v1/merchant', ['required', 'url:https', 'max:255']),
+            new Definition('geniuspay_api_key', self::GROUP_PAYMENT, 'Clé publique', Definition::STRING, null, ['nullable', 'regex:/^pk_(sandbox|live)_[A-Za-z0-9_]+$/', 'max:255']),
+            new Definition('geniuspay_api_secret', self::GROUP_PAYMENT, 'Clé secrète', Definition::SECRET, null, ['nullable', 'regex:/^sk_(sandbox|live)_[A-Za-z0-9_]+$/', 'max:255']),
+            new Definition('geniuspay_webhook_secret', self::GROUP_PAYMENT, 'Secret du webhook', Definition::SECRET, null, ['nullable', 'regex:/^whsec_[A-Za-z0-9_]+$/', 'max:255']),
+            new Definition('wallet_recharge_min', self::GROUP_PAYMENT, 'Recharge minimum (ZAHAB)', Definition::INTEGER, 500, ['required', 'integer', 'between:200,1000000']),
+            new Definition('wallet_recharge_max', self::GROUP_PAYMENT, 'Recharge maximum (ZAHAB)', Definition::INTEGER, 200000, ['required', 'integer', 'between:200,100000000']),
         ])->keyBy(fn (Definition $definition) => $definition->key)->all();
     }
 

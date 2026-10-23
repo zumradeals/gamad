@@ -16,6 +16,34 @@
         <p class="text-[13px] text-muted">1 ZAHAB = 1 FCFA. Les ZAHAB se dépensent dans le réseau ; il n’y a ni transfert entre personnes ni retrait pour l’instant.</p>
     </section>
 
+    @if ($returnedPayment && $returnedPayment->status === \App\Enums\PaymentStatus::Completed && $returnedPayment->credit_entry_id)
+        <x-status>Recharge confirmée : {{ $format($returnedPayment->amount) }} ZAHAB ajoutés.</x-status>
+    @elseif ($returnedPayment && in_array($returnedPayment->status, [\App\Enums\PaymentStatus::Failed, \App\Enums\PaymentStatus::Cancelled, \App\Enums\PaymentStatus::Expired], true))
+        <x-status tone="error">Le paiement n’a pas abouti : rien n’a été débité et aucun ZAHAB n’a été ajouté.</x-status>
+    @endif
+
+    @if ($pending->isNotEmpty())
+        <section wire:poll.10s="refresh" aria-labelledby="attente" class="flex flex-col gap-1 rounded-card border border-line bg-type-call-bg p-4 md:p-[18px]">
+            <h2 id="attente" class="text-[16px] font-extrabold text-type-call-fg">Paiement en attente de confirmation</h2>
+            <p class="text-[14px]">{{ $pending->count() > 1 ? $pending->count().' recharges attendent' : 'Une recharge attend' }} la confirmation du prestataire ({{ $format($pending->sum('amount')) }} ZAHAB). Vos ZAHAB arrivent dès qu’il la confirme ; cette page se met à jour toute seule.</p>
+        </section>
+    @endif
+
+    @if ($canRecharge)
+        <form wire:submit="recharge" aria-labelledby="recharger" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
+            <h2 id="recharger" class="text-[18px] font-extrabold">Recharger</h2>
+            @if ($sandbox)
+                <p class="rounded-button border border-line bg-type-call-bg px-3 py-2 text-[13px] font-semibold text-type-call-fg" data-testid="mode-essai">Mode d’essai : le paiement est simulé, aucun argent réel n’est débité.</p>
+            @endif
+            <x-wire-field name="amount" label="Montant en ZAHAB" inputmode="numeric" autocomplete="off"
+                          :hint="'Entre '.$format($limits[0]).' et '.$format($limits[1]).' ZAHAB. 1 ZAHAB = 1 FCFA. Vous payez sur la page sécurisée de GeniusPay (Wave, Orange Money, MTN, Moov ou carte).'" />
+            <x-button wire:loading.attr="disabled" wire:target="recharge">
+                <span wire:loading.remove wire:target="recharge">Recharger</span>
+                <span wire:loading wire:target="recharge">Ouverture du paiement…</span>
+            </x-button>
+        </form>
+    @endif
+
     <section aria-labelledby="mouvements" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
         <h2 id="mouvements" class="text-[18px] font-extrabold">Mouvements</h2>
         <div wire:loading.delay wire:target="gotoPage,nextPage,previousPage" class="text-[14px] text-muted">Chargement…</div>

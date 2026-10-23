@@ -444,6 +444,20 @@ Aucun argent ne circule dans cette étape : la recharge vient avec la 6b. Vous c
 
 **Ce qui n'existe pas encore :** recharge Mobile Money (6b), contribution mensuelle, badges, financement (6c), transfert entre personnes, retrait.
 
+## 18c. Essayer le Lot 6, deuxième étape (6b) : recharge en mode d'essai
+
+Il vous faut vos clés GeniusPay d'**essai** (commençant par `pk_sandbox_` et `sk_sandbox_`) et un téléphone. Aucun argent réel : GeniusPay simule les paiements.
+
+1. **Clés.** Espace → Paramètres → **Paiement**. Saisissez la clé publique, la clé secrète, l'adresse de l'API (la valeur proposée suffit si GeniusPay ne vous en a pas donné une autre) puis **Enregistrer**. Les clés ne se réaffichent plus. Touchez **Essayer la connexion** : le nom de votre compte marchand doit apparaître.
+2. **Webhook.** Copiez l'adresse affichée sous « Adresse du webhook » dans le tableau de bord GeniusPay (événements : réussi, échoué, annulé, remboursé), copiez le secret qu'il vous donne (`whsec_…`) dans « Secret du webhook » et enregistrez. Sans lui, les ZAHAB arrivent quand même, mais seulement quand la personne revient sur sa page ou que vous touchez « Rapprocher maintenant ».
+3. **Recharger.** Dans **Mon portefeuille**, la carte **Recharger** annonce « Mode d'essai ». Saisissez 1 000, touchez **Recharger** : vous arrivez sur la page de paiement de GeniusPay. Terminez le paiement simulé : vous revenez sur votre portefeuille, « Recharge confirmée » s'affiche et le solde monte. Un montant sous 500 ou au-dessus du plafond est refusé sous le champ.
+4. **Annuler.** Recommencez et abandonnez le paiement : rien n'est crédité, un message le dit.
+5. **ZUMRA.** Le fondateur ou un responsable peut recharger le **portefeuille de la ZUMRA** de la même façon ; un simple membre ne le voit pas.
+6. **Suivi.** Espace → Paramètres → Paiement → **Voir les paiements** : le rapprochement doit dire « Le registre correspond aux paiements confirmés ». Aucun nom n'apparaît. Les cas anormaux (montant différent, plafond dépassé, remboursement impossible à débiter) sont dans « À examiner ».
+7. **Terminer les essais.** Avant le mode réel : **Terminer les essais** remet à zéro les portefeuilles d'essai. Le passage au mode réel exige une case cochée et refuse tant qu'il reste des ZAHAB d'essai. **Ne passez pas au mode réel** avant l'avis juridique et la désignation de l'entité bénéficiaire.
+
+**Ce qui n'existe pas encore :** la contribution mensuelle, les badges et le financement (6c) ; le rapprochement automatique toutes les dix minutes (il se fait au retour de la personne, à la réception d'un webhook et à la demande).
+
 ## 19. Ce qu'il faut regarder à chaque écran
 
 - [ ] Le texte se lit sans zoomer, rien ne dépasse de l'écran, aucun défilement de côté.

@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias(['wallets' => EnsureWalletsEnabled::class]);
+        $middleware->validateCsrfTokens(except: ['webhooks/geniuspay']);
         $middleware->web(append: [ThrottleRegistration::class, BlockSuspended::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
