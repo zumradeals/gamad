@@ -369,9 +369,9 @@ Décidé par le Président le 2026-10-23, avant le Lot 6 (D-160). Une seule Pull
 
 **Terminé quand** un visiteur et une personne connectée trouvent un besoin émis par une personne, une ZUMRA ou un projet depuis le Carrefour Besoins ; le menu de l'ordinateur affiche cinq entrées ; la fenêtre « Découvrir » du téléphone ouvre les trois Carrefours ; `php artisan test` et la CI passent.
 
-## Lot 6 — Contributions mensuelles et portefeuille ZAHAB (En cours)
+## Lot 6 — Contributions mensuelles et portefeuille ZAHAB (Terminé)
 
-Décisions : D-004, D-163 à D-174 ; D-019 est remplacée par D-166 ; D-171 est tranchée par D-172. Lancé sur « Passe au Lot 6 » du Président le 2026-10-23.
+Décisions : D-004, D-163 à D-174 ; D-019 est remplacée par D-166 ; D-171 est tranchée par D-172. Lancé sur « Passe au Lot 6 » du Président le 2026-10-23. Marqué « Terminé » par le Président le 2026-10-23 (« Marque le lot 6 terminé ») ; les trois Pull Requests (6a, 6b, 6c) sont fusionnées. Le mode réel reste verrouillé : l'avis juridique, l'entité bénéficiaire (D-169, D-172) et la confirmation écrite du Président au passage au réel (D-177) restent des conditions avant tout argent réel.
 
 **Conditions avant l'argent réel (PR 6b et suivantes) :** avis juridique sur le crédit prépayé interne et les fonds détenus pour autrui ; entité juridique bénéficiaire fournie par le Président (D-172) ; compte marchand GeniusPay ouvert par le Président et lecture de sa documentation officielle (D-169). La PR 6a n'en a besoin d'aucune : aucun argent n'y circule. `docs/PRODUIT.md` est aligné (version 1.1).
 
