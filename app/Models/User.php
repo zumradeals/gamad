@@ -39,7 +39,12 @@ class User extends Authenticatable implements MustVerifyEmail
         });
 
         // Une conversation dont les deux personnes ont disparu n'intéresse plus personne.
-        static::deleted(fn () => Conversation::query()->whereNull('owner_id')->whereNull('helper_id')->delete());
+        static::deleted(function () {
+            Conversation::query()->whereNull('owner_id')->whereNull('helper_id')->delete();
+
+            // Une ZUMRA sans personne est supprimée avec son dernier compte (le transfert de la fondation vient en 3b, D-115).
+            Zumra::query()->withoutMembers()->delete();
+        });
     }
 
     public function publications(): HasMany
@@ -50,6 +55,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function gestures(): HasMany
     {
         return $this->hasMany(Gesture::class);
+    }
+
+    public function zumraMemberships(): HasMany
+    {
+        return $this->hasMany(ZumraMembership::class);
     }
 
     public function profile(): HasOne

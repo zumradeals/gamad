@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\PublicationType;
+use App\Enums\ZumraRole;
 use App\Livewire\PageConversation;
 use App\Models\City;
 use App\Models\Conversation;
@@ -8,10 +9,13 @@ use App\Models\Domain;
 use App\Models\Gesture;
 use App\Models\Publication;
 use App\Models\User;
+use App\Models\Zumra;
+use App\Models\ZumraMembership;
 use App\Services\Conversations;
 use App\Services\Gestures;
 use App\Services\ProfileEditor;
 use App\Services\Publications;
+use App\Services\Zumras;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Process;
 use Livewire\Livewire;
@@ -25,7 +29,7 @@ pest()->extend(TestCase::class)
         config([
             'gamad.limits.publications_per_hour' => 10000, 'gamad.limits.publications_per_day' => 10000,
             'gamad.limits.gestures_per_hour' => 10000, 'gamad.limits.gestures_per_day' => 10000,
-            'gamad.limits.reports_per_hour' => 10000, 'gamad.limits.reports_per_day' => 10000,
+            'gamad.limits.zumras_per_day' => 10000, 'gamad.limits.reports_per_hour' => 10000, 'gamad.limits.reports_per_day' => 10000,
             'gamad.limits.messages_per_minute' => 10000, 'gamad.limits.messages_per_day' => 10000,
         ]);
     })
@@ -103,4 +107,26 @@ function ecrire(User $qui, Conversation $conversation, string $texte): void
 function pageConversation(User $qui, Conversation $conversation)
 {
     return Livewire::actingAs($qui)->test(PageConversation::class, ['conversation' => $conversation]);
+}
+
+/** Crée une ZUMRA par le chemin réel (App\Services\Zumras), comme l'écran « Créer une ZUMRA ». */
+function zumra(User $fondateur, string $nom = 'Couture solidaire', array $data = []): Zumra
+{
+    return app(Zumras::class)->create($fondateur, $data + [
+        'name' => $nom,
+        'domain_id' => Domain::query()->where('name', 'Économie et Finances')->value('id'),
+        'format' => 'onsite',
+        'mission' => 'Former des couturières et couturiers, et produire des uniformes scolaires à prix juste.',
+    ]);
+}
+
+/** Ajoute une personne à une ZUMRA avec un rôle, directement en base (l'entrée par demande ou invitation vient en 3b). */
+function ajouteMembre(Zumra $zumra, User $personne, ZumraRole $role = ZumraRole::Member): ZumraMembership
+{
+    $membre = new ZumraMembership(['role' => $role]);
+    $membre->zumra()->associate($zumra);
+    $membre->user()->associate($personne);
+    $membre->save();
+
+    return $membre;
 }

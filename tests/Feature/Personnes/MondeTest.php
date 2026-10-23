@@ -41,7 +41,7 @@ it('affiche un lieu à plusieurs niveaux pour une commune d’Abidjan', function
     $this->get(route('personnes.show', $yao->profile->public_id))->assertSeeText('Abidjan, Cocody, Côte d’Ivoire');
 });
 
-it('ne montre que l’onglet « Apporte · Apprend » : Fil, ZUMRA, Remerciements, Suivre et Inviter sont masqués', function () {
+it('ne montre que l’onglet « Apporte · Apprend » : Remerciements, Suivre et Inviter sont masqués', function () {
     $html = $this->actingAs(User::factory()->create())->get($this->url)->assertOk()->getContent();
 
     expect(onglets($html))->toBe(['Apporte · Apprend']);
@@ -50,7 +50,6 @@ it('ne montre que l’onglet « Apporte · Apprend » : Fil, ZUMRA, Remerciement
         ->assertDontSeeText('Suivre')
         ->assertDontSeeText('Inviter')
         ->assertDontSeeText('Remerciements')
-        ->assertDontSeeText('ZUMRA')
         ->assertDontSeeText('Lot 2')
         ->assertDontSeeText('Lot 3');
 });
