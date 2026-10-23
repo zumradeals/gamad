@@ -11,7 +11,7 @@ lot en « Terminé ».
 | 1 | Personne | **Terminé** (marqué terminé le 2026-10-23 sur instruction du Président) |
 | 2 | Fil global et gestes | **Terminé** (PR 2a, 2b et 2c fusionnées, marqué terminé par le Président le 2026-10-23) |
 | 3 | ZUMRA | **Terminé** (PR 3a, 3b et 3c fusionnées, marqué terminé le 2026-10-23 sur instruction du Président) |
-| 4 | Projets | **En cours** |
+| 4 | Projets | **Terminé** (PR 4a, 4b et 4c fusionnées, marqué terminé le 2026-10-23 sur instruction du Président) |
 | 5 | Ouverture (pilote) | À venir |
 | 6 | Contributions mensuelles | À venir |
 
@@ -300,7 +300,7 @@ archivée, images, liens cliquables, e-mails de notification.
 
 ---
 
-## Lot 4 — Projets (En cours)
+## Lot 4 — Projets (Terminé)
 
 Maquettes : aucune fournie ; écrans dessinés à partir du gabarit Monde (D-129). Décisions : D-005, D-126 à D-129.
 Livré en trois Pull Requests, chacune relue puis fusionnée avant la suivante (D-126).
