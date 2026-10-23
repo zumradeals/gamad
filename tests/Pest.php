@@ -154,3 +154,9 @@ function projet(User $auteur, Zumra $zumra, string $nom = 'Uniformes de la rentr
 {
     return app(Projects::class)->create($auteur, $zumra, $data + ['name' => $nom, 'goal' => 'Coudre 200 uniformes pour trois écoles du quartier.']);
 }
+
+/** La ligne d'appartenance d'une personne à une ZUMRA (son rôle). */
+function ligne(Zumra $zumra, User $personne): ZumraMembership
+{
+    return $zumra->memberships()->where('user_id', $personne->id)->firstOrFail();
+}

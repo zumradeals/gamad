@@ -287,7 +287,18 @@ Il vous faut le **compte 1** (fondateur de la ZUMRA), le **compte 2** (membre de
 
 **Ce qui doit marcher de bout en bout (fin du Lot 3).** Une vraie ZUMRA invite trois personnes selon leurs capacités, publie dans son mini-fil, puis est reconnue ; un visiteur sans compte comprend la ZUMRA depuis le Monde public ; la Discussion n'est lisible que par les membres.
 
-## 11. Ce qu'il faut regarder à chaque écran
+## 11. Essayer le Lot 4, première étape (4a) : créer et trouver un projet
+
+Il vous faut le **compte 1** (fondateur d'une ZUMRA), le **compte 2** (simple membre de cette ZUMRA) et un **visiteur sans compte** (fenêtre privée).
+
+1. Compte 1 : ouvrez votre ZUMRA, onglet **Projets** : « Aucun projet pour l'instant ». Touchez **Créer un projet**, écrivez un nom et un but (500 caractères au plus), **Créer le projet**. La page du projet s'ouvre : état **Idée**, but, histoire « Projet créé comme une idée ».
+2. Sur la page du projet, **Changer l'état du projet** : **Démarrer le projet** (confirmation Oui/Non) puis **Marquer terminé**. Chaque changement s'ajoute à l'histoire, avec la date et votre nom. Une idée ne passe pas directement à « Terminé ».
+3. L'en-tête de la ZUMRA affiche le **nombre réel de projets**. Le compte 2 voit l'onglet Projets et les pages, mais ni **Créer un projet** ni **Modifier le projet**.
+4. Visiteur sans compte : ouvrez l'adresse du projet : tout se lit (nom, ZUMRA, état, but, histoire). **Carrefour ZUMRA → Voir les projets** (ou **Projets** dans la barre d'ordinateur) ouvre le **Carrefour Projets** : recherche, filtres **état**, **domaine** et **ville**, par ordre alphabétique.
+
+**Ce qui n'existe pas encore :** étapes, avancées et réalisations (4b) ; équipe, besoins et soutiens (4c).
+
+## 12. Ce qu'il faut regarder à chaque écran
 
 - [ ] Le texte se lit sans zoomer, rien ne dépasse de l'écran, aucun défilement de côté.
 - [ ] Les boutons sont faciles à toucher du pouce.
@@ -295,7 +306,7 @@ Il vous faut le **compte 1** (fondateur de la ZUMRA), le **compte 2** (membre de
 - [ ] Les messages d'erreur sont clairs et en français.
 - [ ] Tout bouton ou lien visible mène à une vraie page.
 
-## 12. Les mises à jour se font toutes seules
+## 13. Les mises à jour se font toutes seules
 
 Chaque fois qu'un changement est fusionné dans `main`, le site se met à jour tout seul en **5 à 10 minutes** : rechargez la page après ce délai.
 Si une mise à jour échoue, la version actuelle reste en ligne et l'échec est noté dans un journal côté serveur ; si une mise à jour
@@ -304,7 +315,7 @@ sait revenir en arrière (voir `deploy/LISEZMOI.md`, réservé à l'administrati
 
 Les données sont sauvegardées chaque nuit (7 jours conservés).
 
-## 13. Ce qui n'existe pas encore (c'est normal)
+## 14. Ce qui n'existe pas encore (c'est normal)
 
-projets, la consultation du journal d'administration, « Commenter », « Partager », « Suivre », « Inviter », recherche générale, paiement : ces modules sont masqués tant que leur lot
+étapes, avancées, équipe, besoins et soutiens des projets, la consultation du journal d'administration, « Commenter », « Partager », « Suivre », « Inviter », recherche générale, paiement : ces modules sont masqués tant que leur lot
 n'est pas construit.

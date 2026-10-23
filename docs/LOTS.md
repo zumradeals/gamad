@@ -312,11 +312,11 @@ Livré en trois Pull Requests, chacune relue puis fusionnée avant la suivante (
 2. Création et modification par le fondateur et les responsables de la ZUMRA (D-127), avec journal des changements d'état.
 3. Monde du projet : en-tête (nom, ZUMRA, état) et onglet Avancement ; page publique lisible sans compte.
 4. Onglet Projets de la ZUMRA et compte réel de projets dans son en-tête.
-5. Carrefour Projets (recherche, filtres domaine, ville et état) et filtre « Projets » du Fil.
+5. Carrefour Projets (recherche, filtres domaine, ville et état), accessible depuis la barre d'ordinateur et le Carrefour ZUMRA.
 
 *PR 4b — Avancer*
 6. Étapes d'un projet (à faire · en cours · franchie), ordonnées, gérées par les responsables.
-7. Avancées (`project_update`) et réalisations (`achievement`) publiées au nom du projet, onglet Fil du projet, présentes dans le Fil global.
+7. Avancées (`project_update`) et réalisations (`achievement`) publiées au nom du projet, onglet Fil du projet, présentes dans le Fil global avec le filtre « Projets » (reporté depuis la 4a : sans publication de projet, ce filtre serait vide).
 8. Avancement affiché à partir des étapes réelles, jamais d'un pourcentage inventé.
 
 *PR 4c — Équipe, besoins et soutiens*
