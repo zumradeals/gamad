@@ -228,6 +228,7 @@ controles() {
     command -v git >/dev/null 2>&1 || A_INSTALLER+=(git)
     command -v curl >/dev/null 2>&1 || A_INSTALLER+=(curl)
     command -v unzip >/dev/null 2>&1 || A_INSTALLER+=(unzip)
+    command -v rclone >/dev/null 2>&1 || A_INSTALLER+=(rclone)
     command -v openssl >/dev/null 2>&1 || A_INSTALLER+=(openssl)
     command -v composer >/dev/null 2>&1 || A_INSTALLER+=(composer)
     command -v flock >/dev/null 2>&1 || A_INSTALLER+=(util-linux)
@@ -364,7 +365,8 @@ recapitulatif() {
     - un pool PHP-FPM $PHP_V dédié        : $POOL_NOM
     - un site Nginx dédié                 : $DOMAINE
     - le dossier de l'application         : $APP_DIR
-    - le déploiement automatique (toutes les 5 minutes) et la sauvegarde quotidienne de la base (7 jours)
+    - le déploiement automatique (toutes les 5 minutes) et la sauvegarde quotidienne de la base (7 jours), puis, une fois configurée par vous,
+      la copie chiffrée de cette sauvegarde hors du serveur
 
   Je ne modifierai AUCUN autre site, base, pool ni service. Nginx et PHP-FPM seront seulement rechargés
   en douceur, après vérification de leur configuration. Pare-feu : inchangé.
@@ -729,12 +731,14 @@ etape_scripts() {
     [ "$SIMULATION" = "1" ] && { info "[simulation] installerait gamad-deploy, le retour arrière, la sauvegarde, 4 unités systemd et la rotation des journaux"; return 0; }
 
     local src="$APP_DIR/repo/deploy" f
-    for f in deploy.sh retour-arriere.sh sauvegarde.sh desinstaller.sh; do
+    for f in deploy.sh retour-arriere.sh sauvegarde.sh copie-hors-serveur.sh desinstaller.sh; do
         [ -f "$src/$f" ] || arreter "Le dépôt ne contient pas deploy/$f : impossible de continuer."
     done
     install -m 755 -o root -g root "$src/deploy.sh" "$APP_DIR/bin/gamad-deploy"
     install -m 755 -o root -g root "$src/retour-arriere.sh" /usr/local/sbin/gamad-reseau-retour-arriere
     install -m 755 -o root -g root "$src/sauvegarde.sh" "$LIB_DIR/sauvegarde.sh"
+    install -m 755 -o root -g root "$src/copie-hors-serveur.sh" "$LIB_DIR/copie-hors-serveur.sh"
+    ln -sf "$LIB_DIR/copie-hors-serveur.sh" /usr/local/sbin/gamad-reseau-copie-hors-serveur
     install -m 755 -o root -g root "$src/desinstaller.sh" "$LIB_DIR/desinstaller.sh"
 
     local php_bin="/usr/bin/php$PHP_V"
@@ -752,6 +756,8 @@ DB_NAME=$DB_NAME
 BACKUP_DIR=$BACKUP_DIR
 LOG_FILE_BACKUP=$LOG_DIR/sauvegarde.log
 BACKUP_KEEP=7
+LOG_FILE_OFFSITE=$LOG_DIR/copie-hors-serveur.log
+OFFSITE_KEEP_DAYS=15
 E
     [ -n "${GAMAD_HEALTH_BASE:-}" ] && echo "HEALTH_BASE=$GAMAD_HEALTH_BASE" >>"$CONF_FILE"
     chmod 644 "$CONF_FILE"
@@ -810,6 +816,31 @@ RandomizedDelaySec=10min
 [Install]
 WantedBy=timers.target
 E
+    cat <<'E' | rendre >"$UNITES/gamad-reseau-copie-hors-serveur.service"
+[Unit]
+Description=GAMAD — copie chiffrée de la sauvegarde hors du serveur
+After=gamad-reseau-sauvegarde.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=@@LIB_DIR@@/copie-hors-serveur.sh copier
+Nice=15
+IOSchedulingClass=idle
+TimeoutStartSec=2h
+E
+    cat <<'E' >"$UNITES/gamad-reseau-copie-hors-serveur.timer"
+[Unit]
+Description=GAMAD — copie hors serveur chaque nuit, après la sauvegarde
+
+[Timer]
+OnCalendar=*-*-* 04:30:00
+Persistent=true
+RandomizedDelaySec=10min
+
+[Install]
+WantedBy=timers.target
+E
     cat >/etc/logrotate.d/gamad-reseau <<E
 $LOG_DIR/*.log {
     weekly
@@ -857,7 +888,7 @@ etape_president() {
 etape_minuteurs() {
     titre "Activation du déploiement automatique et des sauvegardes"
     [ "$SIMULATION" = "1" ] && { info "[simulation] activerait les deux minuteurs et lancerait une première sauvegarde"; return 0; }
-    systemctl enable --now gamad-reseau-deploy.timer gamad-reseau-sauvegarde.timer >/dev/null 2>&1
+    systemctl enable --now gamad-reseau-deploy.timer gamad-reseau-sauvegarde.timer gamad-reseau-copie-hors-serveur.timer >/dev/null 2>&1
     ok "déploiement automatique actif (toutes les 5 minutes)"
     local derniere_sauvegarde
     if systemctl start gamad-reseau-sauvegarde.service; then
@@ -900,11 +931,19 @@ resume() {
     - dossier de l'application   : $APP_DIR
     - déploiement automatique    : vérifie main toutes les 5 minutes
     - sauvegarde de la base      : chaque nuit, 7 jours conservés, dans $BACKUP_DIR
+    - copie hors serveur         : prévue chaque nuit, mais À CONFIGURER (voir ci-dessous)
 
   Journaux :
     - installation  : $LOG_DIR/installation.log
     - déploiements  : $LOG_DIR/deploy.log
     - sauvegardes   : $LOG_DIR/sauvegarde.log
+    - copie hors serveur : $LOG_DIR/copie-hors-serveur.log
+
+  Copie hors serveur (à faire avant d'inviter des personnes) : tant qu'elle n'est pas configurée, aucune sauvegarde
+  n'existe hors de ce serveur. Avec les accès de votre stockage compatible S3 :
+    sudo gamad-reseau-copie-hors-serveur configurer
+    sudo gamad-reseau-copie-hors-serveur copier
+    sudo gamad-reseau-copie-hors-serveur essai-restauration
 
   En cas de problème après une mise à jour :
     sudo gamad-reseau-retour-arriere        (revient à la version précédente)

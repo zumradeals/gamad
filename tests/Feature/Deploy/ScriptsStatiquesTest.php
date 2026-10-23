@@ -63,7 +63,7 @@ it('compte au moins les trois scripts qui installent un piège d’erreur (ERR)'
     $noms = array_map('basename', scriptsAvecPiegeErr());
     sort($noms);
 
-    expect($noms)->toBe(['deploy.sh', 'install.sh', 'sauvegarde.sh']);
+    expect($noms)->toBe(['copie-hors-serveur.sh', 'deploy.sh', 'install.sh', 'sauvegarde.sh']);
 });
 
 it('garde chaque piège d’erreur (ERR) contre l’exécution dans un sous-shell', function (string $script) {

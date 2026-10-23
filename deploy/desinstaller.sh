@@ -50,10 +50,11 @@ fi
 
 # --- déploiement automatique et sauvegardes
 if a "minuteurs" || a "unites"; then
-    systemctl disable --now gamad-reseau-deploy.timer gamad-reseau-sauvegarde.timer >/dev/null 2>&1 || true
-    systemctl stop gamad-reseau-deploy.service gamad-reseau-sauvegarde.service >/dev/null 2>&1 || true
+    systemctl disable --now gamad-reseau-deploy.timer gamad-reseau-sauvegarde.timer gamad-reseau-copie-hors-serveur.timer >/dev/null 2>&1 || true
+    systemctl stop gamad-reseau-deploy.service gamad-reseau-sauvegarde.service gamad-reseau-copie-hors-serveur.service >/dev/null 2>&1 || true
     rm -f "$UNITES"/gamad-reseau-deploy.service "$UNITES"/gamad-reseau-deploy.timer \
-          "$UNITES"/gamad-reseau-sauvegarde.service "$UNITES"/gamad-reseau-sauvegarde.timer
+          "$UNITES"/gamad-reseau-sauvegarde.service "$UNITES"/gamad-reseau-sauvegarde.timer \
+          "$UNITES"/gamad-reseau-copie-hors-serveur.service "$UNITES"/gamad-reseau-copie-hors-serveur.timer
     rm -rf "$UNITES"/gamad-reseau-deploy.service.d "$UNITES"/gamad-reseau-sauvegarde.service.d
     systemctl daemon-reload
     ok "déploiement automatique et sauvegardes arrêtés"
@@ -92,7 +93,7 @@ elif a "base" || a "role"; then
 fi
 
 # --- application et fichiers annexes
-rm -f /usr/local/sbin/gamad-reseau-retour-arriere /etc/logrotate.d/gamad-reseau
+rm -f /usr/local/sbin/gamad-reseau-retour-arriere /usr/local/sbin/gamad-reseau-copie-hors-serveur /etc/logrotate.d/gamad-reseau
 a "dossiers" && { rm -rf "${APP_DIR:?}" "${ACME_ROOT:?}"; ok "dossier $APP_DIR retiré"; }
 a "utilisateur" && { userdel "$APP_USER" 2>/dev/null || true; ok "utilisateur $APP_USER retiré"; }
 
