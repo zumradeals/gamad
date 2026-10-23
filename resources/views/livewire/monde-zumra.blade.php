@@ -17,6 +17,9 @@
             </div>
         </div>
 
+        @if ($engaged)
+            <span class="inline-flex items-center gap-1.5 self-start rounded-chip bg-type-call-bg px-3 py-1 text-[12px] font-bold text-type-call-fg" data-testid="badge-engagee"><x-icon name="check" :size="14" :stroke="3" />ZUMRA engagée</span>
+        @endif
         @if ($zumra->isRecognized())
             <span class="inline-flex items-center gap-1.5 self-start rounded-chip bg-type-knowledge-bg px-3 py-1 text-[12px] font-bold text-type-knowledge-fg"><x-icon name="check" :size="14" :stroke="3" />Reconnue par GAMAD</span>
         @else
@@ -34,6 +37,7 @@
                 <x-button :href="route('zumras.edit', $zumra)" variant="accent" class="md:px-8">Modifier la ZUMRA</x-button>
                 @if ($walletsEnabled)
                     <x-button :href="route('zumras.portefeuille', $zumra)" variant="secondary" class="md:px-8">Portefeuille de la ZUMRA</x-button>
+                    <x-button :href="route('zumras.contribution', $zumra)" variant="secondary" class="md:px-8">Contribution de la ZUMRA</x-button>
                 @endif
             </div>
         @endif

@@ -458,6 +458,21 @@ Il vous faut vos clés GeniusPay d'**essai** (commençant par `pk_sandbox_` et `
 
 **Ce qui n'existe pas encore :** la contribution mensuelle, les badges et le financement (6c) ; le rapprochement automatique toutes les dix minutes (il se fait au retour de la personne, à la réception d'un webhook et à la demande).
 
+## 18d. Essayer le Lot 6, troisième étape (6c) : contribution, engagement, fonds
+
+Il vous faut deux comptes (le vôtre, Président, et un compte ordinaire fondateur d'une ZUMRA), les portefeuilles ouverts et, pour le paiement direct, vos clés d'essai GeniusPay. Tout se passe en mode d'essai.
+
+1. **Alimenter.** Rechargez un portefeuille (§18c). Dans **Mon portefeuille**, touchez **Contribuer**.
+2. **Contribuer.** Saisissez 1 000 (le minimum est 500), laissez « Le fonds commun », payez « Depuis le portefeuille » : « Merci : votre contribution est enregistrée », l'état passe à **Contributeur**, le solde baisse. Un montant sous le minimum ou au-dessus du solde est refusé sous le champ. Avec « Par Mobile Money », vous passez par la page de GeniusPay puis revenez : la contribution est enregistrée sans toucher au portefeuille.
+3. **Mes choix.** Cochez le rappel mensuel : tant que vous n'avez pas contribué ce mois-ci, **À faire maintenant** (dans Mon espace) propose « Votre contribution du mois ». Cochez le badge : « Contributeur » apparaît sur votre profil public (jamais le montant) ; décochez, il disparaît.
+4. **ZUMRA.** Le fondateur ouvre **Contribution de la ZUMRA** (Monde de la ZUMRA) : après une contribution, le badge **ZUMRA engagée** s'affiche sur sa page et dans le Carrefour ZUMRA pendant 60 jours. Une dépense de ZUMRA de plus de 50 000 ZAHAB affiche « attend la validation du Président » et ne débite rien ; vous pouvez la retirer.
+5. **Valider.** Comme Président : Espace → Paramètres → **Contributions** : « Dépenses de ZUMRA à valider » (Valider débite, Refuser ne débite pas). Rien ne se débite sans votre validation.
+6. **Affecter.** Reconnaissez la ZUMRA (sa page, bouton de reconnaissance), faites-la contribuer, puis dans **Affecter le fonds** choisissez son projet, un montant (au plus le reste du fonds) et un objet : l'affectation figure au **rapport public**. Une ZUMRA seulement reconnue, ou seulement engagée, n'apparaît pas dans la liste. Quand vous avez versé la somme (hors plateforme), touchez « J'ai versé cette somme ».
+7. **Rapport public.** Ouvrez `/rapport-contributions` sans compte (fenêtre privée) : chiffres, mois, affectations, aucun nom. Le nombre de contributeurs n'apparaît qu'à partir de cinq.
+8. **Réglages.** Paramètres → Portefeuilles : contribution minimum, durée d'engagement (60 jours), seuil de validation (50 000).
+
+**Ce qui n'existe pas encore :** prélèvement automatique mensuel et notification du rappel (le rappel est une ligne dans « À faire maintenant ») ; modèles de projet, tableau de bord de ZUMRA et places réservées en ateliers ; demande de financement par la ZUMRA (c'est le Président qui affecte).
+
 ## 19. Ce qu'il faut regarder à chaque écran
 
 - [ ] Le texte se lit sans zoomer, rien ne dépasse de l'écran, aucun défilement de côté.

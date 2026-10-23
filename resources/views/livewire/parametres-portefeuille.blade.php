@@ -27,6 +27,9 @@
 
         <x-wire-field name="maxPerson" label="Solde maximum d’une personne (ZAHAB)" inputmode="numeric" autocomplete="off" />
         <x-wire-field name="maxZumra" label="Solde maximum d’une ZUMRA (ZAHAB)" inputmode="numeric" autocomplete="off" />
+        <x-wire-field name="contributionMin" label="Contribution minimum (ZAHAB)" inputmode="numeric" autocomplete="off" />
+        <x-wire-field name="engagementDays" label="Durée d’engagement après une contribution (jours)" inputmode="numeric" autocomplete="off" hint="Une personne ou une ZUMRA reste « contributeur » ou « engagée » ce nombre de jours après sa dernière contribution." />
+        <x-wire-field name="validationThreshold" label="Dépense d’une ZUMRA soumise à votre validation au-delà de (ZAHAB)" inputmode="numeric" autocomplete="off" />
 
         <x-button wire:loading.attr="disabled" wire:target="save">
             <span wire:loading.remove wire:target="save">Enregistrer</span>

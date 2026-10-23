@@ -382,7 +382,7 @@ Décisions : D-004, D-163 à D-174 ; D-019 est remplacée par D-166 ; D-171 est 
 2. Écrans « Mon portefeuille » et « Portefeuille de la ZUMRA » : solde, mouvements, états vides. Aucun transfert entre utilisateurs, aucun retrait.
 3. Droits : un portefeuille de personne ne se lit que par elle ; celui d'une ZUMRA, par son fondateur et ses responsables. Réglages dans Espace → Paramètres → Portefeuille : activation (masqué par défaut), plafonds de solde. Suppression d'un compte ou d'une ZUMRA refusée tant que son solde n'est pas nul (D-172). Chaque réglage modifié est inscrit au journal d'administration.
 
-*PR 6a fusionnée le 2026-10-23. PR 6b en cours, sur ordre du Président (« fusionne et démarre la 6b », clés à saisir dans l'espace admin) ; documentation GeniusPay fournie par le Président.*
+*PR 6a et PR 6b fusionnées le 2026-10-23. PR 6c en cours sur ordre du Président (« Fusionne si tout est vert et démarre la 6c »). PR 6b : elle a été lancée sur ordre du Président (« fusionne et démarre la 6b », clés à saisir dans l'espace admin) ; documentation GeniusPay fournie par le Président.*
 
 *PR 6b — Recharge par GeniusPay (mode d'essai d'abord)*
 4. Clés GeniusPay dans Espace → Paramètres ; création du paiement, page hébergée, rappel serveur de confirmation, crédit seulement après confirmation, rapprochement avec le relevé.

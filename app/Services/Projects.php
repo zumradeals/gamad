@@ -31,7 +31,7 @@ class Projects
 
         [$name, $goal] = $this->fields($data);
 
-        $this->throttle($actor);
+        $this->throttle($actor, $zumra);
 
         try {
             return DB::transaction(function () use ($actor, $zumra, $name, $goal) {
@@ -181,11 +181,14 @@ class Projects
     }
 
     /** Limite de débit contre le spam (D-130) : un nombre de créations par jour et par personne. */
-    private function throttle(User $user): void
+    private function throttle(User $user, Zumra $zumra): void
     {
         $key = "project-create:{$user->getKey()}";
 
-        if (RateLimiter::tooManyAttempts($key, config('gamad.limits.projects_per_day'))) {
+        // Outil avancé d'une ZUMRA engagée (D-166) : plafond de créations relevé.
+        $max = (int) config('gamad.limits.projects_per_day') * (app(Contributions::class)->isEngaged($zumra) ? (int) config('gamad.engaged_limit_multiplier') : 1);
+
+        if (RateLimiter::tooManyAttempts($key, $max)) {
             throw ValidationException::withMessages(['name' => 'Vous avez atteint la limite de créations de projets pour aujourd’hui.']);
         }
 

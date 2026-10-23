@@ -13,6 +13,7 @@ use App\Models\Project;
 use App\Models\Publication;
 use App\Models\Report;
 use App\Models\User;
+use App\Models\Wallet;
 use App\Models\Zumra;
 use Illuminate\Support\Str;
 
@@ -40,9 +41,43 @@ class Todo
             ...$this->joinRequestsToDecide($user),
             ...$this->participationRequestsToDecide($user),
             ...$this->proposals($user),
+            ...$this->contributionReminders($user),
             ...$this->unreadMessages($user),
             ...$this->thanks($user),
         ];
+    }
+
+    /** Rappel mensuel demandé par la personne ou par sa ZUMRA, sans contribution ce mois-ci : la demande de paiement (Lot 6c, D-163). */
+    private function contributionReminders(User $user): array
+    {
+        if (! app(Wallets::class)->enabled()) {
+            return [];
+        }
+
+        $contributions = app(Contributions::class);
+        $lines = [];
+
+        $owned = Wallet::query()->where('monthly_reminder', true)->whereNull('closed_at')->where(fn ($q) => $q
+            ->where(fn ($q) => $q->where('owner_type', Wallet::PERSON)->where('owner_id', $user->getKey()))
+            ->orWhere(fn ($q) => $q->where('owner_type', Wallet::ZUMRA)->whereIn('owner_id', $user->managedZumraIds())))->get();
+
+        foreach ($owned as $wallet) {
+            if (! $contributions->reminderDue($wallet)) {
+                continue;
+            }
+
+            $zumra = $wallet->isPerson() ? null : Zumra::query()->find($wallet->owner_id);
+
+            $lines[] = [
+                'key' => 'contribution-'.$wallet->getKey(),
+                'title' => $zumra ? 'Contribution du mois de '.$zumra->name : 'Votre contribution du mois',
+                'detail' => 'Facultative, au montant de votre choix : un signe d’engagement',
+                'action' => 'Contribuer',
+                'url' => $zumra ? route('zumras.contribution', $zumra) : route('contribution'),
+            ];
+        }
+
+        return $lines;
     }
 
     /** La modération a envoyé un avis à la personne, qui n'y a pas encore répondu (D-145). */

@@ -67,6 +67,7 @@
                     <div class="flex min-w-0 flex-1 flex-col gap-3 p-5">
                         <p class="text-[12px] font-extrabold uppercase tracking-wide text-muted">{{ $zumra->domain->name }}</p>
                         <div><h3 class="text-[20px] font-extrabold leading-tight"><a href="{{ route('zumras.show', $zumra) }}" class="inline-flex min-h-11 items-center break-words text-ink no-underline hover:underline">{{ $zumra->name }}</a></h3>
+                        @if (in_array($zumra->id, $engagedIds, true))<span class="inline-flex items-center gap-1 rounded-chip bg-type-call-bg px-2 py-1 text-[12px] font-bold text-type-call-fg"><x-icon name="check" :size="14" />ZUMRA engagée</span>@endif
                         @if ($zumra->isRecognized())<span class="inline-flex items-center gap-1 rounded-chip bg-type-knowledge-bg px-2 py-1 text-[12px] font-bold text-type-knowledge-fg"><x-icon name="check" :size="14" />Reconnue par GAMAD</span>@endif</div>
                         <p class="whitespace-pre-line break-words text-[15px] leading-relaxed">{{ \Illuminate\Support\Str::limit($zumra->mission, 180) }}</p>
                         <p class="flex items-start gap-2 text-[13px] leading-relaxed text-muted"><x-icon name="pin" :size="18" class="shrink-0" /><span>{{ collect([$zumra->city?->label(), $zumra->city?->country?->name, $zumra->format->label()])->filter()->implode(' · ') }}</span></p>

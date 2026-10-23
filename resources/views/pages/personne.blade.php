@@ -27,6 +27,10 @@
                 <p class="whitespace-pre-line break-words text-[15px] leading-relaxed md:max-w-3xl">{{ $profile->bio }}</p>
             @endif
 
+            @if ($contributorBadge)
+                <span class="inline-flex items-center gap-1.5 self-start rounded-chip bg-type-call-bg px-3 py-1 text-[12px] font-bold text-type-call-fg" data-testid="badge-contributeur"><x-icon name="check" :size="14" :stroke="3" />Contributeur</span>
+            @endif
+
             @foreach ($inviteZumras as $inviteZumra)
                 <x-button :href="route('zumras.invite', [$inviteZumra, 'personne' => $profile->public_id])" variant="secondary" class="md:self-start md:px-8">{{ $inviteZumras->count() === 1 ? 'Inviter dans ma ZUMRA' : 'Inviter dans '.$inviteZumra->name }}</x-button>
             @endforeach

@@ -14,6 +14,7 @@
         <h2 id="solde" class="text-[13px] font-semibold text-muted">Solde</h2>
         <p class="text-[32px] font-extrabold leading-tight" data-testid="solde">{{ $format($balance) }} ZAHAB</p>
         <p class="text-[13px] text-muted">1 ZAHAB = 1 FCFA. Les ZAHAB se dépensent dans le réseau ; il n’y a ni transfert entre personnes ni retrait pour l’instant.</p>
+        <x-button :href="$zumra ? route('zumras.contribution', $zumra) : route('contribution')" variant="secondary" class="mt-2 md:self-start">Contribuer</x-button>
     </section>
 
     @if ($returnedPayment && $returnedPayment->status === \App\Enums\PaymentStatus::Completed && $returnedPayment->credit_entry_id)

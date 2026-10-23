@@ -11,6 +11,7 @@ use App\Livewire\CarrefourBesoins;
 use App\Livewire\CarrefourPersonnes;
 use App\Livewire\CarrefourProjets;
 use App\Livewire\CarrefourZumras;
+use App\Livewire\ContributionsAdministration;
 use App\Livewire\Espace;
 use App\Livewire\Fil;
 use App\Livewire\FileModeration;
@@ -22,6 +23,7 @@ use App\Livewire\ModerationPersonnes;
 use App\Livewire\ModifierProfil;
 use App\Livewire\MondeProjet;
 use App\Livewire\MondeZumra;
+use App\Livewire\PageContribution;
 use App\Livewire\PageConversation;
 use App\Livewire\PageNotifications;
 use App\Livewire\PagePortefeuille;
@@ -35,6 +37,7 @@ use App\Livewire\ParametresPortefeuille;
 use App\Livewire\ParametresTerritoires;
 use App\Livewire\ParametresTextes;
 use App\Livewire\PublierPublication;
+use App\Livewire\RapportContributions;
 use App\Livewire\SignalerPublication;
 use Illuminate\Support\Facades\Route;
 
@@ -54,6 +57,7 @@ Route::get('/personnes/{profile:public_id}/photo', [PersonController::class, 'ph
 
 // Le Carrefour ZUMRA et l'en-tête d'une ZUMRA sont publics ; les membres demandent un compte vérifié (D-112).
 Route::get('/zumra', CarrefourZumras::class)->name('zumras.index');
+Route::get('/rapport-contributions', RapportContributions::class)->middleware('wallets')->name('rapport-contributions');
 Route::get('/zumra/{zumra}', MondeZumra::class)->whereUuid('zumra')->name('zumras.show');
 
 // Un projet est public (D-005) : le Carrefour et la page d'un projet se lisent sans compte.
@@ -82,6 +86,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/moderation/journal', JournalAdministration::class)->middleware('can:moderate')->name('moderation.journal');
     Route::get('/espace/portefeuille', PagePortefeuille::class)->middleware('wallets')->name('portefeuille');
     Route::get('/zumra/{zumra}/portefeuille', PagePortefeuille::class)->whereUuid('zumra')->middleware('wallets')->name('zumras.portefeuille');
+    Route::get('/espace/contribution', PageContribution::class)->middleware('wallets')->name('contribution');
+    Route::get('/zumra/{zumra}/contribution', PageContribution::class)->whereUuid('zumra')->middleware('wallets')->name('zumras.contribution');
     Route::get('/espace/avis', AvisModeration::class)->name('avis');
     Route::get('/conversations/{conversation}', PageConversation::class)->whereUuid('conversation')->name('conversations.show');
     Route::get('/notifications', PageNotifications::class)->name('notifications');
@@ -91,6 +97,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/espace/parametres', Parametres::class)->middleware('can:super-admin')->name('espace.parametres');
     Route::get('/espace/parametres/textes', ParametresTextes::class)->middleware('can:super-admin')->name('espace.parametres.textes');
     Route::get('/espace/parametres/paiement', ParametresPaiement::class)->middleware('can:super-admin')->name('espace.parametres.paiement');
+    Route::get('/espace/contributions', ContributionsAdministration::class)->middleware('can:super-admin')->name('espace.contributions');
     Route::get('/espace/paiements', PaiementsAdministration::class)->middleware('can:super-admin')->name('espace.paiements');
     Route::get('/espace/parametres/portefeuille', ParametresPortefeuille::class)->middleware('can:super-admin')->name('espace.parametres.portefeuille');
     Route::get('/espace/parametres/copie', ParametresCopie::class)->middleware('can:super-admin')->name('espace.parametres.copie');

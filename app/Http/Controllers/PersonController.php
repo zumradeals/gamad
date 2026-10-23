@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Profile;
 use App\Models\Zumra;
+use App\Services\Contributions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -29,7 +30,7 @@ class PersonController extends Controller
                 ->orderBy('name_key')->get()
             : collect();
 
-        return view('pages.personne', ['profile' => $profile, 'isOwner' => $isOwner, 'inviteZumras' => $inviteZumras]);
+        return view('pages.personne', ['profile' => $profile, 'isOwner' => $isOwner, 'inviteZumras' => $inviteZumras, 'contributorBadge' => app(Contributions::class)->showsBadge($profile->user)]);
     }
 
     /**

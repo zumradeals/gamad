@@ -13,22 +13,11 @@ use App\Models\LedgerEntry;
 use App\Models\User;
 use App\Models\Wallet;
 use App\Services\Settings;
-use App\Services\Wallets;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
-
-function ouvrirPortefeuilles(): void
-{
-    app(Settings::class)->update(['wallet_enabled' => '1'], User::factory()->superAdmin()->create());
-}
-
-function portefeuilles(): Wallets
-{
-    return app(Wallets::class);
-}
 
 beforeEach(function () {
     $this->awa = person('Awa Traoré');

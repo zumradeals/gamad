@@ -36,6 +36,12 @@
         <x-button :href="route('espace.parametres.portefeuille')" variant="secondary">Ouvrir</x-button>
     </section>
 
+    <section aria-labelledby="contributions" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
+        <h2 id="contributions" class="text-[18px] font-extrabold">Contributions</h2>
+        <p class="text-[13px] text-muted">Le fonds de contribution : dépenses de ZUMRA à valider, affectation aux projets, versements.</p>
+        <x-button :href="route('espace.contributions')" variant="secondary">Ouvrir</x-button>
+    </section>
+
     <section aria-labelledby="paiement" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
         <h2 id="paiement" class="text-[18px] font-extrabold">Paiement</h2>
         <p class="text-[13px] text-muted">Les clés GeniusPay, le mode (essai ou réel) et le suivi des recharges.</p>

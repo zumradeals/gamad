@@ -39,6 +39,9 @@ return [
         'messages_per_day' => 500,
     ],
 
+    // Outils avancés d'une ZUMRA engagée (D-166) : les plafonds de messages et de projets sont multipliés par ce nombre.
+    'engaged_limit_multiplier' => 3,
+
     'moderation' => [
         // Jours laissés à une personne pour s'expliquer après un avis de la modération, avant qu'une suspension soit possible (D-152).
         'explanation_days' => 7,
