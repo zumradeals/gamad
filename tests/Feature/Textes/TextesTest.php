@@ -94,6 +94,18 @@ it('ne sont pas publiques si un champ a été vidé après l’adoption', functi
     $this->actingAs($this->president)->get(route('mentions'))->assertOk()->assertSeeText('[à compléter]');
 });
 
+it('cessent d’être publiques quand le Président retire l’adoption des mentions légales', function () {
+    mentions_completes($this->president);
+    app(LegalTexts::class)->adoptLegal($this->president);
+    $this->get(route('mentions'))->assertOk();
+
+    app(LegalTexts::class)->withdrawLegal($this->president);
+
+    expect(app(LegalTexts::class)->legalAdoptedAt())->toBeNull()->and(app(LegalTexts::class)->legalAdopted())->toBeFalse();
+    $this->get(route('mentions'))->assertNotFound();
+    $this->get('/')->assertDontSee(route('mentions'), false);
+});
+
 it('ne laissent adopter les mentions légales qu’une fois les quatre champs renseignés', function () {
     expect(fn () => app(LegalTexts::class)->adoptLegal($this->president))->toThrow(ValidationException::class, 'Renseignez d’abord');
 
@@ -247,6 +259,16 @@ it('affiche dans le pied de page les seuls textes adoptés, pour les visiteurs e
     mentions_completes($this->president);
     app(LegalTexts::class)->adoptLegal($this->president);
     $this->get('/')->assertSeeText('Charte de conduite')->assertSeeText('Mentions légales')->assertSee(route('mentions'), false);
+});
+
+it('retire du pied de page le lien des mentions légales dont un champ a été vidé après l’adoption', function () {
+    mentions_completes($this->president);
+    app(LegalTexts::class)->adoptLegal($this->president);
+    $this->get('/')->assertSee(route('mentions'), false);
+
+    app(LegalTexts::class)->saveLegalValues($this->president, ['legal_contact' => '']);
+
+    $this->get('/')->assertDontSee(route('mentions'), false)->assertDontSeeText('Mentions légales');
 });
 
 it('lit un réglage de texte adopté sans le journaliser une seconde fois par lecture', function () {
