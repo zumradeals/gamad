@@ -101,8 +101,13 @@ Police unique : **Plus Jakarta Sans** (graisses 400, 500, 600, 700, 800), auto-h
    jetons existants) → nom du projet → but → ligne ZUMRA (avatar carré 36 px, nom, domaine · ville) → bouton
    « Voir le projet ». Même gabarit que la carte de carrefour ZUMRA ; aucun chiffre inventé, aucun classement.
 10. **Monde d'un projet** (Lot 4a) : même en-tête de monde que la ZUMRA (badge d'état, nom, lien vers la ZUMRA, but,
-    « Modifier le projet » pour les gestionnaires), puis la carte « Avancement » : état et date, histoire des changements
-    d'état. Page publique. Les onglets Fil, Équipe et Besoins viennent avec les PR 4b et 4c ; ils restent masqués.
+    « Modifier le projet » pour les gestionnaires), puis deux onglets (Lot 4b). **Avancement** : carte d'état avec
+    « N étapes franchies sur M » et une barre qui en est le reflet exact (rien sans étape), carte « Étapes » (numéro, titre,
+    badge À faire · En cours · Franchie ; pour les gestionnaires : liste d'état, Monter, Descendre, Retirer avec
+    confirmation, champ « Nouvelle étape »), « Histoire du projet », « Changer l'état du projet ». **Fil** : cartes de
+    publication des avancées et réalisations (badges violet et vert des jetons existants, lien « Projet : … »), liens
+    « Publier une avancée » et « Publier une réalisation » pour les gestionnaires. Page publique. Les onglets Équipe et
+    Besoins viennent avec la PR 4c ; ils restent masqués.
 
 ## 5. Règles d'interface
 

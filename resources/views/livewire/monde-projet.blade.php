@@ -77,7 +77,7 @@
                             </select>
                             <button type="button" wire:click="moveStep('{{ $step->id }}', -1)" @disabled($loop->first) class="inline-flex min-h-11 items-center rounded-[10px] border border-chip-line px-3 text-[13px] font-semibold disabled:opacity-40">Monter</button>
                             <button type="button" wire:click="moveStep('{{ $step->id }}', 1)" @disabled($loop->last) class="inline-flex min-h-11 items-center rounded-[10px] border border-chip-line px-3 text-[13px] font-semibold disabled:opacity-40">Descendre</button>
-                            <button type="button" x-show="! confirming" x-on:click="confirming = true" class="inline-flex min-h-11 items-center text-[13px] font-semibold text-muted underline">Retirer</button>
+                            <button type="button" x-show="! confirming" x-on:click="confirming = true" class="inline-flex min-h-11 min-w-11 items-center justify-center px-2 text-[13px] font-semibold text-muted underline">Retirer</button>
                             <span x-show="confirming" x-cloak class="flex flex-wrap items-center gap-2">
                                 <span class="text-[13px] font-semibold">Retirer cette étape ?</span>
                                 <x-button type="button" wire:click="removeStep('{{ $step->id }}')" wire:loading.attr="disabled" wire:target="removeStep" class="!px-4 !text-[14px]">Oui</x-button>

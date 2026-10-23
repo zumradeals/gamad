@@ -298,7 +298,19 @@ Il vous faut le **compte 1** (fondateur d'une ZUMRA), le **compte 2** (simple me
 
 **Ce qui n'existe pas encore :** étapes, avancées et réalisations (4b) ; équipe, besoins et soutiens (4c).
 
-## 12. Ce qu'il faut regarder à chaque écran
+## 12. Essayer le Lot 4, deuxième étape (4b) : faire avancer un projet
+
+Même comptes qu'au §11 : le **compte 1** (fondateur), le **compte 2** (simple membre), un **visiteur sans compte**. Ouvrez un projet de votre ZUMRA (onglet Projets).
+
+1. Compte 1, onglet **Avancement** : « Aucune étape pour l'instant ». Sous **Nouvelle étape**, écrivez « Commander le tissu » puis **Ajouter l'étape**, et ajoutez-en deux autres. Un nom d'une seule lettre est refusé, avec un message sous le champ.
+2. Changez l'état d'une étape avec la liste **À faire / En cours / Franchie** : le texte « 1 étape franchie sur 3 » et la barre suivent exactement vos étapes. **Monter** et **Descendre** changent l'ordre ; **Retirer** demande une confirmation (Oui/Non). Un projet a 20 étapes au plus.
+3. Onglet **Fil** : **Publier une avancée** (ou **Publier une réalisation**). L'écran dit « Vous publiez au nom du projet… » et propose Public, Inscrits seulement, ZUMRA seulement. Après **Publier l'avancée**, la publication s'ouvre ; elle porte un lien **Projet : …**.
+4. Le **Fil** global (onglet du bas) montre l'avancée, avec le filtre **Projets** qui n'affiche que les avancées et réalisations de projets. Elle apparaît aussi dans le Fil de la ZUMRA.
+5. Compte 2 (simple membre) : il lit les étapes et le Fil du projet, y compris les publications « ZUMRA seulement », mais ne voit aucune commande d'étape ni **Publier une avancée**. Une avancée n'a **aucun bouton de réponse** pour l'instant. Visiteur sans compte : il lit les étapes et les publications publiques, pas celles « ZUMRA seulement » ni « Inscrits seulement ».
+
+**Ce qui n'existe pas encore :** équipe, besoins et soutiens des projets (4c).
+
+## 13. Ce qu'il faut regarder à chaque écran
 
 - [ ] Le texte se lit sans zoomer, rien ne dépasse de l'écran, aucun défilement de côté.
 - [ ] Les boutons sont faciles à toucher du pouce.
@@ -306,7 +318,7 @@ Il vous faut le **compte 1** (fondateur d'une ZUMRA), le **compte 2** (simple me
 - [ ] Les messages d'erreur sont clairs et en français.
 - [ ] Tout bouton ou lien visible mène à une vraie page.
 
-## 13. Les mises à jour se font toutes seules
+## 14. Les mises à jour se font toutes seules
 
 Chaque fois qu'un changement est fusionné dans `main`, le site se met à jour tout seul en **5 à 10 minutes** : rechargez la page après ce délai.
 Si une mise à jour échoue, la version actuelle reste en ligne et l'échec est noté dans un journal côté serveur ; si une mise à jour
@@ -315,7 +327,7 @@ sait revenir en arrière (voir `deploy/LISEZMOI.md`, réservé à l'administrati
 
 Les données sont sauvegardées chaque nuit (7 jours conservés).
 
-## 14. Ce qui n'existe pas encore (c'est normal)
+## 15. Ce qui n'existe pas encore (c'est normal)
 
-étapes, avancées, équipe, besoins et soutiens des projets, la consultation du journal d'administration, « Commenter », « Partager », « Suivre », « Inviter », recherche générale, paiement : ces modules sont masqués tant que leur lot
+équipe, besoins et soutiens des projets, la consultation du journal d'administration, « Commenter », « Partager », « Suivre », « Inviter », recherche générale, paiement : ces modules sont masqués tant que leur lot
 n'est pas construit.

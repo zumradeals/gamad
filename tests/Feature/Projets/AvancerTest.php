@@ -415,14 +415,13 @@ it('propose « Publier une avancée » et « Publier une réalisation » aux ges
     }
 });
 
-it('pagine le Fil du projet', function () {
+it('pagine le Fil du projet : dix publications d’abord, les plus anciennes sur demande', function () {
     foreach (range(1, 12) as $i) {
-        avancee($this->yao, $this->projet, ['body' => "Avancée numéro $i"]);
+        avancee($this->yao, $this->projet, ['body' => sprintf('Avancée n°%02d', $i)]);
     }
 
-    $c = projet_monde($this->dehors, $this->projet, 'fil');
-    expect(substr_count($c->html(), 'Avancée numéro'))->toBeLessThan(12);
-    $c->call('more')->assertSeeText('Avancée numéro 1');
+    projet_monde($this->dehors, $this->projet, 'fil')->assertSeeText('Avancée n°12')->assertSeeText('Avancée n°03')->assertDontSeeText('Avancée n°02')->assertDontSeeText('Avancée n°01')
+        ->assertSeeText('Voir plus de publications')->call('more')->assertSeeText('Avancée n°02')->assertSeeText('Avancée n°01')->assertDontSeeText('Voir plus de publications');
 });
 
 it('ouvre les onglets Avancement et Fil, et ignore un onglet inconnu', function () {
