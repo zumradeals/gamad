@@ -1,0 +1,39 @@
+<?php
+
+namespace App\Models;
+
+use App\Enums\GestureState;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+/**
+ * Geste d'action : la réponse d'une personne à une publication (D-082). Une personne n'a qu'un geste par publication.
+ * Le mot qui l'accompagne est un texte brut de 280 caractères au plus.
+ */
+class Gesture extends Model
+{
+    use HasUuids;
+
+    public const MESSAGE_MAX = 280;
+
+    protected $guarded = ['id', 'publication_id', 'user_id'];
+
+    protected function casts(): array
+    {
+        return [
+            'state' => GestureState::class,
+            'decided_at' => 'datetime',
+        ];
+    }
+
+    public function publication(): BelongsTo
+    {
+        return $this->belongsTo(Publication::class);
+    }
+
+    public function author(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+}

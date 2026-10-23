@@ -81,6 +81,14 @@ class Espace extends Component
 
     public function render()
     {
-        return view('livewire.espace', ['user' => Auth::user()]);
+        $user = Auth::user();
+
+        return view('livewire.espace', [
+            'user' => $user,
+            // Mes publications : le chemin vers « Mon besoin » et les réponses reçues.
+            'publications' => $user->publications()
+                ->withCount(['gestures as live_gestures_count' => fn ($query) => $query->whereIn('state', ['sent', 'accepted'])])
+                ->orderByDesc('created_at')->orderByDesc('id')->limit(10)->get(),
+        ]);
     }
 }

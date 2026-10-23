@@ -1,9 +1,12 @@
-@props(['title' => null])
+@props(['title' => null, 'wide' => false])
 
 @php
     $enabled = fn (array $items) => array_values(array_filter($items, fn ($item) => $item['enabled'] ?? false));
     $phoneItems = $enabled(config('navigation.phone'));
     $desktopItems = $enabled(config('navigation.desktop'));
+    // « Agir » : rond jaune au centre de la barre du bas (téléphone), bouton jaune dans la barre du haut (ordinateur).
+    $agir = collect(config('navigation.phone'))->firstWhere('key', 'agir');
+    $agir = ($agir['enabled'] ?? false) && auth()->check() ? $agir : null;
     $isActive = fn (array $item) => $item['route'] && request()->routeIs($item['active'] ?? [$item['route'], $item['route'].'.*']);
 @endphp
 
@@ -39,6 +42,12 @@
             <span class="flex-1"></span>
 
             @auth
+                @if ($agir)
+                    <a href="{{ route($agir['route']) }}"
+                       class="hidden min-h-11 items-center gap-1.5 rounded-button bg-accent px-[18px] text-[15px] font-extrabold text-ink no-underline hover:text-ink md:flex">
+                        <x-icon name="plus" :size="18" :stroke="2.5" />{{ $agir['label'] }}
+                    </a>
+                @endif
                 <a href="{{ route('espace') }}"
                    aria-label="Mon espace"
                    class="hidden size-11 items-center justify-center rounded-full bg-ink font-extrabold text-white no-underline hover:text-white md:flex">
@@ -56,7 +65,7 @@
         </div>
     </header>
 
-    <main @class(['mx-auto w-full max-w-[760px] flex-1 px-4 pt-4 md:px-6 md:pb-10 md:pt-6', 'pb-[104px]' => auth()->check(), 'pb-10' => ! auth()->check()])>
+    <main @class(['mx-auto w-full flex-1 px-4 pt-4 md:px-6 md:pb-10 md:pt-6', 'max-w-[760px]' => ! $wide, 'max-w-[1240px]' => $wide, 'pb-[104px]' => auth()->check(), 'pb-10' => ! auth()->check()])>
         {{ $slot }}
     </main>
 

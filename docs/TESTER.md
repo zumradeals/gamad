@@ -110,7 +110,56 @@ adresse (**compte 2**, voir §3, étapes 1 à 3). Ne supprimez pas le compte 2 a
 La liste des villes ivoiriennes (31 chefs-lieux de région, 2 districts autonomes, 13 communes d'Abidjan) a été reprise de sources publiques :
 **contrôlez-la** et corrigez dans Territoires tout nom qui serait faux.
 
-## 5. Ce qu'il faut regarder à chaque écran
+## 5. Essayer le Lot 2, première étape (2a) : publier, répondre, accepter
+
+Même équipement que le §4 : le **compte 1** (le vôtre) et le **compte 2** (votre seconde adresse). À cette étape, les gestes
+s'acceptent mais **la conversation privée, le remerciement, les notifications et « Signaler » n'existent pas encore** (étapes 2b et 2c).
+
+**Publier.**
+
+1. Compte 1 : touchez le rond jaune **Agir** au centre de la barre du bas (sur ordinateur : le bouton jaune « Agir » en haut). Vous voyez quatre
+   choix : **J'ai besoin**, **Je partage un savoir**, **Je veux apprendre**, **Je propose mon aide**.
+2. Touchez **J'ai besoin**. Écrivez un besoin réel et précis (500 caractères au plus ; le compteur le montre). Ajoutez si vous voulez une
+   capacité recherchée (trois au plus), un domaine, un lieu (repris de votre profil) et choisissez **Public** ou **Inscrits seulement**.
+3. Touchez **Publier mon besoin** : vous arrivez sur **Mon besoin**, avec le message « Publié. » et l'état **Ouvert**.
+4. Écrivez dans le texte une adresse web (par exemple `https://exemple.com`) : elle s'affiche en texte simple, **jamais cliquable**.
+
+**Le Fil.**
+
+5. **Fil** : votre publication est en haut. Les filtres **Tout**, **Besoins** et **Savoirs** trient ; **Voir plus de publications** charge la suite.
+   L'ordre est toujours du plus récent au plus ancien. Il n'y a ni « Commenter », ni « Partager », ni « j'aime ».
+6. Sur ordinateur, à gauche : votre profil tel que les autres le voient.
+
+**Répondre.**
+
+7. Compte 2 : dans le **Fil**, la publication du compte 1 porte le bouton **Je peux aider**. Touchez-le : une feuille s'ouvre, avec un champ
+   « Un mot… (facultatif) », 280 caractères au plus. Touchez **Envoyer ma proposition**.
+8. La carte affiche **Proposition envoyée** et **Retirer ma proposition**. Retirez-la, puis renvoyez-la : c'est permis tant qu'elle n'est pas acceptée.
+   Sur votre propre publication, il n'y a **pas** de bouton de réponse.
+
+**Décider.**
+
+9. Compte 1 : **Espace → Mes publications → votre besoin** (ou **Voir les réponses** dans le Fil). Sous **Propositions reçues**, vous voyez le nom, la
+   ville, les capacités et le mot de la personne, **jamais son e-mail ni son téléphone**. Touchez **Accepter** : la proposition devient
+   **Acceptée** et le besoin passe à **En cours**. Vous pouvez en accepter plusieurs ; **Décliner** écarte une proposition.
+10. Compte 2 : le Fil affiche **Acceptée** (ou **Non retenue** si elle a été déclinée).
+11. Compte 1 : touchez **Marquer comme résolu** (une confirmation vous est demandée) ou **Fermer sans suite**. Le besoin n'accepte plus de réponse : le
+    compte 2 voit « Ce besoin est résolu. » ou « Ce besoin est fermé. ».
+
+**Le second parcours : un savoir.**
+
+12. Compte 2 : **Agir → Je partage un savoir** : publiez un savoir. Compte 1 : filtre **Savoirs**, touchez **Je veux apprendre**, envoyez.
+    Compte 2 : **Mes publications** → **Mon savoir partagé** → **Accepter** l'apprenant. Compte 1 voit **Acceptée**.
+
+**Qui voit quoi.**
+
+13. Publiez avec **Inscrits seulement** puis, dans une **fenêtre de navigation privée**, ouvrez l'adresse de la publication : « page introuvable ».
+    Une publication **Publique** s'y lit, avec **Se connecter pour répondre** à la place du bouton.
+
+**Limites normales.** Texte de publication : 500 caractères ; mot d'un geste : 280 ; trois capacités. Pour freiner le spam, une personne peut
+publier 10 fois par heure (30 par jour) et répondre 30 fois par heure (100 par jour) ; au-delà, un message clair le dit.
+
+## 6. Ce qu'il faut regarder à chaque écran
 
 - [ ] Le texte se lit sans zoomer, rien ne dépasse de l'écran, aucun défilement de côté.
 - [ ] Les boutons sont faciles à toucher du pouce.
@@ -118,7 +167,7 @@ La liste des villes ivoiriennes (31 chefs-lieux de région, 2 districts autonome
 - [ ] Les messages d'erreur sont clairs et en français.
 - [ ] Tout bouton ou lien visible mène à une vraie page.
 
-## 6. Les mises à jour se font toutes seules
+## 7. Les mises à jour se font toutes seules
 
 Chaque fois qu'un changement est fusionné dans `main`, le site se met à jour tout seul en **5 à 10 minutes** : rechargez la page après ce délai.
 Si une mise à jour échoue, la version actuelle reste en ligne et l'échec est noté dans un journal côté serveur ; si une mise à jour
@@ -127,7 +176,7 @@ sait revenir en arrière (voir `deploy/LISEZMOI.md`, réservé à l'administrati
 
 Les données sont sauvegardées chaque nuit (7 jours conservés).
 
-## 7. Ce qui n'existe pas encore (c'est normal)
+## 8. Ce qui n'existe pas encore (c'est normal)
 
-ZUMRA, publications, gestes, besoins, projets, remerciements, « Suivre », « Inviter », recherche générale, notifications, paiement, bouton « Agir » : ces modules sont masqués tant que leur lot
+ZUMRA, projets, conversation privée, remerciements, notifications, « Signaler », « Commenter », « Partager », « Suivre », « Inviter », recherche générale, paiement : ces modules sont masqués tant que leur lot
 n'est pas construit.

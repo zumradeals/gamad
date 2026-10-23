@@ -17,7 +17,7 @@ return [
     'phone' => [
         ['key' => 'fil', 'label' => 'Fil', 'route' => 'fil', 'icon' => 'feed', 'enabled' => true],
         ['key' => 'decouvrir', 'label' => 'Découvrir', 'route' => 'personnes.index', 'active' => 'personnes.*', 'icon' => 'compass', 'enabled' => true],
-        ['key' => 'agir', 'label' => 'Agir', 'route' => null, 'icon' => 'plus', 'enabled' => false, 'prominent' => true],
+        ['key' => 'agir', 'label' => 'Agir', 'route' => 'agir', 'icon' => 'plus', 'enabled' => true, 'prominent' => true],
         ['key' => 'zumra', 'label' => 'ZUMRA', 'route' => null, 'icon' => 'group', 'enabled' => false],
         ['key' => 'espace', 'label' => 'Espace', 'route' => 'espace', 'icon' => 'user', 'enabled' => true],
     ],

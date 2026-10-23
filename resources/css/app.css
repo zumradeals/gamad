@@ -66,6 +66,9 @@
     --color-type-project-fg: #4b2f86;
     --color-type-call-bg: #fbf1c7;
     --color-type-call-fg: #6b5200;
+    /* « Je propose mon aide » : teinte de l'écran 8 (maquette validée, D-080). */
+    --color-type-offer-bg: #dff0ef;
+    --color-type-offer-fg: #0f5a5a;
 
     --radius-card: 16px;
     --radius-button: 12px;

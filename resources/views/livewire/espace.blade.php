@@ -14,6 +14,30 @@
         </div>
     </section>
 
+    @if ($publications->isNotEmpty())
+        <section aria-labelledby="publications" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
+            <h2 id="publications" class="text-[18px] font-extrabold">Mes publications</h2>
+            <ul class="flex flex-col divide-y divide-line-soft">
+                @foreach ($publications as $publication)
+                    <li>
+                        <a href="{{ route('publications.show', $publication) }}" class="flex min-h-11 flex-col gap-1 py-2.5 text-ink no-underline hover:text-ink">
+                            <span class="flex flex-wrap items-center gap-2">
+                                <span class="rounded-chip px-2.5 py-0.5 text-[12px] font-bold {{ $publication->type->badgeClasses() }}">{{ $publication->type->label() }}</span>
+                                @if ($publication->need_state && $publication->need_state !== \App\Enums\NeedState::Open)
+                                    <span class="text-[12px] font-extrabold text-muted">{{ $publication->need_state->label() }}</span>
+                                @endif
+                            </span>
+                            <span class="text-[14px] font-semibold">{{ Str::limit($publication->body, 90) }}</span>
+                            @if ($publication->live_gestures_count > 0)
+                                <span class="text-[12px] font-semibold text-muted">{{ $publication->type->factLabel($publication->live_gestures_count) }}</span>
+                            @endif
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+        </section>
+    @endif
+
     <section aria-labelledby="compte" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
         <h2 id="compte" class="text-[18px] font-extrabold">Mon compte</h2>
         <div class="flex items-center gap-3">

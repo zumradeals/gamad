@@ -9,6 +9,7 @@ use App\Models\Profile;
 use App\Models\Skill;
 use App\Models\User;
 use App\Support\Normalizer;
+use App\Support\SkillList;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -39,7 +40,7 @@ class ProfileEditor
             throw ValidationException::withMessages(['name' => 'Le nom affiché doit comporter de 1 à 255 caractères.']);
         }
 
-        $bio = $this->cleanBio((string) ($data['bio'] ?? ''));
+        $bio = Normalizer::multiline((string) ($data['bio'] ?? ''));
 
         if (mb_strlen($bio) > Profile::BIO_MAX) {
             throw ValidationException::withMessages(['bio' => 'La présentation ne peut pas dépasser '.Profile::BIO_MAX.' caractères.']);
@@ -49,8 +50,8 @@ class ProfileEditor
             throw ValidationException::withMessages(['visibility' => 'Choisissez qui voit votre profil.']);
         }
 
-        $offered = $this->skillNames($data['offered'], 'offered');
-        $wanted = $this->skillNames($data['wanted'], 'wanted');
+        $offered = SkillList::clean($data['offered'], 'offered', Profile::MAX_SKILLS_PER_KIND, 'Dix capacités au plus dans cette liste.');
+        $wanted = SkillList::clean($data['wanted'], 'wanted', Profile::MAX_SKILLS_PER_KIND, 'Dix capacités au plus dans cette liste.');
         $domainIds = array_values(array_unique($data['domain_ids']));
 
         if (collect($domainIds)->contains(fn ($id) => ! is_string($id) || ! Str::isUuid($id))) {
@@ -113,51 +114,6 @@ class ProfileEditor
         if ($oldPhotoPath !== null && $oldPhotoPath !== $finalPhotoPath) {
             Storage::disk(Profile::PHOTO_DISK)->delete($oldPhotoPath);
         }
-    }
-
-    /** Présentation nettoyée : retours à la ligne unifiés, espaces superflus et caractères invisibles retirés. */
-    private function cleanBio(string $bio): string
-    {
-        $bio = str_replace(["\r\n", "\r"], "\n", $bio);
-        $bio = preg_replace('/[^\P{Cc}\n]|\p{Cf}/u', '', $bio) ?? $bio;
-        $bio = preg_replace('/[^\S\n]+/u', ' ', $bio) ?? $bio;
-        $bio = preg_replace('/ ?\n ?/', "\n", $bio) ?? $bio;
-
-        return trim(preg_replace("/\n{3,}/", "\n\n", $bio) ?? $bio);
-    }
-
-    /**
-     * Noms de capacités nettoyés, sans doublon (au sens de D-066), validés (2 à 60 caractères, au moins une lettre ou un
-     * chiffre) et limités à 10.
-     *
-     * @param  array<int, string>  $names
-     * @return array<int, string>
-     */
-    private function skillNames(array $names, string $list): array
-    {
-        $clean = [];
-
-        foreach ($names as $name) {
-            $display = Normalizer::display((string) $name);
-
-            if ($display === '') {
-                continue;
-            }
-
-            $length = mb_strlen($display);
-
-            if ($length < Skill::MIN_LENGTH || $length > Skill::MAX_LENGTH || ! preg_match('/[\p{L}\p{N}]/u', $display)) {
-                throw ValidationException::withMessages([$list => 'Chaque capacité comporte de '.Skill::MIN_LENGTH.' à '.Skill::MAX_LENGTH.' caractères, dont au moins une lettre ou un chiffre.']);
-            }
-
-            $clean[Normalizer::key($display)] ??= $display;
-        }
-
-        if (count($clean) > Profile::MAX_SKILLS_PER_KIND) {
-            throw ValidationException::withMessages([$list => 'Dix capacités au plus dans cette liste.']);
-        }
-
-        return array_values($clean);
     }
 
     /**
