@@ -50,12 +50,12 @@ it('cache la Discussion à qui n’est pas membre : onglet absent, page introuva
 
     foreach ([$this->dehors, User::factory()->unverified()->create()] as $autre) {
         monde($this->dehors, $this->zumra, 'formation')->assertDontSeeText('Discussion')->assertDontSeeText('Message secret');
-        Livewire::actingAs($autre)->withQueryParams(['onglet' => 'discussion'])->test(MondeZumra::class, ['zumra' => $this->zumra])->assertNotFound();
+        $this->actingAs($autre)->get(route('zumras.show', $this->zumra).'?onglet=discussion')->assertNotFound();
         expect(fn () => app(ZumraPosts::class)->post($autre, $this->zumra, 'Intrus'))->toThrow(AuthorizationException::class);
     }
 
     app('auth')->forgetGuards();
-    Livewire::withQueryParams(['onglet' => 'discussion'])->test(MondeZumra::class, ['zumra' => $this->zumra])->assertNotFound();
+    $this->get(route('zumras.show', $this->zumra).'?onglet=discussion')->assertNotFound();
     expect(ZumraPost::count())->toBe(1);
 });
 
@@ -123,7 +123,7 @@ it('perd l’accès à la Discussion en quittant la ZUMRA, et supprime les messa
     app(Memberships::class)->leave($this->membre, $this->zumra);
 
     expect(fn () => app(ZumraPosts::class)->post($this->membre, $this->zumra, 'Après'))->toThrow(AuthorizationException::class);
-    Livewire::actingAs($this->membre)->withQueryParams(['onglet' => 'discussion'])->test(MondeZumra::class, ['zumra' => $this->zumra])->assertNotFound();
+    $this->actingAs($this->membre)->get(route('zumras.show', $this->zumra).'?onglet=discussion')->assertNotFound();
 
     $this->membre->delete();
     expect(ZumraPost::count())->toBe(0);

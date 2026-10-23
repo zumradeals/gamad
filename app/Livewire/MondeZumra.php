@@ -102,7 +102,7 @@ class MondeZumra extends Component
     {
         abort_unless(Str::isUuid($id), 404);
 
-        $posts->delete(Auth::user(), ZumraPost::query()->where('zumra_id', $this->zumraId)->findOrFail($id));
+        $posts->delete(Auth::user(), ZumraPost::query()->where('zumra_id', $this->zumraId)->find($id) ?? abort(404));
     }
 
     public function recognize(Zumras $zumras): void
