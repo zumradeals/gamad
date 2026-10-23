@@ -629,8 +629,22 @@ server {
     access_log /var/log/nginx/@@DOMAINE@@.access.log;
     error_log  /var/log/nginx/@@DOMAINE@@.error.log;
 
+    # Connexion faible (Lot 5c, D-156) : les feuilles de style et les scripts sont compressés (le script de Livewire passe de
+    # 383 à 83 ko, la feuille de style de 46 à 9 ko). Pas de compression du JSON des échanges Livewire.
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 512;
+    gzip_types text/css application/javascript image/svg+xml;
+
     location / {
         try_files $uri $uri/ /index.php?$query_string;
+    }
+    # Les fichiers compilés portent leur empreinte dans leur nom : un an de cache, aucune revalidation. (« expires » seul :
+    # « add_header » ici ferait perdre les en-têtes de sécurité du serveur.)
+    location /build/ {
+        expires 1y;
+        access_log off;
+        try_files $uri =404;
     }
     location = /favicon.ico { access_log off; log_not_found off; }
     location = /robots.txt  { access_log off; log_not_found off; }
@@ -852,6 +866,8 @@ $LOG_DIR/*.log {
 }
 E
     install -d -m 700 -o root -g root "$BACKUP_DIR"
+    # État de la copie hors serveur : écrit par le script (administrateur), lu par l'application (Espace > Paramètres).
+    install -d -m 755 -o root -g root /var/lib/gamad-reseau
     systemctl daemon-reload
     etat_marquer "unites"
     ok "scripts et unités systemd installés (pas encore activés)"

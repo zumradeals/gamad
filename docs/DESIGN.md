@@ -125,6 +125,10 @@ Police unique : **Plus Jakarta Sans** (graisses 400, 500, 600, 700, 800), auto-h
     « Rétablir le compte ». *Journal* : liste de cartes d'une phrase, filtre par type, pagination Précédent/Suivant.
     *Avis de la modération* (côté personne) : motif, délai, champ d'explication. *Compte suspendu* : écran sobre du gabarit
     visiteur, motif, déconnexion.
+14. **Copie hors serveur** (Lot 5c, D-155) : écran de Paramètres en cartes : carte d'état (configurée ou non, dernière copie
+    réussie, dernier essai de restauration, alerte rouge au-delà de 36 h), formulaire des accès (champs de clés en mot de passe,
+    bouton « Enregistrer et tester la connexion »), encadré de la phrase de secours (bordure épaisse, police à chasse fixe,
+    « J'ai noté la phrase »), puis réaffichage de la phrase sur mot de passe.
 
 ## 5. Règles d'interface
 

@@ -95,6 +95,27 @@ sudo -u postgres pg_restore --clean --if-exists --no-owner -d gamad_reseau /var/
 sudo tar -xzf /var/backups/gamad-reseau/photos-AAAA-MM-JJ_HHMMSS.tar.gz -C /srv/gamad-reseau/shared/storage/app/private && sudo chown -R gamad-reseau:gamad-reseau /srv/gamad-reseau/shared/storage/app/private/profile-photos
 ```
 
+## Copie hors serveur (Lot 5c)
+
+Chaque nuit à 4 h 30 (après la sauvegarde), `copie-hors-serveur.sh` copie la dernière sauvegarde (base, `.env`, photos) vers un
+stockage objet compatible S3, **chiffrée** par rclone (contenu et noms de fichiers) avec une phrase de secours que seul le Président
+conserve. Les accès se saisissent dans **Espace → Paramètres → Copie hors serveur** (D-155) : ils sont chiffrés en base, essayés
+avant d'être enregistrés, et le script les demande à l'application à chaque lancement (`gamad:copie-configuration`). Tant qu'ils ne
+sont pas saisis, la copie ne fait rien et le dit dans son journal (`copie-hors-serveur.log`).
+
+```
+sudo gamad-reseau-copie-hors-serveur etat                  # configurée ? dernière réussite, dernier essai
+sudo gamad-reseau-copie-hors-serveur copier                # lancer la copie maintenant
+sudo gamad-reseau-copie-hors-serveur essai-restauration    # relire la dernière copie et la restaurer dans une base temporaire
+sudo gamad-reseau-copie-hors-serveur telecharger /dossier  # rapatrier la dernière copie (déchiffrée) dans un dossier neuf
+```
+
+L'essai de restauration ne touche jamais à la base de production : il restaure dans `gamad_reseau_essai_restauration`, compte les
+tables, les migrations et les personnes, puis supprime cette base. Sa réussite est inscrite au journal et dans l'écran des Paramètres.
+**Reconstruire sur un nouveau serveur :** installer GAMAD, saisir les mêmes accès **et la même phrase de secours** dans
+Paramètres → Copie hors serveur, puis `telecharger` ; restaurer ensuite comme indiqué à « Sauvegardes ». Sans la phrase, les copies
+sont illisibles. La commande n'invente rien : `etat` dit « NON CONFIGURÉE » et « JAMAIS FAIT » quand c'est le cas.
+
 ## Désinstallation
 
 ```

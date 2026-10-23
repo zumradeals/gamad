@@ -472,9 +472,10 @@ it('installe la copie hors serveur avec son minuteur nocturne, sa commande et sa
         ->toContain('After=gamad-reseau-sauvegarde.service')
         ->toContain('gamad-reseau-deploy.timer gamad-reseau-sauvegarde.timer gamad-reseau-copie-hors-serveur.timer')
         ->toContain('LOG_FILE_OFFSITE=$LOG_DIR/copie-hors-serveur.log')
-        ->toContain('À CONFIGURER');
+        ->toContain('À CONFIGURER')
+        ->toContain('install -d -m 755 -o root -g root /var/lib/gamad-reseau');
 
-    expect($desinstall)->toContain('gamad-reseau-copie-hors-serveur.timer')->toContain('/usr/local/sbin/gamad-reseau-copie-hors-serveur');
+    expect($desinstall)->toContain('/var/lib/gamad-reseau')->toContain('gamad-reseau-copie-hors-serveur.timer')->toContain('/usr/local/sbin/gamad-reseau-copie-hors-serveur');
 });
 
 it('ne met aucun accès ni aucune phrase de secours dans le dépôt', function () {

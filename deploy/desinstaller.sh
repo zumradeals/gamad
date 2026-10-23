@@ -97,6 +97,6 @@ rm -f /usr/local/sbin/gamad-reseau-retour-arriere /usr/local/sbin/gamad-reseau-c
 a "dossiers" && { rm -rf "${APP_DIR:?}" "${ACME_ROOT:?}"; ok "dossier $APP_DIR retiré"; }
 a "utilisateur" && { userdel "$APP_USER" 2>/dev/null || true; ok "utilisateur $APP_USER retiré"; }
 
-rm -rf "${LIB_DIR:?}" "$ETAT_DIR"
+rm -rf "${LIB_DIR:?}" "$ETAT_DIR" /var/lib/gamad-reseau
 echo
 echo "Désinstallation terminée. Conservés : /var/backups/gamad-reseau (sauvegardes) et /var/log/gamad-reseau (journaux)."
