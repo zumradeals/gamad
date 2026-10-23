@@ -10,7 +10,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 /** Notifications dans l'application (écran 15) : les 50 dernières, « Tout marquer lu ». Ni e-mail ni SMS à ce stade. */
-#[Layout('components.layouts.app')]
+#[Layout('components.layouts.app', ['narrow' => true])]
 #[Title('Notifications')]
 class PageNotifications extends Component
 {

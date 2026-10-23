@@ -14,7 +14,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 /** Paramètres › Domaines (D-069) : ajouter, renommer, désactiver. Réservé au super administrateur ; chaque acte est journalisé. */
-#[Layout('components.layouts.app')]
+#[Layout('components.layouts.app', ['narrow' => true])]
 #[Title('Domaines')]
 class ParametresDomaines extends Component
 {

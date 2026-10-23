@@ -15,7 +15,7 @@ use Livewire\Component;
  * Créer un projet dans une ZUMRA, ou modifier son nom et son but (Lot 4a, D-127). Écran sobre, construit avec les composants
  * existants (D-129).
  */
-#[Layout('components.layouts.app')]
+#[Layout('components.layouts.app', ['narrow' => true])]
 class FormulaireProjet extends Component
 {
     #[Locked]

@@ -18,7 +18,7 @@ use Livewire\Component;
  * Fil global (écrans 1 et 4) : les publications visibles pour celui qui regarde, de la plus récente à la plus ancienne, sans
  * aucun algorithme de recommandation (D-087). Filtres : Tout, Besoins, Savoirs, Apprendre, Aides (D-098).
  */
-#[Layout('components.layouts.app', ['wide' => true])]
+#[Layout('components.layouts.app')]
 #[Title('Fil')]
 class Fil extends Component
 {

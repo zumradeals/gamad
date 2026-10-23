@@ -24,15 +24,15 @@
             </div>
 
             @if (filled($profile->bio))
-                <p class="whitespace-pre-line break-words text-[15px] leading-relaxed">{{ $profile->bio }}</p>
+                <p class="whitespace-pre-line break-words text-[15px] leading-relaxed md:max-w-3xl">{{ $profile->bio }}</p>
             @endif
 
             @foreach ($inviteZumras as $inviteZumra)
-                <x-button :href="route('zumras.invite', [$inviteZumra, 'personne' => $profile->public_id])" variant="secondary">{{ $inviteZumras->count() === 1 ? 'Inviter dans ma ZUMRA' : 'Inviter dans '.$inviteZumra->name }}</x-button>
+                <x-button :href="route('zumras.invite', [$inviteZumra, 'personne' => $profile->public_id])" variant="secondary" class="md:self-start md:px-8">{{ $inviteZumras->count() === 1 ? 'Inviter dans ma ZUMRA' : 'Inviter dans '.$inviteZumra->name }}</x-button>
             @endforeach
 
             @if ($isOwner)
-                <x-button :href="route('espace.profil')" variant="secondary">Modifier mon profil</x-button>
+                <x-button :href="route('espace.profil')" variant="secondary" class="md:self-start md:px-8">Modifier mon profil</x-button>
                 @unless ($profile->isPublic())
                     <p class="text-[13px] text-muted">Votre profil n’est visible que des personnes inscrites.</p>
                 @endunless
@@ -44,6 +44,8 @@
                class="flex min-h-12 items-center border-b-[3px] border-accent px-3 text-[14px] font-extrabold text-ink no-underline hover:text-ink">Apporte · Apprend</a>
         </nav>
 
+        {{-- Ordinateur : les cartes se rangent sur deux colonnes. --}}
+        <div class="flex flex-col gap-3.5 lg:block lg:columns-2 lg:gap-6 lg:*:mb-4 lg:*:break-inside-avoid">
         @if ($empty)
             <section class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
                 @if ($isOwner)
@@ -104,5 +106,6 @@
                 </ul>
             </section>
         @endif
+        </div>
     </div>
 </x-layouts.app>

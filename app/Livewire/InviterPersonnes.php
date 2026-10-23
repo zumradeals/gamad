@@ -26,7 +26,7 @@ use Livewire\WithPagination;
  * Carrefour Personnes : profils visibles pour soi, ordre alphabétique, aucun classement) et on invite avec un mot facultatif.
  * Réservé au fondateur et aux responsables, revérifié à chaque affichage et à chaque invitation.
  */
-#[Layout('components.layouts.app')]
+#[Layout('components.layouts.app', ['narrow' => true])]
 #[Title('Inviter des personnes')]
 class InviterPersonnes extends Component
 {

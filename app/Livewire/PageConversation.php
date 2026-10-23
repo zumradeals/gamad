@@ -14,7 +14,7 @@ use Livewire\Component;
  * Conversation privée (écran 12), ouverte par un geste accepté. Rafraîchie toutes les 10 secondes (wire:poll), sans WebSocket.
  * Seuls les deux participants la voient : pour toute autre personne, elle n'existe pas (404).
  */
-#[Layout('components.layouts.app')]
+#[Layout('components.layouts.app', ['narrow' => true])]
 class PageConversation extends Component
 {
     public const POLL_SECONDS = 10;

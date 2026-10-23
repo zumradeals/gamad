@@ -14,7 +14,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 /** Signaler une publication (écran 16). Une personne connectée et vérifiée, jamais pour sa propre publication. */
-#[Layout('components.layouts.app')]
+#[Layout('components.layouts.app', ['narrow' => true])]
 #[Title('Signaler')]
 class SignalerPublication extends Component
 {

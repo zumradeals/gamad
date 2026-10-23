@@ -1,4 +1,4 @@
-<x-layouts.app title="Agir">
+<x-layouts.app title="Agir" narrow>
     <div class="flex flex-col gap-3.5">
         <div class="-mx-4 -mt-4 flex min-h-14 items-center gap-1 border-b border-line bg-card px-2 py-1.5 md:mx-0 md:mt-0 md:rounded-card md:border">
             <a href="{{ route('fil') }}" aria-label="Retour au Fil" class="flex size-11 items-center justify-center text-ink hover:text-ink"><x-icon name="back" /></a>
