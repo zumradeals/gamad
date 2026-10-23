@@ -41,6 +41,13 @@
         </div>
     </div>
 
+    <div class="flex">
+        <button type="button" wire:click="toggleRecognized" aria-pressed="{{ $recognized ? 'true' : 'false' }}"
+                @class(['inline-flex min-h-11 items-center gap-1.5 rounded-chip px-4 text-[13px]', 'bg-ink font-bold text-white' => $recognized, 'border border-chip-line bg-card font-semibold text-ink' => ! $recognized])>
+            <x-icon name="check" :size="14" :stroke="3" />Reconnues par GAMAD
+        </button>
+    </div>
+
     @if ($viewer)
         <section aria-labelledby="mes-zumra" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4">
             <div class="flex items-center justify-between gap-2">
@@ -80,6 +87,9 @@
                 <div class="flex min-w-0 flex-col">
                     <a href="{{ route('zumras.show', $zumra) }}" class="inline-flex min-h-11 items-center break-words text-[16px] font-extrabold text-ink no-underline hover:text-ink hover:underline">{{ $zumra->name }}</a>
                     <span class="-mt-2 text-[12px] font-semibold text-muted">{{ $meta }}</span>
+                    @if ($zumra->isRecognized())
+                        <span class="mt-1 inline-flex items-center gap-1 self-start rounded-chip bg-type-knowledge-bg px-2.5 py-0.5 text-[12px] font-bold text-type-knowledge-fg"><x-icon name="check" :size="12" :stroke="3" />Reconnue par GAMAD</span>
+                    @endif
                 </div>
             </div>
             <p class="whitespace-pre-line break-words text-[14px] leading-normal">{{ \Illuminate\Support\Str::limit($zumra->mission, 180) }}</p>

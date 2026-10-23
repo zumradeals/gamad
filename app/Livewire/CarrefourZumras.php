@@ -36,6 +36,10 @@ class CarrefourZumras extends Component
     #[Url(as: 'domaine', except: '')]
     public string $domain = '';
 
+    /** Seulement les ZUMRA reconnues officiellement par GAMAD (3c). */
+    #[Url(as: 'reconnues', except: false)]
+    public bool $recognized = false;
+
     public function updatingQuery(): void
     {
         $this->resetPage();
@@ -51,9 +55,15 @@ class CarrefourZumras extends Component
         $this->resetPage();
     }
 
+    public function toggleRecognized(): void
+    {
+        $this->recognized = ! $this->recognized;
+        $this->resetPage();
+    }
+
     public function clearFilters(): void
     {
-        $this->reset('query', 'city', 'domain');
+        $this->reset('query', 'city', 'domain', 'recognized');
         $this->resetPage();
     }
 
@@ -68,6 +78,7 @@ class CarrefourZumras extends Component
             ->when($key !== '', fn (Builder $query) => $query->where('search', 'like', Normalizer::likeContains($key)))
             ->when($city !== '', fn (Builder $query) => $query->where('city_id', $city))
             ->when($domain !== '', fn (Builder $query) => $query->where('domain_id', $domain))
+            ->when($this->recognized, fn (Builder $query) => $query->whereNotNull('recognized_at'))
             ->with(['domain', 'city'])
             ->withCount(['memberships as members_count' => fn (Builder $query) => $query->whereHas('user', fn (Builder $user) => $user->whereNotNull('email_verified_at'))])
             ->orderBy('name_key')->orderBy('id')
@@ -93,7 +104,7 @@ class CarrefourZumras extends Component
             'mine' => $mine,
             'cities' => $cities,
             'domains' => $domains,
-            'hasFilters' => $key !== '' || $city !== '' || $domain !== '',
+            'hasFilters' => $key !== '' || $city !== '' || $domain !== '' || $this->recognized,
             'viewer' => $viewer,
             // Les ZUMRA de la page dans lesquelles la personne est déjà : pas de « Je veux rejoindre » pour elles.
             'memberOf' => $viewer ? $viewer->zumraMemberships()->whereIn('zumra_id', $zumras->pluck('id'))->pluck('zumra_id')->all() : [],
