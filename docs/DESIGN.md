@@ -201,3 +201,11 @@ La nouvelle composition remplace la présentation des écrans 1 et 4 pour le Fil
 - Badges : « ZUMRA engagée » (ton jaune, à côté de « Reconnue par GAMAD ») sur le Monde et les cartes du Carrefour ; « Contributeur » sur le profil, seulement si choisi. Jamais de montant.
 - Tableau du Président : fonds (reçu, remboursé, affecté, versé, reste, contributeurs, écart des paiements directs), dépenses de ZUMRA à valider (encadré noir), affectation (orientations reçues sans nom, projet, montant, objet public), affectations avec « J'ai versé cette somme », mois, dernières contributions avec noms (lecture réservée au Président).
 - Rapport public : mode d'essai annoncé le cas échéant, chiffres, mois, affectations ; aucune personne nommée.
+
+## 13. Carrefour Projets éditorial (D-180)
+
+- Héros clair et illustration SVG décorative locale, sans données réelles ni informations indispensables dans l’image.
+- Recherche, domaine et ville dans une barre horizontale sur ordinateur, empilée sur téléphone ; boutons d’état avec état pressé accessible et réinitialisation.
+- Deux colonnes à partir de 1024 px, une en dessous. Cartes lisibles : icône générique de projet, état réel, nom et but ; pied de carte Porté par avec ZUMRA, domaine et ville et Voir le projet. Aucun pourcentage d’avancement ni donnée inventée.
+- État vide initial distinct de l’absence de résultat après filtrage ; l’invitation à explorer les ZUMRA rappelle que le fondateur ou un responsable y crée le projet. Aucun bouton global de création.
+- Le panneau « aperçu de l’état sans projet » de la maquette est un spécimen de conception : il n’est jamais affiché en même temps que des résultats réels.
