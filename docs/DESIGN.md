@@ -16,6 +16,15 @@ reconstruis les écrans en Blade, Livewire et Tailwind ; ne copie pas ces balise
 | `Monde-Personne.dc.html` | Écran 5 — Monde d'une personne, téléphone (Lot 1, D-065) |
 | `Modifier-profil.dc.html` | Écran 6 — Modifier mon profil, téléphone (Lot 1, D-065) |
 | `Carrefour-Personnes.dc.html` | Écran 7 — Carrefour Personnes, avec le choix « peut l'apporter » / « veut l'apprendre », téléphone (Lot 1, D-065) |
+| `Agir-choisir.dc.html` | Écran 8 — Agir : choisir le type de publication, téléphone (Lot 2, D-080) |
+| `Agir-publier.dc.html` | Écran 9 — Publier un besoin, téléphone (Lot 2, D-080) |
+| `Geste-proposer.dc.html` | Écran 10 — Je peux aider : proposer un geste, téléphone (Lot 2, D-080) |
+| `Besoin-auteur.dc.html` | Écran 11 — Mon besoin : propositions reçues, téléphone (Lot 2, D-080) |
+| `Conversation.dc.html` | Écran 12 — Conversation privée, téléphone (Lot 2, D-080) |
+| `Besoin-resolu.dc.html` | Écran 13 — Besoin résolu et remerciement, téléphone (Lot 2, D-080) |
+| `Espace-afaire.dc.html` | Écran 14 — Espace : À faire maintenant, téléphone (Lot 2, D-080) |
+| `Notifications.dc.html` | Écran 15 — Notifications, téléphone (Lot 2, D-080) |
+| `Signaler.dc.html` | Écran 16 — Signaler, téléphone (Lot 2, D-080) |
 
 ## 1. Jetons (à déclarer dans la configuration Tailwind)
 

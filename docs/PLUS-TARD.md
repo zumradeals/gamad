@@ -17,3 +17,5 @@ construites tant qu'une décision ne les fait pas entrer dans un lot.
 | Missions, Transmissions, Preuves formelles, ZAHAB, Satellites | Concepts de l'ancien dépôt, à réexaminer un par un |
 | Recommandations personnalisées | Après que le réseau a assez de données réelles |
 | Langues autres que le français | Fichiers de traduction Laravel |
+| Commenter une publication | À décider par le Président (masqué au Lot 2, D-090) |
+| Partager une publication | À décider par le Président (masqué au Lot 2, D-090) |

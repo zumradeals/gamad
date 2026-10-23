@@ -9,7 +9,7 @@ lot en « Terminé ».
 | 0 | Socle | **Terminé** (essai du Président réussi sur reseau.dgafrique.com le 2026-10-22) |
 | 0.1 | Mise en ligne et paramètres | **Terminé** (essai du Président réussi sur reseau.dgafrique.com le 2026-10-22) |
 | 1 | Personne | **En cours** |
-| 2 | Fil global et gestes | À venir |
+| 2 | Fil global et gestes | **En cours** |
 | 3 | ZUMRA | À venir |
 | 4 | Projets | À venir |
 | 5 | Ouverture (pilote) | À venir |
@@ -186,13 +186,57 @@ messagerie, paiements, données d'exemple en production.
 
 ---
 
-## Lot 2 — Fil global et gestes (À venir)
+## Lot 2 — Fil global et gestes (En cours)
 
-Publications typées, gestes, acceptation, conversation privée, besoin résolu avec remerciement ; première
-version de « À faire maintenant » dans Espace ; notifications dans l'application ; fonction « Signaler » (sur tout contenu
-affiché, y compris les profils) et masquage ; modération (condition d'ouverture publique, D-078).
-Terminé quand deux parcours passent de bout en bout sur téléphone : « J'ai besoin » → « Je peux aider » →
-remerciement ; « Je partage un savoir » → « Je veux apprendre » → apprenant accepté.
+Maquettes : écrans 1 et 4 (Fil), puis 8 à 16 de `docs/DESIGN.md`. Décisions : D-079 à D-090. Livré en trois Pull Requests
+successives, chacune relue par l'architecte et fusionnée par le Président avant la suivante : **2a**, **2b**, **2c**.
+
+**Périmètre :**
+
+*2a — Publier, trouver, proposer un geste*
+
+1. Publications typées : J'ai besoin, Je partage un savoir, Je veux apprendre, Je propose mon aide (personne seulement,
+   D-081) ; texte brut de 500 caractères au plus, sans lien cliquable ni image (D-086) ; visibilité Public ou Inscrits
+   seulement (D-085).
+2. « Agir » activé dans la navigation : choisir le type (écran 8), publier (écran 9).
+3. Fil réel, téléphone et ordinateur (écrans 1 et 4, avec seulement du contenu réel) : ordre chronologique inverse, aucun
+   algorithme, filtres Tout, Besoins, Savoirs ; seules les publications visibles pour celui qui regarde (règle côté
+   serveur, D-087). « Commenter » et « Partager » masqués (D-090).
+4. Gestes (écran 10) : Je peux aider, Je veux apprendre, Je peux transmettre, Ça m'intéresse ; un mot facultatif de 280
+   caractères ; un geste par personne et par publication, retirable tant qu'il n'est pas accepté ; pas de geste sur sa
+   propre publication (D-082).
+5. Mon besoin (écran 11) : propositions reçues, Accepter et Décliner ; états ouvert, en cours, résolu, fermé sans suite ;
+   Marquer résolu et Fermer sans suite par l'auteur seul (D-083). Sans remerciement ni conversation.
+
+*2b — Parler, remercier, être prévenu*
+
+6. Conversation privée ouverte par un geste accepté (écran 12), rafraîchie toutes les 10 secondes, sans WebSocket ; 1 000
+   caractères par message.
+7. Remerciement (écran 13) : public sur le profil de la personne qui a aidé, choisie parmi les gestes acceptés ou aucune ;
+   masquable par elle ; section « Remerciements reçus » activée sur l'écran 5 (D-084).
+8. Notifications dans l'application, cloche, « Tout marquer lu » (écran 15), sans e-mail ni téléphone d'autrui.
+9. « À faire maintenant » dans Espace (écran 14) : chaque ligne n'existe que s'il y a vraiment une action à faire.
+
+*2c — Signaler et modérer*
+
+10. Signaler (écran 16) ; file de signalements pour le super administrateur et les modérateurs ; Masquer et Rétablir, chaque
+    acte inscrit au journal d'administration ; l'auteur d'une publication masquée voit le motif et peut écrire une
+    explication avant toute sanction (D-089). Ces deux écrans n'ont pas de maquette : construits sobres, avec les
+    composants existants.
+11. Protection contre les abus : limites de débit côté serveur (valeurs consignées dans le rapport, D-086).
+
+**Hors périmètre :** Avancée de projet, Appel à rejoindre, publication au nom d'une ZUMRA (lots 3 et 4), « Commenter »,
+« Partager », images et liens cliquables dans les publications, paiements, e-mails de notification.
+
+**Terminé quand :**
+
+- le parcours « J'ai besoin » → « Je peux aider » → acceptation → conversation → remerciement passe de bout en bout sur
+  téléphone ;
+- le parcours « Je partage un savoir » → « Je veux apprendre » → apprenant accepté passe de bout en bout sur téléphone ;
+- un signalement va jusqu'au masquage ;
+- l'intégration continue est verte et `docs/TESTER.md` décrit l'essai de chaque Pull Request.
+
+---
 
 ## Lot 3 — ZUMRA (À venir)
 
