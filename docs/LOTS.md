@@ -13,6 +13,7 @@ lot en « Terminé ».
 | 3 | ZUMRA | **Terminé** (PR 3a, 3b et 3c fusionnées, marqué terminé le 2026-10-23 sur instruction du Président) |
 | 4 | Projets | **Terminé** (PR 4a, 4b et 4c fusionnées, marqué terminé le 2026-10-23 sur instruction du Président) |
 | 5 | Ouverture (pilote) | **Terminé** (PR 5a, 5b et 5c fusionnées, marqué terminé le 2026-10-23 sur instruction du Président ; restent à faire par lui : l'essai de restauration sur son stockage réel et le pilote fermé) |
+| 5.1 | Carrefour Besoins et Découvrir | **En cours** |
 | 6 | Contributions mensuelles | À venir |
 
 **Condition d'ouverture publique (D-078).** Avant toute ouverture publique de la plateforme, la fonction « Signaler » et la
@@ -353,6 +354,20 @@ Décisions : D-078, D-144 à D-147. Livré en trois Pull Requests, chacune relue
 **Condition d'ouverture publique (D-078) :** « Signaler » et la modération du Lot 2 sont livrés ; ils doivent avoir été essayés pendant le pilote avant toute ouverture publique. L'ouverture publique elle-même est une décision du Président.
 
 **Terminé quand** le pilote fermé tourne avec la charte adoptée et une sauvegarde hors serveur restaurée avec succès.
+
+## Lot 5.1 — Carrefour Besoins et Découvrir (En cours)
+
+Décidé par le Président le 2026-10-23, avant le Lot 6 (D-160). Une seule Pull Request. Maquette : capture de la fenêtre « Découvrir » de l'ancien projet, fournie par le Président (fenêtre « Que cherchez-vous ? » avec trois choix).
+
+**Périmètre :**
+1. Carrefour Besoins (`/besoins`), ouvert aux visiteurs comme les autres Carrefours, sur le même gabarit : les besoins publiés par une personne, une ZUMRA ou un projet (PRODUIT §2 le prévoyait sans qu'aucun lot ne le construise). Chaque besoin affiche qui l'émet ; recherche par texte ou capacité ; filtres état (ouverts par défaut), domaine, ville, émetteur (personne, ZUMRA, projet) ; « Voir le besoin » mène à la publication, où se trouve le geste.
+2. Barre d'ordinateur : Fil, Personnes, **Besoins**, Projets, ZUMRA (l'entrée Besoins, masquée jusqu'ici, est activée).
+3. Téléphone : « Découvrir » ouvre une fenêtre « Que cherchez-vous ? » avec trois choix, **Personnes, Besoins, Projets**, chacun menant à son Carrefour. Sans JavaScript, « Découvrir » mène à une page `/decouvrir` qui montre les mêmes trois choix.
+4. L'entrée « Besoins » du Fil (colonne « Explorer GAMAD ») rejoint Personnes, ZUMRA et Projets.
+
+**Hors périmètre :** les organisations comme émetteurs de besoins (D-017 : « une prochaine fois », décision du Président) ; la recherche générale ; un classement de besoins.
+
+**Terminé quand** un visiteur et une personne connectée trouvent un besoin émis par une personne, une ZUMRA ou un projet depuis le Carrefour Besoins ; le menu de l'ordinateur affiche cinq entrées ; la fenêtre « Découvrir » du téléphone ouvre les trois Carrefours ; `php artisan test` et la CI passent.
 
 ## Lot 6 — Contributions mensuelles (À venir)
 
