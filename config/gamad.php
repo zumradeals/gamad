@@ -23,5 +23,7 @@ return [
         'publications_per_day' => 30,
         'gestures_per_hour' => 30,
         'gestures_per_day' => 100,
+        'messages_per_minute' => 20,
+        'messages_per_day' => 500,
     ],
 ];

@@ -6,6 +6,7 @@ use App\Enums\GestureState;
 use App\Models\Gesture;
 use App\Models\Publication;
 use App\Services\Gestures;
+use App\Services\Gratitudes;
 use App\Services\Publications;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -29,6 +30,11 @@ class PagePublication extends Component
      */
     #[Locked]
     public string $publicationId;
+
+    /** Écran 13 : la personne remerciée (identifiant de compte, parmi celles dont le geste est accepté) et le texte du remerciement. */
+    public string $helperId = '';
+
+    public string $gratitudeText = '';
 
     public function mount(Publication $publication): void
     {
@@ -56,6 +62,22 @@ class PagePublication extends Component
         session()->flash('status', 'Besoin marqué comme résolu.');
     }
 
+    /** « Marquer résolu et remercier » : ensemble, ou pas du tout. */
+    public function resolveAndThank(Gratitudes $gratitudes): void
+    {
+        $gratitudes->resolveAndThank(Auth::user(), $this->publication(), $this->helperId, $this->gratitudeText);
+        $this->reset('helperId', 'gratitudeText');
+        session()->flash('status', 'Besoin marqué comme résolu. Votre remerciement est publié.');
+    }
+
+    /** Remercier après coup, sur un besoin déjà résolu. */
+    public function thank(Gratitudes $gratitudes): void
+    {
+        $gratitudes->thank(Auth::user(), $this->publication(), $this->helperId, $this->gratitudeText);
+        $this->reset('helperId', 'gratitudeText');
+        session()->flash('status', 'Votre remerciement est publié.');
+    }
+
     public function close(Publications $publications): void
     {
         $publications->close(Auth::user(), $this->publication());
@@ -70,21 +92,25 @@ class PagePublication extends Component
         $type = $publication->type;
         $isAuthor = $viewer && $viewer->getKey() === $publication->author_id;
 
+        $received = $isAuthor
+            ? $publication->gestures()
+                ->where('state', '!=', GestureState::Withdrawn->value)
+                ->with(['author.profile.city', 'author.profile.offeredSkills', 'conversation'])
+                ->orderByRaw("case state when 'sent' then 0 when 'accepted' then 1 else 2 end")
+                ->orderBy('created_at')
+                ->get()
+            : collect();
+
         return view('livewire.page-publication', [
+            'accepted' => $received->where('state', GestureState::Accepted)->values(),
+            'gratitude' => $isAuthor ? $publication->gratitude()->with('helper.profile')->first() : null,
             'publication' => $publication,
             'type' => $type,
             'viewer' => $viewer,
             'isAuthor' => $isAuthor,
-            'gesture' => $viewer && ! $isAuthor ? Gesture::query()->where('publication_id', $publication->id)->where('user_id', $viewer->getKey())->first() : null,
+            'gesture' => $viewer && ! $isAuthor ? Gesture::query()->with('conversation')->where('publication_id', $publication->id)->where('user_id', $viewer->getKey())->first() : null,
             // Les gestes reçus : ceux en attente d'abord, puis acceptés, puis déclinés ; les gestes retirés disparaissent.
-            'received' => $isAuthor
-                ? $publication->gestures()
-                    ->where('state', '!=', GestureState::Withdrawn->value)
-                    ->with(['author.profile.city', 'author.profile.offeredSkills'])
-                    ->orderByRaw("case state when 'sent' then 0 when 'accepted' then 1 else 2 end")
-                    ->orderBy('created_at')
-                    ->get()
-                : collect(),
+            'received' => $received,
         ])->title($isAuthor ? $type->ownTitle() : $type->label());
     }
 

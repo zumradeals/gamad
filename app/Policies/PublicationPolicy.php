@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Enums\GestureState;
+use App\Enums\NeedState;
 use App\Models\Gesture;
 use App\Models\Publication;
 use App\Models\User;
@@ -71,6 +72,24 @@ class PublicationPolicy
 
         if ($existing && $existing->state !== GestureState::Withdrawn) {
             return Response::deny('Vous avez déjà répondu à cette publication.');
+        }
+
+        return Response::allow();
+    }
+
+    /** Remercier (D-084) : l'auteur d'un besoin résolu qui a au moins un geste accepté, une seule fois. */
+    public function thank(User $user, Publication $publication): Response
+    {
+        if (! $this->manage($user, $publication)) {
+            return Response::deny('Seul l’auteur du besoin peut remercier.');
+        }
+
+        if (! $publication->isNeed() || $publication->need_state !== NeedState::Resolved) {
+            return Response::deny('On remercie une fois le besoin résolu.');
+        }
+
+        if ($publication->gratitude()->exists()) {
+            return Response::deny('Ce besoin a déjà un remerciement.');
         }
 
         return Response::allow();

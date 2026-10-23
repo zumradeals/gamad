@@ -5,6 +5,27 @@
         <x-status>{{ session('status') }}</x-status>
     @endif
 
+    <section aria-labelledby="afaire" wire:poll.30s class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
+        <div class="flex items-center justify-between gap-2">
+            <h2 id="afaire" class="text-[18px] font-extrabold">À faire maintenant</h2>
+            @if (count($todo) > 0)
+                <span class="min-w-6 rounded-full bg-accent px-2 text-center text-[13px] font-extrabold leading-6 text-ink" aria-label="{{ count($todo) }} à faire">{{ count($todo) }}</span>
+            @endif
+        </div>
+        @forelse ($todo as $line)
+            <div wire:key="{{ $line['key'] }}" class="flex items-center gap-3 border-t border-line-soft pt-3 first:border-0 first:pt-0">
+                <div class="flex min-w-0 flex-1 flex-col">
+                    <span class="break-words text-[15px] font-extrabold">{{ $line['title'] }}</span>
+                    <span class="break-words text-[13px] text-muted">{{ $line['detail'] }}</span>
+                </div>
+                <x-button :href="$line['url']" variant="secondary" class="shrink-0 !px-4">{{ $line['action'] }}</x-button>
+            </div>
+        @empty
+            <p class="text-[14px] text-muted">Rien ne vous attend pour l’instant.</p>
+        @endforelse
+        <p class="text-[12px] leading-normal text-muted">Cette liste ne montre que ce qui attend une action de votre part. Elle se vide quand vous avez tout traité.</p>
+    </section>
+
     <section aria-labelledby="profil" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
         <h2 id="profil" class="text-[18px] font-extrabold">Mon profil</h2>
         <p class="text-muted">Ce que vous pouvez apporter, ce que vous voulez apprendre, où vous êtes : c’est ce qui permet aux autres de vous trouver.</p>

@@ -78,7 +78,12 @@
         @endif
     @elseif ($viewer)
         @if ($gesture && $gesture->state === GestureState::Accepted)
-            <span class="inline-flex min-h-11 items-center gap-1.5 text-[14px] font-extrabold text-type-knowledge-fg"><x-icon name="check" :size="16" :stroke="3" />Acceptée</span>
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <span class="inline-flex min-h-11 flex-1 items-center gap-1.5 text-[14px] font-extrabold text-type-knowledge-fg"><x-icon name="check" :size="16" :stroke="3" />Acceptée</span>
+                @if ($gesture->conversation && Gate::forUser($viewer)->allows('view', $gesture->conversation))
+                    <x-button :href="route('conversations.show', $gesture->conversation)">Ouvrir la conversation</x-button>
+                @endif
+            </div>
         @elseif ($gesture && $gesture->state === GestureState::Declined)
             <span class="inline-flex min-h-11 items-center text-[14px] font-semibold text-muted">Non retenue</span>
         @elseif ($gesture && $gesture->state === GestureState::Sent)

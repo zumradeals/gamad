@@ -1,10 +1,13 @@
 <?php
 
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PersonController;
 use App\Livewire\CarrefourPersonnes;
 use App\Livewire\Espace;
 use App\Livewire\Fil;
 use App\Livewire\ModifierProfil;
+use App\Livewire\PageConversation;
+use App\Livewire\PageNotifications;
 use App\Livewire\PagePublication;
 use App\Livewire\Parametres;
 use App\Livewire\ParametresDomaines;
@@ -27,6 +30,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/fil', Fil::class)->name('fil');
     Route::view('/agir', 'pages.agir')->name('agir');
     Route::get('/agir/{slug}', PublierPublication::class)->name('agir.publier');
+    Route::get('/conversations/{conversation}', PageConversation::class)->whereUuid('conversation')->name('conversations.show');
+    Route::get('/notifications', PageNotifications::class)->name('notifications');
+    Route::get('/notifications/{notification}', [NotificationController::class, 'open'])->whereUuid('notification')->name('notifications.open');
     Route::get('/espace', Espace::class)->name('espace');
     Route::get('/espace/profil', ModifierProfil::class)->name('espace.profil');
     Route::get('/espace/parametres', Parametres::class)->middleware('can:super-admin')->name('espace.parametres');

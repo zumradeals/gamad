@@ -21,6 +21,7 @@ pest()->extend(TestCase::class)
         config([
             'gamad.limits.publications_per_hour' => 10000, 'gamad.limits.publications_per_day' => 10000,
             'gamad.limits.gestures_per_hour' => 10000, 'gamad.limits.gestures_per_day' => 10000,
+            'gamad.limits.messages_per_minute' => 10000, 'gamad.limits.messages_per_day' => 10000,
         ]);
     })
     ->in('Feature');

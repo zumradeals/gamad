@@ -31,7 +31,15 @@ class User extends Authenticatable implements MustVerifyEmail
         static::created(fn (User $user) => $user->profile()->create());
 
         // Aucune photo ne survit au compte (données personnelles).
-        static::deleting(fn (User $user) => $user->profile?->deletePhotoFile());
+        static::deleting(function (User $user) {
+            $user->profile?->deletePhotoFile();
+
+            // Ses messages sont effacés : le corps disparaît, la conversation affichera « Message supprimé » (D-097).
+            Message::query()->where('sender_id', $user->getKey())->update(['body' => null]);
+        });
+
+        // Une conversation dont les deux personnes ont disparu n'intéresse plus personne.
+        static::deleted(fn () => Conversation::query()->whereNull('owner_id')->whereNull('helper_id')->delete());
     }
 
     public function publications(): HasMany

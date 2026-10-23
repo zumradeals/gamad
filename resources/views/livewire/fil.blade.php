@@ -1,5 +1,5 @@
 @php
-    $filters = ['tout' => 'Tout', 'besoins' => 'Besoins', 'savoirs' => 'Savoirs'];
+    $filters = ['tout' => 'Tout', 'besoins' => 'Besoins', 'savoirs' => 'Savoirs', 'apprendre' => 'Apprendre', 'aides' => 'Aides'];
     $shortcuts = [\App\Enums\PublicationType::Need, \App\Enums\PublicationType::Knowledge, \App\Enums\PublicationType::LearningWish];
 @endphp
 

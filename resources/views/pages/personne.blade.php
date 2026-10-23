@@ -88,6 +88,8 @@
             </section>
         @endif
 
+        <livewire:profile-gratitudes :profile="$profile" />
+
         @if ($profile->domains->isNotEmpty())
             <section aria-labelledby="domaines" class="flex flex-col gap-2.5 rounded-card border border-line bg-card p-4 md:p-[18px]">
                 <h2 id="domaines" class="text-[15px] font-extrabold">Domaines qui l’intéressent</h2>
