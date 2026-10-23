@@ -14,7 +14,7 @@ lot en « Terminé ».
 | 4 | Projets | **Terminé** (PR 4a, 4b et 4c fusionnées, marqué terminé le 2026-10-23 sur instruction du Président) |
 | 5 | Ouverture (pilote) | **Terminé** (PR 5a, 5b et 5c fusionnées, marqué terminé le 2026-10-23 sur instruction du Président ; restent à faire par lui : l'essai de restauration sur son stockage réel et le pilote fermé) |
 | 5.1 | Carrefour Besoins et Découvrir | **Terminé** (PR 5.1 fusionnée, marqué terminé le 2026-10-23 sur instruction du Président) |
-| 6 | Contributions mensuelles | À venir |
+| 6 | Contributions mensuelles et portefeuille ZAHAB | **En cours** (PR 6a) |
 
 **Condition d'ouverture publique (D-078).** Avant toute ouverture publique de la plateforme, la fonction « Signaler » et la
 modération (Lot 2) doivent être livrées et essayées. D'ici là, la plateforme reste en essai fermé.
@@ -369,18 +369,18 @@ Décidé par le Président le 2026-10-23, avant le Lot 6 (D-160). Une seule Pull
 
 **Terminé quand** un visiteur et une personne connectée trouvent un besoin émis par une personne, une ZUMRA ou un projet depuis le Carrefour Besoins ; le menu de l'ordinateur affiche cinq entrées ; la fenêtre « Découvrir » du téléphone ouvre les trois Carrefours ; `php artisan test` et la CI passent.
 
-## Lot 6 — Contributions mensuelles et portefeuille ZAHAB (À venir)
+## Lot 6 — Contributions mensuelles et portefeuille ZAHAB (En cours)
 
-Décisions : D-004, D-163 à D-171 ; D-019 est remplacée par D-166. Ce lot n'est pas commencé ; il le sera sur « Passe au Lot 6 » du Président.
+Décisions : D-004, D-163 à D-174 ; D-019 est remplacée par D-166 ; D-171 est tranchée par D-172. Lancé sur « Passe au Lot 6 » du Président le 2026-10-23.
 
-**Avant d'écrire du code (conditions préalables) :** décider les points de D-171 ; avis juridique sur le crédit prépayé interne et les fonds détenus pour autrui ; entité juridique bénéficiaire identifiée ; compte marchand GeniusPay ouvert par le Président et lecture de sa documentation officielle (D-169) ; aligner `docs/PRODUIT.md` (glossaire : Contribution, ZAHAB, Portefeuille, Fonds de contribution, ZUMRA engagée ; ZAHAB n'est plus « hors V1 ») sur instruction du Président.
+**Conditions avant l'argent réel (PR 6b et suivantes) :** avis juridique sur le crédit prépayé interne et les fonds détenus pour autrui ; entité juridique bénéficiaire fournie par le Président (D-172) ; compte marchand GeniusPay ouvert par le Président et lecture de sa documentation officielle (D-169). La PR 6a n'en a besoin d'aucune : aucun argent n'y circule. `docs/PRODUIT.md` est aligné (version 1.1).
 
 **Périmètre prévu (trois Pull Requests, chacune relue puis fusionnée avant la suivante) :**
 
 *PR 6a — Portefeuilles et registre (sans argent réel)*
 1. Portefeuille ZAHAB d'une personne et d'une ZUMRA ; registre des mouvements en ajout seul (contrainte de base comme le journal d'administration) ; solde calculé depuis le registre, jamais saisi.
 2. Écrans « Mon portefeuille » et « Portefeuille de la ZUMRA » : solde, mouvements, états vides. Aucun transfert entre utilisateurs, aucun retrait.
-3. Droits : un portefeuille de ZUMRA ne se lit et ne se dépense que par son fondateur et ses responsables ; chaque acte au journal d'administration.
+3. Droits : un portefeuille de personne ne se lit que par elle ; celui d'une ZUMRA, par son fondateur et ses responsables. Réglages dans Espace → Paramètres → Portefeuille : activation (masqué par défaut), plafonds de solde. Suppression d'un compte ou d'une ZUMRA refusée tant que son solde n'est pas nul (D-172). Chaque réglage modifié est inscrit au journal d'administration.
 
 *PR 6b — Recharge par GeniusPay (mode d'essai d'abord)*
 4. Clés GeniusPay dans Espace → Paramètres ; création du paiement, page hébergée, rappel serveur de confirmation, crédit seulement après confirmation, rapprochement avec le relevé.

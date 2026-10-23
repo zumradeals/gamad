@@ -1,6 +1,6 @@
 # PRODUIT — Réseau social d'action GAMAD
 
-Version 1.0 — 22 octobre 2026. Source : décisions du Président consignées dans docs/DECISIONS.md. Toute modification passe par une décision.
+Version 1.1 — 23 octobre 2026 (contributions et portefeuille ZAHAB, D-163 à D-173). Source : décisions du Président consignées dans docs/DECISIONS.md. Toute modification passe par une décision.
 
 ## 1. Principe
 
@@ -63,6 +63,14 @@ Onglets V1 :
 | Pays | `Country` | Pays où une personne indique vivre. Liste tenue par le super administrateur. |
 | Ville | `City` | Lieu rattaché à un seul pays. Liste tenue par le super administrateur. |
 | Territoire | `Country` + `City` | Le pays et la ville qu'une personne affiche sur son profil, tous deux facultatifs. |
+| Contribution | `Contribution` | Somme versée volontairement, par une personne ou une ZUMRA, au fonds de contribution de GAMAD. Montant libre, 500 FCFA au moins. Signe d'engagement. Ne s'appelle jamais « cotisation ». |
+| ZAHAB | unité | L'unité des portefeuilles : 1 ZAHAB = 1 FCFA. |
+| Portefeuille | `Wallet` | Le compte en ZAHAB d'une personne ou d'une ZUMRA. Il se recharge et se dépense dans le réseau ; en V1, ni transfert entre utilisateurs ni retrait. |
+| Mouvement | `LedgerEntry` | Une ligne du registre d'un portefeuille. Jamais modifiée ni effacée. |
+| Fonds de contribution | — | Les contributions reçues sur le compte GeniusPay de GAMAD ; il finance les ZUMRA engagées. Distinct du fonds des portefeuilles. |
+| Fonds des portefeuilles | — | Les sommes rechargées dans les portefeuilles ; elles restent à leurs titulaires. |
+| ZUMRA engagée | calculé | Une ZUMRA qui a contribué dans les 60 derniers jours. Badge « ZUMRA engagée », distinct de « Reconnue par GAMAD ». |
+| Contributeur | calculé | Une personne qui a contribué dans les 60 derniers jours. Badge « Contributeur » facultatif, sans niveau ni montant. |
 
 ## 4. Objets, états et droits
 
@@ -75,6 +83,8 @@ Onglets V1 :
 | Besoin | ouvert · en cours · résolu · fermé sans suite | Son auteur (personne, ou responsable de la ZUMRA) |
 | Geste | envoyé · accepté · décliné · retiré | Celui qui agit l'envoie ; l'auteur de la publication accepte ou décline |
 | Invitation | envoyée · acceptée · refusée · expirée | Un responsable l'envoie ; la personne répond |
+| Portefeuille | ouvert · fermé (à la disparition de la personne ou de la ZUMRA, solde nul) | Son titulaire dépense (pour une ZUMRA : le fondateur et les responsables) ; le Président valide les dépenses de ZUMRA au-delà du seuil |
+| Contribution | en attente · confirmée · remboursée | La personne ou la ZUMRA la verse ; le Président affecte le fonds de contribution |
 
 Règles :
 
@@ -84,6 +94,9 @@ Règles :
 - Une personne ou une ZUMRA peut publier un besoin.
 - Accepter un geste ouvre une conversation privée entre les deux personnes.
 - Un besoin résolu peut porter un remerciement, visible sur le profil de la personne qui a aidé.
+- Un portefeuille ne se lit que par son titulaire ; pour une ZUMRA, par son fondateur et ses responsables. Le Président voit des totaux, jamais le portefeuille d'une personne.
+- Aucun transfert entre utilisateurs et aucun retrait en V1. Un solde n'est jamais confisqué : une personne ou une ZUMRA qui a un solde ne peut pas disparaître avant de l'avoir dépensé ou fait rembourser (D-172).
+- Un projet n'est financé que par une ZUMRA à la fois engagée et reconnue (D-167).
 
 ## 5. Types de publication et gestes
 
@@ -102,7 +115,7 @@ réels peuvent être comptés (« 4 personnes veulent apprendre »).
 ## 6. Règles transverses
 
 1. **Compte n'est pas adhésion.** S'inscrire ne fait de personne un membre du Mouvement GAMAD.
-2. **L'argent arrive plus tard et n'achète jamais la visibilité.** Aucun paiement avant le lot des contributions.
+2. **L'argent n'achète jamais la visibilité ni le rang.** Il arrive par les contributions et les portefeuilles (Lot 6). Aucun argent réel n'entre avant l'avis juridique et la mise en service décidée par le Président (D-164, D-169).
 3. **Visibilité :** public (sans compte) · réseau (personnes connectées) · ZUMRA (membres seulement).
 4. **Pas de score humain.** Ni note, ni classement, ni « j'aime ».
 5. **Pas de donnée inventée.** Un chiffre affiché vient de la base. Un écran vide propose une action.
@@ -110,6 +123,7 @@ réels peuvent être comptés (« 4 personnes veulent apprendre »).
 7. **Le super administrateur est tracé.** Chaque acte est inscrit au journal d'administration.
 8. **Données personnelles.** Téléphone et e-mail jamais affichés à autrui ; suppression du compte possible.
 9. **Territoires normalisés.** Pays et ville choisis dans une liste.
+10. **Une contribution est privée.** Son montant n'est jamais affiché à personne d'autre que son auteur et le Président ; le badge « Contributeur » est facultatif (D-170).
 
 ## 7. Domaines d'action (liste de référence)
 
