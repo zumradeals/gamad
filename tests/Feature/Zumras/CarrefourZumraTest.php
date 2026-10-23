@@ -182,9 +182,9 @@ it('revient à la première page après un changement de pays ou de format', fun
 
 it('conserve les territoires désactivés déjà sélectionnés dans une adresse', function () {
     $ville = City::findOrFail($this->bouake);
+    zumra($this->yao, 'Communauté locale', ['city_id' => $ville->id]);
     $ville->country->update(['active' => false]);
     $ville->update(['active' => false]);
-    zumra($this->yao, 'Communauté locale', ['city_id' => $ville->id]);
 
     Livewire::withQueryParams(['pays' => $ville->country_id, 'ville' => $ville->id])->test(CarrefourZumras::class)
         ->assertSeeText('Communauté locale')
