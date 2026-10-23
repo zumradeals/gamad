@@ -368,7 +368,7 @@ function carrefour_projets(?User $qui = null)
 }
 
 it('est ouvert aux visiteurs sans compte, avec un état vide qui mène aux ZUMRA', function () {
-    $this->get(route('projets.index'))->assertOk()->assertSeeText('Aucun projet pour l’instant.')->assertSee(route('zumras.index'));
+    $this->get(route('projets.index'))->assertOk()->assertSeeText('Les premières actions se préparent.')->assertSeeText('Aucun projet pour l’instant.')->assertSee(route('zumras.index'));
 
     projet($this->yao, $this->zumra);
     $this->get(route('projets.index'))->assertOk()->assertSeeText('CARREFOUR')->assertSeeText('Uniformes de la rentrée')->assertSeeText('Couture solidaire')->assertSeeText('Voir le projet');

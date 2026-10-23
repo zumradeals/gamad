@@ -364,3 +364,22 @@
         .zumra-searchbar > :first-child, .zumra-searchbar > :last-child { grid-column: auto; }
     }
 }
+
+/* Carrefour Projets : objectif, état et ZUMRA porteuse. */
+@layer components {
+    .project-directory { --color-muted: #3d4f5e; }
+    .project-discovery-hero { display: grid; align-items: center; gap: 20px; padding-top: 12px; }
+    .project-searchbar { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--color-line); border-radius: 12px; background: var(--color-card); }
+    .project-searchbar:focus-within { outline: 3px solid var(--color-link); outline-offset: 2px; }
+    .project-state-filter { display: inline-flex; min-height: 48px; align-items: center; gap: 8px; border-bottom-width: 2px; padding-inline: 4px; font-size: 14px; }
+    .project-state-filter:hover { color: var(--color-link); }
+    @media (min-width: 768px) {
+        .project-discovery-hero { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 32px; }
+        .project-searchbar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .project-searchbar > :first-child, .project-searchbar > :last-child { grid-column: 1 / -1; }
+    }
+    @media (min-width: 1024px) {
+        .project-searchbar { grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr)) auto; }
+        .project-searchbar > :first-child, .project-searchbar > :last-child { grid-column: auto; }
+    }
+}
