@@ -10,7 +10,7 @@ lot en « Terminé ».
 | 0.1 | Mise en ligne et paramètres | **Terminé** (essai du Président réussi sur reseau.dgafrique.com le 2026-10-22) |
 | 1 | Personne | **En cours** |
 | 2 | Fil global et gestes | **Terminé** (PR 2a, 2b et 2c fusionnées, marqué terminé par le Président le 2026-10-23) |
-| 3 | ZUMRA | À venir |
+| 3 | ZUMRA | **En cours** |
 | 4 | Projets | À venir |
 | 5 | Ouverture (pilote) | À venir |
 | 6 | Contributions mensuelles | À venir |
@@ -238,13 +238,67 @@ successives, chacune relue par l'architecte et fusionnée par le Président avan
 
 ---
 
-## Lot 3 — ZUMRA (À venir)
+## Lot 3 — ZUMRA (En cours)
 
-Carrefour ZUMRA ; création ; rôles ; invitation par capacité ; demande d'adhésion ; Monde d'une ZUMRA avec
-onglets Formation, Fil, Projets, Membres, Discussion ; besoins de ZUMRA ; reconnaissance par le super
-administrateur, tracée.
-Terminé quand une ZUMRA réelle invite trois personnes trouvées par capacité, publie dans son mini-fil, puis
-est reconnue.
+Maquettes : Carrefour ZUMRA et Monde d'une ZUMRA (`docs/maquettes/`, D-011). Décisions : D-003, D-006, D-009, D-110 à D-117.
+Livré en trois Pull Requests successives, chacune relue par l'architecte et fusionnée par le Président avant la suivante :
+**3a**, **3b**, **3c**. Un module non encore construit est masqué (règle « pas de faux produit ») : en particulier les projets
+(Lot 4), le compteur de projets, « Suivre » et « Inviter dans ma ZUMRA » sur le profil d'une personne tant que 3b n'est pas livré.
+
+**Périmètre :**
+
+*3a — Créer et trouver*
+
+1. Créer une ZUMRA : toute personne connectée et vérifiée. Nom (unique sans tenir compte de la casse, des accents ni des
+   espaces), **un seul domaine** (liste de référence), ville (liste de référence, facultative), format (en ligne, sur place ou
+   hybride), mission (texte brut de 500 caractères au plus). La personne devient **fondateur** et premier membre. États : active ;
+   les états reconnue (3c), suspendue et archivée ne sont pas construits.
+2. Carrefour ZUMRA (une seule vue réutilisant le gabarit du Carrefour Personnes) : recherche par nom ou mission, filtres Domaines
+   et Villes, « Mes ZUMRA », « Créer une ZUMRA ». Ordre alphabétique (D-114). Chaque carte montre seulement des chiffres réels : le
+   nombre de membres. Les compteurs de projets et de savoirs partagés, et le filtre « Reconnues par GAMAD », sont masqués jusqu'à
+   ce qu'ils soient réels.
+3. Monde d'une ZUMRA : en-tête (initiales, nom, domaine · ville · format, état, mission, nombre de membres, date de création) ;
+   onglet **Membres** (les autres onglets viennent avec 3b et 3c). Public pour l'en-tête, Membres pour les personnes connectées et
+   vérifiées, avec la règle de visibilité de chaque profil (D-112).
+4. Rôles : fondateur, responsable, membre (D-111). En 3a, seul le fondateur existe.
+5. Modifier sa ZUMRA : le fondateur et les responsables modifient la mission, la ville et le format ; le nom et le domaine sont
+   fixes (D-114).
+6. Chaque règle côté serveur (Policies), limites de débit à la création (D-117), tests, mutations.
+
+*3b — Entrer*
+
+7. Demande d'adhésion (« Je veux rejoindre », mot facultatif de 280 caractères) : une demande en cours par personne et par
+   ZUMRA, retirable ; le fondateur ou un responsable l'accepte ou la décline (D-110).
+8. Invitation par capacité : un responsable trouve des personnes par ce qu'elles peuvent apporter (Carrefour Personnes) et les
+   invite, avec un mot facultatif ; la personne accepte ou refuse ; l'invitation expire après 14 jours (D-110).
+9. Membres : quitter la ZUMRA, retirer un membre (le fondateur ne peut pas être retiré), nommer et retirer un responsable (le
+   fondateur seul, D-111). Fondateur qui supprime son compte : D-115.
+10. Notifications et « À faire maintenant » : demandes à traiter, invitations reçues, réponses.
+
+*3c — Vivre et reconnaître*
+
+11. Publier au nom d'une ZUMRA (fondateur et responsables) : J'ai besoin, Je partage un savoir, Je propose mon aide, et le type
+    **Appel à rejoindre** (D-116) ; niveau de visibilité « ZUMRA seulement » en plus de Public et Inscrits seulement (D-112) ;
+    filtre « ZUMRA » du Fil global (D-098).
+12. Onglets **Fil** (mini-fil de la ZUMRA), **Formation** (savoirs partagés par la ZUMRA, ce que ses membres savent faire et veulent
+    apprendre, avec la règle de visibilité de chaque profil) et **Discussion** (fil simple réservé aux membres, 1 000 caractères
+    par message, D-021).
+13. Besoins de ZUMRA : gestes, acceptation et état gérés par les responsables ; remerciement par le responsable qui résout (D-116).
+14. Reconnaissance par le super administrateur : badge « Reconnue par GAMAD », retrait possible, chaque acte inscrit au journal
+    d'administration ; filtre « Reconnues par GAMAD » du Carrefour.
+
+**Hors périmètre :** projets et leur onglet (Lot 4), « Suivre », contributions et paiements, chat en direct, ZUMRA suspendue ou
+archivée, images, liens cliquables, e-mails de notification.
+
+**Terminé quand :**
+
+- une ZUMRA réelle invite trois personnes trouvées par capacité, publie dans son mini-fil, puis est reconnue par le super
+  administrateur, de bout en bout sur téléphone ;
+- un visiteur sans compte comprend ce que fait une ZUMRA en lisant son Monde public ;
+- la Discussion d'une ZUMRA n'est lisible que par ses membres ;
+- l'intégration continue est verte et `docs/TESTER.md` décrit l'essai de chaque Pull Request.
+
+---
 
 ## Lot 4 — Projets (À venir)
 
