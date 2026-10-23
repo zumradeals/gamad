@@ -9,8 +9,10 @@ use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -103,9 +105,43 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'charter_accepted_at' => 'datetime',
+            'suspended_at' => 'datetime',
             'password' => 'hashed',
             'platform_role' => PlatformRole::class,
         ];
+    }
+
+    public function suspender(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'suspended_by');
+    }
+
+    public function moderationNotices(): HasMany
+    {
+        return $this->hasMany(ModerationNotice::class);
+    }
+
+    /** L'avis de la modération en cours pour cette personne, s'il y en a un. */
+    public function openNotice(): ?ModerationNotice
+    {
+        return $this->moderationNotices()->open()->first();
+    }
+
+    /** Personne suspendue (D-145) : elle ne peut plus rien faire et n'est plus visible des autres. */
+    public function isSuspended(): bool
+    {
+        return $this->suspended_at !== null;
+    }
+
+    /** Personne dont l'adresse e-mail est vérifiée et qui n'est pas suspendue : seule celle-là existe pour les autres. */
+    public function isActive(): bool
+    {
+        return $this->hasVerifiedEmail() && ! $this->isSuspended();
+    }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->whereNotNull('email_verified_at')->whereNull('suspended_at');
     }
 
     public function isSuperAdmin(): bool

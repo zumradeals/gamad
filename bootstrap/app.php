@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\BlockSuspended;
 use App\Http\Middleware\ThrottleRegistration;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -13,7 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->web(append: [ThrottleRegistration::class]);
+        $middleware->web(append: [ThrottleRegistration::class, BlockSuspended::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

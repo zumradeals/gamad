@@ -80,14 +80,14 @@ class CarrefourZumras extends Component
             ->when($domain !== '', fn (Builder $query) => $query->where('domain_id', $domain))
             ->when($this->recognized, fn (Builder $query) => $query->whereNotNull('recognized_at'))
             ->with(['domain', 'city'])
-            ->withCount(['memberships as members_count' => fn (Builder $query) => $query->whereHas('user', fn (Builder $user) => $user->whereNotNull('email_verified_at'))])
+            ->withCount(['memberships as members_count' => fn (Builder $query) => $query->whereHas('user', fn (Builder $user) => $user->active())])
             ->orderBy('name_key')->orderBy('id')
             ->paginate(self::PER_PAGE);
 
         $mine = $viewer
             ? Zumra::query()->whereHas('memberships', fn (Builder $query) => $query->where('user_id', $viewer->getKey()))
                 ->with(['domain', 'city', 'memberships' => fn ($query) => $query->where('user_id', $viewer->getKey())])
-                ->withCount(['memberships as members_count' => fn (Builder $query) => $query->whereHas('user', fn (Builder $user) => $user->whereNotNull('email_verified_at'))])
+                ->withCount(['memberships as members_count' => fn (Builder $query) => $query->whereHas('user', fn (Builder $user) => $user->active())])
                 ->orderBy('name_key')->get()
             : collect();
 

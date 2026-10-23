@@ -119,6 +119,12 @@ Police unique : **Plus Jakarta Sans** (graisses 400, 500, 600, 700, 800), auto-h
 12. **Pages de texte** (Lot 5a, D-149) : charte et mentions légales en articles de lecture (largeur de 920 px), titres
     numérotés ; un bandeau « Projet … non adopté » visible du seul Président avant l'adoption ; la date d'adoption sous
     le titre ensuite.
+13. **Outils de modération** (Lot 5b, D-152 à D-154) : une barre commune « Publications · Personnes · Journal » en haut des trois
+    écrans (puces de 44 px). *Personnes* : avis en cours (motif, explication ou délai, motif de suspension, boutons
+    « Suspendre la personne » seulement quand la décision est possible), recherche par nom, personnes suspendues avec
+    « Rétablir le compte ». *Journal* : liste de cartes d'une phrase, filtre par type, pagination Précédent/Suivant.
+    *Avis de la modération* (côté personne) : motif, délai, champ d'explication. *Compte suspendu* : écran sobre du gabarit
+    visiteur, motif, déconnexion.
 
 ## 5. Règles d'interface
 

@@ -102,8 +102,10 @@
     @can('moderate')
         <section aria-labelledby="moderation" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
             <h2 id="moderation" class="text-[18px] font-extrabold">Modération</h2>
-            <p class="text-muted">Les publications signalées, celles que vous avez masquées et l’explication de leur auteur.</p>
+            <p class="text-muted">Les publications signalées, celles que vous avez masquées et l’explication de leur auteur ; les avis et suspensions de personnes ; le journal des actes.</p>
             <x-button :href="route('moderation')">Ouvrir la file de modération</x-button>
+            <x-button variant="secondary" :href="route('moderation.personnes')">Modération des personnes</x-button>
+            <x-button variant="secondary" :href="route('moderation.journal')">Journal d’administration</x-button>
         </section>
     @endcan
 

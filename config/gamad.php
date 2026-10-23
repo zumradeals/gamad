@@ -36,4 +36,9 @@ return [
         'messages_per_minute' => 20,
         'messages_per_day' => 500,
     ],
+
+    'moderation' => [
+        // Jours laissés à une personne pour s'expliquer après un avis de la modération, avant qu'une suspension soit possible (D-152).
+        'explanation_days' => 7,
+    ],
 ];

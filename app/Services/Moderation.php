@@ -136,6 +136,8 @@ class Moderation
             Gate::forUser($author)->authorize('explain', $locked);
 
             $locked->forceFill(['author_explanation' => $text, 'explained_at' => now()])->save();
+
+            $this->notifier->pushToModeration(NotificationKind::PublicationExplained, $author, $locked);
             $publication->setRawAttributes($locked->getAttributes(), true);
         });
     }

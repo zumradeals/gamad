@@ -20,7 +20,7 @@ class WelcomeController extends Controller
             return redirect()->route('fil');
         }
 
-        $people = User::query()->whereNotNull('email_verified_at')->count();
+        $people = User::query()->active()->count();
         $zumras = Zumra::query()->count();
         $projects = Project::query()->count();
 

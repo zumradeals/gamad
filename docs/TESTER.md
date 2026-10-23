@@ -337,9 +337,23 @@ Il vous faut votre compte de **super administrateur** et une fenêtre privée (v
 5. **Inscription.** Dans la fenêtre privée, **Créer un compte** demande maintenant de cocher « J'ai lu et j'accepte la charte de conduite » (lien vers la charte) : sans la case, l'inscription est refusée avec un message. **Retirer l'adoption** remet tout comme avant (page introuvable, case absente).
 6. Chaque adoption, retrait et changement de champ est inscrit au journal d'administration (lisible dès la PR 5b).
 
-**Ce qui n'existe pas encore :** lecture du journal et suspension d'une personne (5b) ; sauvegardes hors serveur et préparation du pilote (5c). Les personnes déjà inscrites ne sont pas invitées à accepter la charte (voir D-150).
+**Ce qui n'existe pas encore :** sauvegardes hors serveur et préparation du pilote (5c). Les personnes déjà inscrites ne sont pas invitées à accepter la charte (voir D-150).
 
-## 15. Ce qu'il faut regarder à chaque écran
+## 15. Essayer le Lot 5, deuxième étape (5b) : journal, avis et suspension
+
+Il vous faut trois comptes : le vôtre (super administrateur), un **modérateur** (désigné par vous) et une **personne ordinaire**.
+
+1. **Journal.** Super administrateur : **Espace → Modération → Journal d'administration**. Les actes passés (adoption de la charte, masquages, etc.) s'y lisent en une phrase, du plus récent au plus ancien, avec le motif. Le filtre **Type d'acte** limite la liste. Compte modérateur : le même écran n'affiche que les actes de modération (pas les réglages, ni les listes).
+2. **Envoyer un avis.** Modérateur : **Modération → Personnes**, cherchez la personne par son nom, écrivez le motif, **Envoyer l'avis**. Elle reçoit une notification « … vous a envoyé un avis de la modération » et « À faire maintenant » affiche **Expliquer**.
+3. **S'expliquer.** Personne ordinaire : ouvrez la notification, lisez le motif et le délai (7 jours), écrivez votre explication, **Envoyer mon explication**. Modérateur et super administrateur reçoivent « … a répondu à l'avis de la modération ».
+4. **Suspendre.** Avant la réponse et avant la fin du délai, le bouton **Suspendre la personne** n'apparaît pas (seul **Classer l'avis sans suite**). Après la réponse, saisissez un motif et **Suspendre la personne**. La personne suspendue qui ouvre le site voit « Votre compte est suspendu » avec le motif, et ne peut que se déconnecter. Les autres ne voient plus son profil ni ses publications.
+5. **Rétablir.** **Modération → Personnes → Personnes suspendues → Rétablir le compte** (raison facultative). La personne est prévenue et retrouve tout.
+6. **Explication d'une publication masquée.** Quand l'auteur d'une publication masquée s'explique, la modération reçoit « … a écrit son explication sur la publication masquée » ; la notification mène à l'onglet **Masquées**.
+7. **Limites à vérifier.** Un modérateur ne peut envoyer d'avis ni à vous, ni à un autre modérateur, ni à lui-même ; vous seul décidez pour un modérateur. Chaque acte apparaît au journal.
+
+**Ce qui n'existe pas encore :** suspension immédiate sans avis (voir D-152) ; recours dans l'application pour une personne suspendue (le contact des mentions légales est affiché une fois celles-ci adoptées).
+
+## 16. Ce qu'il faut regarder à chaque écran
 
 - [ ] Le texte se lit sans zoomer, rien ne dépasse de l'écran, aucun défilement de côté.
 - [ ] Les boutons sont faciles à toucher du pouce.
@@ -347,7 +361,7 @@ Il vous faut votre compte de **super administrateur** et une fenêtre privée (v
 - [ ] Les messages d'erreur sont clairs et en français.
 - [ ] Tout bouton ou lien visible mène à une vraie page.
 
-## 16. Les mises à jour se font toutes seules
+## 17. Les mises à jour se font toutes seules
 
 Chaque fois qu'un changement est fusionné dans `main`, le site se met à jour tout seul en **5 à 10 minutes** : rechargez la page après ce délai.
 Si une mise à jour échoue, la version actuelle reste en ligne et l'échec est noté dans un journal côté serveur ; si une mise à jour
@@ -356,7 +370,7 @@ sait revenir en arrière (voir `deploy/LISEZMOI.md`, réservé à l'administrati
 
 Les données sont sauvegardées chaque nuit (7 jours conservés).
 
-## 17. Ce qui n'existe pas encore (c'est normal)
+## 18. Ce qui n'existe pas encore (c'est normal)
 
-la consultation du journal d'administration, « Commenter », « Partager », « Suivre », « Inviter », recherche générale, paiement : ces modules sont masqués tant que leur lot
+« Commenter », « Partager », « Suivre », « Inviter », recherche générale, paiement : ces modules sont masqués tant que leur lot
 n'est pas construit.

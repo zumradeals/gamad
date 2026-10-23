@@ -94,7 +94,7 @@ class Profile extends Model
     {
         return $query->where(function (Builder $query) use ($viewer) {
             $query->where(function (Builder $query) use ($viewer) {
-                $query->whereHas('user', fn (Builder $user) => $user->whereNotNull('email_verified_at'));
+                $query->whereHas('user', fn (Builder $user) => $user->active());
 
                 if (! $viewer?->hasVerifiedEmail()) {
                     $query->where('visibility', self::PUBLIC);

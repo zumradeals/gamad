@@ -31,7 +31,7 @@ class PublicationPolicy
             return $viewer && ($viewer->can('moderate') || $publication->isManagedBy($viewer)) ? Response::allow() : Response::denyAsNotFound();
         }
 
-        if (! $publication->author->hasVerifiedEmail()) {
+        if (! $publication->author->isActive()) {
             return Response::denyAsNotFound();
         }
 
