@@ -83,7 +83,9 @@ it('compose les précisions du besoin dans un seul texte sans perdre la visibili
 
 it('vérifie le besoin obligatoire et le plafond du texte final sans perdre la saisie', function () {
     $page = Livewire::actingAs($this->author)->test(PublierPublication::class, ['slug' => 'besoin']);
-    $page->set('body', '  ')->set('needPurpose', 'Un but seul')->call('publish')->assertHasErrors('body');
+    foreach (['  ', "\u{200b}"] as $empty) {
+        $page->set('body', $empty)->set('needPurpose', 'Un but seul')->call('publish')->assertHasErrors('body');
+    }
     $page->set('body', str_repeat('é', 450))->set('needPurpose', str_repeat('b', 100))->call('publish')->assertHasErrors('body')->assertSet('needPurpose', str_repeat('b', 100));
     expect(Publication::query()->count())->toBe(0);
 });

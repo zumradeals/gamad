@@ -34,7 +34,7 @@
             <p class="mt-3 whitespace-pre-line text-[15px] leading-relaxed [overflow-wrap:anywhere]">{{ $conversation->next_action }}</p>
             @if ($conversation->next_action_date)<p class="mt-2 text-[14px] font-semibold">Date {{ $conversation->next_action_confirmed_at ? 'convenue' : 'proposée' }} : {{ $conversation->next_action_date->copy()->locale('fr')->translatedFormat('j F Y') }}</p>@endif
             @unless ($conversation->next_action_confirmed_at)<p class="mt-2 text-[13px] text-muted">{{ $conversation->next_action_by === $viewer->id ? 'Vous avez proposé cette action. Elle attend la confirmation de l’autre personne.' : 'L’autre personne propose cette action. Confirmez-la si elle vous convient, ou proposez-en une autre.' }}</p>@endunless
-            @if ($canSend)
+            @if ($canSend && ! $editingAction)
                 <div class="mt-3 flex flex-wrap gap-2">
                     @if (! $conversation->next_action_confirmed_at && $conversation->next_action_by !== $viewer->id)<x-button type="button" wire:click="confirmAction({{ $conversation->next_action_revision }})" wire:loading.attr="disabled" variant="accent">Confirmer cette action</x-button>@endif
                     <x-button type="button" wire:click="withdrawAction({{ $conversation->next_action_revision }})" wire:loading.attr="disabled" variant="secondary">Retirer cette action</x-button>
@@ -81,7 +81,7 @@
         @endforelse
     </div>
 
-    @if ($canSend)
+    @if ($canSend && ! $editingAction)
         <form wire:submit="send" class="sticky bottom-[76px] -mx-4 flex flex-col gap-1 border-t border-line bg-card px-3 py-2.5 md:static md:mx-0 md:rounded-card md:border">
             @error('body')
                 <p role="alert" class="px-1 text-[13px] font-semibold text-danger">{{ $message }}</p>
@@ -95,7 +95,7 @@
                         class="flex size-12 shrink-0 items-center justify-center rounded-full bg-ink text-white disabled:opacity-60"><x-icon name="send" :size="20" /></button>
             </div>
         </form>
-    @else
+    @elseif (! $canSend)
         <p class="rounded-card border border-line bg-card p-4 text-[14px] font-semibold text-muted">Cette personne a supprimé son compte : vous pouvez relire la conversation, mais plus lui écrire.</p>
     @endif
 </div>

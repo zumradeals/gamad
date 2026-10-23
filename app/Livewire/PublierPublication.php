@@ -14,6 +14,7 @@ use App\Support\Experience;
 use App\Support\Normalizer;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
@@ -123,7 +124,11 @@ class PublierPublication extends Component
             $this->validate(['needPurpose' => ['nullable', 'string', 'max:150'], 'needTiming' => ['nullable', 'string', 'max:100']], [], ['needPurpose' => 'but du besoin', 'needTiming' => 'disponibilités']);
             // Le besoin reste obligatoire : des précisions seules ne doivent pas fabriquer une demande vide.
             $this->validate(['body' => ['required', 'string']], [], ['body' => 'besoin']);
-            $parts = [Normalizer::multiline($body)];
+            $body = Normalizer::multiline($body);
+            if ($body === '') {
+                throw ValidationException::withMessages(['body' => 'Décrivez ce dont vous avez besoin.']);
+            }
+            $parts = [$body];
             if (filled($this->needPurpose)) {
                 $parts[] = 'Pour : '.Normalizer::display($this->needPurpose);
             }
