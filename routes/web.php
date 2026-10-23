@@ -3,13 +3,16 @@
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PersonController;
 use App\Livewire\CarrefourPersonnes;
+use App\Livewire\CarrefourProjets;
 use App\Livewire\CarrefourZumras;
 use App\Livewire\Espace;
 use App\Livewire\Fil;
 use App\Livewire\FileModeration;
+use App\Livewire\FormulaireProjet;
 use App\Livewire\FormulaireZumra;
 use App\Livewire\InviterPersonnes;
 use App\Livewire\ModifierProfil;
+use App\Livewire\MondeProjet;
 use App\Livewire\MondeZumra;
 use App\Livewire\PageConversation;
 use App\Livewire\PageNotifications;
@@ -33,6 +36,10 @@ Route::get('/personnes/{profile:public_id}/photo', [PersonController::class, 'ph
 Route::get('/zumra', CarrefourZumras::class)->name('zumras.index');
 Route::get('/zumra/{zumra}', MondeZumra::class)->whereUuid('zumra')->name('zumras.show');
 
+// Un projet est public (D-005) : le Carrefour et la page d'un projet se lisent sans compte.
+Route::get('/projets', CarrefourProjets::class)->name('projets.index');
+Route::get('/projets/{project}', MondeProjet::class)->whereUuid('project')->name('projets.show');
+
 // Une publication publique se lit sans compte ; répondre demande un compte (D-085). Une publication interdite répond 404.
 Route::get('/publications/{publication}', PagePublication::class)->whereUuid('publication')->name('publications.show');
 
@@ -41,6 +48,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/zumra/{zumra}/inviter', InviterPersonnes::class)->whereUuid('zumra')->name('zumras.invite');
     Route::get('/zumra/{zumra}/publier/{slug}', PublierPublication::class)->whereUuid('zumra')->name('zumras.publier');
     Route::get('/zumra/{zumra}/modifier', FormulaireZumra::class)->whereUuid('zumra')->name('zumras.edit');
+    Route::get('/zumra/{zumra}/projets/creer', FormulaireProjet::class)->whereUuid('zumra')->name('projets.create');
+    Route::get('/projets/{project}/modifier', FormulaireProjet::class)->whereUuid('project')->name('projets.edit');
     Route::get('/fil', Fil::class)->name('fil');
     Route::view('/agir', 'pages.agir')->name('agir');
     Route::get('/agir/{slug}', PublierPublication::class)->name('agir.publier');

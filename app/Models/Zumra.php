@@ -59,6 +59,11 @@ class Zumra extends Model
         return $this->hasMany(Publication::class);
     }
 
+    public function projects(): HasMany
+    {
+        return $this->hasMany(Project::class);
+    }
+
     public function posts(): HasMany
     {
         return $this->hasMany(ZumraPost::class);

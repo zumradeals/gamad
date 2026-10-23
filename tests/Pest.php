@@ -8,6 +8,7 @@ use App\Models\City;
 use App\Models\Conversation;
 use App\Models\Domain;
 use App\Models\Gesture;
+use App\Models\Project;
 use App\Models\Publication;
 use App\Models\User;
 use App\Models\Zumra;
@@ -16,6 +17,7 @@ use App\Services\Conversations;
 use App\Services\Gestures;
 use App\Services\JoinRequests;
 use App\Services\ProfileEditor;
+use App\Services\Projects;
 use App\Services\Publications;
 use App\Services\Zumras;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -31,7 +33,7 @@ pest()->extend(TestCase::class)
         config([
             'gamad.limits.publications_per_hour' => 10000, 'gamad.limits.publications_per_day' => 10000,
             'gamad.limits.gestures_per_hour' => 10000, 'gamad.limits.gestures_per_day' => 10000,
-            'gamad.limits.zumras_per_day' => 10000, 'gamad.limits.zumra_posts_per_minute' => 10000, 'gamad.limits.zumra_posts_per_day' => 10000, 'gamad.limits.join_requests_per_day' => 10000, 'gamad.limits.invitations_per_day' => 10000, 'gamad.limits.reports_per_hour' => 10000, 'gamad.limits.reports_per_day' => 10000,
+            'gamad.limits.zumras_per_day' => 10000, 'gamad.limits.projects_per_day' => 10000, 'gamad.limits.zumra_posts_per_minute' => 10000, 'gamad.limits.zumra_posts_per_day' => 10000, 'gamad.limits.join_requests_per_day' => 10000, 'gamad.limits.invitations_per_day' => 10000, 'gamad.limits.reports_per_hour' => 10000, 'gamad.limits.reports_per_day' => 10000,
             'gamad.limits.messages_per_minute' => 10000, 'gamad.limits.messages_per_day' => 10000,
         ]);
     })
@@ -145,4 +147,10 @@ function admis(Zumra $zumra, User $personne): ZumraMembership
 function monde(User $qui, $zumra, string $onglet = 'membres')
 {
     return Livewire::actingAs($qui)->test(MondeZumra::class, ['zumra' => $zumra])->set('tab', $onglet);
+}
+
+/** Crée un projet par le chemin réel (App\Services\Projects), comme l'écran « Créer un projet ». */
+function projet(User $auteur, Zumra $zumra, string $nom = 'Uniformes de la rentrée', array $data = []): Project
+{
+    return app(Projects::class)->create($auteur, $zumra, $data + ['name' => $nom, 'goal' => 'Coudre 200 uniformes pour trois écoles du quartier.']);
 }

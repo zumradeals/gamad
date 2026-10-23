@@ -8,6 +8,7 @@ use App\Models\Gesture;
 use App\Models\Invitation;
 use App\Models\JoinRequest;
 use App\Models\Profile;
+use App\Models\Project;
 use App\Models\Publication;
 use App\Models\User;
 use App\Models\Zumra;
@@ -33,7 +34,7 @@ use Livewire\Component;
 /**
  * Monde d'une ZUMRA : l'en-tête, la Formation et le Fil sont publics (selon le niveau de chaque publication) ; la liste des
  * membres est réservée aux personnes connectées et vérifiées, avec la règle de visibilité de chaque profil ; la Discussion est
- * réservée aux membres (404 pour les autres, D-112). L'onglet Projets vient avec le Lot 4.
+ * réservée aux membres (404 pour les autres, D-112). L'onglet Projets liste les projets de la ZUMRA (Lot 4).
  */
 #[Layout('components.layouts.app')]
 class MondeZumra extends Component
@@ -48,7 +49,7 @@ class MondeZumra extends Component
 
     public const SKILLS_SHOWN = 12;
 
-    public const TABS = ['formation', 'fil', 'membres', 'discussion'];
+    public const TABS = ['formation', 'fil', 'projets', 'membres', 'discussion'];
 
     #[Locked]
     public string $zumraId;
@@ -233,6 +234,11 @@ class MondeZumra extends Component
             $publications = $found->take($this->limit);
         }
 
+        // Les projets de la ZUMRA, publics (D-005), par ordre alphabétique.
+        $projects = $tab === 'projets'
+            ? Project::query()->where('zumra_id', $zumra->id)->orderBy('name_key')->orderBy('id')->get()
+            : collect();
+
         $gestures = $viewer && $publications->isNotEmpty()
             ? Gesture::query()->with('conversation')->where('user_id', $viewer->getKey())->whereIn('publication_id', $publications->pluck('id'))->get()->keyBy('publication_id')
             : collect();
@@ -249,6 +255,8 @@ class MondeZumra extends Component
             'publications' => $publications,
             'hasMore' => $hasMore,
             'gestures' => $gestures,
+            'projects' => $projects,
+            'projectsCount' => Project::query()->where('zumra_id', $zumra->id)->count(),
             'managed' => $managed,
             'memberOf' => $viewer ? $viewer->zumraMemberships()->pluck('zumra_id')->all() : [],
             'skills' => $tab === 'formation' ? $this->skills($zumra, $viewer) : ['offered' => collect(), 'wanted' => collect()],
