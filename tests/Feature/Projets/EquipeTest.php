@@ -154,6 +154,17 @@ it('sort de l’équipe des projets, et clôt les demandes en attente, quand on 
     expect(ParticipationRequest::where('project_id', $autre->id)->sole()->state)->toBe(JoinRequestState::Withdrawn);
 });
 
+it('laisse intacte une demande déjà traitée quand la personne quitte la ZUMRA, et ne clôt que celles en attente', function () {
+    $declinee = app(ParticipationRequests::class)->propose($this->awa, $this->projet);
+    app(ParticipationRequests::class)->decline($this->yao, $declinee);
+    $autre = projet($this->yao, $this->zumra, 'Autre projet');
+    $enAttente = app(ParticipationRequests::class)->propose($this->awa, $autre);
+
+    app(Memberships::class)->leave($this->awa, $this->zumra);
+
+    expect($declinee->fresh()->state)->toBe(JoinRequestState::Declined)->and($enAttente->fresh()->state)->toBe(JoinRequestState::Withdrawn);
+});
+
 it('sort aussi de l’équipe quand un gestionnaire retire la personne de la ZUMRA', function () {
     app(ProjectTeam::class)->add($this->yao, $this->projet, $this->awa);
 
@@ -402,6 +413,16 @@ it('traite les demandes et gère l’équipe depuis l’écran, pour un gestionn
     expect(ProjectMember::count())->toBe(1);
 });
 
+it('ne propose plus à l’ajout les personnes déjà dans l’équipe', function () {
+    foreach ([$this->yao, $this->resp, $this->awa, $this->koffi] as $p) {
+        app(ProjectTeam::class)->add($this->yao, $this->projet, $p);
+    }
+
+    equipe_monde($this->yao, $this->projet)->assertSeeText('Tous les membres de la ZUMRA sont déjà dans l’équipe.')->assertDontSee('addMember(', false);
+    app(ProjectTeam::class)->remove($this->yao, ProjectMember::where('user_id', $this->koffi->id)->first());
+    equipe_monde($this->yao, $this->projet)->assertDontSeeText('Tous les membres de la ZUMRA sont déjà dans l’équipe.')->assertSee("addMember('{$this->koffi->id}')", false);
+});
+
 it('refuse l’ajout d’une personne qui n’est pas de la ZUMRA depuis l’écran, avec le message sous la liste', function () {
     equipe_monde($this->yao, $this->projet)->call('addMember', $this->dehors->id)->assertHasErrors(['team'])->assertSeeText('Seuls les membres de la ZUMRA');
     expect(ProjectMember::count())->toBe(0);
@@ -460,12 +481,12 @@ it('affiche dans « À faire maintenant » des gestionnaires les demandes de par
             ->and($lignes['participation-'.$autre->id])->toBe('1 demande de participation à traiter');
     }
     foreach ([$this->awa, $this->dehors] as $qui) {
-        expect(collect(app(Todo::class)->for($qui))->keys()->filter(fn ($k) => str_starts_with($k, 'participation-')))->toBeEmpty();
+        expect(collect(app(Todo::class)->for($qui))->pluck('key')->filter(fn ($k) => str_starts_with($k, 'participation-')))->toBeEmpty();
     }
 
     app(ParticipationRequests::class)->decline($this->yao, ParticipationRequest::where('user_id', $this->koffi->id)->first());
     app(ParticipationRequests::class)->accept($this->yao, ParticipationRequest::where('user_id', $this->awa->id)->where('project_id', $this->projet->id)->first());
-    expect(collect(app(Todo::class)->for($this->yao))->keys()->contains('participation-'.$this->projet->id))->toBeFalse();
+    expect(collect(app(Todo::class)->for($this->yao))->pluck('key')->contains('participation-'.$this->projet->id))->toBeFalse();
     expect(collect(app(Todo::class)->for($this->yao))->pluck('url', 'key')['participation-'.$autre->id])->toContain('onglet=equipe');
 });
 
