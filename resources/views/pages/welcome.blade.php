@@ -10,6 +10,18 @@
         ['community', 'bg-type-knowledge-bg text-type-knowledge-fg', 'ZUMRA', 'Des communautés pour agir ensemble', 'Explorer les ZUMRA', 'zumras.index'],
         ['project', 'bg-type-call-bg text-type-call-fg', 'Projets', 'Des actions qui prennent forme', 'Voir les projets', 'projets.index'],
     ];
+    if (\App\Support\Experience::initial()) {
+        $steps = [
+            ['user', 'bg-type-learning-bg text-type-learning-fg', 'Partagez vos capacités', 'Dites ce que vous pouvez apporter et ce que vous voulez apprendre.'],
+            ['group', 'bg-type-knowledge-bg text-type-knowledge-fg', 'Rencontrez des personnes', 'Trouvez quelqu’un par ses capacités, sa ville ou son domaine.'],
+            ['idea', 'bg-type-need-bg text-type-need-fg', 'Exprimez un besoin', 'Dans le Fil, dites ce qui vous manque ou partagez un savoir.'],
+            ['heart', 'bg-type-call-bg text-type-call-fg', 'Entraidez-vous', 'Proposez votre aide. Une réponse acceptée ouvre un échange privé.'],
+        ];
+        $directories = [
+            ['user', 'bg-type-learning-bg text-type-learning-fg', 'Personnes', 'Des capacités à rencontrer', 'Découvrir les personnes', 'personnes.index'],
+            ['feed', 'bg-type-knowledge-bg text-type-knowledge-fg', 'Fil', 'Des savoirs, des besoins et des gestes d’entraide', 'Rejoindre le Fil', 'register'],
+        ];
+    }
 @endphp
 
 <x-layouts.landing>
@@ -56,8 +68,8 @@
 
         <section id="explorer" aria-labelledby="explorer-titre" class="landing-container landing-section !pt-2">
             <h2 id="explorer-titre" class="landing-section-title">Découvrez le réseau</h2>
-            <p class="mb-5 mt-1 text-[15px] text-muted">Des personnes, des communautés, des projets à explorer.</p>
-            <div class="grid gap-4 md:grid-cols-3">
+            <p class="mb-5 mt-1 text-[15px] text-muted">{{ \App\Support\Experience::initial() ? 'Des personnes à rencontrer, des savoirs à partager, des besoins auxquels répondre.' : 'Des personnes, des communautés, des projets à explorer.' }}</p>
+            <div @class(['grid gap-4', 'md:grid-cols-2' => \App\Support\Experience::initial(), 'md:grid-cols-3' => ! \App\Support\Experience::initial()])>
                 @foreach ($directories as [$icon, $colors, $title, $description, $label, $route])
                     <a href="{{ route($route) }}" class="landing-card group flex min-w-0 items-start gap-4 p-5 text-ink no-underline transition hover:border-ink hover:text-ink">
                         <span class="flex size-12 shrink-0 items-center justify-center rounded-card {{ $colors }}"><x-icon :name="$icon" :size="27" /></span>

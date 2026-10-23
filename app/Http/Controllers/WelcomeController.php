@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Project;
 use App\Models\User;
 use App\Models\Zumra;
+use App\Support\Experience;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 
@@ -21,8 +22,9 @@ class WelcomeController extends Controller
         }
 
         $people = User::query()->active()->count();
-        $zumras = Zumra::query()->count();
-        $projects = Project::query()->count();
+        $initial = Experience::initial();
+        $zumras = $initial ? 0 : Zumra::query()->count();
+        $projects = $initial ? 0 : Project::query()->count();
 
         return view('pages.welcome', [
             'figures' => array_filter([
@@ -30,8 +32,8 @@ class WelcomeController extends Controller
                 'ZUMRA' => $zumras,
                 'projets' => $projects,
             ]),
-            'recentZumras' => Zumra::query()->with(['domain', 'city'])->orderByDesc('created_at')->orderByDesc('id')->limit(3)->get(),
-            'recentProjects' => Project::query()->with('zumra')->orderByDesc('created_at')->orderByDesc('id')->limit(3)->get(),
+            'recentZumras' => $initial ? collect() : Zumra::query()->with(['domain', 'city'])->orderByDesc('created_at')->orderByDesc('id')->limit(3)->get(),
+            'recentProjects' => $initial ? collect() : Project::query()->with('zumra')->orderByDesc('created_at')->orderByDesc('id')->limit(3)->get(),
         ]);
     }
 }

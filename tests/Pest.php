@@ -31,6 +31,8 @@ pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->beforeEach(function () {
         $this->withoutVite();
+        // Régression des modules conservés (D-183). RecentrageTest vérifie séparément le parcours initial activé en production.
+        config(['gamad.initial_experience' => false]);
         // Les limites de débit contre le spam (D-086) ne gênent pas les tests ordinaires ; les tests qui les vérifient les abaissent.
         config([
             'gamad.limits.publications_per_hour' => 10000, 'gamad.limits.publications_per_day' => 10000,

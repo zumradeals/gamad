@@ -2,6 +2,18 @@
 
 Version 1.1 — 23 octobre 2026 (contributions et portefeuille ZAHAB, D-163 à D-173). Source : décisions du Président consignées dans docs/DECISIONS.md. Toute modification passe par une décision.
 
+## Périmètre actuellement ouvert — D-183
+
+Le parcours initial comprend **Fil, Personnes, Agir et Mon espace**. Les besoins sont des publications
+actives du Fil (filtre Besoins), sans Carrefour distinct dans le parcours. Les profils, capacités,
+gestes, conversations privées, notifications, modération et protections existantes restent actifs.
+
+Les ZUMRA, Projets, contributions et portefeuilles décrits plus bas constituent le système conservé,
+**pas le parcours initial**. Leur découverte et les nouvelles utilisations sont gelées selon le contrat
+`docs/RECENTRAGE.md`. Les activités existantes restent accessibles à leurs ayants droit, sans migration,
+suppression ni changement de visibilité. Ce périmètre remplace les ouvertures prévues par les décisions
+antérieures jusqu'à nouvelle décision du Président. Les règles métier de conservation restent applicables.
+
 ## 1. Principe
 
 La personne est au centre. Quel que soit son statut, GAMAD l'accueille pour apporter ce qu'elle sait faire,

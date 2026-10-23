@@ -8,6 +8,7 @@ use App\Models\LedgerEntry;
 use App\Models\User;
 use App\Models\Wallet;
 use App\Models\Zumra;
+use App\Support\Experience;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -116,6 +117,12 @@ class Wallets
 
     private function forOwner(string $type, string $id): Wallet
     {
-        return Wallet::query()->firstOrCreate(['owner_type' => $type, 'owner_id' => $id]);
+        $owner = ['owner_type' => $type, 'owner_id' => $id];
+
+        if (Experience::initial()) {
+            return Wallet::query()->where($owner)->firstOrFail();
+        }
+
+        return Wallet::query()->firstOrCreate($owner);
     }
 }

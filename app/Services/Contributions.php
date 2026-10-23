@@ -12,6 +12,7 @@ use App\Models\Project;
 use App\Models\User;
 use App\Models\Wallet;
 use App\Models\Zumra;
+use App\Support\Experience;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -61,6 +62,10 @@ class Contributions
      */
     public function fromWallet(User $actor, Wallet $wallet, int $amount, array $target = [Contribution::FUND, null]): Contribution
     {
+        if (Experience::initial()) {
+            throw ContributionException::unavailable();
+        }
+
         $this->guardAmount($amount);
         $target = $this->validTarget($target);
 
@@ -198,7 +203,7 @@ class Contributions
     /** Badge « Contributeur » affiché sur le profil : contributeur actif ET choix de la personne. */
     public function showsBadge(User $user): bool
     {
-        return $this->isContributor($user) && Wallet::query()->where(['owner_type' => Wallet::PERSON, 'owner_id' => $user->getKey(), 'show_badge' => true])->exists();
+        return ! Experience::initial() && $this->isContributor($user) && Wallet::query()->where(['owner_type' => Wallet::PERSON, 'owner_id' => $user->getKey(), 'show_badge' => true])->exists();
     }
 
     /** Finançable : engagée ET reconnue par GAMAD (D-167). */

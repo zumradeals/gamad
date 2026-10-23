@@ -224,3 +224,12 @@ La nouvelle composition remplace la présentation des écrans 1 et 4 pour le Fil
 - Recherche horizontale sur ordinateur, empilée sur téléphone. Deux modes explicites, vert pour apporter et bleu pour apprendre, avec état pressé accessible.
 - Cartes en une colonne, deux à partir de 768 px et trois à partir de 1280 px. Couverture géométrique, avatar réel protégé ou initiales, nom et ville, capacités dans les deux couleurs, lien Voir le profil. Aucun classement ni message direct.
 - Ordre alphabétique annoncé sans sélecteur factice. États vides et pagination conservés. Invitation à compléter le profil après les résultats ; inscription pour un visiteur. E-mail et téléphone restent privés.
+
+## 16. Parcours initial Fil + Personnes (D-183, prioritaire sur les écrans précédents)
+
+- Navigation mobile : Fil · Personnes · Agir · Mon espace. Personnes mène directement à son Carrefour, sans fenêtre Découvrir. Sur ordinateur : Fil et Personnes, puis Mon espace et Agir dans les accès existants. Notifications conservées.
+- Accueil public : conserver le héros et son image approuvée ; expliquer capacités, rencontres, besoins et entraide. Aucune invitation ni compteur de ZUMRA, Projets ou contribution.
+- Fil : garder les publications, leurs types personnels, leurs gestes et leurs droits ; masquer les filtres ZUMRA/Projets et raccourcis collectifs. Besoins reste un filtre du Fil.
+- Agir : seulement les quatre types personnels déjà construits (besoin, savoir, souhait d’apprendre, offre d’aide). Les réalisations de projets déjà publiées restent lisibles ; aucun nouveau type personnel n’est créé par ce recentrage.
+- Mon espace : profil, publications, échanges privés paginés, compte et tâches utiles. « Mes activités antérieures », replié par défaut, n’existe que pour les personnes ayant une appartenance ou un portefeuille existant. Aucune invitation à rejoindre un module gelé pour un nouvel inscrit.
+- Pages collectives conservées : annoncer la pause, retirer les nouvelles créations/invitations/publications et conserver les opérations nécessaires aux activités existantes. Historique financier : solde, mouvements, contributions et paiements en attente lisibles ; aucune nouvelle recharge ou contribution. Le suivi administratif antérieur est replié dans les réglages du Président.

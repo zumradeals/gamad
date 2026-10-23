@@ -11,6 +11,7 @@ use App\Models\Publication;
 use App\Models\Skill;
 use App\Models\User;
 use App\Models\Zumra;
+use App\Support\Experience;
 use App\Support\Normalizer;
 use App\Support\SkillList;
 use Illuminate\Database\Eloquent\Model;
@@ -34,6 +35,10 @@ class Publications
      */
     public function publish(User $author, PublicationType $type, array $data, ?Zumra $zumra = null, ?Project $project = null): Publication
     {
+        if (Experience::initial() && ($zumra || $project)) {
+            throw ValidationException::withMessages(['body' => 'Les publications collectives sont en pause. Publiez en votre nom depuis Agir.']);
+        }
+
         Gate::forUser($author)->authorize('create', Publication::class);
 
         if ($project) {

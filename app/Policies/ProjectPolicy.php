@@ -9,6 +9,7 @@ use App\Models\Project;
 use App\Models\ProjectMember;
 use App\Models\User;
 use App\Models\Zumra;
+use App\Support\Experience;
 use Illuminate\Auth\Access\Response;
 
 /** Qui voit et gère un projet (D-005, D-127). Toute règle vit ici, côté serveur. */
@@ -23,6 +24,10 @@ class ProjectPolicy
     /** Créer un projet dans une ZUMRA : son fondateur et ses responsables (D-127). */
     public function create(User $user, Zumra $zumra): Response
     {
+        if (Experience::initial()) {
+            return Response::deny('Les nouvelles activités collectives sont en pause. Retrouvez les personnes et les besoins dans le Fil.');
+        }
+
         return $zumra->roleOf($user)?->manages() ? Response::allow() : Response::denyAsNotFound();
     }
 
@@ -45,6 +50,10 @@ class ProjectPolicy
      */
     public function participate(User $user, Project $project): Response
     {
+        if (Experience::initial()) {
+            return Response::deny('Les nouvelles activités collectives sont en pause. Retrouvez les personnes et les besoins dans le Fil.');
+        }
+
         if (! $user->hasVerifiedEmail()) {
             return Response::deny('Vérifiez votre adresse e-mail pour participer.');
         }

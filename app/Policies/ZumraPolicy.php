@@ -8,6 +8,7 @@ use App\Models\JoinRequest;
 use App\Models\User;
 use App\Models\Zumra;
 use App\Models\ZumraMembership;
+use App\Support\Experience;
 use Illuminate\Auth\Access\Response;
 
 /** Qui peut créer une ZUMRA, la modifier et voir ses membres (D-111, D-112). Toute règle vit ici, côté serveur. */
@@ -22,6 +23,10 @@ class ZumraPolicy
     /** Créer : toute personne connectée dont l'adresse e-mail est vérifiée. */
     public function create(User $user): Response
     {
+        if (Experience::initial()) {
+            return Response::deny('Les nouvelles activités collectives sont en pause. Retrouvez les personnes et les besoins dans le Fil.');
+        }
+
         return $user->hasVerifiedEmail() ? Response::allow() : Response::deny('Vérifiez votre adresse e-mail pour créer une ZUMRA.');
     }
 
@@ -57,6 +62,10 @@ class ZumraPolicy
      */
     public function join(User $user, Zumra $zumra): Response
     {
+        if (Experience::initial()) {
+            return Response::deny('Les nouvelles activités collectives sont en pause. Retrouvez les personnes et les besoins dans le Fil.');
+        }
+
         if (! $user->hasVerifiedEmail()) {
             return Response::deny('Vérifiez votre adresse e-mail pour demander à rejoindre une ZUMRA.');
         }
@@ -77,6 +86,10 @@ class ZumraPolicy
     /** Inviter des personnes par leurs capacités : le fondateur et les responsables. */
     public function invite(User $user, Zumra $zumra): Response
     {
+        if (Experience::initial()) {
+            return Response::deny('Les nouvelles activités collectives sont en pause. Retrouvez les personnes et les besoins dans le Fil.');
+        }
+
         return $this->manage($user, $zumra);
     }
 

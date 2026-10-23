@@ -14,7 +14,11 @@
         <h2 id="solde" class="text-[13px] font-semibold text-muted">Solde</h2>
         <p class="text-[32px] font-extrabold leading-tight" data-testid="solde">{{ $format($balance) }} ZAHAB</p>
         <p class="text-[13px] text-muted">1 ZAHAB = 1 FCFA. Les ZAHAB se dépensent dans le réseau ; il n’y a ni transfert entre personnes ni retrait pour l’instant.</p>
+        @unless (\App\Support\Experience::initial())
         <x-button :href="$zumra ? route('zumras.contribution', $zumra) : route('contribution')" variant="secondary" class="mt-2 md:self-start">Contribuer</x-button>
+        @else
+            <p class="text-[14px] text-muted">Les nouvelles recharges et contributions sont en pause. Votre solde et votre historique sont conservés. Pour un solde restant ou une demande en attente, contactez l’administration de GAMAD.</p>
+        @endunless
     </section>
 
     @if ($returnedPayment && $returnedPayment->status === \App\Enums\PaymentStatus::Completed && $returnedPayment->credit_entry_id)

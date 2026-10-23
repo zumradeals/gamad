@@ -1,13 +1,25 @@
 # CLAUDE.md — Réseau social d'action GAMAD
 
+## Priorité actuelle — recentrage décidé le 23 octobre 2026 (D-183)
+
+Le Président demande un parcours initial **Fil + Personnes**, avec **Agir** et **Mon espace**.
+Lire d'abord `docs/RECENTRAGE.md`, puis les quatre sources d'autorité ci-dessous.
+**Suspendre toute extension des ZUMRA, Projets, contributions et portefeuilles** : leur code et leurs données
+restent conservés, leurs nouvelles utilisations sont gelées selon le contrat de transition. Ne pas les
+réactiver parce qu'un ancien lot ou une ancienne maquette les prévoit. Leur réouverture exige une nouvelle
+décision du Président consignée dans Git. Le Carrefour Besoins est remplacé dans le parcours par le filtre
+Besoins du Fil ; les besoins et leurs gestes restent actifs. Ne pas supprimer les engagements antérieurs,
+les historiques financiers, les confirmations de paiement ni les contrôles d'accès.
+
+
 Ce fichier s'applique à tout le dépôt. Lis-le en entier avant chaque intervention.
 
 ## Ce que nous construisons
 
 Un réseau social d'action ouvert à tous. La personne est au centre : elle vient apporter ce qu'elle sait
-faire, apprendre ce qu'elle ne sait pas encore, ou dire ce qui lui manque. Les ZUMRA regroupent les
-personnes ; les projets naissent dans les ZUMRA ; le Fil global montre ce qui se fait, avec des boutons
-d'action à la place des « j'aime ».
+faire, apprendre ce qu'elle ne sait pas encore, ou dire ce qui lui manque. Le Fil global montre ce qui se fait, avec des boutons d'action à la place des « j'aime ». Les ZUMRA et
+leurs projets restent une capacité conservée pour une phase ultérieure ; ils ne font pas partie de
+l'entrée dans le réseau actuellement ouverte (D-183).
 
 ## Les quatre seules sources d'autorité
 

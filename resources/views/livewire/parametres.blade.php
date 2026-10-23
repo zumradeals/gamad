@@ -30,6 +30,11 @@
         <x-button :href="route('espace.parametres.copie')" variant="secondary">Ouvrir</x-button>
     </section>
 
+    @if (\App\Support\Experience::initial())
+    <details class="rounded-card border border-line bg-card p-4 md:p-[18px]">
+        <summary class="min-h-11 cursor-pointer content-center font-extrabold">Suivi financier antérieur — administration</summary>
+        <p class="mb-4 text-[14px] text-muted">Le parcours initial reste centré sur le Fil et les Personnes. Ces réglages servent au suivi des engagements existants ; ils ne réactivent pas les nouvelles recharges ou contributions.</p>
+    @endif
     <section aria-labelledby="portefeuille" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
         <h2 id="portefeuille" class="text-[18px] font-extrabold">Portefeuilles</h2>
         <p class="text-[13px] text-muted">Ouvrir ou fermer les portefeuilles ZAHAB et fixer les plafonds de solde.</p>
@@ -47,6 +52,8 @@
         <p class="text-[13px] text-muted">Les clés GeniusPay, le mode (essai ou réel) et le suivi des recharges.</p>
         <x-button :href="route('espace.parametres.paiement')" variant="secondary">Ouvrir</x-button>
     </section>
+
+    @if (\App\Support\Experience::initial())</details>@endif
 
     <form wire:submit="save" class="flex flex-col gap-4">
         <section aria-labelledby="courriel" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">

@@ -137,7 +137,7 @@
             {{-- Un Appel à rejoindre n'a pas de geste : « Je veux rejoindre » est une demande d'adhésion (D-116). --}}
             @if ($viewer && in_array($zumra->id, $memberOf ?? $viewer->zumraMemberships()->pluck('zumra_id')->all(), true))
                 <span class="inline-flex min-h-11 items-center gap-1.5 text-[14px] font-extrabold text-type-knowledge-fg"><x-icon name="check" :size="16" :stroke="3" />Vous êtes dans cette ZUMRA</span>
-            @else
+            @elseif (! \App\Support\Experience::initial())
                 <x-button :href="route('zumras.show', $zumra).'#rejoindre'">{{ $type->gestureLabel() }}</x-button>
             @endif
         @elseif ($viewer)
