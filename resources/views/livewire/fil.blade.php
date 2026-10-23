@@ -1,9 +1,9 @@
 @php
     $filters = ['tout' => 'Tout', 'besoins' => 'Besoins', 'savoirs' => 'Savoirs', 'apprendre' => 'Apprendre', 'aides' => 'Aides', 'zumra' => 'ZUMRA', 'projets' => 'Projets'];
     $shortcuts = [
-        [\App\Enums\PublicationType::Need, 'idea'],
-        [\App\Enums\PublicationType::Knowledge, 'book'],
-        [\App\Enums\PublicationType::LearningWish, 'learn'],
+        [\App\Enums\PublicationType::Need, 'idea', 'text-type-need-fg'],
+        [\App\Enums\PublicationType::Knowledge, 'book', 'text-type-knowledge-fg'],
+        [\App\Enums\PublicationType::LearningWish, 'learn', 'text-type-learning-fg'],
     ];
     $directories = [
         ['Personnes', 'Trouver des capacités', 'personnes.index', 'group', 'bg-type-call-bg text-type-call-fg'],
@@ -70,8 +70,8 @@
                 <a href="{{ route('agir') }}" class="flex min-h-12 min-w-0 flex-1 items-center rounded-button border border-chip-line bg-card px-3.5 text-[14px] text-muted no-underline transition hover:border-ink hover:bg-ground hover:text-ink">Que voulez-vous faire avancer ?</a>
             </div>
             <div class="mt-3 grid grid-cols-3 divide-x divide-line-soft border-t border-line-soft pt-2">
-                @foreach ($shortcuts as [$shortcut, $icon])
-                    <a href="{{ route('agir.publier', $shortcut->slug()) }}" class="feed-compose-action {{ $shortcut->badgeClasses() }}">
+                @foreach ($shortcuts as [$shortcut, $icon, $color])
+                    <a href="{{ route('agir.publier', $shortcut->slug()) }}" class="feed-compose-action {{ $color }}">
                         <x-icon :name="$icon" :size="22" /><span>{{ $shortcut->label() }}</span>
                     </a>
                 @endforeach

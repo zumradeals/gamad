@@ -129,8 +129,12 @@ it('affiche les états vides : première ZUMRA à créer, recherche sans résult
 it('place « ZUMRA » dans la navigation des personnes connectées, et mène au Carrefour', function () {
     $html = $this->actingAs($this->yao)->get(route('fil'))->assertOk()->getContent();
 
-    // Une fois dans la barre du haut (ordinateur) et une fois dans la barre du bas (téléphone).
-    expect(substr_count($html, 'href="'.route('zumras.index').'"'))->toBe(2);
+    // Une fois par barre de navigation ; les accès d'exploration du Fil sont indépendants.
+    preg_match_all('/<nav aria-label="Navigation principale".*?<\/nav>/s', $html, $navs);
+    expect($navs[0])->toHaveCount(2);
+    foreach ($navs[0] as $navigation) {
+        expect(substr_count($navigation, 'href="'.route('zumras.index').'"'))->toBe(1);
+    }
     $this->get(route('zumras.index'))->assertOk()->assertSee('aria-current="page"', false);
 });
 
