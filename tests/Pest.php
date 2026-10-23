@@ -1,16 +1,20 @@
 <?php
 
 use App\Enums\PublicationType;
+use App\Livewire\PageConversation;
 use App\Models\City;
+use App\Models\Conversation;
 use App\Models\Domain;
 use App\Models\Gesture;
 use App\Models\Publication;
 use App\Models\User;
+use App\Services\Conversations;
 use App\Services\Gestures;
 use App\Services\ProfileEditor;
 use App\Services\Publications;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Process;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 pest()->extend(TestCase::class)
@@ -78,4 +82,24 @@ function publication(User $author, PublicationType $type = PublicationType::Need
 function geste(User $helper, Publication $publication, ?string $mot = null): Gesture
 {
     return app(Gestures::class)->propose($helper, $publication, $mot);
+}
+
+/** Un geste accepté par l'auteur, par le chemin réel : la conversation privée est ouverte. */
+function conversationDe(User $auteur, User $aidant, ?Publication $publication = null): Conversation
+{
+    $publication ??= publication($auteur);
+    $geste = geste($aidant, $publication);
+    app(Gestures::class)->accept($auteur, $geste);
+
+    return $geste->fresh()->conversation;
+}
+
+function ecrire(User $qui, Conversation $conversation, string $texte): void
+{
+    app(Conversations::class)->send($qui, $conversation, $texte);
+}
+
+function pageConversation(User $qui, Conversation $conversation)
+{
+    return Livewire::actingAs($qui)->test(PageConversation::class, ['conversation' => $conversation]);
 }

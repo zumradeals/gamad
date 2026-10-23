@@ -29,8 +29,9 @@ return new class extends Migration
             // owner = l'auteur de la publication ; helper = la personne dont le geste a été accepté.
             $table->foreignUuid('owner_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignUuid('helper_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamp('owner_read_at')->nullable();
-            $table->timestamp('helper_read_at')->nullable();
+            // Microsecondes : un message écrit dans la même seconde qu'une lecture ne doit pas être perdu.
+            $table->timestamp('owner_read_at', 6)->nullable();
+            $table->timestamp('helper_read_at', 6)->nullable();
             $table->timestamps();
 
             $table->index('owner_id');
@@ -43,7 +44,7 @@ return new class extends Migration
             $table->foreignUuid('sender_id')->nullable()->constrained('users')->nullOnDelete();
             // NULL = message effacé avec le compte de son auteur (D-097).
             $table->string('body', 1000)->nullable();
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('created_at', 6)->useCurrent();
 
             $table->index(['conversation_id', 'created_at']);
             $table->index('sender_id');

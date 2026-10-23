@@ -13,6 +13,9 @@ class Message extends Model
 
     public const UPDATED_AT = null;
 
+    /** Microsecondes, pour l'ordre des messages et la comparaison avec « lu jusqu'à ». */
+    protected $dateFormat = 'Y-m-d H:i:s.u';
+
     protected $guarded = ['id', 'conversation_id', 'sender_id'];
 
     protected function casts(): array

@@ -20,6 +20,8 @@ class Conversation extends Model
 
     protected $guarded = ['id'];
 
+    protected $dateFormat = 'Y-m-d H:i:s.u';
+
     protected function casts(): array
     {
         return ['owner_read_at' => 'datetime', 'helper_read_at' => 'datetime'];

@@ -8,6 +8,7 @@ use App\Models\Gesture;
 use App\Models\Message;
 use App\Models\User;
 use App\Support\Normalizer;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
@@ -88,9 +89,10 @@ class Conversations
         $column = $conversation->readColumn($reader);
         $latest = Message::query()->where('conversation_id', $conversation->getKey())->max('created_at');
 
-        if ($latest !== null && ($conversation->{$column} === null || $conversation->{$column}->lt($latest))) {
-            Conversation::query()->whereKey($conversation->getKey())->update([$column => now()]);
-            $conversation->{$column} = now();
+        // « Lu jusqu'au dernier message vu » : un message qui arrive pendant la lecture reste non lu.
+        if ($latest !== null && ($conversation->{$column} === null || $conversation->{$column}->lt(Carbon::parse($latest)))) {
+            Conversation::query()->whereKey($conversation->getKey())->update([$column => $latest]);
+            $conversation->{$column} = Carbon::parse($latest);
         }
 
         $this->notifier->readConversation($reader, $conversation);
