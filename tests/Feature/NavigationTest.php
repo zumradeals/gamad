@@ -8,13 +8,13 @@ function pageDuFil(): TestResponse
     return test()->actingAs(User::factory()->create())->get('/fil');
 }
 
-it('n’affiche que Fil, Découvrir, Agir, Personnes et Espace dans la navigation', function () {
+it('n’affiche que Fil, Découvrir, Agir, ZUMRA, Personnes et Espace dans la navigation', function () {
     $html = pageDuFil()->assertOk()->getContent();
     preg_match_all('/<nav aria-label="Navigation principale".*?<\/nav>/s', $html, $navs);
     $texte = trim(preg_replace('/\s+/', ' ', strip_tags(implode(' ', $navs[0]))));
 
-    expect($texte)->toContain('Fil')->toContain('Découvrir')->toContain('Personnes')->toContain('Agir')->toContain('Espace')
-        ->not->toContain('ZUMRA')->not->toContain('Besoins')->not->toContain('Projets')
+    expect($texte)->toContain('Fil')->toContain('Découvrir')->toContain('Personnes')->toContain('Agir')->toContain('Espace')->toContain('ZUMRA')
+        ->not->toContain('Besoins')->not->toContain('Projets')
         ->not->toContain('Rechercher');
 
     // La cloche des notifications existe depuis le Lot 2b ; la recherche générale vient avec son lot.
@@ -75,11 +75,11 @@ it('garde Découvrir actif sur le Monde d’une personne', function () {
     expect($html)->toMatch('/aria-current="page"[^>]*>\s*<svg.*?<\/svg>\s*Découvrir/s');
 });
 
-it('garde masqués Besoins, Projets et ZUMRA sur le Carrefour, avec ou sans compte', function () {
+it('garde masqués Besoins et Projets sur le Carrefour, avec ou sans compte (ZUMRA n’est dans la navigation que pour les personnes connectées)', function () {
     foreach ([null, User::factory()->create()] as $user) {
         $page = ($user ? $this->actingAs($user) : $this)->get('/personnes')->assertOk();
 
-        $page->assertDontSeeText('Besoins')->assertDontSeeText('Projets')->assertDontSeeText('ZUMRA')
+        $page->assertDontSeeText('Besoins')->assertDontSeeText('Projets')
             ->assertDontSeeText('Notifications')->assertDontSeeText('Inviter');
     }
 });

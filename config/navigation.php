@@ -18,7 +18,7 @@ return [
         ['key' => 'fil', 'label' => 'Fil', 'route' => 'fil', 'icon' => 'feed', 'enabled' => true],
         ['key' => 'decouvrir', 'label' => 'Découvrir', 'route' => 'personnes.index', 'active' => 'personnes.*', 'icon' => 'compass', 'enabled' => true],
         ['key' => 'agir', 'label' => 'Agir', 'route' => 'agir', 'icon' => 'plus', 'enabled' => true, 'prominent' => true],
-        ['key' => 'zumra', 'label' => 'ZUMRA', 'route' => null, 'icon' => 'group', 'enabled' => false],
+        ['key' => 'zumra', 'label' => 'ZUMRA', 'route' => 'zumras.index', 'active' => 'zumras.*', 'icon' => 'group', 'enabled' => true],
         ['key' => 'espace', 'label' => 'Espace', 'route' => 'espace', 'icon' => 'user', 'enabled' => true],
     ],
 
@@ -28,6 +28,6 @@ return [
         ['key' => 'personnes', 'label' => 'Personnes', 'route' => 'personnes.index', 'active' => 'personnes.*', 'enabled' => true],
         ['key' => 'besoins', 'label' => 'Besoins', 'route' => null, 'enabled' => false],
         ['key' => 'projets', 'label' => 'Projets', 'route' => null, 'enabled' => false],
-        ['key' => 'zumra', 'label' => 'ZUMRA', 'route' => null, 'enabled' => false],
+        ['key' => 'zumra', 'label' => 'ZUMRA', 'route' => 'zumras.index', 'active' => 'zumras.*', 'enabled' => true],
     ],
 ];

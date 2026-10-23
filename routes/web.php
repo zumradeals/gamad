@@ -3,10 +3,13 @@
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PersonController;
 use App\Livewire\CarrefourPersonnes;
+use App\Livewire\CarrefourZumras;
 use App\Livewire\Espace;
 use App\Livewire\Fil;
 use App\Livewire\FileModeration;
+use App\Livewire\FormulaireZumra;
 use App\Livewire\ModifierProfil;
+use App\Livewire\MondeZumra;
 use App\Livewire\PageConversation;
 use App\Livewire\PageNotifications;
 use App\Livewire\PagePublication;
@@ -25,10 +28,16 @@ Route::get('/personnes', CarrefourPersonnes::class)->name('personnes.index');
 Route::get('/personnes/{profile:public_id}', [PersonController::class, 'show'])->name('personnes.show');
 Route::get('/personnes/{profile:public_id}/photo', [PersonController::class, 'photo'])->name('personnes.photo');
 
+// Le Carrefour ZUMRA et l'en-tête d'une ZUMRA sont publics ; les membres demandent un compte vérifié (D-112).
+Route::get('/zumra', CarrefourZumras::class)->name('zumras.index');
+Route::get('/zumra/{zumra}', MondeZumra::class)->whereUuid('zumra')->name('zumras.show');
+
 // Une publication publique se lit sans compte ; répondre demande un compte (D-085). Une publication interdite répond 404.
 Route::get('/publications/{publication}', PagePublication::class)->whereUuid('publication')->name('publications.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/zumra/creer', FormulaireZumra::class)->name('zumras.create');
+    Route::get('/zumra/{zumra}/modifier', FormulaireZumra::class)->whereUuid('zumra')->name('zumras.edit');
     Route::get('/fil', Fil::class)->name('fil');
     Route::view('/agir', 'pages.agir')->name('agir');
     Route::get('/agir/{slug}', PublierPublication::class)->name('agir.publier');

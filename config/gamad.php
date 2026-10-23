@@ -23,6 +23,7 @@ return [
         'publications_per_day' => 30,
         'gestures_per_hour' => 30,
         'gestures_per_day' => 100,
+        'zumras_per_day' => 3,
         'reports_per_hour' => 10,
         'reports_per_day' => 30,
         'messages_per_minute' => 20,
