@@ -14,7 +14,7 @@
         <div class="landing-container relative flex min-h-[76px] items-center justify-between gap-4">
             <a href="{{ route('home') }}" class="inline-flex min-h-11 shrink-0 flex-col justify-center no-underline" aria-label="GAMAD — accueil">
                 <span class="flex items-center gap-1.5"><x-logo :tagline="false" /><span class="size-3 rounded-[2px] bg-accent" aria-hidden="true"></span></span>
-                <span class="mt-0.5 block text-[10px] font-medium text-muted">Formation — Travail — Adoration</span>
+                <span class="mt-0.5 block text-[12px] font-medium text-muted">Formation — Travail — Adoration</span>
             </a>
             <nav aria-label="Navigation de l’accueil" class="hidden items-center gap-6 lg:flex">
                 <a href="#accueil" aria-current="page" class="landing-nav-link border-accent font-bold">Accueil</a>
@@ -44,7 +44,7 @@
         <div class="landing-container py-6">
             <footer class="flex flex-wrap items-center justify-between gap-3" aria-label="GAMAD">
                 <a href="{{ route('home') }}" class="inline-flex min-h-11 items-center gap-1.5 no-underline" aria-label="GAMAD — accueil"><x-logo :tagline="false" /><span class="size-3 rounded-[2px] bg-accent" aria-hidden="true"></span></a>
-                <p class="text-[11px] font-medium text-muted">Formation — Travail — Adoration</p>
+                <p class="text-[13px] font-medium text-muted">Formation — Travail — Adoration</p>
             </footer>
             @include('partials.legal-links')
         </div>

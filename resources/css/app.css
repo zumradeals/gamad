@@ -306,6 +306,7 @@
 }
 
 /* Accueil visiteur : composition approuvée, indépendante des écrans connectés. */
+.landing-page { --color-muted: #3d4f5e; }
 @layer components {
     .landing-container { width: 100%; max-width: 1240px; margin-inline: auto; padding-inline: 16px; }
     .landing-page [id] { scroll-margin-top: 100px; }
@@ -329,7 +330,7 @@
         .landing-hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; padding-top: 56px; padding-bottom: 56px; }
     }
     @media (min-width: 1024px) {
-        .landing-hero { gap: 48px; padding-top: 64px; padding-bottom: 64px; }
+        .landing-hero { grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); gap: 40px; padding-top: 64px; padding-bottom: 64px; }
         .landing-photo-caption { margin-top: -26px; margin-right: 12px; padding: 16px; }
     }
 }
