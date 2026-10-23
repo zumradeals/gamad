@@ -7,6 +7,7 @@ use App\Models\Gesture;
 use App\Models\Publication;
 use App\Services\Gestures;
 use App\Services\Gratitudes;
+use App\Services\Moderation;
 use App\Services\Publications;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -35,6 +36,9 @@ class PagePublication extends Component
     public string $helperId = '';
 
     public string $gratitudeText = '';
+
+    /** L'explication de l'auteur d'une publication masquée (D-089). */
+    public string $explanation = '';
 
     public function mount(Publication $publication): void
     {
@@ -78,6 +82,13 @@ class PagePublication extends Component
         session()->flash('status', 'Votre remerciement est publié.');
     }
 
+    public function explain(Moderation $moderation): void
+    {
+        $moderation->explain(Auth::user(), $this->publication(), $this->explanation);
+
+        session()->flash('status', 'Votre explication est envoyée à la modération.');
+    }
+
     public function close(Publications $publications): void
     {
         $publications->close(Auth::user(), $this->publication());
@@ -88,6 +99,10 @@ class PagePublication extends Component
     {
         $viewer = Auth::user();
         $publication = $this->publication()->load(['author.profile', 'domain', 'city', 'skills']);
+
+        if ($this->explanation === '' && $publication->explained_at) {
+            $this->explanation = (string) $publication->author_explanation;
+        }
         $publication->live_gestures_count = $publication->liveGesturesCount();
         $type = $publication->type;
         $isAuthor = $viewer && $viewer->getKey() === $publication->author_id;

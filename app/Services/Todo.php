@@ -8,12 +8,13 @@ use App\Models\Conversation;
 use App\Models\Gesture;
 use App\Models\Message;
 use App\Models\Publication;
+use App\Models\Report;
 use App\Models\User;
 use Illuminate\Support\Str;
 
 /**
  * « À faire maintenant » (écran 14) : seulement ce qui attend vraiment une action de la personne. Chaque ligne disparaît dès
- * que l'action est faite ; rien n'est affiché « pour faire joli ». Les lignes de modération arrivent avec la PR 2c.
+ * que l'action est faite ; rien n'est affiché « pour faire joli ». La modération y voit aussi les signalements à examiner ; l'auteur d'une publication masquée, l'explication attendue.
  */
 class Todo
 {
@@ -27,7 +28,48 @@ class Todo
      */
     public function for(User $user): array
     {
-        return [...$this->proposals($user), ...$this->unreadMessages($user), ...$this->thanks($user)];
+        return [
+            ...$this->hiddenPublications($user),
+            ...$this->reportsToReview($user),
+            ...$this->proposals($user),
+            ...$this->unreadMessages($user),
+            ...$this->thanks($user),
+        ];
+    }
+
+    /** Une publication de la personne a été masquée et la modération attend son explication (écran 14). */
+    private function hiddenPublications(User $user): array
+    {
+        return Publication::query()
+            ->where('author_id', $user->getKey())
+            ->whereNotNull('hidden_at')
+            ->whereNull('explained_at')
+            ->orderByDesc('hidden_at')->limit(self::MAX_LINES)->get()
+            ->map(fn (Publication $publication) => [
+                'key' => 'hidden-'.$publication->getKey(),
+                'title' => 'Une publication a été masquée',
+                'detail' => 'La modération attend votre explication',
+                'action' => 'Expliquer',
+                'url' => route('publications.show', $publication),
+            ])->all();
+    }
+
+    /** Pour la modération : des publications signalées attendent un examen. */
+    private function reportsToReview(User $user): array
+    {
+        if (! $user->can('moderate')) {
+            return [];
+        }
+
+        $count = Report::query()->open()->distinct('publication_id')->count('publication_id');
+
+        return $count === 0 ? [] : [[
+            'key' => 'moderation',
+            'title' => $count.($count > 1 ? ' publications signalées' : ' publication signalée'),
+            'detail' => 'À examiner dans la file de modération',
+            'action' => 'Examiner',
+            'url' => route('moderation'),
+        ]];
     }
 
     /** Une ligne par publication qui a des réponses en attente et qui peut encore les accepter. */
@@ -35,6 +77,7 @@ class Todo
     {
         $publications = Publication::query()
             ->where('author_id', $user->getKey())
+            ->whereNull('hidden_at')
             ->where(fn ($query) => $query->whereNull('need_state')->orWhereIn('need_state', [NeedState::Open->value, NeedState::InProgress->value]))
             ->whereHas('gestures', fn ($query) => $query->where('state', GestureState::Sent->value))
             ->withCount(['gestures as pending_count' => fn ($query) => $query->where('state', GestureState::Sent->value)])

@@ -25,6 +25,11 @@ class PublicationPolicy
             return Response::allow();
         }
 
+        // Masquée (D-089) : pour tout autre que la modération, elle n'existe pas.
+        if ($publication->isHidden()) {
+            return $viewer?->can('moderate') ? Response::allow() : Response::denyAsNotFound();
+        }
+
         if (! $publication->author->hasVerifiedEmail()) {
             return Response::denyAsNotFound();
         }
@@ -95,6 +100,30 @@ class PublicationPolicy
         return Response::allow();
     }
 
+    /** Signaler (écran 16) : une personne vérifiée qui voit la publication, jamais la sienne. */
+    public function report(User $user, Publication $publication): Response
+    {
+        if (! $user->hasVerifiedEmail()) {
+            return Response::deny('Vérifiez votre adresse e-mail pour signaler.');
+        }
+
+        if ($user->getKey() === $publication->author_id) {
+            return Response::deny('Vous ne pouvez pas signaler votre propre publication.');
+        }
+
+        return $this->view($user, $publication)->allowed() ? Response::allow() : Response::denyAsNotFound();
+    }
+
+    /** Écrire une explication : l'auteur seul, tant que sa publication est masquée (D-089). */
+    public function explain(User $user, Publication $publication): Response
+    {
+        if (! $this->manage($user, $publication)) {
+            return Response::denyAsNotFound();
+        }
+
+        return $publication->isHidden() ? Response::allow() : Response::deny('Cette publication n’est pas masquée.');
+    }
+
     /** Marquer un besoin « résolu » ou « fermé sans suite » : son auteur seul, tant qu'il est ouvert ou en cours (D-083). */
     public function changeNeedState(User $user, Publication $publication): Response
     {
@@ -104,6 +133,10 @@ class PublicationPolicy
 
         if (! $publication->isNeed()) {
             return Response::deny('Seul un besoin a un état.');
+        }
+
+        if ($publication->isHidden()) {
+            return Response::deny('Cette publication est masquée.');
         }
 
         return $publication->need_state?->isActive() ? Response::allow() : Response::deny('Ce besoin est déjà clos.');

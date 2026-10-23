@@ -44,6 +44,9 @@
                         <a href="{{ route('publications.show', $publication) }}" class="flex min-h-11 flex-col gap-1 py-2.5 text-ink no-underline hover:text-ink">
                             <span class="flex flex-wrap items-center gap-2">
                                 <span class="rounded-chip px-2.5 py-0.5 text-[12px] font-bold {{ $publication->type->badgeClasses() }}">{{ $publication->type->label() }}</span>
+                                @if ($publication->isHidden())
+                                    <span class="text-[12px] font-extrabold text-danger">Masquée</span>
+                                @endif
                                 @if ($publication->need_state && $publication->need_state !== \App\Enums\NeedState::Open)
                                     <span class="text-[12px] font-extrabold text-muted">{{ $publication->need_state->label() }}</span>
                                 @endif
@@ -93,6 +96,14 @@
             <x-button variant="secondary">Se déconnecter</x-button>
         </form>
     </section>
+
+    @can('moderate')
+        <section aria-labelledby="moderation" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
+            <h2 id="moderation" class="text-[18px] font-extrabold">Modération</h2>
+            <p class="text-muted">Les publications signalées, celles que vous avez masquées et l’explication de leur auteur.</p>
+            <x-button :href="route('moderation')">Ouvrir la file de modération</x-button>
+        </section>
+    @endcan
 
     @can('super-admin')
         <section aria-labelledby="administration" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
