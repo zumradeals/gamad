@@ -12,7 +12,7 @@ lot en « Terminé ».
 | 2 | Fil global et gestes | **Terminé** (PR 2a, 2b et 2c fusionnées, marqué terminé par le Président le 2026-10-23) |
 | 3 | ZUMRA | **Terminé** (PR 3a, 3b et 3c fusionnées, marqué terminé le 2026-10-23 sur instruction du Président) |
 | 4 | Projets | **Terminé** (PR 4a, 4b et 4c fusionnées, marqué terminé le 2026-10-23 sur instruction du Président) |
-| 5 | Ouverture (pilote) | À venir |
+| 5 | Ouverture (pilote) | **En cours** |
 | 6 | Contributions mensuelles | À venir |
 
 **Condition d'ouverture publique (D-078).** Avant toute ouverture publique de la plateforme, la fonction « Signaler » et la
@@ -329,12 +329,30 @@ Livré en trois Pull Requests, chacune relue puis fusionnée avant la suivante (
 
 **Terminé quand** un visiteur sans compte comprend où en est un projet réel en moins d'une minute.
 
-## Lot 5 — Ouverture (À venir)
+## Lot 5 — Ouverture (En cours)
 
-Page d'accueil publique complète, charte de conduite, mentions légales, outil de modération, test en connexion
-faible ; sauvegardes copiées hors du serveur (stockage externe), avec essai de restauration, y compris la sauvegarde
-hors serveur des photos de profil ; pilote fermé (taille suggérée : 30 à 50 personnes et 3 ZUMRA) puis ouverture, qui reste
-soumise à la condition d'ouverture publique (D-078 : « Signaler » et modération du Lot 2 livrés et essayés).
+Décisions : D-078, D-144 à D-147. Livré en trois Pull Requests, chacune relue puis fusionnée avant la suivante (D-144).
+
+**Périmètre :**
+
+*PR 5a — Accueil public, charte et mentions légales*
+1. Page d'accueil publique complète pour un visiteur : ce qu'est GAMAD, comment cela marche (personne, ZUMRA, projets, Fil), boutons « Créer un compte » et « Se connecter » ; seuls des chiffres et exemples réels y figurent (jamais de donnée inventée).
+2. Charte de conduite et mentions légales : projets de textes rédigés par Claude, champs à compléter par le Président (éditeur, contact, hébergeur) ; pages et liens du pied de page masqués tant que le Président n'a pas adopté les textes (D-146).
+3. Acceptation de la charte à l'inscription une fois adoptée : case à cocher, date enregistrée.
+
+*PR 5b — Outil de modération*
+4. Écran de lecture du journal d'administration, pour le super administrateur et les modérateurs (D-145).
+5. Suspension et rétablissement d'une personne, avec un motif, tracés au journal, après le droit de s'expliquer.
+6. Notification à la modération quand l'auteur d'une publication masquée s'explique.
+
+*PR 5c — Exploitation*
+7. Copie nocturne chiffrée des sauvegardes (base, `.env`, photos de profil) vers un stockage objet compatible S3, avec essai de restauration documenté et réussi (D-147).
+8. Test en connexion faible : poids des pages, chargement sur une connexion lente simulée, correctifs des pages trop lourdes.
+9. Préparation du pilote fermé (30 à 50 personnes et 3 ZUMRA) : guide de déroulement dans `docs/TESTER.md`, liste de vérification avant ouverture.
+
+**Condition d'ouverture publique (D-078) :** « Signaler » et la modération du Lot 2 sont livrés ; ils doivent avoir été essayés pendant le pilote avant toute ouverture publique. L'ouverture publique elle-même est une décision du Président.
+
+**Terminé quand** le pilote fermé tourne avec la charte adoptée et une sauvegarde hors serveur restaurée avec succès.
 
 ## Lot 6 — Contributions mensuelles (À venir)
 
