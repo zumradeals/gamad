@@ -10,6 +10,7 @@ use App\Models\Message;
 use App\Models\Publication;
 use App\Models\User;
 use App\Services\ConversationActions;
+use App\Services\Moderation;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
@@ -53,7 +54,7 @@ it('combine recherche et filtre et traite les caractères spéciaux comme du tex
 
 it('n’élargit jamais la visibilité à cause d’une correspondance de recherche', function () {
     $hidden = publication($this->author, data: ['body' => 'secret rare']);
-    $hidden->forceFill(['hidden_at' => now()])->save();
+    app(Moderation::class)->hide(User::factory()->superAdmin()->create(), $hidden, 'Motif de modération pour cet essai.');
     $unverified = User::factory()->unverified()->create();
     $post = new Publication(['body' => 'secret rare', 'type' => PublicationType::Need, 'need_state' => 'open', 'visibility' => Publication::PUBLIC]);
     $post->author()->associate($unverified);
