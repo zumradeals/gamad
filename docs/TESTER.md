@@ -310,7 +310,23 @@ Même comptes qu'au §11 : le **compte 1** (fondateur), le **compte 2** (simple 
 
 **Ce qui n'existe pas encore :** équipe, besoins et soutiens des projets (4c).
 
-## 13. Ce qu'il faut regarder à chaque écran
+## 13. Essayer le Lot 4, troisième étape (4c) : équipe, besoins et soutiens
+
+Il vous faut le **compte 1** (fondateur), le **compte 2** (membre de la ZUMRA), le **compte 3** (hors de la ZUMRA) et un **visiteur sans compte**. Ouvrez un projet de votre ZUMRA.
+
+**Équipe.**
+
+1. Compte 1, onglet **Équipe** : sous **Ajouter des membres de la ZUMRA**, touchez **Ajouter** à côté du compte 2 : il entre dans l'équipe et reçoit une notification. **Retirer de l'équipe** demande une confirmation et prévient la personne.
+2. Compte 2 (retiré, ou pas encore dans l'équipe) : **Participer à ce projet**, écrivez un mot (280 caractères au plus) et **Je veux participer**. L'écran affiche « Demande envoyée » et **Retirer ma demande**. Compte 1 : la cloche et **Espace → À faire maintenant** annoncent « 1 demande de participation à traiter ». Sous **Demandes de participation**, **Accepter** fait entrer la personne (elle est prévenue) ; **Décliner** ne la prévient pas, et elle ne peut plus redemander.
+3. Compte 3 : l'encadré dit de rejoindre d'abord la ZUMRA. Visiteur sans compte : il voit **le nombre** de personnes de l'équipe, pas leurs noms. Si le compte 2 quitte la ZUMRA, il sort de l'équipe.
+
+**Besoins du projet.** Compte 1, onglet **Besoins** : **Publier un besoin** (même écran que pour une avancée, au nom du projet). Compte 3 : **Je peux aider** sur ce besoin ; le compte 1 reçoit la réponse et peut l'accepter, comme pour un besoin de ZUMRA. Le besoin apparaît aussi dans le **Fil** global (filtre **Projets**) avec le lien « Projet : … ».
+
+**Soutenir une avancée.** Compte 3, sur une avancée (onglet **Fil** du projet ou Fil global) : **Je soutiens**. Le texte devient « Vous soutenez cette avancée » avec **Retirer mon soutien**, et chacun voit « 1 personne soutient » (jamais un nom). Les comptes 1 et 2 gèrent le projet : ils ne voient pas **Je soutiens** sur leurs avancées. Une réalisation n'a pas de bouton de soutien.
+
+**Ce qui doit marcher de bout en bout (fin du Lot 4).** Un visiteur sans compte comprend où en est un projet réel en moins d'une minute : état, but, étapes franchies, avancées publiques, nombre de personnes de l'équipe et de soutiens.
+
+## 14. Ce qu'il faut regarder à chaque écran
 
 - [ ] Le texte se lit sans zoomer, rien ne dépasse de l'écran, aucun défilement de côté.
 - [ ] Les boutons sont faciles à toucher du pouce.
@@ -318,7 +334,7 @@ Même comptes qu'au §11 : le **compte 1** (fondateur), le **compte 2** (simple 
 - [ ] Les messages d'erreur sont clairs et en français.
 - [ ] Tout bouton ou lien visible mène à une vraie page.
 
-## 14. Les mises à jour se font toutes seules
+## 15. Les mises à jour se font toutes seules
 
 Chaque fois qu'un changement est fusionné dans `main`, le site se met à jour tout seul en **5 à 10 minutes** : rechargez la page après ce délai.
 Si une mise à jour échoue, la version actuelle reste en ligne et l'échec est noté dans un journal côté serveur ; si une mise à jour
@@ -327,7 +343,7 @@ sait revenir en arrière (voir `deploy/LISEZMOI.md`, réservé à l'administrati
 
 Les données sont sauvegardées chaque nuit (7 jours conservés).
 
-## 15. Ce qui n'existe pas encore (c'est normal)
+## 16. Ce qui n'existe pas encore (c'est normal)
 
-équipe, besoins et soutiens des projets, la consultation du journal d'administration, « Commenter », « Partager », « Suivre », « Inviter », recherche générale, paiement : ces modules sont masqués tant que leur lot
+la consultation du journal d'administration, « Commenter », « Partager », « Suivre », « Inviter », recherche générale, paiement : ces modules sont masqués tant que leur lot
 n'est pas construit.
