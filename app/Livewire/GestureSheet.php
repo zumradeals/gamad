@@ -67,7 +67,7 @@ class GestureSheet extends Component
 
     public function render()
     {
-        $publication = $this->publicationId ? Publication::query()->with('author')->find($this->publicationId) : null;
+        $publication = $this->publicationId ? Publication::query()->with(['author', 'zumra'])->find($this->publicationId) : null;
 
         // Une publication qu'on n'a pas le droit de voir n'est jamais affichée, même si l'identifiant a été changé en route.
         if ($publication && ! Gate::allows('view', $publication)) {

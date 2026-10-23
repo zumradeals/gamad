@@ -6,7 +6,7 @@
     - link        : vrai pour ajouter un lien vers la page de la publication (Fil)
     Pas de « Commenter » ni de « Partager » : ils ne font pas partie de ce lot (D-090). « Signaler » s'ajoute pour qui est connecté.
 --}}
-@props(['publication', 'viewer' => null, 'gesture' => null, 'link' => true])
+@props(['publication', 'viewer' => null, 'gesture' => null, 'link' => true, 'managed' => null, 'memberOf' => null])
 
 @php
     use App\Enums\GestureState;
@@ -15,11 +15,14 @@
     $type = $publication->type;
     $author = $publication->author;
     $profile = $author->profile;
-    $isOwner = $viewer && $viewer->getKey() === $publication->author_id;
+    // Gérée par la personne qui regarde : la sienne, ou celle d'une ZUMRA qu'elle gère (D-116).
+    $isOwner = $publication->isManagedBy($viewer, $managed);
+    $zumra = $publication->zumra;
     // La règle de visibilité du profil lit son propriétaire : on lui donne celui qu'on a déjà, sans requête de plus.
     $profile?->setRelation('user', $author);
     $canSeeAuthor = $profile && Gate::forUser($viewer)->allows('view', $profile);
     $meta = collect([
+        $zumra ? 'par '.$author->name : null,
         $publication->domain?->name,
         $publication->city?->label(),
         $publication->created_at->copy()->locale('fr')->timezone('Africa/Abidjan')->diffForHumans(['short' => true]),
@@ -33,7 +36,7 @@
     };
 @endphp
 
-<article {{ $attributes->class('flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]') }} aria-label="{{ $type->label() }} de {{ $author->name }}">
+<article {{ $attributes->class('flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]') }} aria-label="{{ $type->label() }} de {{ $zumra?->name ?? $author->name }}">
     <div class="flex items-center justify-between gap-2">
         <span class="self-start rounded-chip px-2.5 py-1 text-[12px] font-bold {{ $type->badgeClasses() }}">{{ $type->label() }}</span>
         @if ($state && $state !== NeedState::Open)
@@ -42,11 +45,15 @@
     </div>
 
     <div class="flex items-center gap-2.5">
-        @if ($profile)
+        @if ($zumra)
+            <x-zumra-initials :zumra="$zumra" :size="40" />
+        @elseif ($profile)
             <x-avatar :profile="$profile" :size="40" />
         @endif
         <div class="flex min-w-0 flex-col gap-0.5">
-            @if ($canSeeAuthor)
+            @if ($zumra)
+                <a href="{{ route('zumras.show', $zumra) }}" class="inline-flex min-h-11 items-center break-words text-[15px] font-bold text-ink no-underline hover:text-ink hover:underline">{{ $zumra->name }}</a>
+            @elseif ($canSeeAuthor)
                 <a href="{{ route('personnes.show', $profile->public_id) }}" class="inline-flex min-h-11 items-center break-words text-[15px] font-bold text-ink no-underline hover:text-ink hover:underline">{{ $author->name }}</a>
             @else
                 <span class="break-words text-[15px] font-bold">{{ $author->name }}</span>
@@ -79,6 +86,13 @@
     @if ($isOwner)
         @if ($link)
             <x-button :href="route('publications.show', $publication)" variant="secondary">{{ $live > 0 ? 'Voir les réponses' : 'Voir ma publication' }}</x-button>
+        @endif
+    @elseif ($type->isCall())
+        {{-- Un Appel à rejoindre n'a pas de geste : « Je veux rejoindre » est une demande d'adhésion (D-116). --}}
+        @if ($viewer && in_array($zumra->id, $memberOf ?? $viewer->zumraMemberships()->pluck('zumra_id')->all(), true))
+            <span class="inline-flex min-h-11 items-center gap-1.5 text-[14px] font-extrabold text-type-knowledge-fg"><x-icon name="check" :size="16" :stroke="3" />Vous êtes dans cette ZUMRA</span>
+        @else
+            <x-button :href="route('zumras.show', $zumra).'#rejoindre'">{{ $type->gestureLabel() }}</x-button>
         @endif
     @elseif ($viewer)
         @if ($gesture && $gesture->state === GestureState::Accepted)

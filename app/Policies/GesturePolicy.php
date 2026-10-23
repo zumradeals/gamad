@@ -18,7 +18,7 @@ class GesturePolicy
     {
         $publication = $gesture->publication;
 
-        if ($user->getKey() !== $publication->author_id) {
+        if (! $publication->isManagedBy($user)) {
             return Response::deny('Seul l’auteur de la publication décide.');
         }
 

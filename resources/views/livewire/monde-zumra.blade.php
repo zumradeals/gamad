@@ -17,7 +17,11 @@
             </div>
         </div>
 
-        <span class="self-start rounded-chip bg-type-call-bg px-3 py-1 text-[12px] font-bold text-type-call-fg">Active</span>
+        @if ($zumra->isRecognized())
+            <span class="inline-flex items-center gap-1.5 self-start rounded-chip bg-type-knowledge-bg px-3 py-1 text-[12px] font-bold text-type-knowledge-fg"><x-icon name="check" :size="14" :stroke="3" />Reconnue par GAMAD</span>
+        @else
+            <span class="self-start rounded-chip bg-type-call-bg px-3 py-1 text-[12px] font-bold text-type-call-fg">Active · en attente de reconnaissance par GAMAD</span>
+        @endif
 
         <p class="whitespace-pre-line break-words text-[15px] leading-relaxed text-[#eaf0f5]">{{ $zumra->mission }}</p>
 
@@ -40,6 +44,25 @@
             <span class="text-[12px] text-muted">création</span>
         </div>
     </section>
+
+    @can('super-admin')
+        <section aria-labelledby="reconnaissance" class="flex flex-col gap-2.5 rounded-card border border-line bg-card p-4" x-data="{ confirming: false }">
+            <h2 id="reconnaissance" class="text-[15px] font-extrabold">Reconnaissance par GAMAD</h2>
+            @if ($zumra->isRecognized())
+                <p class="text-[13px] text-muted">Reconnue le {{ $zumra->recognized_at->copy()->locale('fr')->timezone('Africa/Abidjan')->translatedFormat('j F Y') }}. Le retrait est inscrit au journal d’administration, avec son motif.</p>
+                <div x-show="! confirming"><x-button type="button" variant="secondary" x-on:click="confirming = true">Retirer la reconnaissance</x-button></div>
+                <div x-show="confirming" x-cloak class="flex flex-col gap-2">
+                    <label for="motif-reconnaissance" class="text-[13px] font-extrabold">Motif du retrait (obligatoire)</label>
+                    <textarea id="motif-reconnaissance" wire:model="recognitionReason" rows="2" maxlength="500" class="w-full rounded-button border border-chip-line bg-card px-3.5 py-3 text-[15px]"></textarea>
+                    <x-button type="button" wire:click="withdrawRecognition" wire:loading.attr="disabled" wire:target="withdrawRecognition">Retirer la reconnaissance</x-button>
+                    <x-button type="button" variant="secondary" x-on:click="confirming = false">Annuler</x-button>
+                </div>
+            @else
+                <p class="text-[13px] text-muted">Reconnaître cette ZUMRA lui donne le badge « Reconnue par GAMAD ». L’acte est inscrit au journal d’administration.</p>
+                <x-button type="button" wire:click="recognize" wire:loading.attr="disabled" wire:target="recognize">Reconnaître cette ZUMRA</x-button>
+            @endif
+        </section>
+    @endcan
 
     @if ($errors->any())
         <div role="alert" class="rounded-button border border-danger bg-card px-4 py-3 text-[14px] font-semibold text-danger">
@@ -96,10 +119,143 @@
         </section>
     @endif
 
-    <nav aria-label="Onglets de la ZUMRA" class="-mx-4 flex border-b border-line bg-card px-2 md:mx-0 md:rounded-card md:border">
-        <span aria-current="page" class="flex min-h-12 items-center border-b-[3px] border-accent px-3 text-[14px] font-extrabold text-ink">Membres</span>
+    <nav aria-label="Onglets de la ZUMRA" class="-mx-4 flex overflow-x-auto border-b border-line bg-card px-2 md:mx-0 md:rounded-card md:border">
+        @foreach (['formation' => 'Formation', 'fil' => 'Fil', 'membres' => 'Membres'] + ($canDiscuss ? ['discussion' => 'Discussion'] : []) as $key => $label)
+            <button type="button" wire:click="setTab('{{ $key }}')" @if ($tab === $key) aria-current="page" @endif
+                    @class(['flex min-h-12 min-w-11 shrink-0 items-center justify-center border-b-[3px] px-3 text-[14px]', 'border-accent font-extrabold text-ink' => $tab === $key, 'border-transparent font-semibold text-muted' => $tab !== $key])>{{ $label }}</button>
+        @endforeach
     </nav>
 
+    <div wire:loading.delay wire:target="setTab, more" class="text-[13px] font-semibold text-muted" role="status">Chargement…</div>
+
+    @if (in_array($tab, ['formation', 'fil']))
+        @if ($tab === 'formation')
+            <section class="flex flex-col gap-1 rounded-card bg-type-call-bg p-4 text-type-call-fg" aria-label="Formation, travail, adoration">
+                <span class="text-[12px] font-extrabold tracking-[1.5px]">FORMATION · TRAVAIL · ADORATION</span>
+                <p class="text-[17px] font-extrabold leading-snug">Ici, on apprend avant de construire.</p>
+                @unless ($role)
+                    <p class="text-[14px] font-semibold leading-snug">Rejoignez la ZUMRA pour suivre ses formations, ou partagez ce que vous savez.</p>
+                @endunless
+            </section>
+
+            <div class="flex items-center justify-between gap-2">
+                <h2 class="text-[18px] font-extrabold">Savoirs partagés</h2>
+                @if ($manages)
+                    <a href="{{ route('zumras.publier', [$zumra, 'savoir']) }}" class="inline-flex min-h-11 items-center text-[14px] font-bold">Partager un savoir</a>
+                @endif
+            </div>
+        @else
+            <div class="flex items-center justify-between gap-2">
+                <h2 class="text-[18px] font-extrabold">Fil de la ZUMRA</h2>
+            </div>
+            @if ($manages)
+                <section aria-label="Publier au nom de la ZUMRA" class="flex flex-col gap-2 rounded-card border border-line bg-card p-3.5">
+                    <span class="text-[13px] font-bold text-muted">Publier au nom de la ZUMRA</span>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach (\App\Enums\PublicationType::forZumra() as $kind)
+                            <a href="{{ route('zumras.publier', [$zumra, $kind->slug()]) }}" class="inline-flex min-h-11 items-center rounded-chip px-3 text-[13px] font-bold no-underline hover:underline {{ $kind->badgeClasses() }}">{{ $kind->label() }}</a>
+                        @endforeach
+                    </div>
+                </section>
+            @endif
+        @endif
+
+        @forelse ($publications as $post)
+            <x-publication-card wire:key="zumra-publication-{{ $post->id }}" :publication="$post" :viewer="$viewer" :gesture="$gestures[$post->id] ?? null" :managed="$managed" :member-of="$memberOf" />
+        @empty
+            <section class="rounded-card border border-line bg-card p-5">
+                <p class="text-[16px] font-extrabold">{{ $tab === 'formation' ? 'Aucun savoir partagé pour l’instant.' : 'Rien dans le Fil de cette ZUMRA pour l’instant.' }}</p>
+                <p class="mt-1 text-muted">{{ $manages ? 'Publiez au nom de la ZUMRA : un savoir à partager, un besoin, une offre d’aide ou un appel à rejoindre.' : 'Les publications de la ZUMRA apparaîtront ici.' }}</p>
+            </section>
+        @endforelse
+
+        @if ($hasMore)
+            <x-button type="button" variant="secondary" wire:click="more" wire:loading.attr="disabled" wire:target="more">Voir plus de publications</x-button>
+        @endif
+
+        @if ($tab === 'formation')
+            <section aria-labelledby="capacites" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4">
+                <h2 id="capacites" class="text-[17px] font-extrabold">Ce que nos membres savent faire</h2>
+                @if ($skills['offered']->isNotEmpty())
+                    <ul class="flex flex-wrap gap-2">
+                        @foreach ($skills['offered'] as $skill)
+                            <li class="rounded-chip border border-line bg-ground px-3 py-1.5 text-[13px] font-semibold">{{ $skill->name }}</li>
+                        @endforeach
+                    </ul>
+                @else
+                    <p class="text-[14px] text-muted">Aucune capacité indiquée pour l’instant.</p>
+                @endif
+
+                <h2 class="text-[17px] font-extrabold">Ce que des personnes veulent apprendre ici</h2>
+                @if ($skills['wanted']->isNotEmpty())
+                    <ul class="flex flex-wrap gap-2">
+                        @foreach ($skills['wanted'] as $skill)
+                            <li class="rounded-chip bg-type-learning-bg px-3 py-1.5 text-[13px] font-bold text-type-learning-fg">{{ $skill->name }}</li>
+                        @endforeach
+                    </ul>
+                @else
+                    <p class="text-[14px] text-muted">Aucun souhait indiqué pour l’instant.</p>
+                @endif
+
+                @if ($manages)
+                    <a href="{{ route('zumras.invite', $zumra) }}" class="inline-flex min-h-11 items-center text-[14px] font-bold">Inviter des personnes selon leurs capacités</a>
+                @endif
+            </section>
+        @endif
+
+        <livewire:gesture-sheet />
+    @endif
+
+    @if ($tab === 'discussion')
+        <section aria-labelledby="discussion" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]" wire:poll.15s>
+            <h2 id="discussion" class="text-[17px] font-extrabold">Discussion des membres</h2>
+            <p class="text-[12px] leading-normal text-muted">Seuls les membres de la ZUMRA lisent cette discussion. Le texte reste un texte simple : les adresses web n’y sont pas cliquables.</p>
+
+            @forelse ($discussion as $post)
+                @php
+                    $mine = $post->user_id === $viewer->getKey();
+                    $time = $post->created_at->copy()->locale('fr')->timezone('Africa/Abidjan')->translatedFormat('j M, H:i');
+                @endphp
+                <div wire:key="discussion-{{ $post->id }}" class="flex flex-col gap-1 border-t border-line-soft pt-3 first:border-0 first:pt-0" x-data="{ confirming: false }">
+                    <div class="flex items-baseline justify-between gap-2">
+                        <span class="break-words text-[14px] font-extrabold">{{ $post->author->name }}</span>
+                        <span class="shrink-0 text-[11px] text-muted">{{ $time }}</span>
+                    </div>
+                    <p class="whitespace-pre-line break-words text-[15px] leading-normal">{{ $post->body }}</p>
+                    @if ($mine || $manages)
+                        <div>
+                            <button type="button" x-show="! confirming" x-on:click="confirming = true" class="inline-flex min-h-11 items-center text-[13px] font-semibold text-muted underline">Supprimer</button>
+                            <span x-show="confirming" x-cloak class="flex flex-wrap items-center gap-2">
+                                <span class="text-[13px] font-semibold">Supprimer ce message ?</span>
+                                <x-button type="button" wire:click="deletePost('{{ $post->id }}')" wire:loading.attr="disabled" wire:target="deletePost" class="!px-4 !text-[14px]">Oui</x-button>
+                                <x-button type="button" variant="secondary" x-on:click="confirming = false" class="!px-4 !text-[14px]">Non</x-button>
+                            </span>
+                        </div>
+                    @endif
+                </div>
+            @empty
+                <p class="text-[14px] text-muted">Aucun message pour l’instant. Écrivez le premier.</p>
+            @endforelse
+
+            <form wire:submit="sendPost" class="flex flex-col gap-2 border-t border-line pt-3" x-data="{ n: 0 }">
+                <label for="message-discussion" class="text-[13px] font-extrabold">Votre message</label>
+                <textarea id="message-discussion" wire:model="postBody" rows="3" maxlength="{{ \App\Models\ZumraPost::BODY_MAX }}" x-on:input="n = $el.value.length"
+                          @class(['w-full rounded-button border bg-card px-3.5 py-3 text-[15px]', $errors->has('postBody') ? 'border-danger' : 'border-chip-line'])
+                          @if ($errors->has('postBody')) aria-invalid="true" aria-describedby="discussion-erreur" @endif></textarea>
+                <div class="flex justify-between gap-2">
+                    @error('postBody')
+                        <p id="discussion-erreur" role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>
+                    @else
+                        <span></span>
+                    @enderror
+                    <span class="text-[12px] text-muted"><span x-text="n"></span> / {{ \App\Models\ZumraPost::BODY_MAX }}</span>
+                </div>
+                <x-button wire:loading.attr="disabled" wire:target="sendPost">Envoyer</x-button>
+            </form>
+        </section>
+    @endif
+
+    @if ($tab === 'membres')
     <section aria-labelledby="membres" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
         <h2 id="membres" class="text-[17px] font-extrabold">Membres</h2>
 
@@ -225,6 +381,7 @@
             @endguest
         @endif
     </section>
+    @endif
 
     @if ($role && $role !== \App\Enums\ZumraRole::Founder)
         <section aria-label="Quitter la ZUMRA" class="rounded-card border border-line bg-card p-4" x-data="{ confirming: false }">

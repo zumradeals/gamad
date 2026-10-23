@@ -56,7 +56,8 @@ class Gestures
                 $gesture->save();
             }
 
-            $this->notifier->push($locked->author, NotificationKind::GestureReceived, $user, $locked);
+            // L'auteur est prévenu, ou, pour une publication de ZUMRA, son fondateur et ses responsables (D-116).
+            $locked->managers()->each(fn (User $manager) => $this->notifier->push($manager, NotificationKind::GestureReceived, $user, $locked));
 
             return $gesture;
         });
@@ -94,7 +95,7 @@ class Gestures
             }
 
             // Accepter ouvre la conversation privée entre les deux personnes (PRODUIT §4) et prévient la personne acceptée.
-            $this->conversations->open($fresh->setRelation('publication', $publication));
+            $this->conversations->open($fresh->setRelation('publication', $publication), $actor);
 
             $gesture->setRawAttributes($fresh->getAttributes(), true);
         });

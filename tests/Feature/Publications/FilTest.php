@@ -105,12 +105,12 @@ it('filtre : Tout, Besoins, Savoirs, Apprendre, Aides', function () {
     Livewire::withQueryParams(['filtre' => 'besoins'])->actingAs(User::factory()->create())->test(Fil::class)->assertSet('filter', 'besoins')->assertDontSeeText('Texte savoir');
 });
 
-it('ne propose que les filtres Tout, Besoins, Savoirs, Apprendre et Aides : Projets et ZUMRA restent masqués (D-098)', function () {
+it('ne propose que les filtres Tout, Besoins, Savoirs, Apprendre, Aides et ZUMRA : Projets reste masqué (D-098)', function () {
     $html = fil()->html();
     preg_match('/<nav aria-label="Filtrer le Fil".*?<\/nav>/s', $html, $nav);
     $filtres = array_map(fn ($t) => trim(strip_tags($t)), explode('</button>', $nav[0]));
 
-    expect(array_values(array_filter($filtres)))->toBe(['Tout', 'Besoins', 'Savoirs', 'Apprendre', 'Aides']);
+    expect(array_values(array_filter($filtres)))->toBe(['Tout', 'Besoins', 'Savoirs', 'Apprendre', 'Aides', 'ZUMRA']);
 });
 
 it('n’affiche ni Commenter, ni Partager, ni compteur d’approbation, et « Signaler » seulement sur la publication d’un autre', function () {
@@ -294,9 +294,9 @@ it('ouvre le Fil sans erreur à 390 px : aucun ordre ni algorithme caché dans l
     foreach (range(1, 5) as $i) {
         publication(User::factory()->create(), data: ['body' => "Autre $i"]);
     }
-    DB::enableQueryLog();
+    DB::flushQueryLog();
     fil();
     $plusDeRequetes = count(DB::getQueryLog());
 
-    expect($plusDeRequetes)->toBeLessThanOrEqual($requetes + 12);
+    expect($plusDeRequetes)->toBeLessThanOrEqual($requetes + 2);
 });

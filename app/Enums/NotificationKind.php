@@ -18,6 +18,8 @@ enum NotificationKind: string
     case ZumraRoleGranted = 'zumra_role_granted';
     case ZumraMemberRemoved = 'zumra_member_removed';
     case ZumraFounderTransferred = 'zumra_founder_transferred';
+    case ZumraRecognized = 'zumra_recognized';
+    case ZumraRecognitionWithdrawn = 'zumra_recognition_withdrawn';
 
     /** Le texte de la notification commence-t-il par le nom d'une personne ? (Non pour un transfert de fondation.) */
     public function showsActor(): bool
@@ -50,6 +52,8 @@ enum NotificationKind: string
             self::ZumraRoleGranted => "vous a confié un rôle de responsable dans{$about}.",
             self::ZumraMemberRemoved => "vous a retiré de{$about}.",
             self::ZumraFounderTransferred => "La fondation de{$about} vous a été confiée : son fondateur a supprimé son compte.",
+            self::ZumraRecognized => "a reconnu officiellement{$about} : elle porte le badge « Reconnue par GAMAD ».",
+            self::ZumraRecognitionWithdrawn => "a retiré la reconnaissance officielle de{$about}.",
         };
     }
 }

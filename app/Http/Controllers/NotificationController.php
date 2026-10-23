@@ -32,7 +32,7 @@ class NotificationController extends Controller
             // Toutes les notifications d'une ZUMRA mènent à son Monde (la ZUMRA est publique : elle existe pour tous).
             NotificationKind::ZumraRequestReceived, NotificationKind::ZumraRequestAccepted, NotificationKind::ZumraInvitationReceived,
             NotificationKind::ZumraInvitationAccepted, NotificationKind::ZumraRoleGranted, NotificationKind::ZumraMemberRemoved,
-            NotificationKind::ZumraFounderTransferred => $notification->zumra ? route('zumras.show', $notification->zumra) : null,
+            NotificationKind::ZumraFounderTransferred, NotificationKind::ZumraRecognized, NotificationKind::ZumraRecognitionWithdrawn => $notification->zumra ? route('zumras.show', $notification->zumra) : null,
         };
 
         // Ce que la notification annonçait n'existe plus (publication ou conversation supprimée) : retour à la liste.

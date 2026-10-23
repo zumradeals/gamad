@@ -9,6 +9,7 @@ use App\Models\Domain;
 use App\Models\Publication;
 use App\Models\Skill;
 use App\Models\User;
+use App\Models\Zumra;
 use App\Support\Normalizer;
 use App\Support\SkillList;
 use Illuminate\Database\Eloquent\Model;
@@ -30,9 +31,20 @@ class Publications
      *
      * @throws ValidationException
      */
-    public function publish(User $author, PublicationType $type, array $data): Publication
+    public function publish(User $author, PublicationType $type, array $data, ?Zumra $zumra = null): Publication
     {
         Gate::forUser($author)->authorize('create', Publication::class);
+
+        if ($zumra) {
+            // Publier au nom d'une ZUMRA : son fondateur et ses responsables seulement (D-116).
+            Gate::forUser($author)->authorize('manage', $zumra);
+        }
+
+        if (! in_array($type, $zumra ? PublicationType::forZumra() : PublicationType::forPerson(), true)) {
+            throw ValidationException::withMessages(['body' => $zumra
+                ? 'Ce type de publication n’existe pas pour une ZUMRA.'
+                : 'Ce type de publication se fait au nom d’une ZUMRA.']);
+        }
 
         $body = Normalizer::multiline((string) ($data['body'] ?? ''));
 
@@ -46,7 +58,8 @@ class Publications
 
         $visibility = $data['visibility'] ?? Publication::PUBLIC;
 
-        if (! in_array($visibility, [Publication::PUBLIC, Publication::MEMBERS], true)) {
+        // Le niveau « ZUMRA seulement » n'existe que pour une publication de ZUMRA (D-112).
+        if (! in_array($visibility, $zumra ? [Publication::PUBLIC, Publication::MEMBERS, Publication::ZUMRA] : [Publication::PUBLIC, Publication::MEMBERS], true)) {
             throw ValidationException::withMessages(['visibility' => 'Choisissez qui peut la voir.']);
         }
 
@@ -59,7 +72,7 @@ class Publications
             [config('gamad.limits.publications_per_day'), 86400, 'Vous avez atteint la limite de publications pour aujourd’hui.'],
         ], 'body');
 
-        return DB::transaction(function () use ($author, $type, $body, $visibility, $domainId, $cityId, $skills) {
+        return DB::transaction(function () use ($author, $type, $body, $visibility, $domainId, $cityId, $skills, $zumra) {
             $publication = new Publication([
                 'type' => $type,
                 'body' => $body,
@@ -69,6 +82,7 @@ class Publications
                 'need_state' => $type->isNeed() ? NeedState::Open : null,
             ]);
             $publication->author()->associate($author);
+            $publication->zumra()->associate($zumra);
             $publication->save();
 
             $publication->skills()->attach(collect($skills)->mapWithKeys(

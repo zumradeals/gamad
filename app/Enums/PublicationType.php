@@ -12,6 +12,7 @@ enum PublicationType: string
     case Knowledge = 'knowledge';
     case LearningWish = 'learning_wish';
     case Offer = 'offer';
+    case ZumraCall = 'zumra_call';
 
     /** Libellé affiché (glossaire de docs/PRODUIT.md §5). */
     public function label(): string
@@ -21,6 +22,7 @@ enum PublicationType: string
             self::Knowledge => 'Je partage un savoir',
             self::LearningWish => 'Je veux apprendre',
             self::Offer => 'Je propose mon aide',
+            self::ZumraCall => 'Appel à rejoindre',
         };
     }
 
@@ -32,6 +34,7 @@ enum PublicationType: string
             self::Knowledge => 'savoir',
             self::LearningWish => 'apprendre',
             self::Offer => 'aide',
+            self::ZumraCall => 'appel',
         };
     }
 
@@ -54,6 +57,7 @@ enum PublicationType: string
             self::Knowledge => 'Je veux apprendre',
             self::LearningWish => 'Je peux transmettre',
             self::Offer => "Ça m'intéresse",
+            self::ZumraCall => 'Je veux rejoindre',
         };
     }
 
@@ -67,6 +71,7 @@ enum PublicationType: string
             self::Knowledge => $plural ? 'personnes veulent apprendre' : 'personne veut apprendre',
             self::LearningWish => $plural ? 'personnes peuvent transmettre' : 'personne peut transmettre',
             self::Offer => $plural ? 'personnes sont intéressées' : 'personne est intéressée',
+            self::ZumraCall => $plural ? 'personnes veulent rejoindre' : 'personne veut rejoindre',
         };
     }
 
@@ -78,6 +83,7 @@ enum PublicationType: string
             self::Knowledge => 'Personnes qui veulent apprendre',
             self::LearningWish => 'Personnes qui peuvent transmettre',
             self::Offer => 'Personnes intéressées',
+            self::ZumraCall => 'Demandes pour rejoindre',
         };
     }
 
@@ -89,6 +95,7 @@ enum PublicationType: string
             self::Knowledge => 'Mon savoir partagé',
             self::LearningWish => 'Mon souhait d’apprendre',
             self::Offer => 'Mon offre d’aide',
+            self::ZumraCall => 'Notre appel à rejoindre',
         };
     }
 
@@ -100,7 +107,26 @@ enum PublicationType: string
             self::Knowledge => 'bg-type-knowledge-bg text-type-knowledge-fg',
             self::LearningWish => 'bg-type-learning-bg text-type-learning-fg',
             self::Offer => 'bg-type-offer-bg text-type-offer-fg',
+            self::ZumraCall => 'bg-type-call-bg text-type-call-fg',
         };
+    }
+
+    /** Types qu'une personne publie en son nom (D-081) : l'Appel à rejoindre n'existe que pour une ZUMRA. */
+    public static function forPerson(): array
+    {
+        return [self::Need, self::Knowledge, self::LearningWish, self::Offer];
+    }
+
+    /** Types publiés au nom d'une ZUMRA (D-116) : « Je veux apprendre » reste personnel, « Avancée de projet » vient au Lot 4. */
+    public static function forZumra(): array
+    {
+        return [self::Need, self::Knowledge, self::Offer, self::ZumraCall];
+    }
+
+    /** Une réponse à cette publication est une demande d'adhésion (D-116), pas un geste. */
+    public function isCall(): bool
+    {
+        return $this === self::ZumraCall;
     }
 
     public function isNeed(): bool
@@ -116,6 +142,7 @@ enum PublicationType: string
             self::Knowledge => 'Partagez un conseil, une fiche ou un atelier.',
             self::LearningWish => "Dites ce que vous voulez apprendre. Quelqu'un peut vous transmettre.",
             self::Offer => 'Proposez votre aide à qui en a besoin.',
+            self::ZumraCall => 'Invitez des personnes à rejoindre votre ZUMRA.',
         };
     }
 }

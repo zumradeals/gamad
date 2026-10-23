@@ -7,7 +7,7 @@
 
         <p class="text-[14px] leading-normal text-muted">Choisissez ce que vous voulez faire. Votre publication apparaîtra dans le Fil, avec le bouton d’action qui convient.</p>
 
-        @foreach (\App\Enums\PublicationType::cases() as $type)
+        @foreach (\App\Enums\PublicationType::forPerson() as $type)
             <a href="{{ route('agir.publier', $type->slug()) }}" class="flex min-h-[72px] items-center gap-3.5 rounded-card border border-line bg-card px-4 py-3.5 text-ink no-underline hover:text-ink">
                 <span class="flex size-11 shrink-0 items-center justify-center rounded-button {{ $type->badgeClasses() }}">
                     <x-icon :name="$type->isNeed() ? 'chat' : 'heart'" />
@@ -20,6 +20,6 @@
             </a>
         @endforeach
 
-        <p class="text-[12px] leading-normal text-muted">Vous publiez en tant que vous-même ({{ auth()->user()->name }}). Publier au nom d’une ZUMRA viendra avec les ZUMRA.</p>
+        <p class="text-[12px] leading-normal text-muted">Vous publiez en tant que vous-même ({{ auth()->user()->name }}).@if (auth()->user()->managedZumraIds() !== []) Pour publier au nom d’une ZUMRA que vous gérez, ouvrez-la dans l’onglet ZUMRA.@endif</p>
     </div>
 </x-layouts.app>

@@ -1,5 +1,5 @@
 @php
-    $filters = ['tout' => 'Tout', 'besoins' => 'Besoins', 'savoirs' => 'Savoirs', 'apprendre' => 'Apprendre', 'aides' => 'Aides'];
+    $filters = ['tout' => 'Tout', 'besoins' => 'Besoins', 'savoirs' => 'Savoirs', 'apprendre' => 'Apprendre', 'aides' => 'Aides', 'zumra' => 'ZUMRA'];
     $shortcuts = [\App\Enums\PublicationType::Need, \App\Enums\PublicationType::Knowledge, \App\Enums\PublicationType::LearningWish];
 @endphp
 
@@ -69,7 +69,7 @@
         <div wire:loading.delay wire:target="setFilter, more" class="text-[13px] font-semibold text-muted" role="status">Chargement…</div>
 
         @forelse ($posts as $post)
-            <x-publication-card wire:key="publication-{{ $post->id }}" :publication="$post" :viewer="$viewer" :gesture="$gestures[$post->id] ?? null" />
+            <x-publication-card wire:key="publication-{{ $post->id }}" :publication="$post" :viewer="$viewer" :gesture="$gestures[$post->id] ?? null" :managed="$managedZumraIds" :member-of="$memberOf" />
         @empty
             <section aria-labelledby="vide" class="flex flex-col gap-3 rounded-card border border-line bg-card p-5">
                 @if ($filter === 'tout')

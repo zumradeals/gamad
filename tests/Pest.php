@@ -31,7 +31,7 @@ pest()->extend(TestCase::class)
         config([
             'gamad.limits.publications_per_hour' => 10000, 'gamad.limits.publications_per_day' => 10000,
             'gamad.limits.gestures_per_hour' => 10000, 'gamad.limits.gestures_per_day' => 10000,
-            'gamad.limits.zumras_per_day' => 10000, 'gamad.limits.join_requests_per_day' => 10000, 'gamad.limits.invitations_per_day' => 10000, 'gamad.limits.reports_per_hour' => 10000, 'gamad.limits.reports_per_day' => 10000,
+            'gamad.limits.zumras_per_day' => 10000, 'gamad.limits.zumra_posts_per_minute' => 10000, 'gamad.limits.zumra_posts_per_day' => 10000, 'gamad.limits.join_requests_per_day' => 10000, 'gamad.limits.invitations_per_day' => 10000, 'gamad.limits.reports_per_hour' => 10000, 'gamad.limits.reports_per_day' => 10000,
             'gamad.limits.messages_per_minute' => 10000, 'gamad.limits.messages_per_day' => 10000,
         ]);
     })
@@ -142,7 +142,7 @@ function admis(Zumra $zumra, User $personne): ZumraMembership
     return $zumra->memberships()->where('user_id', $personne->id)->first();
 }
 
-function monde(User $qui, $zumra)
+function monde(User $qui, $zumra, string $onglet = 'membres')
 {
-    return Livewire::actingAs($qui)->test(MondeZumra::class, ['zumra' => $zumra]);
+    return Livewire::actingAs($qui)->test(MondeZumra::class, ['zumra' => $zumra])->set('tab', $onglet);
 }

@@ -48,12 +48,12 @@ it('classe les ZUMRA par ordre alphabétique, sans tenir compte des accents ni d
     carrefour()->assertSeeTextInOrder(['Alpha', 'béta', 'Étoile', 'zèbre'])->assertDontSeeText('plus actives');
 });
 
-it('ne montre que des chiffres réels : le nombre de membres, ni projets, ni savoirs partagés, ni filtre « Reconnues »', function () {
+it('ne montre que des chiffres réels : le nombre de membres, ni projets, ni savoirs partagés', function () {
     $z = zumra($this->yao, 'Couture solidaire');
     ajouteMembre($z, User::factory()->create());
 
     carrefour()->assertSeeText('2')->assertSeeText('membres')
-        ->assertDontSeeText('projet')->assertDontSeeText('savoirs partagés')->assertDontSeeText('Reconnue');
+        ->assertDontSeeText('projet')->assertDontSeeText('savoirs partagés')->assertDontSeeText('Reconnue par GAMAD');
 });
 
 it('ne compte pas, parmi les membres, une personne dont l’adresse n’est plus vérifiée', function () {

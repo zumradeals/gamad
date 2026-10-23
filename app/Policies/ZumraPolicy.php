@@ -37,6 +37,14 @@ class ZumraPolicy
         return (bool) $viewer?->hasVerifiedEmail();
     }
 
+    /** La Discussion : les membres vérifiés seulement (D-112). Pour toute autre personne, elle n'existe pas (404). */
+    public function discuss(?User $user, Zumra $zumra): Response
+    {
+        return $user && $user->hasVerifiedEmail() && $zumra->roleOf($user)
+            ? Response::allow()
+            : Response::denyAsNotFound();
+    }
+
     /** Gérer les demandes, les invitations et les membres : le fondateur et les responsables (D-111). */
     public function manage(User $user, Zumra $zumra): Response
     {

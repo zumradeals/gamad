@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\NotificationKind;
 use App\Enums\ZumraFormat;
 use App\Enums\ZumraRole;
 use App\Models\City;
@@ -122,6 +123,73 @@ class Zumras
         }
 
         return $name;
+    }
+
+    /**
+     * Le Président reconnaît officiellement une ZUMRA (badge « Reconnue par GAMAD »). Réservé au super administrateur ; l'acte est
+     * inscrit au journal d'administration dans la même transaction, et le fondateur et les responsables en sont informés.
+     *
+     * @throws ValidationException
+     */
+    public function recognize(User $actor, Zumra $zumra): void
+    {
+        Gate::forUser($actor)->authorize('super-admin');
+
+        DB::transaction(function () use ($actor, $zumra) {
+            $locked = Zumra::query()->whereKey($zumra->getKey())->lockForUpdate()->firstOrFail();
+
+            if ($locked->isRecognized()) {
+                throw ValidationException::withMessages(['recognition' => 'Cette ZUMRA est déjà reconnue.']);
+            }
+
+            $locked->forceFill(['recognized_at' => now(), 'recognized_by' => $actor->getKey()])->save();
+
+            AdminJournal::record($actor, 'zumra.recognized', $locked);
+
+            $this->notifyManagers($locked, NotificationKind::ZumraRecognized, $actor);
+            $zumra->setRawAttributes($locked->getAttributes(), true);
+        });
+    }
+
+    /**
+     * Retire la reconnaissance, avec un motif obligatoire qui est tracé au journal.
+     *
+     * @throws ValidationException
+     */
+    public function withdrawRecognition(User $actor, Zumra $zumra, ?string $reason): void
+    {
+        Gate::forUser($actor)->authorize('super-admin');
+
+        $reason = Normalizer::multiline((string) $reason);
+
+        if ($reason === '') {
+            throw ValidationException::withMessages(['recognition' => 'Indiquez le motif du retrait.']);
+        }
+
+        if (mb_strlen($reason) > 500) {
+            throw ValidationException::withMessages(['recognition' => 'Le motif ne peut pas dépasser 500 caractères.']);
+        }
+
+        DB::transaction(function () use ($actor, $zumra, $reason) {
+            $locked = Zumra::query()->whereKey($zumra->getKey())->lockForUpdate()->firstOrFail();
+
+            if (! $locked->isRecognized()) {
+                throw ValidationException::withMessages(['recognition' => 'Cette ZUMRA n’est pas reconnue.']);
+            }
+
+            $locked->forceFill(['recognized_at' => null, 'recognized_by' => null])->save();
+
+            AdminJournal::record($actor, 'zumra.recognition_withdrawn', $locked, $reason);
+
+            $this->notifyManagers($locked, NotificationKind::ZumraRecognitionWithdrawn, $actor);
+            $zumra->setRawAttributes($locked->getAttributes(), true);
+        });
+    }
+
+    private function notifyManagers(Zumra $zumra, NotificationKind $kind, User $actor): void
+    {
+        ZumraMembership::query()->where('zumra_id', $zumra->getKey())->whereIn('role', ['founder', 'manager'])->with('user')->get()
+            ->each(fn (ZumraMembership $manager) => app(Notifier::class)->push($manager->user, $kind, $actor, zumra: $zumra));
     }
 
     private function nameTaken(): ValidationException
