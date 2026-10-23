@@ -351,7 +351,7 @@ Il vous faut trois comptes : le vôtre (super administrateur), un **modérateur*
 6. **Explication d'une publication masquée.** Quand l'auteur d'une publication masquée s'explique, la modération reçoit « … a écrit son explication sur la publication masquée » ; la notification mène à l'onglet **Masquées**.
 7. **Limites à vérifier.** Un modérateur ne peut envoyer d'avis ni à vous, ni à un autre modérateur, ni à lui-même ; vous seul décidez pour un modérateur. Chaque acte apparaît au journal.
 
-**Ce qui n'existe pas encore :** suspension immédiate sans avis (voir D-151) ; recours dans l'application pour une personne suspendue (le contact des mentions légales est affiché une fois celles-ci adoptées).
+**Ce qui n'existe pas encore :** suspension immédiate sans avis (voir D-152) ; recours dans l'application pour une personne suspendue (le contact des mentions légales est affiché une fois celles-ci adoptées).
 
 ## 16. Ce qu'il faut regarder à chaque écran
 

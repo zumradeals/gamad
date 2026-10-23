@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Avis, suspension et rétablissement d'une personne (D-145, D-151). La suspension est précédée d'un avis de la modération : la
+ * Avis, suspension et rétablissement d'une personne (D-145, D-152). La suspension est précédée d'un avis de la modération : la
  * personne dispose d'un délai pour s'expliquer, et la modération ne peut suspendre qu'une fois l'explication reçue ou le délai
  * écoulé (PRODUIT §6, règle 6). Chaque acte est inscrit au journal d'administration dans la même transaction que l'acte.
  */

@@ -15,7 +15,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 /**
- * Modération des personnes (D-145, D-151) : envoyer un avis, suspendre après l'avis, classer l'avis, rétablir. Réservé au super
+ * Modération des personnes (D-145, D-152) : envoyer un avis, suspendre après l'avis, classer l'avis, rétablir. Réservé au super
  * administrateur et aux modérateurs, revérifié à chaque affichage et à chaque acte. Chaque acte est inscrit au journal.
  */
 #[Layout('components.layouts.app', ['narrow' => true])]

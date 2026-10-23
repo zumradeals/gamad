@@ -79,8 +79,15 @@ it('garde masqué Besoins sur le Carrefour, avec ou sans compte (ZUMRA n’est d
     foreach ([null, User::factory()->create()] as $user) {
         $page = ($user ? $this->actingAs($user) : $this)->get('/personnes')->assertOk();
 
-        $page->assertDontSeeText('Besoins')
-            ->assertDontSeeText('Notifications')->assertDontSeeText('Inviter');
+        $page->assertDontSeeText('Besoins')->assertDontSeeText('Inviter');
+
+        if ($user) {
+            // La barre harmonisée affiche maintenant le libellé du module de notifications déjà livré.
+            $page->assertSee('aria-label="Notifications"', false)
+                ->assertSee('href="'.route('notifications').'"', false);
+        } else {
+            $page->assertDontSeeText('Notifications');
+        }
     }
 });
 
