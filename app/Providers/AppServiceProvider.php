@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Models\User;
+use App\Services\Backup\RcloneProbe;
+use App\Services\Backup\StorageProbe;
 use App\Services\Settings;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -13,6 +15,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(Settings::class);
+        $this->app->bind(StorageProbe::class, RcloneProbe::class);
     }
 
     public function boot(): void

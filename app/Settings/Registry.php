@@ -15,6 +15,8 @@ final class Registry
 
     public const GROUP_TEXTS = 'textes';
 
+    public const GROUP_BACKUP = 'copie';
+
     /** @var array<string, Definition>|null */
     private static ?array $definitions = null;
 
@@ -49,6 +51,14 @@ final class Registry
             new Definition('legal_host', self::GROUP_TEXTS, 'Hébergeur', Definition::STRING, null, ['nullable', 'string', 'max:500']),
             new Definition('charter_adopted_at', self::GROUP_TEXTS, 'Charte adoptée le', Definition::STRING, null, ['nullable', 'date']),
             new Definition('legal_adopted_at', self::GROUP_TEXTS, 'Mentions légales adoptées le', Definition::STRING, null, ['nullable', 'date']),
+
+            // Copie hors serveur (Lot 5c, D-156) : accès au stockage compatible S3 et phrase de secours, chiffrés en base.
+            new Definition('backup_s3_endpoint', self::GROUP_BACKUP, 'Adresse du stockage', Definition::STRING, null, ['nullable', 'string', 'max:255']),
+            new Definition('backup_s3_bucket', self::GROUP_BACKUP, 'Nom du bucket', Definition::STRING, null, ['nullable', 'string', 'max:63']),
+            new Definition('backup_s3_region', self::GROUP_BACKUP, 'Région', Definition::STRING, null, ['nullable', 'string', 'max:60']),
+            new Definition('backup_s3_access_key', self::GROUP_BACKUP, 'Clé d’accès', Definition::SECRET, null, ['nullable', 'string', 'max:255']),
+            new Definition('backup_s3_secret_key', self::GROUP_BACKUP, 'Clé secrète', Definition::SECRET, null, ['nullable', 'string', 'max:255']),
+            new Definition('backup_passphrase', self::GROUP_BACKUP, 'Phrase de secours', Definition::SECRET, null, ['nullable', 'string', 'max:255']),
         ])->keyBy(fn (Definition $definition) => $definition->key)->all();
     }
 

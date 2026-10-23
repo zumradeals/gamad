@@ -24,6 +24,7 @@ use App\Livewire\PageConversation;
 use App\Livewire\PageNotifications;
 use App\Livewire\PagePublication;
 use App\Livewire\Parametres;
+use App\Livewire\ParametresCopie;
 use App\Livewire\ParametresDomaines;
 use App\Livewire\ParametresTerritoires;
 use App\Livewire\ParametresTextes;
@@ -79,6 +80,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/espace/profil', ModifierProfil::class)->name('espace.profil');
     Route::get('/espace/parametres', Parametres::class)->middleware('can:super-admin')->name('espace.parametres');
     Route::get('/espace/parametres/textes', ParametresTextes::class)->middleware('can:super-admin')->name('espace.parametres.textes');
+    Route::get('/espace/parametres/copie', ParametresCopie::class)->middleware('can:super-admin')->name('espace.parametres.copie');
     Route::get('/espace/parametres/domaines', ParametresDomaines::class)->middleware('can:super-admin')->name('espace.parametres.domaines');
     Route::get('/espace/parametres/territoires', ParametresTerritoires::class)->middleware('can:super-admin')->name('espace.parametres.territoires');
 });

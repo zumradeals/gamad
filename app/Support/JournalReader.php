@@ -21,7 +21,7 @@ class JournalReader
         'publications' => ['Publications', ['publication.', 'report.']],
         'personnes' => ['Personnes', ['person.']],
         'zumras' => ['ZUMRA', ['zumra.']],
-        'reglages' => ['Réglages', ['setting.', 'settings.']],
+        'reglages' => ['Réglages', ['setting.', 'settings.', 'backup.']],
         'listes' => ['Listes de référence', ['domain.', 'country.', 'city.']],
         'comptes' => ['Comptes', ['account.']],
     ];
@@ -41,6 +41,7 @@ class JournalReader
         'zumra.recognition_withdrawn' => 'a retiré la reconnaissance de la ZUMRA',
         'zumra.founder_transferred' => 'a confié la fondation de la ZUMRA',
         'setting.changed' => 'a modifié le réglage',
+        'backup.passphrase_revealed' => 'a affiché la phrase de secours de la copie hors serveur',
         'settings.test_email_sent' => 'a envoyé un e-mail de test',
         'settings.test_email_failed' => 'a tenté un e-mail de test, sans succès',
         'account.renamed_by_owner' => 'a changé son nom affiché',
