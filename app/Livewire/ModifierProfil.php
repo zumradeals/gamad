@@ -2,19 +2,17 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\PicksSkills;
 use App\Models\City;
 use App\Models\Country;
 use App\Models\Domain;
 use App\Models\Profile;
-use App\Models\Skill;
 use App\Models\User;
 use App\Services\ProfileEditor;
 use App\Services\ProfilePhoto;
 use App\Support\Normalizer;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
@@ -30,7 +28,7 @@ use Livewire\WithFileUploads;
 #[Title('Modifier mon profil')]
 class ModifierProfil extends Component
 {
-    use WithFileUploads;
+    use PicksSkills, WithFileUploads;
 
     public string $name = '';
 
@@ -75,6 +73,12 @@ class ModifierProfil extends Component
         $this->domain_ids = $profile->domains()->pluck('domains.id')->all();
     }
 
+    /** @return array<string, int> */
+    protected function skillLists(): array
+    {
+        return ['offered' => Profile::MAX_SKILLS_PER_KIND, 'wanted' => Profile::MAX_SKILLS_PER_KIND];
+    }
+
     public function updatedCountryId(): void
     {
         // Une ville appartient à un pays : changer de pays efface la ville.
@@ -105,57 +109,6 @@ class ModifierProfil extends Component
         $this->photo = null;
         $this->removePhoto = $this->profile()->hasPhoto();
         $this->resetErrorBag('photo');
-    }
-
-    /** Ajoute une capacité à « offered » ou « wanted » : celle qu'on touche dans les suggestions, ou le texte saisi. */
-    public function addSkill(string $list, ?string $name = null): void
-    {
-        abort_unless(in_array($list, ['offered', 'wanted'], true), 404);
-
-        $input = $list.'Input';
-        $this->resetErrorBag([$input, $list]);
-        $display = Normalizer::display($name ?? $this->{$input});
-
-        if ($display === '') {
-            return;
-        }
-
-        $length = mb_strlen($display);
-
-        if ($length < Skill::MIN_LENGTH || $length > Skill::MAX_LENGTH || ! preg_match('/[\p{L}\p{N}]/u', $display)) {
-            $this->addError($input, 'Une capacité comporte de '.Skill::MIN_LENGTH.' à '.Skill::MAX_LENGTH.' caractères, dont au moins une lettre ou un chiffre.');
-
-            return;
-        }
-
-        $key = Normalizer::key($display);
-
-        if (in_array($key, array_map(Normalizer::key(...), $this->{$list}), true)) {
-            $this->{$input} = '';
-
-            return;
-        }
-
-        if (count($this->{$list}) >= Profile::MAX_SKILLS_PER_KIND) {
-            $this->addError($input, 'Dix capacités au plus : retirez-en une pour en ajouter.');
-
-            return;
-        }
-
-        // Si la capacité existe déjà, on garde son écriture d'origine (D-066) : « COMPTABILITE » devient « Comptabilité ».
-        $existing = Skill::query()->where('normalized', $key)->value('name');
-
-        $this->{$list}[] = $existing ?? $display;
-        $this->{$input} = '';
-    }
-
-    public function removeSkill(string $list, int $index): void
-    {
-        abort_unless(in_array($list, ['offered', 'wanted'], true), 404);
-
-        unset($this->{$list}[$index]);
-        $this->{$list} = array_values($this->{$list});
-        $this->resetErrorBag([$list.'Input', $list]);
     }
 
     public function toggleDomain(string $id): void
@@ -230,8 +183,8 @@ class ModifierProfil extends Component
                 ->where(fn (Builder $query) => $query->where('active', true)->orWhereIn('id', $domainIds))
                 ->ordered()->get(),
             'suggestions' => [
-                'offered' => $this->suggestions('offered'),
-                'wanted' => $this->suggestions('wanted'),
+                'offered' => $this->skillSuggestions('offered'),
+                'wanted' => $this->skillSuggestions('wanted'),
             ],
             'photoAvailable' => ProfilePhoto::available(),
             'pendingPhotoUrl' => $this->pendingPhotoUrl(),
@@ -255,31 +208,5 @@ class ModifierProfil extends Component
         }
 
         return $this->photo->temporaryUrl();
-    }
-
-    /**
-     * Capacités déjà utilisées par d'autres personnes (ou par vous) qui contiennent la saisie, celles qui commencent par la
-     * saisie d'abord. Une capacité que plus personne n'utilise n'est plus proposée.
-     *
-     * @return Collection<int, Skill>
-     */
-    private function suggestions(string $list)
-    {
-        $key = Normalizer::key($this->{$list.'Input'});
-
-        if (mb_strlen($key) < 1) {
-            return collect();
-        }
-
-        $selected = array_map(Normalizer::key(...), $this->{$list});
-
-        return Skill::query()
-            ->whereExists(fn ($query) => $query->select(DB::raw(1))->from('profile_skill')->whereColumn('profile_skill.skill_id', 'skills.id'))
-            ->where('normalized', 'like', Normalizer::likeContains($key))
-            ->whereNotIn('normalized', $selected)
-            ->orderByRaw('case when normalized like ? then 0 else 1 end', [addcslashes($key, '\\%_').'%'])
-            ->orderBy('normalized')
-            ->limit(6)
-            ->get();
     }
 }

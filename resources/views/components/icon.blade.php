@@ -11,6 +11,10 @@
         'pin' => '<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"></path><circle cx="12" cy="10" r="2.5"></circle>',
         'back' => '<path d="M15 6l-6 6 6 6"></path>',
         'close' => '<path d="M6 6l12 12M18 6L6 18"></path>',
+        'check' => '<path d="M20 6L9 17l-5-5"></path>',
+        'chat' => '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1.1-4.6A8 8 0 1 1 21 12z"></path>',
+        'heart' => '<path d="M12 21s-7-4.5-9-9a5 5 0 0 1 9-3 5 5 0 0 1 9 3c-2 4.5-9 9-9 9z"></path>',
+        'next' => '<path d="M9 6l6 6-6 6"></path>',
         'book' => '<path d="M4 19.5V6a2 2 0 0 1 2-2h12v14H6a2 2 0 0 0-2 1.5zM6 18h12v3H6a2 2 0 0 1 0-3z"></path>',
         'mail' => '<rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 7l9 6 9-6"></path>',
     ];

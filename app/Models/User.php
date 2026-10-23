@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -31,6 +32,16 @@ class User extends Authenticatable implements MustVerifyEmail
 
         // Aucune photo ne survit au compte (données personnelles).
         static::deleting(fn (User $user) => $user->profile?->deletePhotoFile());
+    }
+
+    public function publications(): HasMany
+    {
+        return $this->hasMany(Publication::class, 'author_id');
+    }
+
+    public function gestures(): HasMany
+    {
+        return $this->hasMany(Gesture::class);
     }
 
     public function profile(): HasOne

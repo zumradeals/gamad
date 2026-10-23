@@ -18,6 +18,21 @@ final class Normalizer
         return trim(preg_replace('/\s+/u', ' ', $value) ?? $value);
     }
 
+    /**
+     * Texte libre sur plusieurs lignes (présentation, publication, message) : retours à la ligne unifiés, caractères invisibles
+     * retirés, espaces superflus réduits, jamais plus d'une ligne vide d'affilée. Le texte reste un texte brut : il n'est jamais
+     * interprété (ni HTML, ni lien automatique).
+     */
+    public static function multiline(string $value): string
+    {
+        $value = str_replace(["\r\n", "\r"], "\n", $value);
+        $value = preg_replace('/[^\P{Cc}\n]|\p{Cf}/u', '', $value) ?? $value;
+        $value = preg_replace('/[^\S\n]+/u', ' ', $value) ?? $value;
+        $value = preg_replace('/ ?\n ?/', "\n", $value) ?? $value;
+
+        return trim(preg_replace("/\n{3,}/", "\n\n", $value) ?? $value);
+    }
+
     /** Clé de comparaison et de recherche. */
     public static function key(string $value): string
     {

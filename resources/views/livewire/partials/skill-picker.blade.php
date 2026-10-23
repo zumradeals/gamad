@@ -1,19 +1,20 @@
-{{-- Sélecteur de capacités : $list ('offered'|'wanted'), $items, $input, $suggestions, $tone ('green'|'blue'), $title, $help, $placeholder --}}
+{{-- Sélecteur de capacités ($plain : sans cadre de carte) : $list ('offered'|'wanted'|'skills'), $items, $input, $suggestions, $tone ('green'|'blue'|'neutral'), $title, $help, $placeholder, $max (facultatif, 10 par défaut) --}}
 @php
     $inputName = $list.'Input';
+    $max = $max ?? \App\Models\Profile::MAX_SKILLS_PER_KIND;
     $isGreen = $tone === 'green';
-    $chip = $isGreen ? 'bg-type-knowledge-bg text-type-knowledge-fg' : 'bg-type-learning-bg text-type-learning-fg';
-    $full = count($items) >= \App\Models\Profile::MAX_SKILLS_PER_KIND;
+    $chip = match ($tone) { 'green' => 'bg-type-knowledge-bg text-type-knowledge-fg', 'blue' => 'bg-type-learning-bg text-type-learning-fg', default => 'bg-type-need-bg text-type-need-fg' };
+    $full = count($items) >= $max;
     $typedKey = \App\Support\Normalizer::key($input);
     $typedDisplay = \App\Support\Normalizer::display($input);
     $hasExact = $suggestions->contains(fn ($skill) => $skill->normalized === $typedKey);
     $alreadyChosen = in_array($typedKey, array_map(\App\Support\Normalizer::key(...), $items), true);
 @endphp
 
-<section aria-labelledby="{{ $list }}-titre" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
+<section aria-labelledby="{{ $list }}-titre" @class(['flex flex-col gap-3', 'rounded-card border border-line bg-card p-4 md:p-[18px]' => ! ($plain ?? false)])>
     <div class="flex flex-col gap-1">
-        <label for="{{ $inputName }}" id="{{ $list }}-titre" @class(['text-[16px] font-extrabold', 'text-type-knowledge-fg' => $isGreen, 'text-type-learning-fg' => ! $isGreen])>{{ $title }}</label>
-        <span class="text-[13px] text-muted">{{ $help }} Jusqu’à {{ \App\Models\Profile::MAX_SKILLS_PER_KIND }} ({{ count($items) }} choisie{{ count($items) > 1 ? 's' : '' }}).</span>
+        <label for="{{ $inputName }}" id="{{ $list }}-titre" @class(['text-[16px] font-extrabold', 'text-type-knowledge-fg' => $tone === 'green', 'text-type-learning-fg' => $tone === 'blue', 'text-ink' => $tone === 'neutral'])>{{ $title }}</label>
+        <span class="text-[13px] text-muted">{{ $help }} Jusqu’à {{ $max }} ({{ count($items) }} choisie{{ count($items) > 1 ? 's' : '' }}).</span>
     </div>
 
     @if ($items !== [])
@@ -31,7 +32,7 @@
     @endif
 
     @if ($full)
-        <p class="text-[13px] font-semibold text-muted">Dix capacités au plus : retirez-en une pour en ajouter.</p>
+        <p class="text-[13px] font-semibold text-muted">{{ $this::skillLimitMessage($max) }}</p>
     @else
         <div class="flex flex-col">
             <input id="{{ $inputName }}" type="text" wire:model.live.debounce.250ms="{{ $inputName }}"

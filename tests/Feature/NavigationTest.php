@@ -8,19 +8,17 @@ function pageDuFil(): TestResponse
     return test()->actingAs(User::factory()->create())->get('/fil');
 }
 
-it('n’affiche que Fil, Découvrir, Personnes et Espace dans la navigation', function () {
-    pageDuFil()
-        ->assertOk()
-        ->assertSeeText('Fil')
-        ->assertSeeText('Découvrir')
-        ->assertSeeText('Personnes')
-        ->assertSeeText('Espace')
-        ->assertDontSeeText('Agir')
-        ->assertDontSeeText('ZUMRA')
-        ->assertDontSeeText('Besoins')
-        ->assertDontSeeText('Projets')
-        ->assertDontSeeText('Rechercher')
-        ->assertDontSeeText('Notifications');
+it('n’affiche que Fil, Découvrir, Agir, Personnes et Espace dans la navigation', function () {
+    $html = pageDuFil()->assertOk()->getContent();
+    preg_match_all('/<nav aria-label="Navigation principale".*?<\/nav>/s', $html, $navs);
+    $texte = trim(preg_replace('/\s+/', ' ', strip_tags(implode(' ', $navs[0]))));
+
+    expect($texte)->toContain('Fil')->toContain('Découvrir')->toContain('Personnes')->toContain('Agir')->toContain('Espace')
+        ->not->toContain('ZUMRA')->not->toContain('Besoins')->not->toContain('Projets')
+        ->not->toContain('Rechercher')->not->toContain('Notifications');
+
+    // Aucune cloche, aucune recherche générale dans la page : ils viennent avec leurs lots.
+    expect($html)->not->toContain('aria-label="Notifications"')->not->toContain('aria-label="Rechercher"');
 });
 
 it('affiche le message d’état vide du Fil, avec un lien vers « Modifier mon profil »', function () {
@@ -77,11 +75,11 @@ it('garde Découvrir actif sur le Monde d’une personne', function () {
     expect($html)->toMatch('/aria-current="page"[^>]*>\s*<svg.*?<\/svg>\s*Découvrir/s');
 });
 
-it('garde masqués Besoins, Projets, Agir et ZUMRA sur le Carrefour, avec ou sans compte', function () {
+it('garde masqués Besoins, Projets et ZUMRA sur le Carrefour, avec ou sans compte', function () {
     foreach ([null, User::factory()->create()] as $user) {
         $page = ($user ? $this->actingAs($user) : $this)->get('/personnes')->assertOk();
 
-        $page->assertDontSeeText('Besoins')->assertDontSeeText('Projets')->assertDontSeeText('Agir')->assertDontSeeText('ZUMRA')
+        $page->assertDontSeeText('Besoins')->assertDontSeeText('Projets')->assertDontSeeText('ZUMRA')
             ->assertDontSeeText('Notifications')->assertDontSeeText('Inviter');
     }
 });
@@ -105,4 +103,18 @@ it('mène les entrées de navigation à des pages qui répondent, pour un visite
             expect($this->get($href)->status())->toBeIn([200, 302], $href);
         }
     }
+});
+
+it('active Agir : rond jaune au centre de la barre du bas, bouton jaune dans la barre du haut', function () {
+    $html = $this->actingAs(User::factory()->create())->get('/fil')->assertOk()->getContent();
+
+    expect($html)->toContain('href="'.route('agir').'"')
+        ->and(substr_count($html, 'href="'.route('agir').'"'))->toBeGreaterThanOrEqual(2)
+        ->and($html)->toContain('bg-accent');
+});
+
+it('n’offre pas Agir à un visiteur sans compte', function () {
+    $this->get('/personnes')->assertOk()->assertDontSee('href="'.route('agir').'"', false);
+    $this->get('/agir')->assertRedirect('/login');
+    $this->get('/agir/besoin')->assertRedirect('/login');
 });

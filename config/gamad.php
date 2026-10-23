@@ -17,5 +17,11 @@ return [
         'register_per_hour' => 20,
         // Tentatives de connexion par minute, par adresse e-mail et adresse IP.
         'login_per_minute' => 5,
+
+        // Protection contre le spam (D-086), par personne. Une publication ou un geste de trop est refusé avec un message clair.
+        'publications_per_hour' => 10,
+        'publications_per_day' => 30,
+        'gestures_per_hour' => 30,
+        'gestures_per_day' => 100,
     ],
 ];
