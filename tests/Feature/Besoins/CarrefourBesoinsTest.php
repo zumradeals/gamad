@@ -49,7 +49,7 @@ it('montre l’émetteur de chaque besoin : une personne, une ZUMRA ou un projet
     $page = $this->get(route('besoins.index'))->assertOk();
 
     $page->assertSeeText('Besoin de la personne.')->assertSeeText('Besoin de la ZUMRA.')->assertSeeText('Besoin du projet.')
-        ->assertSeeText('Awa Traoré')->assertSeeText('Couture solidaire')->assertSeeText('Projet : Uniformes de la rentrée')
+        ->assertSeeText('Awa Traoré')->assertSeeText('Couture solidaire')->assertSeeText('Uniformes de la rentrée')
         ->assertSee('href="'.route('zumras.show', $zumra).'"', false)->assertSee('href="'.route('projets.show', $projet).'"', false);
 });
 
@@ -114,9 +114,10 @@ it('n’affiche par défaut que les besoins ouverts, et propose les autres état
     $ferme->forceFill(['need_state' => NeedState::Closed])->save();
 
     carrefourBesoins()->assertSeeText('Besoin ouvert.')->assertDontSeeText('Besoin en cours.')->assertDontSeeText('Besoin résolu.')->assertDontSeeText('Besoin fermé sans suite.')
-        ->assertSeeText('1 besoin ouvert')->assertSeeText('Besoins ouverts')->assertSeeText('Tous les états')
+        ->assertSeeText('1 besoin ouvert')->assertSeeText('Ouverts')->assertSee('aria-label="Tous les états"', false)
         ->set('state', 'in_progress')->assertSeeText('Besoin en cours.')->assertDontSeeText('Besoin ouvert.')->assertSeeText('1 besoin correspond à cette recherche')
         ->set('state', 'resolved')->assertSeeText('Besoin résolu.')->assertDontSeeText('Besoin en cours.')
+        ->set('state', 'closed')->assertSeeText('Besoin fermé sans suite.')->assertDontSeeText('Besoin ouvert.')->assertDontSeeText('Besoin résolu.')
         ->set('state', 'tous')->assertSeeText('Besoin ouvert.')->assertSeeText('Besoin en cours.')->assertSeeText('Besoin résolu.')->assertSeeText('Besoin fermé sans suite.')->assertSeeText('4 besoins correspondent');
 });
 

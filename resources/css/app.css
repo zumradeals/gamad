@@ -383,3 +383,25 @@
         .project-searchbar > :first-child, .project-searchbar > :last-child { grid-column: auto; }
     }
 }
+
+/* Carrefour Besoins : demande, capacités et émetteur. */
+@layer components {
+    .need-directory { --color-muted: #3d4f5e; }
+    .need-discovery-hero { display: grid; align-items: center; gap: 20px; padding-top: 12px; }
+    .need-searchbar { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--color-line); border-radius: 12px; background: var(--color-card); }
+    .need-searchbar:focus-within { outline: 3px solid var(--color-link); outline-offset: 2px; }
+    .need-state-filter { display: inline-flex; min-height: 48px; align-items: center; border-bottom-width: 2px; padding-inline: 4px; font-size: 14px; }
+    .need-state-filter:hover { color: var(--color-link); }
+    .need-emitter-link { display: block; min-height: 44px; align-content: center; color: var(--color-ink); font-size: 16px; font-weight: 800; text-decoration: none; overflow-wrap: anywhere; }
+    .need-emitter-link:hover { text-decoration: underline; }
+    .need-request::first-line { font-weight: 600; }
+    @media (min-width: 768px) {
+        .need-discovery-hero { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 32px; }
+        .need-searchbar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .need-searchbar > :first-child, .need-searchbar > :last-child { grid-column: 1 / -1; }
+    }
+    @media (min-width: 1024px) {
+        .need-searchbar { grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr)) auto; }
+        .need-searchbar > :first-child, .need-searchbar > :last-child { grid-column: auto; }
+    }
+}
