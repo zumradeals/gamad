@@ -341,6 +341,7 @@
     .zumra-discovery-hero { display: grid; align-items: center; gap: 28px; padding-block: 12px 8px; }
     .zumra-discovery-title { max-width: 680px; font-size: clamp(34px, 4vw, 52px); font-weight: 800; line-height: 1.12; letter-spacing: -1.2px; }
     .zumra-searchbar { display: grid; gap: 10px; padding: 10px; border: 1px solid var(--color-line); border-radius: 12px; background: var(--color-card); }
+    .zumra-searchbar:focus-within { outline: 3px solid var(--color-link); outline-offset: 2px; }
     .zumra-filter { min-height: 44px; width: 100%; max-width: 100%; border: 1px solid var(--color-line); border-radius: 8px; padding: 8px 32px 8px 12px; background-color: var(--color-card); color: var(--color-ink); font-size: 14px; }
     .zumra-mission-card { display: flex; min-width: 0; overflow: hidden; border: 1px solid var(--color-line); border-radius: 12px; background: var(--color-card); }
     .zumra-mission-cover { position: relative; display: flex; width: 104px; flex-shrink: 0; align-items: center; justify-content: center; overflow: hidden; background: var(--color-soft-blue); }
