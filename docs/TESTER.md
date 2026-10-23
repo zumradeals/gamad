@@ -220,7 +220,31 @@ Il vous faut trois comptes : le **compte 1** (le vôtre, super administrateur, q
 
 **Limites normales.** Raison et précision de 280 caractères au plus ; motif et explication de 500 ; pour freiner l'abus du signalement lui-même, 10 signalements par heure et 30 par jour et par personne.
 
-## 8. Ce qu'il faut regarder à chaque écran
+## 8. Essayer le Lot 3, première étape (3a) : créer et trouver une ZUMRA
+
+Il vous faut le **compte 1** (le vôtre) et le **compte 2** (votre seconde adresse). À cette étape, on crée et on trouve des ZUMRA ; **rejoindre, inviter et publier au nom d'une ZUMRA** viennent aux étapes 3b et 3c.
+
+**Créer.**
+
+1. Touchez **ZUMRA** dans la barre du bas (sur ordinateur : **ZUMRA** en haut). Le **Carrefour ZUMRA** s'ouvre ; sans ZUMRA, il vous propose d'en créer une.
+2. Touchez **Créer une ZUMRA**. Écrivez un **nom**, choisissez **un seul domaine**, une ville si vous voulez, **où la ZUMRA se retrouve** (en ligne, présentiel, hybride) et sa **mission** (500 caractères au plus). Touchez **Créer la ZUMRA**.
+3. Laissez un champ vide et validez : **toutes les erreurs s'affichent ensemble**, chacune sous son champ.
+4. Vous arrivez sur le **Monde de la ZUMRA** avec « ZUMRA créée. Vous en êtes le fondateur. ». Essayez de créer une ZUMRA du **même nom** (en changeant les majuscules ou les accents) : le nom est refusé.
+
+**Le Monde d'une ZUMRA.**
+
+5. L'en-tête montre le nom, « domaine · ville · format », l'état **Active**, la mission, le nombre de membres et le mois de création. Sous les onglets, **Membres** : vous y êtes, avec le rôle **Fondateur**.
+6. **Modifier la ZUMRA** (visible du fondateur seulement à cette étape) change la mission, la ville et le format. Le **nom et le domaine ne changent pas** : l'écran le dit.
+7. Compte 2 : ouvrez la même ZUMRA depuis le **Carrefour**. Il voit l'en-tête et la liste des membres, mais **pas** « Modifier la ZUMRA ». Dans une **fenêtre de navigation privée**, l'en-tête se lit sans compte, mais les membres demandent de se connecter.
+
+**Trouver.**
+
+8. Compte 2 : au **Carrefour ZUMRA**, tapez un mot du nom ou de la mission (les accents et les majuscules sont sans importance), filtrez par **domaine** et par **ville**. L'ordre est **alphabétique** : il n'y a aucun classement. **Mes ZUMRA** montre les vôtres avec votre rôle.
+9. Rien n'y est inventé : seul le **nombre de membres** est affiché (pas de projets, pas de « savoirs partagés », pas de « Reconnue par GAMAD », pas de bouton « Je veux rejoindre »).
+
+**Limite normale.** Pour freiner l'abus, une personne peut créer 3 ZUMRA par jour. **Supprimer son compte** supprime la ZUMRA dont on est le seul membre (le transfert de la fondation vient en 3b).
+
+## 9. Ce qu'il faut regarder à chaque écran
 
 - [ ] Le texte se lit sans zoomer, rien ne dépasse de l'écran, aucun défilement de côté.
 - [ ] Les boutons sont faciles à toucher du pouce.
@@ -228,7 +252,7 @@ Il vous faut trois comptes : le **compte 1** (le vôtre, super administrateur, q
 - [ ] Les messages d'erreur sont clairs et en français.
 - [ ] Tout bouton ou lien visible mène à une vraie page.
 
-## 9. Les mises à jour se font toutes seules
+## 10. Les mises à jour se font toutes seules
 
 Chaque fois qu'un changement est fusionné dans `main`, le site se met à jour tout seul en **5 à 10 minutes** : rechargez la page après ce délai.
 Si une mise à jour échoue, la version actuelle reste en ligne et l'échec est noté dans un journal côté serveur ; si une mise à jour
@@ -237,7 +261,7 @@ sait revenir en arrière (voir `deploy/LISEZMOI.md`, réservé à l'administrati
 
 Les données sont sauvegardées chaque nuit (7 jours conservés).
 
-## 10. Ce qui n'existe pas encore (c'est normal)
+## 11. Ce qui n'existe pas encore (c'est normal)
 
-ZUMRA, projets, la consultation du journal d'administration, « Commenter », « Partager », « Suivre », « Inviter », recherche générale, paiement : ces modules sont masqués tant que leur lot
+adhésion et invitation à une ZUMRA (étape 3b), publier, discuter et reconnaître une ZUMRA (étape 3c), projets, la consultation du journal d'administration, « Commenter », « Partager », « Suivre », « Inviter », recherche générale, paiement : ces modules sont masqués tant que leur lot
 n'est pas construit.
