@@ -41,9 +41,12 @@ class Fil extends Component
     /** Filtre « ZUMRA » (D-098, 3c) : les publications faites au nom d'une ZUMRA, tous types confondus. */
     public const ZUMRA_FILTER = 'zumra';
 
+    /** Filtre « Projets » (D-098, 4b) : les avancées et réalisations publiées au nom d'un projet. */
+    public const PROJECT_FILTER = 'projets';
+
     public function setFilter(string $filter): void
     {
-        $this->filter = array_key_exists($filter, self::FILTERS) || $filter === self::ZUMRA_FILTER ? $filter : 'tout';
+        $this->filter = $this->knows($filter) ? $filter : 'tout';
         $this->limit = self::PAGE_SIZE;
     }
 
@@ -53,13 +56,18 @@ class Fil extends Component
     }
 
     /** Un geste envoyé, retiré, accepté ou décliné : la page se redessine. */
+    private function knows(string $filter): bool
+    {
+        return array_key_exists($filter, self::FILTERS) || in_array($filter, [self::ZUMRA_FILTER, self::PROJECT_FILTER], true);
+    }
+
     #[On('gesture-changed')]
     public function refresh(): void {}
 
     public function render()
     {
         $viewer = Auth::user();
-        $filter = array_key_exists($this->filter, self::FILTERS) || $this->filter === self::ZUMRA_FILTER ? $this->filter : 'tout';
+        $filter = $this->knows($this->filter) ? $this->filter : 'tout';
 
         $posts = Publication::query()
             ->visibleTo($viewer)
@@ -67,7 +75,8 @@ class Fil extends Component
             ->whereNull('hidden_at')
             ->when(array_key_exists($filter, self::FILTERS), fn ($query) => $query->where('type', self::FILTERS[$filter]->value))
             ->when($filter === self::ZUMRA_FILTER, fn ($query) => $query->whereNotNull('zumra_id'))
-            ->with(['author.profile', 'domain', 'city', 'skills', 'zumra'])
+            ->when($filter === self::PROJECT_FILTER, fn ($query) => $query->whereNotNull('project_id'))
+            ->with(['author.profile', 'domain', 'city', 'skills', 'zumra', 'project'])
             ->withCount(['gestures as live_gestures_count' => fn ($query) => $query->whereIn('state', [GestureState::Sent->value, GestureState::Accepted->value])])
             ->orderByDesc('created_at')
             ->orderByDesc('id')

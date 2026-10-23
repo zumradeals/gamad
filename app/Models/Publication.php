@@ -62,6 +62,12 @@ class Publication extends Model
         return $this->belongsTo(Zumra::class);
     }
 
+    /** Le projet au nom duquel la publication est faite (avancée ou réalisation ; vide sinon). */
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
+    }
+
     public function domain(): BelongsTo
     {
         return $this->belongsTo(Domain::class);
@@ -202,8 +208,9 @@ class Publication extends Model
     /** Un besoin résolu ou fermé ne reçoit plus de geste ; les autres types restent toujours ouverts. */
     public function acceptsGestures(): bool
     {
-        // Une réponse à un Appel à rejoindre est une demande d'adhésion, jamais un geste (D-116).
-        if ($this->isHidden() || $this->type === PublicationType::ZumraCall) {
+        // Une réponse à un Appel à rejoindre est une demande d'adhésion, jamais un geste (D-116) ; une publication de projet n'en
+        // reçoit pas encore (PR 4b).
+        if ($this->isHidden() || ! $this->type->takesGestures()) {
             return false;
         }
 

@@ -43,6 +43,18 @@ class Project extends Model
         return $this->belongsTo(Zumra::class);
     }
 
+    /** Les étapes, dans l'ordre. */
+    public function steps(): HasMany
+    {
+        return $this->hasMany(ProjectStep::class)->orderBy('position');
+    }
+
+    /** Les avancées et réalisations publiées au nom du projet. */
+    public function publications(): HasMany
+    {
+        return $this->hasMany(Publication::class);
+    }
+
     public function stateChanges(): HasMany
     {
         return $this->hasMany(ProjectStateChange::class);

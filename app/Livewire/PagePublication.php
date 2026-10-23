@@ -98,7 +98,7 @@ class PagePublication extends Component
     public function render()
     {
         $viewer = Auth::user();
-        $publication = $this->publication()->load(['author.profile', 'domain', 'city', 'skills', 'zumra']);
+        $publication = $this->publication()->load(['author.profile', 'domain', 'city', 'skills', 'zumra', 'project']);
 
         if ($this->explanation === '' && $publication->explained_at) {
             $this->explanation = (string) $publication->author_explanation;
