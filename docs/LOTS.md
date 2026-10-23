@@ -10,7 +10,7 @@ lot en « Terminé ».
 | 0.1 | Mise en ligne et paramètres | **Terminé** (essai du Président réussi sur reseau.dgafrique.com le 2026-10-22) |
 | 1 | Personne | **En cours** |
 | 2 | Fil global et gestes | **Terminé** (PR 2a, 2b et 2c fusionnées, marqué terminé par le Président le 2026-10-23) |
-| 3 | ZUMRA | **En cours** |
+| 3 | ZUMRA | **Terminé** (PR 3a, 3b et 3c fusionnées, marqué terminé le 2026-10-23 sur instruction du Président) |
 | 4 | Projets | À venir |
 | 5 | Ouverture (pilote) | À venir |
 | 6 | Contributions mensuelles | À venir |
@@ -238,7 +238,7 @@ successives, chacune relue par l'architecte et fusionnée par le Président avan
 
 ---
 
-## Lot 3 — ZUMRA (En cours)
+## Lot 3 — ZUMRA (Terminé)
 
 Maquettes : Carrefour ZUMRA et Monde d'une ZUMRA (`docs/maquettes/`, D-011). Décisions : D-003, D-006, D-009, D-110 à D-117.
 Livré en trois Pull Requests successives, chacune relue par l'architecte et fusionnée par le Président avant la suivante :
