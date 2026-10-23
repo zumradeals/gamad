@@ -26,7 +26,7 @@
             <div><label for="filtre-pays" class="sr-only">Pays</label><select id="filtre-pays" wire:model.live="country" class="zumra-filter"><option value="">Tous les pays</option>@foreach ($countries as $pays)<option value="{{ $pays->id }}">{{ $pays->name }}</option>@endforeach</select></div>
             <div><label for="filtre-ville" class="sr-only">Ville</label><select id="filtre-ville" wire:model.live="city" class="zumra-filter"><option value="">Toutes les villes</option>@foreach ($cities as $ville)<option value="{{ $ville->id }}">{{ $ville->label() }}</option>@endforeach</select></div>
             <div><label for="filtre-domaine" class="sr-only">Domaine</label><select id="filtre-domaine" wire:model.live="domain" class="zumra-filter"><option value="">Tous les domaines</option>@foreach ($domains as $domaine)<option value="{{ $domaine->id }}">{{ $domaine->name }}</option>@endforeach</select></div>
-            <x-button type="submit" variant="accent" aria-label="Rechercher"><x-icon name="search" :size="21" /><span class="lg:sr-only">Rechercher</span></x-button>
+            <x-button class="gap-2" type="submit" variant="accent" aria-label="Rechercher"><x-icon name="search" :size="21" /><span class="lg:sr-only">Rechercher</span></x-button>
         </form>
         <div class="flex flex-wrap items-center gap-3">
             <div><label for="filtre-format" class="sr-only">Format</label><select id="filtre-format" wire:model.live="format" class="zumra-filter !w-auto rounded-chip"><option value="">Tous les formats</option>@foreach ($formats as $mode)<option value="{{ $mode->value }}">{{ $mode->label() }}</option>@endforeach</select></div>
@@ -49,7 +49,7 @@
                     <p class="self-center text-[14px] text-muted">Vous n’êtes dans aucune ZUMRA pour l’instant.</p>
                 @endforelse
             </div>
-            <x-button :href="route('zumras.create')" variant="secondary"><x-icon name="plus" :size="18" />Créer une ZUMRA</x-button>
+            <x-button class="gap-2" :href="route('zumras.create')" variant="secondary"><x-icon name="plus" :size="18" />Créer une ZUMRA</x-button>
         </section>
     @endif
 
@@ -70,23 +70,23 @@
                         @if ($zumra->isRecognized())<span class="inline-flex items-center gap-1 rounded-chip bg-type-knowledge-bg px-2 py-1 text-[12px] font-bold text-type-knowledge-fg"><x-icon name="check" :size="14" />Reconnue par GAMAD</span>@endif</div>
                         <p class="whitespace-pre-line break-words text-[15px] leading-relaxed">{{ \Illuminate\Support\Str::limit($zumra->mission, 180) }}</p>
                         <p class="flex items-start gap-2 text-[13px] leading-relaxed text-muted"><x-icon name="pin" :size="18" class="shrink-0" /><span>{{ collect([$zumra->city?->label(), $zumra->city?->country?->name, $zumra->format->label()])->filter()->implode(' · ') }}</span></p>
-                        <div class="mt-auto flex flex-wrap items-center justify-between gap-3 pt-2"><span class="inline-flex items-center gap-2 text-[13px] text-muted"><x-icon name="group" :size="18" />{{ $zumra->members_count }} {{ $zumra->members_count > 1 ? 'membres' : 'membre' }}</span><x-button :href="route('zumras.show', $zumra)">Découvrir<x-icon name="arrow-right" :size="18" /></x-button></div>
+                        <div class="mt-auto flex flex-wrap items-center justify-between gap-3 pt-2"><span class="inline-flex items-center gap-2 text-[13px] text-muted"><x-icon name="group" :size="18" />{{ $zumra->members_count }} {{ $zumra->members_count > 1 ? 'membres' : 'membre' }}</span><x-button class="gap-2" :href="route('zumras.show', $zumra)">Découvrir<x-icon name="arrow-right" :size="18" /></x-button></div>
                         @unless (in_array($zumra->id, $memberOf, true))<a href="{{ route('zumras.show', $zumra).'#rejoindre' }}" class="inline-flex min-h-11 items-center self-end text-[13px] font-semibold">Je veux rejoindre<x-icon name="arrow-right" :size="16" class="ml-2" /></a>@endunless
                     </div>
                 </article>
             @empty
                 <section aria-labelledby="vide" class="flex flex-col gap-3 rounded-card border border-line bg-card p-5 lg:col-span-full">
                     <h3 id="vide" class="text-[18px] font-extrabold">{{ $hasFilters ? 'Aucune ZUMRA ne correspond à cette recherche.' : 'Aucune ZUMRA pour l’instant.' }}</h3>
-                    @if ($hasFilters)<p class="text-muted">Essayez un autre mot, ou élargissez la recherche.</p><x-button type="button" variant="secondary" wire:click="clearFilters">Effacer la recherche</x-button>
-                    @elseif ($viewer)<p class="text-muted">Soyez la première personne à en créer une : une communauté autour d’un seul domaine.</p><x-button :href="route('zumras.create')" variant="accent">Créer une ZUMRA</x-button>
-                    @else<p class="text-muted">Créez un compte : vous pourrez fonder la première ZUMRA.</p><x-button :href="route('register')">Créer un compte</x-button>@endif
+                    @if ($hasFilters)<p class="text-muted">Essayez un autre mot, ou élargissez la recherche.</p><x-button class="gap-2" type="button" variant="secondary" wire:click="clearFilters">Effacer la recherche</x-button>
+                    @elseif ($viewer)<p class="text-muted">Soyez la première personne à en créer une : une communauté autour d’un seul domaine.</p><x-button class="gap-2" :href="route('zumras.create')" variant="accent">Créer une ZUMRA</x-button>
+                    @else<p class="text-muted">Créez un compte : vous pourrez fonder la première ZUMRA.</p><x-button class="gap-2" :href="route('register')">Créer un compte</x-button>@endif
                 </section>
             @endforelse
         </div>
         @if ($zumras->hasPages())
-            <nav aria-label="Pages de résultats" class="flex items-center justify-between gap-3"><x-button type="button" variant="secondary" wire:click="previousPage" :disabled="$zumras->onFirstPage()">Précédent</x-button><span class="text-[13px] font-semibold text-muted">Page {{ $zumras->currentPage() }} sur {{ $zumras->lastPage() }}</span><x-button type="button" variant="secondary" wire:click="nextPage" :disabled="! $zumras->hasMorePages()">Suivant</x-button></nav>
+            <nav aria-label="Pages de résultats" class="flex items-center justify-between gap-3"><x-button class="gap-2" type="button" variant="secondary" wire:click="previousPage" :disabled="$zumras->onFirstPage()">Précédent</x-button><span class="text-[13px] font-semibold text-muted">Page {{ $zumras->currentPage() }} sur {{ $zumras->lastPage() }}</span><x-button class="gap-2" type="button" variant="secondary" wire:click="nextPage" :disabled="! $zumras->hasMorePages()">Suivant</x-button></nav>
         @endif
     </section>
 
-    <section class="flex flex-wrap items-center justify-between gap-5 rounded-card bg-ink p-6 text-white" aria-labelledby="creer-ensemble"><div><h2 id="creer-ensemble" class="text-[23px] font-extrabold">Une mission vous rassemble ?</h2><p class="mt-2 text-[15px] text-white/90">Donnez-lui un espace pour apprendre et agir ensemble.</p></div><x-button :href="$viewer ? route('zumras.create') : route('register')" variant="accent"><x-icon name="plus" :size="18" />{{ $viewer ? 'Créer une ZUMRA' : 'Créer un compte' }}</x-button></section>
+    <section class="flex flex-wrap items-center justify-between gap-5 rounded-card bg-ink p-6 text-white" aria-labelledby="creer-ensemble"><div><h2 id="creer-ensemble" class="text-[23px] font-extrabold">Une mission vous rassemble ?</h2><p class="mt-2 text-[15px] text-white/90">Donnez-lui un espace pour apprendre et agir ensemble.</p></div><x-button class="gap-2" :href="$viewer ? route('zumras.create') : route('register')" variant="accent"><x-icon name="plus" :size="18" />{{ $viewer ? 'Créer une ZUMRA' : 'Créer un compte' }}</x-button></section>
 </div>
