@@ -269,7 +269,25 @@ Il vous faut trois comptes, tous vérifiés : le **compte 1** (le vôtre, fondat
 
 **Limites normales.** Une personne peut envoyer 10 demandes par jour ; un responsable peut envoyer 30 invitations par jour.
 
-## 10. Ce qu'il faut regarder à chaque écran
+## 10. Essayer le Lot 3, troisième étape (3c) : vivre dans une ZUMRA et être reconnue
+
+Il vous faut le **compte 1** (fondateur de la ZUMRA), le **compte 2** (membre de cette ZUMRA, voir §9), un **compte 3** (simple visiteur connecté, hors de la ZUMRA) et votre compte de **super administrateur**.
+
+**Publier au nom de la ZUMRA.**
+
+1. Compte 1 : ouvrez la ZUMRA, onglet **Fil** : **Publier au nom de la ZUMRA** propose quatre types, dont **Appel à rejoindre**. Publiez un besoin, un savoir et un appel (niveau **ZUMRA seulement** pour l'un d'eux). L'écran annonce « Vous publiez au nom de… ». Le compte 2 (simple membre) ne voit pas ces boutons.
+2. Le **Fil** global affiche le nom de la ZUMRA sur ces publications et propose le filtre **ZUMRA**. Compte 3 : la publication « ZUMRA seulement » n'apparaît pas et son adresse répond « page introuvable ».
+3. Compte 3 : sur l'appel, **Je veux rejoindre** mène à la demande d'adhésion de la ZUMRA (pas à un geste).
+
+**Besoins de la ZUMRA.** Compte 3 : répondez au besoin. Comptes 1 et tout **responsable** reçoivent la notification et voient la réponse sous le besoin ; l'un d'eux **Accepte** : la conversation privée s'ouvre entre le compte 3 et **celui qui a accepté**. Celui qui marque le besoin résolu écrit le remerciement. Le compte 2 (simple membre) ne voit pas les réponses.
+
+**Formation et Discussion.** L'onglet **Formation** (premier onglet) montre les savoirs partagés, ce que les membres savent faire et ce que des personnes veulent apprendre. Compte 3 : l'onglet **Discussion** n'existe pas. Comptes 1 et 2 : écrivez un message (1 000 caractères au plus) ; il apparaît dans l'ordre. **Supprimer** retire un message (chacun le sien ; le fondateur et les responsables ceux des autres).
+
+**Reconnaissance.** Super administrateur : ouvrez la ZUMRA, carte **Reconnaissance par GAMAD** → **Reconnaître cette ZUMRA**. Le badge « Reconnue par GAMAD » s'affiche pour tout le monde (même sans compte), dans le Carrefour ZUMRA (filtre **Reconnues par GAMAD**) et dans le Monde. Le compte 1 est prévenu. **Retirer la reconnaissance** exige un motif. Ces actes sont inscrits au journal d'administration.
+
+**Ce qui doit marcher de bout en bout (fin du Lot 3).** Une vraie ZUMRA invite trois personnes selon leurs capacités, publie dans son mini-fil, puis est reconnue ; un visiteur sans compte comprend la ZUMRA depuis le Monde public ; la Discussion n'est lisible que par les membres.
+
+## 11. Ce qu'il faut regarder à chaque écran
 
 - [ ] Le texte se lit sans zoomer, rien ne dépasse de l'écran, aucun défilement de côté.
 - [ ] Les boutons sont faciles à toucher du pouce.
@@ -277,7 +295,7 @@ Il vous faut trois comptes, tous vérifiés : le **compte 1** (le vôtre, fondat
 - [ ] Les messages d'erreur sont clairs et en français.
 - [ ] Tout bouton ou lien visible mène à une vraie page.
 
-## 11. Les mises à jour se font toutes seules
+## 12. Les mises à jour se font toutes seules
 
 Chaque fois qu'un changement est fusionné dans `main`, le site se met à jour tout seul en **5 à 10 minutes** : rechargez la page après ce délai.
 Si une mise à jour échoue, la version actuelle reste en ligne et l'échec est noté dans un journal côté serveur ; si une mise à jour
@@ -286,7 +304,7 @@ sait revenir en arrière (voir `deploy/LISEZMOI.md`, réservé à l'administrati
 
 Les données sont sauvegardées chaque nuit (7 jours conservés).
 
-## 12. Ce qui n'existe pas encore (c'est normal)
+## 13. Ce qui n'existe pas encore (c'est normal)
 
-publier, discuter et reconnaître une ZUMRA (étape 3c), projets, la consultation du journal d'administration, « Commenter », « Partager », « Suivre », « Inviter », recherche générale, paiement : ces modules sont masqués tant que leur lot
+projets, la consultation du journal d'administration, « Commenter », « Partager », « Suivre », « Inviter », recherche générale, paiement : ces modules sont masqués tant que leur lot
 n'est pas construit.
