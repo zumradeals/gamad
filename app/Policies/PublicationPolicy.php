@@ -21,22 +21,35 @@ class PublicationPolicy
      */
     public function view(?User $viewer, Publication $publication): Response
     {
-        if ($viewer && $viewer->getKey() === $publication->author_id) {
+        // Chacun voit les siennes ; celles de niveau ZUMRA ne se lisent que par un membre de la ZUMRA (D-112).
+        if ($viewer && $viewer->getKey() === $publication->author_id && $publication->visibility !== Publication::ZUMRA) {
             return Response::allow();
         }
 
-        // Masquée (D-089) : pour tout autre que la modération, elle n'existe pas.
+        // Masquée (D-089) : pour tout autre que ceux qui la gèrent et la modération, elle n'existe pas.
         if ($publication->isHidden()) {
-            return $viewer?->can('moderate') ? Response::allow() : Response::denyAsNotFound();
+            return $viewer && ($viewer->can('moderate') || $publication->isManagedBy($viewer)) ? Response::allow() : Response::denyAsNotFound();
         }
 
         if (! $publication->author->hasVerifiedEmail()) {
             return Response::denyAsNotFound();
         }
 
-        return $publication->isPublic() || $viewer?->hasVerifiedEmail()
-            ? Response::allow()
-            : Response::denyAsNotFound();
+        if ($publication->isPublic()) {
+            return Response::allow();
+        }
+
+        if (! $viewer?->hasVerifiedEmail()) {
+            return Response::denyAsNotFound();
+        }
+
+        if ($publication->visibility === Publication::ZUMRA) {
+            return $publication->zumra_id !== null && $viewer->zumraMemberships()->where('zumra_id', $publication->zumra_id)->exists()
+                ? Response::allow()
+                : Response::denyAsNotFound();
+        }
+
+        return Response::allow();
     }
 
     /** Publier : une personne connectée dont l'adresse e-mail est vérifiée. */
@@ -45,10 +58,13 @@ class PublicationPolicy
         return $user->hasVerifiedEmail() ? Response::allow() : Response::deny('Vérifiez votre adresse e-mail pour publier.');
     }
 
-    /** Gérer une publication (voir les gestes reçus, décider) : son auteur seul. */
+    /**
+     * Gérer une publication (voir les gestes reçus, décider, la résoudre, remercier) : son auteur, ou, pour une publication faite
+     * au nom d'une ZUMRA, le fondateur et les responsables de cette ZUMRA (D-116).
+     */
     public function manage(User $user, Publication $publication): bool
     {
-        return $user->getKey() === $publication->author_id;
+        return $publication->isManagedBy($user);
     }
 
     /**
@@ -61,7 +77,7 @@ class PublicationPolicy
             return Response::deny('Vérifiez votre adresse e-mail pour répondre.');
         }
 
-        if ($user->getKey() === $publication->author_id) {
+        if ($publication->isManagedBy($user)) {
             return Response::deny('Votre propre publication n’accepte pas de geste.');
         }
 

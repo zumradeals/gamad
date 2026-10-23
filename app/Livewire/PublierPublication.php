@@ -7,11 +7,13 @@ use App\Livewire\Concerns\PicksSkills;
 use App\Models\City;
 use App\Models\Domain;
 use App\Models\Publication;
+use App\Models\Zumra;
 use App\Services\Publications;
 use App\Support\Normalizer;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -24,6 +26,9 @@ use Livewire\Component;
 class PublierPublication extends Component
 {
     use PicksSkills;
+
+    #[Locked]
+    public ?string $zumraId = null;
 
     public string $slug = '';
 
@@ -40,12 +45,32 @@ class PublierPublication extends Component
 
     public string $visibility = Publication::PUBLIC;
 
-    public function mount(string $slug): void
+    public function mount(string $slug, ?Zumra $zumra = null): void
     {
         $type = PublicationType::fromSlug($slug);
         abort_unless($type, 404);
 
         Gate::authorize('create', Publication::class);
+
+        $zumra = $zumra?->exists ? $zumra : null;
+
+        // Au nom d'une ZUMRA (D-116) : son fondateur et ses responsables, avec les types qui existent pour une ZUMRA ; sinon les
+        // types d'une personne (l'Appel à rejoindre n'existe que pour une ZUMRA).
+        if ($zumra) {
+            Gate::authorize('manage', $zumra);
+            abort_unless(in_array($type, PublicationType::forZumra(), true), 404);
+
+            $this->zumraId = $zumra->id;
+            $this->slug = $slug;
+            // Domaine, ville et visibilité sont repris de la ZUMRA : on peut les changer pour cette publication.
+            $this->domain_id = $zumra->domain_id;
+            $this->city_id = (string) $zumra->city_id;
+            $this->visibility = Publication::PUBLIC;
+
+            return;
+        }
+
+        abort_unless(in_array($type, PublicationType::forPerson(), true), 404);
 
         $profile = Auth::user()->ensureProfile();
 
@@ -69,7 +94,7 @@ class PublierPublication extends Component
             'city_id' => $this->city_id,
             'visibility' => $this->visibility,
             'skills' => $this->skills,
-        ]);
+        ], $this->zumra());
 
         session()->flash('status', 'Publié. Elle apparaît dans le Fil.');
 
@@ -85,7 +110,22 @@ class PublierPublication extends Component
             'suggestions' => $this->skillSuggestions('skills'),
             'bodyMax' => Publication::BODY_MAX,
             'profileHasCity' => (bool) Auth::user()->ensureProfile()->city_id,
+            'zumra' => $this->zumra(),
         ]);
+    }
+
+    /** La ZUMRA au nom de laquelle on publie, après avoir revérifié le droit de la gérer. */
+    private function zumra(): ?Zumra
+    {
+        if ($this->zumraId === null) {
+            return null;
+        }
+
+        $zumra = Zumra::query()->findOrFail($this->zumraId);
+
+        Gate::authorize('manage', $zumra);
+
+        return $zumra;
     }
 
     private function type(): PublicationType

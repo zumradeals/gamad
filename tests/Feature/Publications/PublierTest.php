@@ -26,7 +26,7 @@ it('propose les quatre types sur l’écran Agir, chacun menant à son formulair
     $page = $this->actingAs(User::factory()->create(['name' => 'Yao Kouassi']))->get('/agir')->assertOk()
         ->assertSeeText('Que voulez-vous faire avancer ?')
         ->assertSeeText('Dites ce qui vous manque.')
-        ->assertSeeText('Vous publiez en tant que vous-même (Yao Kouassi). Publier au nom d’une ZUMRA viendra avec les ZUMRA.');
+        ->assertSeeText('Vous publiez en tant que vous-même (Yao Kouassi).')->assertDontSeeText('au nom d’une ZUMRA');
 
     foreach (['J’ai besoin' => 'besoin', 'Je partage un savoir' => 'savoir', 'Je veux apprendre' => 'apprendre', 'Je propose mon aide' => 'aide'] as $libelle => $slug) {
         $page->assertSee('href="'.route('agir.publier', $slug).'"', false);
@@ -34,8 +34,8 @@ it('propose les quatre types sur l’écran Agir, chacun menant à son formulair
     }
 });
 
-it('ne propose pas les types des lots 3 et 4, ni la publication au nom d’une ZUMRA', function () {
-    expect(PublicationType::cases())->toHaveCount(4);
+it('ne propose pas, dans Agir, les types du Lot 4 ni l’Appel à rejoindre, qui se publie au nom d’une ZUMRA', function () {
+    expect(PublicationType::forPerson())->toHaveCount(4)->and(PublicationType::cases())->toHaveCount(5);
 
     $this->actingAs(User::factory()->create())->get('/agir')->assertDontSeeText('Avancée de projet')->assertDontSeeText('Appel à rejoindre');
     $this->actingAs(User::factory()->create())->get('/agir/projet')->assertNotFound();

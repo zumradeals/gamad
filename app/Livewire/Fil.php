@@ -38,9 +38,12 @@ class Fil extends Component
         'aides' => PublicationType::Offer,
     ];
 
+    /** Filtre « ZUMRA » (D-098, 3c) : les publications faites au nom d'une ZUMRA, tous types confondus. */
+    public const ZUMRA_FILTER = 'zumra';
+
     public function setFilter(string $filter): void
     {
-        $this->filter = array_key_exists($filter, self::FILTERS) ? $filter : 'tout';
+        $this->filter = array_key_exists($filter, self::FILTERS) || $filter === self::ZUMRA_FILTER ? $filter : 'tout';
         $this->limit = self::PAGE_SIZE;
     }
 
@@ -56,14 +59,15 @@ class Fil extends Component
     public function render()
     {
         $viewer = Auth::user();
-        $filter = array_key_exists($this->filter, self::FILTERS) ? $this->filter : 'tout';
+        $filter = array_key_exists($this->filter, self::FILTERS) || $this->filter === self::ZUMRA_FILTER ? $this->filter : 'tout';
 
         $posts = Publication::query()
             ->visibleTo($viewer)
             // Une publication masquée n'apparaît jamais dans le Fil, même à son auteur ni à la modération (D-089).
             ->whereNull('hidden_at')
-            ->when($filter !== 'tout', fn ($query) => $query->where('type', self::FILTERS[$filter]->value))
-            ->with(['author.profile', 'domain', 'city', 'skills'])
+            ->when(array_key_exists($filter, self::FILTERS), fn ($query) => $query->where('type', self::FILTERS[$filter]->value))
+            ->when($filter === self::ZUMRA_FILTER, fn ($query) => $query->whereNotNull('zumra_id'))
+            ->with(['author.profile', 'domain', 'city', 'skills', 'zumra'])
             ->withCount(['gestures as live_gestures_count' => fn ($query) => $query->whereIn('state', [GestureState::Sent->value, GestureState::Accepted->value])])
             ->orderByDesc('created_at')
             ->orderByDesc('id')
@@ -80,7 +84,8 @@ class Fil extends Component
             'viewer' => $viewer,
             'profile' => $viewer->ensureProfile()->load(['city', 'offeredSkills', 'wantedSkills']),
             'filter' => $filter,
-            'types' => PublicationType::cases(),
+            'managedZumraIds' => $viewer->managedZumraIds(),
+            'memberOf' => $viewer->zumraMemberships()->pluck('zumra_id')->all(),
         ]);
     }
 }

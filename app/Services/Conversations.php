@@ -22,21 +22,26 @@ class Conversations
 {
     public function __construct(private readonly Notifier $notifier) {}
 
-    /** Ouvre la conversation d'un geste accepté (une seule par geste) et prévient la personne acceptée. */
-    public function open(Gesture $gesture): Conversation
+    /**
+     * Ouvre la conversation d'un geste accepté (une seule par geste) et prévient la personne acceptée. La conversation s'ouvre
+     * entre cette personne et celle qui a accepté : l'auteur, ou le responsable de la ZUMRA qui a accepté (D-116).
+     */
+    public function open(Gesture $gesture, ?User $acceptor = null): Conversation
     {
         $publication = $gesture->publication;
+
+        $acceptor ??= $publication->author;
 
         $conversation = Conversation::query()->where('gesture_id', $gesture->getKey())->first();
 
         if (! $conversation) {
-            $conversation = new Conversation(['owner_id' => $publication->author_id, 'helper_id' => $gesture->user_id]);
+            $conversation = new Conversation(['owner_id' => $acceptor->getKey(), 'helper_id' => $gesture->user_id]);
             $conversation->gesture()->associate($gesture);
             $conversation->publication()->associate($publication);
             $conversation->save();
         }
 
-        $this->notifier->push($gesture->author, NotificationKind::GestureAccepted, $publication->author, $publication, $conversation);
+        $this->notifier->push($gesture->author, NotificationKind::GestureAccepted, $acceptor, $publication, $conversation);
 
         return $conversation;
     }

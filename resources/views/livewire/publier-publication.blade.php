@@ -3,6 +3,7 @@
         'need' => ['Nouveau besoin', 'Votre besoin', 'Publier mon besoin', 'Ex. Je cherche quelqu’un qui sait installer un logiciel de caisse pour ma boutique, samedi matin si possible.'],
         'knowledge' => ['Partager un savoir', 'Votre savoir', 'Publier mon savoir', 'Ex. Atelier ouvert à tous : tenir les comptes d’un petit commerce. Samedi à 10 h, en ligne.'],
         'learning_wish' => ['Je veux apprendre', 'Ce que vous voulez apprendre', 'Publier ma demande', 'Ex. Je veux apprendre à installer et réparer des panneaux solaires. Je suis disponible le week-end.'],
+        'zumra_call' => ['Appel à rejoindre', 'Votre appel', 'Publier l’appel', 'Ex. Nous cherchons des couturières et des couturiers pour rejoindre la ZUMRA : atelier chaque samedi matin.'],
         'offer' => ['Proposer mon aide', 'Votre aide', 'Publier mon offre', 'Ex. Je peux aider à tenir les comptes d’une petite boutique, le soir après 18 h.'],
     ][$type->value];
     [$heading, $label, $button, $placeholder] = $titles;
@@ -16,6 +17,9 @@
 
     <form wire:submit="publish" class="flex flex-col gap-3.5">
         <span class="self-start rounded-chip px-2.5 py-1 text-[12px] font-bold {{ $type->badgeClasses() }}">{{ $type->label() }}</span>
+        @if ($zumra)
+            <p class="rounded-button bg-soft-blue px-3 py-2.5 text-[13px] font-semibold">Vous publiez au nom de <strong>{{ $zumra->name }}</strong>.</p>
+        @endif
 
         <div class="flex flex-col gap-1.5" x-data="{ count: [...$wire.body].length }">
             <label for="body" class="text-[13px] font-bold text-muted">{{ $label }}</label>
@@ -68,13 +72,13 @@
 
         <fieldset class="flex flex-col gap-1.5">
             <legend class="mb-1 text-[13px] font-bold text-muted">Qui peut la voir ?</legend>
-            <div class="grid grid-cols-2 gap-2">
-                @foreach ([\App\Models\Publication::PUBLIC => 'Public', \App\Models\Publication::MEMBERS => 'Inscrits seulement'] as $value => $libelle)
+            <div @class(['grid gap-2', 'grid-cols-2' => ! $zumra, 'grid-cols-1 sm:grid-cols-3' => $zumra])>
+                @foreach ($zumra ? [\App\Models\Publication::PUBLIC => 'Public', \App\Models\Publication::MEMBERS => 'Inscrits seulement', \App\Models\Publication::ZUMRA => 'ZUMRA seulement'] : [\App\Models\Publication::PUBLIC => 'Public', \App\Models\Publication::MEMBERS => 'Inscrits seulement'] as $value => $libelle)
                     <button type="button" wire:click="$set('visibility', '{{ $value }}')" aria-pressed="{{ $visibility === $value ? 'true' : 'false' }}"
                             @class(['min-h-12 rounded-button px-2 text-[14px]', 'border-2 border-ink font-extrabold' => $visibility === $value, 'border border-chip-line font-semibold' => $visibility !== $value, 'bg-card text-ink'])>{{ $libelle }}</button>
                 @endforeach
             </div>
-            <p class="text-[12px] leading-normal text-muted">{{ $visibility === \App\Models\Publication::PUBLIC ? 'Même sans compte, on peut la lire.' : 'Seules les personnes inscrites peuvent la lire.' }}</p>
+            <p class="text-[12px] leading-normal text-muted">{{ match ($visibility) { \App\Models\Publication::PUBLIC => 'Même sans compte, on peut la lire.', \App\Models\Publication::ZUMRA => 'Seuls les membres de la ZUMRA peuvent la lire.', default => 'Seules les personnes inscrites peuvent la lire.' } }}</p>
             @error('visibility')
                 <p role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>
             @enderror

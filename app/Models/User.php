@@ -61,6 +61,17 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Gesture::class);
     }
 
+    /**
+     * Identifiants des ZUMRA que cette personne gère (fondatrice ou responsable). Toujours lu en base : aucune valeur gardée en
+     * mémoire, pour qu'un changement de rôle soit pris en compte tout de suite.
+     *
+     * @return array<int, string>
+     */
+    public function managedZumraIds(): array
+    {
+        return $this->zumraMemberships()->whereIn('role', ['founder', 'manager'])->pluck('zumra_id')->all();
+    }
+
     public function zumraMemberships(): HasMany
     {
         return $this->hasMany(ZumraMembership::class);

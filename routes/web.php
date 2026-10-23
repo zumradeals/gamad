@@ -39,6 +39,7 @@ Route::get('/publications/{publication}', PagePublication::class)->whereUuid('pu
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/zumra/creer', FormulaireZumra::class)->name('zumras.create');
     Route::get('/zumra/{zumra}/inviter', InviterPersonnes::class)->whereUuid('zumra')->name('zumras.invite');
+    Route::get('/zumra/{zumra}/publier/{slug}', PublierPublication::class)->whereUuid('zumra')->name('zumras.publier');
     Route::get('/zumra/{zumra}/modifier', FormulaireZumra::class)->whereUuid('zumra')->name('zumras.edit');
     Route::get('/fil', Fil::class)->name('fil');
     Route::view('/agir', 'pages.agir')->name('agir');

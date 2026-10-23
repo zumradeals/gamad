@@ -24,11 +24,11 @@ class Zumra extends Model
 
     public const MISSION_MAX = 500;
 
-    protected $guarded = ['id', 'name_key', 'search'];
+    protected $guarded = ['id', 'name_key', 'search', 'recognized_at', 'recognized_by'];
 
     protected function casts(): array
     {
-        return ['format' => ZumraFormat::class];
+        return ['format' => ZumraFormat::class, 'recognized_at' => 'datetime'];
     }
 
     protected static function booted(): void
@@ -52,6 +52,27 @@ class Zumra extends Model
     public function memberships(): HasMany
     {
         return $this->hasMany(ZumraMembership::class);
+    }
+
+    public function publications(): HasMany
+    {
+        return $this->hasMany(Publication::class);
+    }
+
+    public function posts(): HasMany
+    {
+        return $this->hasMany(ZumraPost::class);
+    }
+
+    /** Reconnue officiellement par GAMAD : l'acte du super administrateur, tracé au journal (D-116, Lot 3c). */
+    public function isRecognized(): bool
+    {
+        return $this->recognized_at !== null;
+    }
+
+    public function recognizer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'recognized_by');
     }
 
     public function joinRequests(): HasMany
