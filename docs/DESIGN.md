@@ -217,3 +217,10 @@ La nouvelle composition remplace la présentation des écrans 1 et 4 pour le Fil
 - Deux colonnes à partir de 1024 px, une en dessous. Cartes dédiées au Carrefour, sans changer celles du Fil : type d’émetteur, identité et localisation, auteur réel pour une publication de ZUMRA, texte, capacités renseignées, date et lien vers le besoin. Pour un projet : nom du projet et ZUMRA porteuse. Aucun indicateur d’urgence ou de popularité.
 - Les liens de profils et avatars respectent l’autorisation de lecture du profil. Les capacités conservent leur lien de recherche de personnes. Un seul bouton d’action vers le détail, pas de geste ni de signalement dans le Carrefour.
 - État vide initial distinct de l’absence de résultat ; Agir pour une personne connectée, inscription pour un visiteur. Le spécimen d’état vide de la maquette n’est pas affiché avec les résultats.
+
+## 15. Carrefour Personnes éditorial (D-182)
+
+- Héros clair avec illustration vectorielle décorative locale de partage de savoirs, sans portraits présentés comme des profils réels.
+- Recherche horizontale sur ordinateur, empilée sur téléphone. Deux modes explicites, vert pour apporter et bleu pour apprendre, avec état pressé accessible.
+- Cartes en une colonne, deux à partir de 768 px et trois à partir de 1280 px. Couverture géométrique, avatar réel protégé ou initiales, nom et ville, capacités dans les deux couleurs, lien Voir le profil. Aucun classement ni message direct.
+- Ordre alphabétique annoncé sans sélecteur factice. États vides et pagination conservés. Invitation à compléter le profil après les résultats ; inscription pour un visiteur. E-mail et téléphone restent privés.
