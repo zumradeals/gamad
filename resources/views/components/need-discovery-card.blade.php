@@ -44,7 +44,7 @@
             @else
                 <span class="block min-h-11 content-center text-[16px] font-extrabold [overflow-wrap:anywhere]">{{ $author->name }}</span>
             @endif
-            @if ($project && $zumra)<p class="text-[13px] text-muted">Porté par <a href="{{ route('zumras.show', $zumra) }}" class="inline-flex min-h-11 items-center font-semibold">{{ $zumra->name }}</a></p>@endif
+            @if ($project && $zumra)<p class="text-[13px] text-muted">Porté par <a href="{{ route('zumras.show', $zumra) }}" class="inline-flex min-h-11 max-w-full items-center font-semibold [overflow-wrap:anywhere]">{{ $zumra->name }}</a></p>@endif
             @if ($zumra)<p class="text-[13px] text-muted">par {{ $author->name }}</p>@endif
             @if ($meta !== '')<p class="mt-1 text-[13px] leading-relaxed text-muted [overflow-wrap:anywhere]">{{ $meta }}</p>@endif
         </div>
