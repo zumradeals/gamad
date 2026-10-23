@@ -11,7 +11,7 @@
 # le Président conserve hors du serveur : sans elle, personne ne peut relire les copies.
 #
 # Les accès au stockage ne sont ni dans le dépôt ni dans ce script : le Président les saisit dans Espace → Paramètres → Copie
-# hors serveur (D-155). Ils sont chiffrés en base ; à chaque lancement, ce script demande à l'application sa configuration rclone
+# hors serveur (D-156). Ils sont chiffrés en base ; à chaque lancement, ce script demande à l'application sa configuration rclone
 # (php artisan gamad:copie-configuration), la range dans un fichier temporaire à droits restreints et le supprime à la fin.
 #
 # Commandes :

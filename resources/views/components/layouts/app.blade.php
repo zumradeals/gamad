@@ -50,9 +50,9 @@
                     <livewire:notification-bell />
                     <a href="{{ route('notifications') }}" class="hidden min-h-11 items-center text-[12px] font-semibold text-muted no-underline hover:text-ink xl:flex">Notifications</a>
                 </div>
-                <a href="{{ route('espace') }}" aria-label="Mon espace" class="hidden min-h-11 items-center gap-2 border-l border-line pl-4 text-ink no-underline hover:text-ink lg:flex">
+                <a href="{{ route('espace') }}" aria-label="Mon espace" @if (request()->routeIs('espace', 'espace.*')) aria-current="page" @endif class="hidden min-h-11 items-center gap-2 border-l border-line pl-4 text-ink no-underline hover:text-ink lg:flex">
                     <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-ink text-[12px] font-extrabold text-white">{{ auth()->user()?->initials() }}</span>
-                    <span class="hidden text-[12px] font-semibold xl:inline">Mon espace</span>
+                    <span @class(['hidden border-b-2 px-1 py-2 text-[12px] font-semibold xl:inline', 'border-ink bg-soft-blue' => request()->routeIs('espace', 'espace.*'), 'border-transparent' => ! request()->routeIs('espace', 'espace.*')])>Mon espace</span>
                 </a>
                 @if ($agir)
                     <a href="{{ route($agir['route']) }}" class="hidden min-h-11 items-center gap-1.5 rounded-button bg-accent px-4 text-[14px] font-extrabold text-ink no-underline hover:text-ink lg:flex">

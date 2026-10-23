@@ -99,7 +99,7 @@ sudo tar -xzf /var/backups/gamad-reseau/photos-AAAA-MM-JJ_HHMMSS.tar.gz -C /srv/
 
 Chaque nuit à 4 h 30 (après la sauvegarde), `copie-hors-serveur.sh` copie la dernière sauvegarde (base, `.env`, photos) vers un
 stockage objet compatible S3, **chiffrée** par rclone (contenu et noms de fichiers) avec une phrase de secours que seul le Président
-conserve. Les accès se saisissent dans **Espace → Paramètres → Copie hors serveur** (D-155) : ils sont chiffrés en base, essayés
+conserve. Les accès se saisissent dans **Espace → Paramètres → Copie hors serveur** (D-156) : ils sont chiffrés en base, essayés
 avant d'être enregistrés, et le script les demande à l'application à chaque lancement (`gamad:copie-configuration`). Tant qu'ils ne
 sont pas saisis, la copie ne fait rien et le dit dans son journal (`copie-hors-serveur.log`).
 

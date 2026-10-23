@@ -132,14 +132,16 @@
         gap: 12px;
     }
 
-    .feed-panel {
+    .feed-panel,
+    .space-panel {
         border: 1px solid var(--color-line);
         border-radius: 12px;
         background: var(--color-card);
         box-shadow: 0 2px 6px rgb(14 42 63 / 3%);
     }
 
-    .feed-cover {
+    .feed-cover,
+    .space-cover {
         position: relative;
         height: 88px;
         overflow: hidden;
@@ -147,7 +149,9 @@
     }
 
     .feed-cover::before,
-    .feed-cover::after {
+    .feed-cover::after,
+    .space-cover::before,
+    .space-cover::after {
         position: absolute;
         width: 260px;
         height: 260px;
@@ -156,8 +160,8 @@
         border-radius: 50%;
     }
 
-    .feed-cover::before { top: -50px; left: -120px; }
-    .feed-cover::after { top: -180px; right: -60px; }
+    .feed-cover::before, .space-cover::before { top: -50px; left: -120px; }
+    .feed-cover::after, .space-cover::after { top: -180px; right: -60px; }
 
     .feed-skill {
         display: inline-flex;
@@ -244,5 +248,59 @@
     @media (min-width: 1280px) {
         .feed-layout { grid-template-columns: 228px minmax(0, 1fr) 276px; }
         .feed-explore { display: flex; flex-direction: column; gap: 16px; }
+    }
+}
+
+/* Mon espace : sections stables, navigation par ancres et formulaires existants. */
+@layer components {
+    .space-layout {
+        display: grid;
+        min-width: 0;
+        grid-template-columns: minmax(0, 1fr);
+        align-items: start;
+        gap: 24px;
+    }
+
+    .space-sidebar { display: none; min-width: 0; }
+    .space-cover { height: 64px; }
+    .space-content { display: flex; min-width: 0; flex-direction: column; gap: 20px; }
+
+    .space-layout [id], .space-layout { scroll-margin-top: 100px; }
+
+    .space-menu-link {
+        display: flex;
+        min-height: 44px;
+        align-items: center;
+        gap: 12px;
+        border-radius: 9px;
+        padding: 10px;
+        color: var(--color-ink);
+        font-size: 13px;
+        font-weight: 600;
+        text-align: left;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .space-menu-link:hover { background: var(--color-ground); color: var(--color-ink); }
+    .space-menu-link[aria-current="location"] { background: var(--color-soft-blue); font-weight: 800; }
+
+    .space-delete-summary {
+        display: flex;
+        min-height: 64px;
+        align-items: center;
+        gap: 14px;
+        border-radius: 12px;
+        padding: 14px 20px;
+        list-style: none;
+        cursor: pointer;
+    }
+
+    .space-delete-summary::-webkit-details-marker { display: none; }
+    .space-delete-summary:hover { background: var(--color-ground); }
+
+    @media (min-width: 1024px) {
+        .space-layout { grid-template-columns: 228px minmax(0, 1fr); }
+        .space-sidebar { position: sticky; top: 96px; display: block; }
     }
 }

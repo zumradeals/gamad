@@ -14,7 +14,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('components.layouts.app')]
-#[Title('Espace')]
+#[Title('Mon espace')]
 class Espace extends Component
 {
     public string $password = '';
@@ -86,6 +86,7 @@ class Espace extends Component
 
         return view('livewire.espace', [
             'user' => $user,
+            'profile' => $user->ensureProfile()->load(['offeredSkills', 'wantedSkills']),
             'todo' => app(Todo::class)->for($user),
             // Mes publications : le chemin vers « Mon besoin » et les réponses reçues.
             'publications' => $user->publications()

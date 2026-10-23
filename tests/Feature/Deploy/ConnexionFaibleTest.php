@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Connexion faible (Lot 5c, D-156) : ce que le serveur et les gabarits garantissent pour que les pages restent légères.
+ * Connexion faible (Lot 5c, D-157) : ce que le serveur et les gabarits garantissent pour que les pages restent légères.
  * Mesures de référence (téléphone, 390 px, connexion simulée à 400 kb/s et 400 ms) : voir docs/TESTER.md.
  */
 

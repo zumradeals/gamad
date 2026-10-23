@@ -238,7 +238,7 @@ it('affiche le nom de plateforme réglé dans le titre des pages', function () {
     app(Settings::class)->update(['app_name' => 'Réseau GAMAD'], $admin);
     app(Settings::class)->applyToConfig();
 
-    $this->actingAs($admin)->get('/espace')->assertSee('<title>Espace — Réseau GAMAD</title>', false);
+    $this->actingAs($admin)->get('/espace')->assertSee('<title>Mon espace — Réseau GAMAD</title>', false);
     auth()->logout();
     $this->get('/login')->assertSee('<title>Connexion — Réseau GAMAD</title>', false);
 });

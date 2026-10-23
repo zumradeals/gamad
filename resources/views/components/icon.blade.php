@@ -2,6 +2,17 @@
 
 @php
     $paths = [
+        'grid' => '<rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect>',
+        'document' => '<path d="M14 2H5v20h14V7zM14 2v5h5M8 12h8M8 16h8"></path>',
+        'settings' => '<path d="M9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1z"></path><circle cx="12" cy="12" r="3"></circle>',
+        'logout' => '<path d="M9 3H4v18h5M14 7l5 5-5 5M8 12h11"></path>',
+        'external' => '<path d="M14 3h7v7M21 3L10 14M10 3H3v18h18v-7"></path>',
+        'edit' => '<path d="M15 4l5 5M3 21l6-1L21 8a3.5 3.5 0 0 0-5-5L4 15z"></path>',
+        'check-circle' => '<circle cx="12" cy="12" r="9"></circle><path d="M8 12l3 3 5-6"></path>',
+        'lock' => '<rect x="5" y="10" width="14" height="12" rx="2"></rect><path d="M8 10V6a4 4 0 0 1 8 0v4M12 14v4"></path>',
+        'shield' => '<path d="M12 2l9 4v6c0 5-5 9-9 10-4-1-9-5-9-10V6zM8 12l3 3 5-6"></path>',
+        'warning' => '<path d="M10.3 4L2 19a1.5 1.5 0 0 0 1.3 2h17.4a1.5 1.5 0 0 0 1.3-2L13.7 4a2 2 0 0 0-3.4 0zM12 9v5M12 17v.1"></path>',
+        'chevron-down' => '<path d="M6 9l6 6 6-6"></path>',
         'home' => '<path d="M3 10l9-7 9 7v11h-6v-7H9v7H3z"></path>',
         'project' => '<rect x="3" y="7" width="18" height="14" rx="2"></rect><path d="M8 7V4h8v3M3 12h18M10 12v3h4v-3"></path>',
         'community' => '<circle cx="12" cy="7" r="3"></circle><path d="M6 21v-3a6 6 0 0 1 12 0v3M4 10a2 2 0 1 0 0-4M20 10a2 2 0 1 1 0-4M2 20v-4a4 4 0 0 1 3-4M22 20v-4a4 4 0 0 0-3-4"></path>',

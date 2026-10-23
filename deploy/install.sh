@@ -629,7 +629,7 @@ server {
     access_log /var/log/nginx/@@DOMAINE@@.access.log;
     error_log  /var/log/nginx/@@DOMAINE@@.error.log;
 
-    # Connexion faible (Lot 5c, D-156) : les feuilles de style et les scripts sont compressés (le script de Livewire passe de
+    # Connexion faible (Lot 5c, D-157) : les feuilles de style et les scripts sont compressés (le script de Livewire passe de
     # 383 à 83 ko, la feuille de style de 46 à 9 ko). Pas de compression du JSON des échanges Livewire.
     gzip on;
     gzip_vary on;

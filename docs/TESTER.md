@@ -378,7 +378,7 @@ Sur une connexion 3G à 1,6 Mb/s et 150 ms, la première ouverture avant correct
 
 ## 17. Préparer et dérouler le pilote fermé
 
-Le pilote réunit **30 à 50 personnes et 3 ZUMRA pendant 4 semaines** (D-157). Ce guide est une proposition de travail : adaptez-la. L'ouverture publique reste votre décision.
+Le pilote réunit **30 à 50 personnes et 3 ZUMRA pendant 4 semaines** (D-158). Ce guide est une proposition de travail : adaptez-la. L'ouverture publique reste votre décision.
 
 **A. Avant d'inviter quelqu'un (cochez chaque ligne)**
 - [ ] Le site répond en https sur votre domaine (accueil visible dans une fenêtre privée).
@@ -391,7 +391,7 @@ Le pilote réunit **30 à 50 personnes et 3 ZUMRA pendant 4 semaines** (D-157). 
 
 **B. Les 4 semaines**
 - *Semaine 1 : poser le décor.* Vous choisissez 3 fondateurs de ZUMRA et leur donnez l'adresse. Chaque fondateur crée sa ZUMRA, invite les premiers membres et publie une première offre ou un premier besoin. Objectif : environ 10 personnes, 3 ZUMRA qui existent vraiment.
-- *Semaine 2 : faire circuler.* Invitez le reste des 30 à 50 personnes (adresse donnée de la main à la main : il n'existe pas de lien d'invitation, voir D-157). Chacun complète son profil, répond à une publication (geste), écrit au moins un message. Objectif : des conversations réelles, des « À faire maintenant » traités.
+- *Semaine 2 : faire circuler.* Invitez le reste des 30 à 50 personnes (adresse donnée de la main à la main : il n'existe pas de lien d'invitation, voir D-158). Chacun complète son profil, répond à une publication (geste), écrit au moins un message. Objectif : des conversations réelles, des « À faire maintenant » traités.
 - *Semaine 3 : agir ensemble.* Chaque ZUMRA lance un projet, avance ses étapes, publie une avancée ; les besoins reçoivent des remerciements. **Scénarios de modération à jouer pendant cette semaine** (condition D-078) : (1) une personne signale une publication ; le modérateur la masque avec un motif ; l'auteur s'explique ; le modérateur la rétablit. (2) Un signalement classé sans suite. (3) Un **avis** à un compte de test, sa réponse, puis le classement ; **ne suspendez pas** une vraie personne pour essayer, utilisez un compte de test et rétablissez-le. (4) Vous lisez le **journal** : chaque acte y est.
 - *Semaine 4 : bilan.* Posez-vous les questions de la section C et décidez : continuer, corriger, ou ouvrir.
 

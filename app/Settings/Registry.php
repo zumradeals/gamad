@@ -52,7 +52,7 @@ final class Registry
             new Definition('charter_adopted_at', self::GROUP_TEXTS, 'Charte adoptée le', Definition::STRING, null, ['nullable', 'date']),
             new Definition('legal_adopted_at', self::GROUP_TEXTS, 'Mentions légales adoptées le', Definition::STRING, null, ['nullable', 'date']),
 
-            // Copie hors serveur (Lot 5c, D-155) : accès au stockage compatible S3 et phrase de secours, chiffrés en base.
+            // Copie hors serveur (Lot 5c, D-156) : accès au stockage compatible S3 et phrase de secours, chiffrés en base.
             new Definition('backup_s3_endpoint', self::GROUP_BACKUP, 'Adresse du stockage', Definition::STRING, null, ['nullable', 'string', 'max:255']),
             new Definition('backup_s3_bucket', self::GROUP_BACKUP, 'Nom du bucket', Definition::STRING, null, ['nullable', 'string', 'max:63']),
             new Definition('backup_s3_region', self::GROUP_BACKUP, 'Région', Definition::STRING, null, ['nullable', 'string', 'max:60']),

@@ -13,7 +13,7 @@ use Illuminate\Validation\ValidationException;
 use RuntimeException;
 
 /**
- * Accès au stockage de la copie hors serveur, saisis par le Président dans Espace → Paramètres (D-155). Les clés et la phrase de
+ * Accès au stockage de la copie hors serveur, saisis par le Président dans Espace → Paramètres (D-156). Les clés et la phrase de
  * secours sont des réglages secrets : chiffrés en base avec la clé de l'application, jamais renvoyés à l'écran, et chaque
  * modification est inscrite au journal d'administration. La copie nocturne (deploy/copie-hors-serveur.sh) relit ces réglages par la
  * commande gamad:copie-configuration.
