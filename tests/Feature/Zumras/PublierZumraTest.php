@@ -15,7 +15,6 @@ use App\Models\JoinRequest;
 use App\Models\Publication;
 use App\Models\User;
 use App\Models\UserNotification;
-use App\Models\ZumraMembership;
 use App\Services\Gestures;
 use App\Services\Gratitudes;
 use App\Services\Memberships;
@@ -39,11 +38,6 @@ beforeEach(function () {
     ajouteMembre($this->zumra, $this->resp, ZumraRole::Manager);
     ajouteMembre($this->zumra, $this->membre);
 });
-
-function ligne($zumra, User $personne): ZumraMembership
-{
-    return $zumra->memberships()->where('user_id', $personne->id)->firstOrFail();
-}
 
 function auNomDe(User $qui, $zumra, PublicationType $type = PublicationType::Need, array $data = []): Publication
 {
