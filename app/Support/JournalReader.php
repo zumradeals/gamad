@@ -21,7 +21,7 @@ class JournalReader
         'publications' => ['Publications', ['publication.', 'report.']],
         'personnes' => ['Personnes', ['person.']],
         'zumras' => ['ZUMRA', ['zumra.']],
-        'reglages' => ['Réglages', ['setting.', 'settings.', 'backup.', 'wallet.']],
+        'reglages' => ['Réglages', ['setting.', 'settings.', 'backup.', 'wallet.', 'contribution.', 'allocation.']],
         'listes' => ['Listes de référence', ['domain.', 'country.', 'city.']],
         'comptes' => ['Comptes', ['account.']],
     ];
@@ -42,6 +42,10 @@ class JournalReader
         'zumra.founder_transferred' => 'a confié la fondation de la ZUMRA',
         'setting.changed' => 'a modifié le réglage',
         'backup.passphrase_revealed' => 'a affiché la phrase de secours de la copie hors serveur',
+        'contribution.validated' => 'a validé une dépense de ZUMRA au fonds de contribution',
+        'contribution.refused' => 'a refusé une demande de contribution de ZUMRA',
+        'allocation.decided' => 'a affecté une somme du fonds de contribution à un projet de la ZUMRA',
+        'allocation.paid' => 'a inscrit le versement d’une affectation du fonds de contribution',
         'wallet.sandbox_cleared' => 'a terminé les essais des portefeuilles (soldes d’essai remis à zéro)',
         'settings.test_email_sent' => 'a envoyé un e-mail de test',
         'settings.test_email_failed' => 'a tenté un e-mail de test, sans succès',
@@ -154,6 +158,12 @@ class JournalReader
 
         if (isset($payload['reports_closed']) && $payload['reports_closed'] > 0) {
             $lines[] = $payload['reports_closed'].($payload['reports_closed'] > 1 ? ' signalements clos' : ' signalement clos');
+        }
+
+        if (isset($payload['projet'])) {
+            $lines[] = 'Projet : '.$payload['projet'].(isset($payload['zahab']) ? ' — '.number_format((int) $payload['zahab'], 0, ',', ' ').' ZAHAB' : '');
+        } elseif (isset($payload['zahab']) && ! isset($payload['portefeuilles'])) {
+            $lines[] = number_format((int) $payload['zahab'], 0, ',', ' ').' ZAHAB';
         }
 
         if (isset($payload['portefeuilles'], $payload['zahab'])) {

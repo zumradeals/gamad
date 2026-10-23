@@ -143,7 +143,10 @@
             <section aria-labelledby="portefeuille" class="space-panel flex flex-col gap-3 p-4 md:p-5">
                 <h2 id="portefeuille" class="flex items-center gap-2.5 text-[18px] font-extrabold"><x-icon name="lock" :size="23" />Mon portefeuille</h2>
                 <p class="text-[13px] text-muted">Vos ZAHAB et leurs mouvements. Privé : vous seul le voyez.</p>
-                <x-button :href="route('portefeuille')" variant="secondary" class="md:self-start">Ouvrir mon portefeuille</x-button>
+                <div class="flex flex-col gap-2 md:flex-row">
+                    <x-button :href="route('portefeuille')" variant="secondary">Ouvrir mon portefeuille</x-button>
+                    <x-button :href="route('contribution')" variant="secondary">Ma contribution</x-button>
+                </div>
             </section>
         @endif
 

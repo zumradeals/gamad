@@ -25,6 +25,8 @@ use Illuminate\Support\Facades\Process;
 use Livewire\Livewire;
 use Tests\TestCase;
 
+require_once __DIR__.'/Helpers/portefeuilles.php';
+
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->beforeEach(function () {

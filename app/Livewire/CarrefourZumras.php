@@ -7,6 +7,7 @@ use App\Models\City;
 use App\Models\Country;
 use App\Models\Domain;
 use App\Models\Zumra;
+use App\Services\Contributions;
 use App\Support\Normalizer;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -129,6 +130,7 @@ class CarrefourZumras extends Component
 
         return view('livewire.carrefour-zumras', [
             'zumras' => $zumras,
+            'engagedIds' => app(Contributions::class)->engagedZumraIds($zumras->pluck('id')->all()),
             'mine' => $mine,
             'cities' => $cities,
             'domains' => $domains,

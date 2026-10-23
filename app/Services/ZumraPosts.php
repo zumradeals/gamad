@@ -33,7 +33,7 @@ class ZumraPosts
             throw ValidationException::withMessages(['postBody' => 'Un message ne peut pas dépasser '.ZumraPost::BODY_MAX.' caractères.']);
         }
 
-        $this->throttle($user);
+        $this->throttle($user, $zumra);
 
         $post = new ZumraPost(['body' => $body]);
         $post->zumra()->associate($zumra);
@@ -58,11 +58,14 @@ class ZumraPosts
     }
 
     /** Limites de débit contre le spam (D-117) : par minute et par jour, par personne. */
-    private function throttle(User $user): void
+    private function throttle(User $user, Zumra $zumra): void
     {
+        // Outil avancé d'une ZUMRA engagée (D-166) : plafond du jour relevé.
+        $day = (int) config('gamad.limits.zumra_posts_per_day') * (app(Contributions::class)->isEngaged($zumra) ? (int) config('gamad.engaged_limit_multiplier') : 1);
+
         $limits = [
             [config('gamad.limits.zumra_posts_per_minute'), 60, 'Vous écrivez trop vite. Réessayez dans un instant.'],
-            [config('gamad.limits.zumra_posts_per_day'), 86400, 'Vous avez atteint la limite de messages pour aujourd’hui.'],
+            [$day, 86400, 'Vous avez atteint la limite de messages pour aujourd’hui.'],
         ];
 
         foreach ($limits as $index => [$max, , $message]) {

@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Models\Zumra;
 use App\Models\ZumraMembership;
 use App\Models\ZumraPost;
+use App\Services\Contributions;
 use App\Services\Invitations;
 use App\Services\JoinRequests;
 use App\Services\Memberships;
@@ -264,6 +265,7 @@ class MondeZumra extends Component
             'supported' => app(Supports::class)->supportedBy($viewer, $publications->pluck('id')),
             'managed' => $managed,
             'walletsEnabled' => $walletsEnabled,
+            'engaged' => app(Contributions::class)->isEngaged($zumra),
             'memberOf' => $viewer ? $viewer->zumraMemberships()->pluck('zumra_id')->all() : [],
             'skills' => $tab === 'formation' ? $this->skills($zumra, $viewer) : ['offered' => collect(), 'wanted' => collect()],
             'discussion' => $tab === 'discussion'

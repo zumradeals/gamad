@@ -72,6 +72,11 @@ final class Registry
             new Definition('wallet_max_balance_person', self::GROUP_WALLET, 'Solde maximum d’une personne (ZAHAB)', Definition::INTEGER, 500000, ['required', 'integer', 'between:1,100000000']),
             new Definition('wallet_max_balance_zumra', self::GROUP_WALLET, 'Solde maximum d’une ZUMRA (ZAHAB)', Definition::INTEGER, 5000000, ['required', 'integer', 'between:1,1000000000']),
 
+            // Contribution (Lot 6c, D-163, D-172) : minimum, durée d'engagement et seuil de validation des dépenses d'une ZUMRA.
+            new Definition('contribution_min', self::GROUP_WALLET, 'Contribution minimum (ZAHAB)', Definition::INTEGER, 500, ['required', 'integer', 'between:1,1000000']),
+            new Definition('contribution_engagement_days', self::GROUP_WALLET, 'Durée d’engagement après une contribution (jours)', Definition::INTEGER, 60, ['required', 'integer', 'between:1,365']),
+            new Definition('wallet_zumra_validation_threshold', self::GROUP_WALLET, 'Dépense d’une ZUMRA soumise à validation au-delà de (ZAHAB)', Definition::INTEGER, 50000, ['required', 'integer', 'between:1,100000000']),
+
             // Recharge par GeniusPay (Lot 6b, D-169) : clés saisies par le Président ; mode d'essai tant qu'il n'a pas décidé autrement.
             new Definition('geniuspay_mode', self::GROUP_PAYMENT, 'Mode', Definition::ENUM, 'sandbox', ['required', 'in:sandbox,live'], [
                 'sandbox' => 'Essai : paiements simulés, aucun argent réel',
