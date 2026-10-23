@@ -1,91 +1,141 @@
 @php
     $filters = ['tout' => 'Tout', 'besoins' => 'Besoins', 'savoirs' => 'Savoirs', 'apprendre' => 'Apprendre', 'aides' => 'Aides', 'zumra' => 'ZUMRA', 'projets' => 'Projets'];
-    $shortcuts = [\App\Enums\PublicationType::Need, \App\Enums\PublicationType::Knowledge, \App\Enums\PublicationType::LearningWish];
+    $shortcuts = [
+        [\App\Enums\PublicationType::Need, 'idea', 'text-type-need-fg'],
+        [\App\Enums\PublicationType::Knowledge, 'book', 'text-type-knowledge-fg'],
+        [\App\Enums\PublicationType::LearningWish, 'learn', 'text-type-learning-fg'],
+    ];
+    $directories = [
+        ['Personnes', 'Trouver des capacités', 'personnes.index', 'group', 'bg-type-call-bg text-type-call-fg'],
+        ['ZUMRA', 'Découvrir les communautés', 'zumras.index', 'community', 'bg-type-learning-bg text-type-learning-fg'],
+        ['Projets', 'Voir les actions en cours', 'projets.index', 'project', 'bg-type-knowledge-bg text-type-knowledge-fg'],
+    ];
 @endphp
 
-<div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
+<div class="feed-layout">
     <h1 class="sr-only">Fil</h1>
 
-    {{-- Colonne de gauche (ordinateur) : mon profil, vu par les autres. --}}
-    <aside aria-label="Mon profil" class="hidden w-[280px] shrink-0 flex-col gap-4 lg:flex">
-        <section class="flex flex-col gap-3 rounded-card border border-line bg-card p-4">
-            <div class="flex items-center gap-2.5">
-                <x-avatar :profile="$profile" :size="48" />
-                <span class="flex min-w-0 flex-col">
-                    <span class="break-words text-[15px] font-extrabold">{{ $viewer->name }}</span>
-                    @if ($profile->city)
-                        <span class="text-[12px] text-muted">{{ $profile->city->label() }}</span>
-                    @endif
-                </span>
-            </div>
+    <aside aria-label="Mon profil" class="feed-profile">
+        <section class="feed-panel overflow-hidden">
+            <div class="feed-cover" aria-hidden="true"></div>
+            <div class="px-4 pb-5">
+                <a href="{{ route('personnes.show', $profile->public_id) }}" class="relative -mt-8 mb-3 inline-flex rounded-full border-4 border-card" aria-label="Voir mon profil">
+                    <x-avatar :profile="$profile" :size="76" />
+                </a>
+                <h2 class="break-words text-[19px] font-extrabold leading-tight">{{ $viewer->name }}</h2>
+                @if ($profile->city)
+                    <p class="mt-1 text-[13px] text-muted">{{ $profile->city->label() }}</p>
+                @endif
+                @if ($profile->bio)
+                    <p class="mt-2 whitespace-pre-line break-words text-[13px] leading-relaxed text-muted">{{ $profile->bio }}</p>
+                @endif
 
-            <div class="flex flex-col gap-1.5">
-                <span class="text-[12px] font-extrabold text-type-knowledge-fg">JE PEUX APPORTER</span>
-                @forelse ($profile->offeredSkills as $skill)
-                    <span class="self-start rounded-chip bg-type-knowledge-bg px-2.5 py-1 text-[13px] font-semibold text-type-knowledge-fg">{{ $skill->name }}</span>
-                @empty
-                    <a href="{{ route('espace.profil') }}" class="inline-flex min-h-11 items-center text-[13px] font-bold">Ajouter ce que je peux apporter</a>
-                @endforelse
+                <div class="mt-4 space-y-4 border-t border-line-soft pt-4">
+                    <div>
+                        <h3 class="mb-2 text-[11px] font-extrabold tracking-wide text-type-knowledge-fg">JE PEUX APPORTER</h3>
+                        <div class="flex flex-wrap gap-1.5">
+                            @forelse ($profile->offeredSkills as $skill)
+                                <a href="{{ route('personnes.index', ['q' => $skill->name, 'sens' => 'offered']) }}" class="feed-skill bg-type-knowledge-bg text-type-knowledge-fg hover:text-type-knowledge-fg">{{ $skill->name }}</a>
+                            @empty
+                                <a href="{{ route('espace.profil') }}" class="inline-flex min-h-11 items-center text-[13px] font-semibold">Ajouter ce que je peux apporter</a>
+                            @endforelse
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="mb-2 text-[11px] font-extrabold tracking-wide text-type-learning-fg">JE VEUX APPRENDRE</h3>
+                        <div class="flex flex-wrap gap-1.5">
+                            @forelse ($profile->wantedSkills as $skill)
+                                <a href="{{ route('personnes.index', ['q' => $skill->name, 'sens' => 'wanted']) }}" class="feed-skill bg-type-learning-bg text-type-learning-fg hover:text-type-learning-fg">{{ $skill->name }}</a>
+                            @empty
+                                <a href="{{ route('espace.profil') }}" class="inline-flex min-h-11 items-center text-[13px] font-semibold">Ajouter ce que je veux apprendre</a>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+                <a href="{{ route('personnes.show', $profile->public_id) }}" class="mt-3 inline-flex min-h-11 items-center gap-2 text-[13px] font-bold text-ink underline underline-offset-4 hover:text-link">Voir mon profil <x-icon name="arrow-right" :size="16" /></a>
             </div>
-
-            <div class="flex flex-col gap-1.5">
-                <span class="text-[12px] font-extrabold text-type-learning-fg">JE VEUX APPRENDRE</span>
-                @forelse ($profile->wantedSkills as $skill)
-                    <span class="self-start rounded-chip bg-type-learning-bg px-2.5 py-1 text-[13px] font-semibold text-type-learning-fg">{{ $skill->name }}</span>
-                @empty
-                    <a href="{{ route('espace.profil') }}" class="inline-flex min-h-11 items-center text-[13px] font-bold">Ajouter ce que je veux apprendre</a>
-                @endforelse
-            </div>
-
-            <x-button :href="route('personnes.show', $profile->public_id)" variant="secondary">Voir mon profil</x-button>
         </section>
+
+        <nav aria-label="Mes raccourcis" class="feed-panel divide-y divide-line-soft px-4">
+            @foreach ([['Mon profil', route('espace.profil'), 'user'], ['Mes ZUMRA', route('zumras.index').'#mes-zumra', 'community'], ['À faire maintenant', route('espace').'#afaire', 'tasks']] as [$label, $url, $icon])
+                <a href="{{ $url }}" class="feed-shortcut"><x-icon :name="$icon" :size="21" /><span class="min-w-0 flex-1">{{ $label }}</span><x-icon name="next" :size="15" /></a>
+            @endforeach
+        </nav>
     </aside>
 
-    <div class="flex min-w-0 flex-1 flex-col gap-3 lg:gap-3.5">
-        <section aria-label="Publier" class="flex flex-col gap-3 rounded-card border border-line bg-card p-3.5 md:p-4">
-            <div class="flex items-center gap-2.5">
-                <x-avatar :profile="$profile" :size="40" />
-                <a href="{{ route('agir') }}" class="flex min-h-11 flex-1 items-center rounded-chip border border-line bg-ground px-4 text-[14px] text-muted no-underline hover:text-muted">Que voulez-vous faire avancer ?</a>
+    <div class="feed-main">
+        <section aria-label="Publier" class="feed-panel p-4">
+            <div class="flex items-center gap-3">
+                <x-avatar :profile="$profile" :size="44" />
+                <a href="{{ route('agir') }}" class="flex min-h-12 min-w-0 flex-1 items-center rounded-button border border-chip-line bg-card px-3.5 text-[14px] text-muted no-underline transition hover:border-ink hover:bg-ground hover:text-ink">Que voulez-vous faire avancer ?</a>
             </div>
-            <div class="flex flex-wrap gap-2">
-                @foreach ($shortcuts as $shortcut)
-                    <a href="{{ route('agir.publier', $shortcut->slug()) }}"
-                       class="inline-flex min-h-11 items-center rounded-chip px-3 text-[13px] font-bold no-underline hover:underline {{ $shortcut->badgeClasses() }}">{{ $shortcut->label() }}</a>
+            <div class="mt-3 grid grid-cols-3 divide-x divide-line-soft border-t border-line-soft pt-2">
+                @foreach ($shortcuts as [$shortcut, $icon, $color])
+                    <a href="{{ route('agir.publier', $shortcut->slug()) }}" class="feed-compose-action {{ $color }}">
+                        <x-icon :name="$icon" :size="22" /><span>{{ $shortcut->label() }}</span>
+                    </a>
                 @endforeach
             </div>
         </section>
 
-        <nav aria-label="Filtrer le Fil" class="-mx-1 flex gap-2 overflow-x-auto px-1 py-0.5">
+        <nav aria-label="Filtrer le Fil" class="feed-panel flex overflow-x-auto px-2">
             @foreach ($filters as $key => $label)
-                <button type="button" wire:click="setFilter('{{ $key }}')" aria-pressed="{{ $filter === $key ? 'true' : 'false' }}"
-                        @class(['min-h-11 shrink-0 rounded-chip px-4 text-[13px]', 'bg-ink font-bold text-white' => $filter === $key, 'border border-chip-line bg-card font-semibold text-ink' => $filter !== $key])>{{ $label }}</button>
+                <button type="button" wire:click="setFilter('{{ $key }}')" aria-pressed="{{ $filter === $key ? 'true' : 'false' }}" @class(['feed-filter', 'is-active' => $filter === $key])>{{ $label }}</button>
             @endforeach
         </nav>
+
+        <div class="flex items-center gap-3 px-0.5 text-[12px] text-muted">
+            <span>Les publications les plus récentes</span><span class="h-px flex-1 bg-line" aria-hidden="true"></span>
+        </div>
 
         @if (session('status'))
             <x-status>{{ session('status') }}</x-status>
         @endif
-
         <div wire:loading.delay wire:target="setFilter, more" class="text-[13px] font-semibold text-muted" role="status">Chargement…</div>
 
-        @forelse ($posts as $post)
-            <x-publication-card wire:key="publication-{{ $post->id }}" :publication="$post" :viewer="$viewer" :gesture="$gestures[$post->id] ?? null" :supported="$supported" :managed="$managedZumraIds" :member-of="$memberOf" />
-        @empty
-            <section aria-labelledby="vide" class="flex flex-col gap-3 rounded-card border border-line bg-card p-5">
-                @if ($filter === 'tout')
-                    <p class="text-[15px]"><strong id="vide" class="text-[18px] font-extrabold">Le Fil se remplira bientôt.</strong> <span class="text-muted"><a href="{{ route('espace.profil') }}" class="font-semibold">Commencez par compléter votre profil.</a></span></p>
-                @else
-                    <p id="vide" class="text-[18px] font-extrabold">Rien dans cette catégorie pour l’instant.</p>
-                @endif
-                <p class="text-muted">Soyez la première personne à publier : un besoin, un savoir à partager, ce que vous voulez apprendre.</p>
-                <x-button :href="route('agir')" variant="accent">Agir</x-button>
-            </section>
-        @endforelse
+        <div class="feed-posts" wire:loading.class="opacity-60" wire:target="setFilter, more">
+            @forelse ($posts as $post)
+                <x-publication-card compact wire:key="publication-{{ $post->id }}" :publication="$post" :viewer="$viewer" :gesture="$gestures[$post->id] ?? null" :supported="$supported" :managed="$managedZumraIds" :member-of="$memberOf" />
+            @empty
+                <section aria-labelledby="vide" class="feed-panel flex flex-col items-start gap-3 p-5 md:p-6">
+                    <span class="flex size-11 items-center justify-center rounded-button bg-type-call-bg text-type-call-fg" aria-hidden="true"><x-icon name="idea" :size="24" /></span>
+                    @if ($filter === 'tout')
+                        <p><strong id="vide" class="text-[18px] font-extrabold">Le Fil se remplira bientôt.</strong> <span class="text-muted"><a href="{{ route('espace.profil') }}" class="font-semibold">Commencez par compléter votre profil.</a></span></p>
+                    @else
+                        <h2 id="vide" class="text-[18px] font-extrabold">Rien dans cette catégorie pour l’instant.</h2>
+                    @endif
+                    <p class="text-[14px] leading-relaxed text-muted">Soyez la première personne à publier : un besoin, un savoir à partager, ce que vous voulez apprendre.</p>
+                    <x-button :href="route('agir')" variant="accent"><x-icon name="plus" :size="18" class="mr-2" />Agir</x-button>
+                </section>
+            @endforelse
+        </div>
 
         @if ($hasMore)
             <x-button type="button" variant="secondary" wire:click="more" wire:loading.attr="disabled" wire:target="more">Voir plus de publications</x-button>
         @endif
     </div>
 
-    <livewire:gesture-sheet />
+    <aside aria-label="Explorer et agir" class="feed-explore">
+        <section class="feed-panel p-4">
+            <h2 class="mb-2 text-[17px] font-extrabold">Explorer GAMAD</h2>
+            <nav aria-label="Explorer GAMAD" class="flex flex-col">
+                @foreach ($directories as [$label, $description, $route, $icon, $colors])
+                    <a href="{{ route($route) }}" class="group flex min-h-20 items-center gap-3 rounded-button py-3 text-ink no-underline hover:text-ink">
+                        <span class="flex size-11 shrink-0 items-center justify-center rounded-button {{ $colors }}"><x-icon :name="$icon" :size="24" /></span>
+                        <span class="min-w-0 flex-1"><span class="block text-[14px] font-extrabold group-hover:underline">{{ $label }}</span><span class="mt-0.5 block text-[12px] leading-relaxed text-muted">{{ $description }}</span></span>
+                        <x-icon name="next" :size="16" />
+                    </a>
+                @endforeach
+            </nav>
+        </section>
+        <section class="feed-panel flex flex-col gap-4 p-5">
+            <span class="h-1 w-10 rounded-full bg-ink" aria-hidden="true"></span>
+            <h2 class="text-[17px] font-extrabold">Votre prochaine action</h2>
+            <p class="text-[14px] leading-relaxed text-muted">Un savoir à transmettre ? Un besoin à exprimer ? Faites le premier pas.</p>
+            <x-button :href="route('agir')" variant="accent">Agir maintenant</x-button>
+            <p class="border-t border-line-soft pt-4 text-center text-[11px] font-medium text-muted">Formation — Travail — Adoration</p>
+        </section>
+    </aside>
+
+    <div class="feed-dialog"><livewire:gesture-sheet /></div>
 </div>
