@@ -180,3 +180,11 @@ La nouvelle composition remplace la présentation des écrans 1 et 4 pour le Fil
 - Mes ZUMRA : bandeau compact avec rôle réel et lien de création.
 - Cartes : deux colonnes à partir de 1024 px ; une en dessous. Couverture graphique avec initiales, domaine, nom, mission, localisation et pays si renseignés, format, membres réels, Découvrir et accès au parcours d’adhésion existant. Les photographies de la maquette sont illustratives et ne deviennent pas des photos de communautés.
 - États vide, sans résultat, chargement et pagination conservés ; aucun classement ni fausse commande de tri.
+
+## 10. Portefeuille ZAHAB (Lot 6a, D-174)
+
+- Page étroite, comme Paramètres : lien de retour (Mon espace, ou la ZUMRA), titre « Mon portefeuille » ou « Portefeuille de la ZUMRA », mention de confidentialité avec cadenas.
+- Carte « Solde » : montant en grands caractères suivi de ZAHAB, rappel « 1 ZAHAB = 1 FCFA » et de l'absence de transfert et de retrait. Aucun bouton d'action tant que la recharge n'existe pas.
+- Carte « Mouvements » : nature, date à l'heure d'Abidjan, montant signé (+ ou −) et solde après le mouvement ; vingt par page ; état vide « Aucun mouvement pour l'instant. » ; indicateur de chargement à la pagination.
+- Accès : carte « Mon portefeuille » dans Mon espace ; bouton « Portefeuille de la ZUMRA » à côté de « Modifier la ZUMRA » pour le fondateur et les responsables. Rien de tout cela n'apparaît tant que le Président n'a pas ouvert les portefeuilles.
+- Réglages (Paramètres → Portefeuilles) : un menu Fermés / Ouverts et deux plafonds numériques, sur le gabarit des autres pages de réglages.

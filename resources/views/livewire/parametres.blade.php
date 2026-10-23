@@ -30,6 +30,12 @@
         <x-button :href="route('espace.parametres.copie')" variant="secondary">Ouvrir</x-button>
     </section>
 
+    <section aria-labelledby="portefeuille" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
+        <h2 id="portefeuille" class="text-[18px] font-extrabold">Portefeuilles</h2>
+        <p class="text-[13px] text-muted">Ouvrir ou fermer les portefeuilles ZAHAB et fixer les plafonds de solde.</p>
+        <x-button :href="route('espace.parametres.portefeuille')" variant="secondary">Ouvrir</x-button>
+    </section>
+
     <form wire:submit="save" class="flex flex-col gap-4">
         <section aria-labelledby="courriel" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
             <h2 id="courriel" class="text-[18px] font-extrabold">Courriel</h2>

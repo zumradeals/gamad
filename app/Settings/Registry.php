@@ -17,6 +17,8 @@ final class Registry
 
     public const GROUP_BACKUP = 'copie';
 
+    public const GROUP_WALLET = 'portefeuille';
+
     /** @var array<string, Definition>|null */
     private static ?array $definitions = null;
 
@@ -59,6 +61,14 @@ final class Registry
             new Definition('backup_s3_access_key', self::GROUP_BACKUP, 'Clé d’accès', Definition::SECRET, null, ['nullable', 'string', 'max:255']),
             new Definition('backup_s3_secret_key', self::GROUP_BACKUP, 'Clé secrète', Definition::SECRET, null, ['nullable', 'string', 'max:255']),
             new Definition('backup_passphrase', self::GROUP_BACKUP, 'Phrase de secours', Definition::SECRET, null, ['nullable', 'string', 'max:255']),
+
+            // Portefeuilles ZAHAB (Lot 6, D-164) : masqués tant que le Président ne les ouvre pas ; plafonds de solde en ZAHAB (D-172).
+            new Definition('wallet_enabled', self::GROUP_WALLET, 'Portefeuilles', Definition::ENUM, '0', ['required', 'in:0,1'], [
+                '0' => 'Fermés : personne ne les voit',
+                '1' => 'Ouverts : chaque personne et chaque ZUMRA a son portefeuille',
+            ]),
+            new Definition('wallet_max_balance_person', self::GROUP_WALLET, 'Solde maximum d’une personne (ZAHAB)', Definition::INTEGER, 500000, ['required', 'integer', 'between:1,100000000']),
+            new Definition('wallet_max_balance_zumra', self::GROUP_WALLET, 'Solde maximum d’une ZUMRA (ZAHAB)', Definition::INTEGER, 5000000, ['required', 'integer', 'between:1,1000000000']),
         ])->keyBy(fn (Definition $definition) => $definition->key)->all();
     }
 

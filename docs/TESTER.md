@@ -430,6 +430,20 @@ Il vous faut un téléphone, un second compte, et au moins un besoin publié (Ag
 
 **Ce qui n'existe pas encore :** les organisations comme émetteurs de besoins (« une prochaine fois », D-160) ; un sélecteur à trois onglets en haut des Carrefours.
 
+## 18b. Essayer le Lot 6, première étape (6a) : portefeuilles ZAHAB
+
+Aucun argent ne circule dans cette étape : la recharge vient avec la 6b. Vous contrôlez donc les écrans, les droits et la fermeture.
+
+1. **Fermé par défaut.** Connecté comme Président, ouvrez **Mon espace**. Aucune carte « Mon portefeuille » n'apparaît ; l'adresse `/espace/portefeuille` répond « page introuvable ».
+2. **Ouvrir.** **Espace → Paramètres → Portefeuilles** : choisissez « Ouverts », vérifiez les deux plafonds (500 000 et 5 000 000 ZAHAB), enregistrez. L'acte figure au **journal d'administration**. Un plafond à 0 est refusé avec un message.
+3. **Mon portefeuille.** Dans Mon espace, ouvrez **Mon portefeuille** : solde « 0 ZAHAB », rappel « 1 ZAHAB = 1 FCFA », « Aucun mouvement pour l'instant. », aucun bouton de recharge ni de retrait.
+4. **ZUMRA.** Dans le Monde d'une ZUMRA que vous fondez ou dont vous êtes responsable, le bouton **Portefeuille de la ZUMRA** est présent ; un simple membre ne le voit pas, et son adresse lui répond « page introuvable ».
+5. **Privé.** Le Président et la modération n'ont aucun accès au portefeuille d'une autre personne.
+6. **Suppression de compte.** Tant qu'un portefeuille contient des ZAHAB, la suppression du compte est refusée avec une explication ; avec un solde nul, elle passe et ferme le portefeuille. (Les ZAHAB ne peuvent pas encore être ajoutés : ce contrôle se fait par les tests automatiques.)
+7. **Refermer.** Remettez « Fermés » : les cartes et boutons disparaissent et les adresses redeviennent introuvables.
+
+**Ce qui n'existe pas encore :** recharge Mobile Money (6b), contribution mensuelle, badges, financement (6c), transfert entre personnes, retrait.
+
 ## 19. Ce qu'il faut regarder à chaque écran
 
 - [ ] Le texte se lit sans zoomer, rien ne dépasse de l'écran, aucun défilement de côté.

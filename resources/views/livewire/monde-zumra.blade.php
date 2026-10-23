@@ -30,7 +30,12 @@
         @endif
 
         @if ($manages)
-            <x-button :href="route('zumras.edit', $zumra)" variant="accent" class="md:self-start md:px-8">Modifier la ZUMRA</x-button>
+            <div class="flex flex-col gap-2 md:flex-row md:self-start">
+                <x-button :href="route('zumras.edit', $zumra)" variant="accent" class="md:px-8">Modifier la ZUMRA</x-button>
+                @if ($walletsEnabled)
+                    <x-button :href="route('zumras.portefeuille', $zumra)" variant="secondary" class="md:px-8">Portefeuille de la ZUMRA</x-button>
+                @endif
+            </div>
         @endif
     </header>
 
