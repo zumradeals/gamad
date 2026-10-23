@@ -8,6 +8,19 @@
                  hint="8 caractères au minimum." />
         <x-field name="password_confirmation" label="Confirmer le mot de passe" type="password" autocomplete="new-password" required />
 
+        @if (app(\App\Services\LegalTexts::class)->charterAdopted())
+            <div class="flex flex-col gap-1.5">
+                <label for="charter" class="flex min-h-11 cursor-pointer items-start gap-3 text-[14px] leading-snug">
+                    <input id="charter" type="checkbox" name="charter" value="1" required @checked(old('charter')) class="mt-0.5 size-5 shrink-0 accent-ink"
+                           @error('charter') aria-invalid="true" aria-describedby="charter-error" @enderror>
+                    <span>J’ai lu et j’accepte la <a href="{{ route('charte') }}" class="font-bold underline" target="_blank" rel="noopener">charte de conduite</a>.</span>
+                </label>
+                @error('charter')
+                    <p id="charter-error" role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>
+                @enderror
+            </div>
+        @endif
+
         <x-button x-bind:disabled="busy"><span x-show="!busy">Créer mon compte</span><span x-show="busy" x-cloak>Création…</span></x-button>
     </form>
 

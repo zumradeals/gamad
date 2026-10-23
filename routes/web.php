@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PersonController;
+use App\Http\Controllers\TextesController;
+use App\Http\Controllers\WelcomeController;
 use App\Livewire\CarrefourPersonnes;
 use App\Livewire\CarrefourProjets;
 use App\Livewire\CarrefourZumras;
@@ -20,11 +22,16 @@ use App\Livewire\PagePublication;
 use App\Livewire\Parametres;
 use App\Livewire\ParametresDomaines;
 use App\Livewire\ParametresTerritoires;
+use App\Livewire\ParametresTextes;
 use App\Livewire\PublierPublication;
 use App\Livewire\SignalerPublication;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn () => auth()->check() ? redirect()->route('fil') : view('pages.welcome'))->name('home');
+Route::get('/', WelcomeController::class)->name('home');
+
+// La charte et les mentions légales n'existent pour le public qu'une fois adoptées par le Président (D-146).
+Route::get('/charte', [TextesController::class, 'charte'])->name('charte');
+Route::get('/mentions-legales', [TextesController::class, 'mentions'])->name('mentions');
 
 // Le Carrefour Personnes et le Monde d'une personne sont ouverts aux visiteurs sans compte ; chaque profil applique
 // sa propre visibilité (D-067).
@@ -62,6 +69,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/espace', Espace::class)->name('espace');
     Route::get('/espace/profil', ModifierProfil::class)->name('espace.profil');
     Route::get('/espace/parametres', Parametres::class)->middleware('can:super-admin')->name('espace.parametres');
+    Route::get('/espace/parametres/textes', ParametresTextes::class)->middleware('can:super-admin')->name('espace.parametres.textes');
     Route::get('/espace/parametres/domaines', ParametresDomaines::class)->middleware('can:super-admin')->name('espace.parametres.domaines');
     Route::get('/espace/parametres/territoires', ParametresTerritoires::class)->middleware('can:super-admin')->name('espace.parametres.territoires');
 });

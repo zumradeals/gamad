@@ -13,6 +13,8 @@ final class Registry
 
     public const GROUP_SECURITY = 'securite';
 
+    public const GROUP_TEXTS = 'textes';
+
     /** @var array<string, Definition>|null */
     private static ?array $definitions = null;
 
@@ -39,6 +41,14 @@ final class Registry
 
             new Definition('limit_register_per_hour', self::GROUP_SECURITY, 'Inscriptions par heure et par adresse IP', Definition::INTEGER, 20, ['required', 'integer', 'between:1,1000']),
             new Definition('limit_login_per_minute', self::GROUP_SECURITY, 'Tentatives de connexion par minute', Definition::INTEGER, 5, ['required', 'integer', 'between:1,60']),
+
+            // Charte de conduite et mentions légales (D-146) : rien n'est publié tant que le Président n'a pas adopté les textes.
+            new Definition('legal_publisher', self::GROUP_TEXTS, 'Éditeur du site', Definition::STRING, null, ['nullable', 'string', 'max:255']),
+            new Definition('legal_director', self::GROUP_TEXTS, 'Responsable de la publication', Definition::STRING, null, ['nullable', 'string', 'max:255']),
+            new Definition('legal_contact', self::GROUP_TEXTS, 'Adresse e-mail de contact', Definition::STRING, null, ['nullable', 'email:rfc', 'max:255']),
+            new Definition('legal_host', self::GROUP_TEXTS, 'Hébergeur', Definition::STRING, null, ['nullable', 'string', 'max:500']),
+            new Definition('charter_adopted_at', self::GROUP_TEXTS, 'Charte adoptée le', Definition::STRING, null, ['nullable', 'date']),
+            new Definition('legal_adopted_at', self::GROUP_TEXTS, 'Mentions légales adoptées le', Definition::STRING, null, ['nullable', 'date']),
         ])->keyBy(fn (Definition $definition) => $definition->key)->all();
     }
 

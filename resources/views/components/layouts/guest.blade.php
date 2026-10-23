@@ -1,4 +1,4 @@
-@props(['title' => null, 'heading' => null, 'intro' => null])
+@props(['title' => null, 'heading' => null, 'intro' => null, 'wide' => false, 'bare' => false])
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -11,12 +11,12 @@
     @livewireStyles
 </head>
 <body class="bg-ground text-ink antialiased">
-    <div class="mx-auto flex min-h-screen w-full max-w-[440px] flex-col gap-6 px-4 py-8">
+    <div @class(['mx-auto flex min-h-screen w-full flex-col gap-6 px-4 py-8', 'max-w-[440px]' => ! $wide, 'max-w-[1100px] md:px-6' => $wide])>
         <a href="{{ url('/') }}" class="self-start no-underline" aria-label="GAMAD — accueil">
             <x-logo />
         </a>
 
-        <main class="flex flex-col gap-4 rounded-card border border-line bg-card p-5 md:p-6">
+        <main @class(['flex flex-col gap-4', 'rounded-card border border-line bg-card p-5 md:p-6' => ! $bare, 'md:p-0' => $bare, 'flex-1' => $wide])>
             @if ($heading)
                 <h1 class="text-[24px] font-extrabold leading-tight">{{ $heading }}</h1>
             @endif
@@ -26,6 +26,8 @@
 
             {{ $slot }}
         </main>
+
+        @include('partials.legal-links')
     </div>
     @livewireScripts
 </body>
