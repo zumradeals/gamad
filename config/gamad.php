@@ -32,6 +32,8 @@ return [
         'join_requests_per_day' => 10,
         'invitations_per_day' => 30,
         'reports_per_hour' => 10,
+        // Recharges de portefeuille lancées par personne et par heure (D-169).
+        'recharges_per_hour' => 10,
         'reports_per_day' => 30,
         'messages_per_minute' => 20,
         'messages_per_day' => 500,

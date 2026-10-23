@@ -21,7 +21,7 @@ class JournalReader
         'publications' => ['Publications', ['publication.', 'report.']],
         'personnes' => ['Personnes', ['person.']],
         'zumras' => ['ZUMRA', ['zumra.']],
-        'reglages' => ['Réglages', ['setting.', 'settings.', 'backup.']],
+        'reglages' => ['Réglages', ['setting.', 'settings.', 'backup.', 'wallet.']],
         'listes' => ['Listes de référence', ['domain.', 'country.', 'city.']],
         'comptes' => ['Comptes', ['account.']],
     ];
@@ -42,6 +42,7 @@ class JournalReader
         'zumra.founder_transferred' => 'a confié la fondation de la ZUMRA',
         'setting.changed' => 'a modifié le réglage',
         'backup.passphrase_revealed' => 'a affiché la phrase de secours de la copie hors serveur',
+        'wallet.sandbox_cleared' => 'a terminé les essais des portefeuilles (soldes d’essai remis à zéro)',
         'settings.test_email_sent' => 'a envoyé un e-mail de test',
         'settings.test_email_failed' => 'a tenté un e-mail de test, sans succès',
         'account.renamed_by_owner' => 'a changé son nom affiché',
@@ -153,6 +154,10 @@ class JournalReader
 
         if (isset($payload['reports_closed']) && $payload['reports_closed'] > 0) {
             $lines[] = $payload['reports_closed'].($payload['reports_closed'] > 1 ? ' signalements clos' : ' signalement clos');
+        }
+
+        if (isset($payload['portefeuilles'], $payload['zahab'])) {
+            $lines[] = $payload['portefeuilles'].' portefeuille(s), '.number_format((int) $payload['zahab'], 0, ',', ' ').' ZAHAB d’essai retirés';
         }
 
         if (array_key_exists('expliquee', $payload)) {

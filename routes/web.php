@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\GeniusPayWebhookController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PersonController;
 use App\Http\Controllers\SuspendedController;
@@ -25,9 +26,11 @@ use App\Livewire\PageConversation;
 use App\Livewire\PageNotifications;
 use App\Livewire\PagePortefeuille;
 use App\Livewire\PagePublication;
+use App\Livewire\PaiementsAdministration;
 use App\Livewire\Parametres;
 use App\Livewire\ParametresCopie;
 use App\Livewire\ParametresDomaines;
+use App\Livewire\ParametresPaiement;
 use App\Livewire\ParametresPortefeuille;
 use App\Livewire\ParametresTerritoires;
 use App\Livewire\ParametresTextes;
@@ -87,8 +90,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/espace/profil', ModifierProfil::class)->name('espace.profil');
     Route::get('/espace/parametres', Parametres::class)->middleware('can:super-admin')->name('espace.parametres');
     Route::get('/espace/parametres/textes', ParametresTextes::class)->middleware('can:super-admin')->name('espace.parametres.textes');
+    Route::get('/espace/parametres/paiement', ParametresPaiement::class)->middleware('can:super-admin')->name('espace.parametres.paiement');
+    Route::get('/espace/paiements', PaiementsAdministration::class)->middleware('can:super-admin')->name('espace.paiements');
     Route::get('/espace/parametres/portefeuille', ParametresPortefeuille::class)->middleware('can:super-admin')->name('espace.parametres.portefeuille');
     Route::get('/espace/parametres/copie', ParametresCopie::class)->middleware('can:super-admin')->name('espace.parametres.copie');
     Route::get('/espace/parametres/domaines', ParametresDomaines::class)->middleware('can:super-admin')->name('espace.parametres.domaines');
     Route::get('/espace/parametres/territoires', ParametresTerritoires::class)->middleware('can:super-admin')->name('espace.parametres.territoires');
 });
+
+// Rappel serveur de GeniusPay : public (sans compte), protégé par la signature du corps et limité en débit (D-169).
+Route::post('/webhooks/geniuspay', [GeniusPayWebhookController::class, 'handle'])->middleware('throttle:120,1')->name('webhooks.geniuspay');

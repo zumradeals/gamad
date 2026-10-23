@@ -188,3 +188,9 @@ La nouvelle composition remplace la présentation des écrans 1 et 4 pour le Fil
 - Carte « Mouvements » : nature, date à l'heure d'Abidjan, montant signé (+ ou −) et solde après le mouvement ; vingt par page ; état vide « Aucun mouvement pour l'instant. » ; indicateur de chargement à la pagination.
 - Accès : carte « Mon portefeuille » dans Mon espace ; bouton « Portefeuille de la ZUMRA » à côté de « Modifier la ZUMRA » pour le fondateur et les responsables. Rien de tout cela n'apparaît tant que le Président n'a pas ouvert les portefeuilles.
 - Réglages (Paramètres → Portefeuilles) : un menu Fermés / Ouverts et deux plafonds numériques, sur le gabarit des autres pages de réglages.
+
+## 11. Recharge et paiements (Lot 6b, D-176, D-177)
+
+- Page du portefeuille : bandeau jaune « Paiement en attente de confirmation » (mise à jour toute seule toutes les 10 secondes), confirmation ou échec au retour de la page de paiement, puis carte « Recharger » : en mode d'essai, mention « le paiement est simulé, aucun argent réel n'est débité » ; un seul champ, le montant, avec ses bornes ; erreurs sous le champ. La carte n'existe pas tant que les clés du mode courant manquent.
+- Paramètres → Paiement : état des clés, adresse du webhook à copier, mode (essai ou réel, avec case de confirmation au passage au réel), clés (les secrets ne sont jamais réaffichés), bornes de recharge, bouton « Essayer la connexion ».
+- Paiements (Président) : rapprochement (confirmées, créditées, remboursées, débitées, en attente, à examiner) avec un message d'accord ou d'écart, « Rapprocher maintenant », liste « À examiner » encadrée de rouge, « Terminer les essais » avec confirmation, liste filtrable des recharges sans nom.
