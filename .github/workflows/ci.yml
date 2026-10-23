@@ -46,8 +46,9 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq rclone
-          python3 -m pip install --quiet "moto[server]"
-          echo "GAMAD_MOTO_SERVER=$(python3 -c 'import shutil;print(shutil.which("moto_server") or "")')" >> "$GITHUB_ENV"
+          python3 -m venv "$RUNNER_TEMP/moto"
+          "$RUNNER_TEMP/moto/bin/pip" install --quiet "moto[server]"
+          echo "GAMAD_MOTO_SERVER=$RUNNER_TEMP/moto/bin/moto_server" >> "$GITHUB_ENV"
 
       - name: Installer les dépendances PHP
         run: composer install --no-interaction --prefer-dist --no-progress
