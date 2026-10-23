@@ -8,6 +8,7 @@ use App\Services\Gestures;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -17,6 +18,8 @@ use Livewire\Component;
  */
 class GestureSheet extends Component
 {
+    /** Verrouillé : le navigateur ne peut pas changer de publication ; le droit de voir est de plus revérifié à chaque affichage. */
+    #[Locked]
     public ?string $publicationId = null;
 
     public string $message = '';
@@ -64,8 +67,14 @@ class GestureSheet extends Component
 
     public function render()
     {
-        return view('livewire.gesture-sheet', [
-            'publication' => $this->publicationId ? Publication::query()->with('author')->find($this->publicationId) : null,
-        ]);
+        $publication = $this->publicationId ? Publication::query()->with('author')->find($this->publicationId) : null;
+
+        // Une publication qu'on n'a pas le droit de voir n'est jamais affichée, même si l'identifiant a été changé en route.
+        if ($publication && ! Gate::allows('view', $publication)) {
+            $this->reset('publicationId', 'message');
+            $publication = null;
+        }
+
+        return view('livewire.gesture-sheet', ['publication' => $publication]);
     }
 }

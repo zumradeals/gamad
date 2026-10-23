@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -22,6 +23,11 @@ use Livewire\Component;
 #[Layout('components.layouts.app')]
 class PagePublication extends Component
 {
+    /**
+     * Verrouillé : le navigateur ne peut pas changer de publication en modifiant cette valeur dans la requête. Et, parce que le
+     * verrou ne protège pas contre tout, le droit de voir est revérifié à chaque affichage et à chaque action.
+     */
+    #[Locked]
     public string $publicationId;
 
     public function mount(Publication $publication): void
@@ -82,14 +88,21 @@ class PagePublication extends Component
         ])->title($isAuthor ? $type->ownTitle() : $type->label());
     }
 
+    /** La publication, après avoir revérifié le droit de la voir (404 sinon, D-085). */
     private function publication(): Publication
     {
-        return Publication::query()->findOrFail($this->publicationId);
+        $publication = Publication::query()->findOrFail($this->publicationId);
+
+        Gate::authorize('view', $publication);
+
+        return $publication;
     }
 
     private function gesture(string $id): Gesture
     {
         abort_unless(Str::isUuid($id), 404);
+
+        $this->publication();
 
         return Gesture::query()->where('publication_id', $this->publicationId)->findOrFail($id);
     }
