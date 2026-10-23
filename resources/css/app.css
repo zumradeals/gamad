@@ -304,3 +304,32 @@
         .space-sidebar { position: sticky; top: 96px; display: block; }
     }
 }
+
+/* Accueil visiteur : composition approuvée, indépendante des écrans connectés. */
+@layer components {
+    .landing-container { width: 100%; max-width: 1240px; margin-inline: auto; padding-inline: 16px; }
+    .landing-page [id] { scroll-margin-top: 100px; }
+    .landing-nav-link { display: inline-flex; min-height: 44px; align-items: center; border-bottom-width: 2px; color: var(--color-ink); font-size: 13px; text-decoration: none; }
+    .landing-nav-link:hover { color: var(--color-link); }
+    .landing-mobile-menu > summary::-webkit-details-marker { display: none; }
+    .landing-hero { display: grid; align-items: center; gap: 36px; padding-top: 36px; padding-bottom: 60px; }
+    .landing-headline { font-size: clamp(34px, 4.1vw, 56px); font-weight: 800; line-height: 1.13; letter-spacing: -1.5px; }
+    .landing-highlight { box-shadow: inset 0 -0.23em var(--color-accent); }
+    .landing-hero-visual { isolation: isolate; position: relative; min-width: 0; margin: 0 0 30px; }
+    .landing-hero-visual::before { position: absolute; top: -12px; left: -10px; width: 70px; height: 70px; border-radius: 16px; background: var(--color-accent); content: ''; }
+    .landing-hero-visual::after { position: absolute; right: -8px; bottom: -8px; z-index: -1; width: 75px; height: 75px; border-radius: 16px; background: var(--color-ink); content: ''; }
+    .landing-photo { position: relative; z-index: 0; border-radius: 20px; box-shadow: 0 10px 30px rgb(14 42 63 / 8%); }
+    .landing-photo-caption { position: relative; z-index: 1; width: fit-content; max-width: calc(100% - 16px); margin: -16px 8px -24px auto; border: 1px solid var(--color-line-soft); border-radius: 12px; background: var(--color-card); padding: 12px; box-shadow: 0 5px 20px rgb(14 42 63 / 8%); }
+    .landing-section { padding-block: 32px; }
+    .landing-section-title { font-size: clamp(26px, 3vw, 34px); font-weight: 800; line-height: 1.2; letter-spacing: -0.7px; }
+    .landing-card { border: 1px solid var(--color-line); border-radius: 12px; background: var(--color-card); }
+    @media (min-width: 768px) {
+        .landing-container { padding-inline: 24px; }
+        .landing-section { padding-block: 40px; }
+        .landing-hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; padding-top: 56px; padding-bottom: 56px; }
+    }
+    @media (min-width: 1024px) {
+        .landing-hero { gap: 48px; padding-top: 64px; padding-bottom: 64px; }
+        .landing-photo-caption { margin-top: -26px; margin-right: 12px; padding: 16px; }
+    }
+}
