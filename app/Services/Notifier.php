@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\NotificationKind;
+use App\Enums\PlatformRole;
 use App\Models\Conversation;
 use App\Models\Project;
 use App\Models\Publication;
@@ -35,6 +36,13 @@ class Notifier
             }
         }
 
+        // Une explication réécrite ne prévient pas deux fois la modération tant que la première n'est pas lue.
+        if ($kind->isForModeration() && UserNotification::query()
+            ->where('user_id', $to->getKey())->where('kind', $kind->value)->whereNull('read_at')
+            ->where('actor_id', $actor?->getKey())->where('publication_id', $publication?->getKey())->exists()) {
+            return;
+        }
+
         $notification = new UserNotification(['kind' => $kind]);
         $notification->user()->associate($to);
         $notification->actor()->associate($actor);
@@ -43,6 +51,13 @@ class Notifier
         $notification->zumra()->associate($zumra);
         $notification->project()->associate($project);
         $notification->save();
+    }
+
+    /** Prévient toute la modération (modérateurs et super administrateur), sauf la personne qui agit. */
+    public function pushToModeration(NotificationKind $kind, User $actor, ?Publication $publication = null): void
+    {
+        User::query()->whereIn('platform_role', [PlatformRole::Moderator->value, PlatformRole::SuperAdmin->value])
+            ->each(fn (User $moderator) => $this->push($moderator, $kind, $actor, $publication));
     }
 
     /** Marque comme lues les notifications de messages d'une conversation (la personne vient de la lire). */

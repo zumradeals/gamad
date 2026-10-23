@@ -216,7 +216,7 @@ class MondeProjet extends Component
      */
     private function team(Project $project, ?User $viewer, bool $manages, string $tab): array
     {
-        $verified = fn (Builder $user) => $user->whereNotNull('email_verified_at');
+        $verified = fn (Builder $user) => $user->active();
 
         $count = ProjectMember::query()->where('project_id', $project->id)->whereHas('user', $verified)->count();
 

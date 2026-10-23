@@ -192,7 +192,7 @@ class MondeZumra extends Component
     {
         $viewer = Auth::user();
         $zumra = Zumra::query()->with(['domain', 'city'])
-            ->withCount(['memberships as members_count' => fn (Builder $query) => $query->whereHas('user', fn (Builder $user) => $user->whereNotNull('email_verified_at'))])
+            ->withCount(['memberships as members_count' => fn (Builder $query) => $query->whereHas('user', fn (Builder $user) => $user->active())])
             ->findOrFail($this->zumraId);
 
         Gate::authorize('view', $zumra);
@@ -207,7 +207,7 @@ class MondeZumra extends Component
         // Les personnes dont l'adresse n'est pas vérifiée n'existent pas pour les autres : elles ne figurent ni dans la liste ni dans le compte.
         $members = $canSeeMembers
             ? ZumraMembership::query()->where('zumra_id', $zumra->id)
-                ->whereHas('user', fn (Builder $user) => $user->whereNotNull('email_verified_at'))
+                ->whereHas('user', fn (Builder $user) => $user->active())
                 ->with(['user.profile.city'])
                 ->orderByRaw("case role when 'founder' then 0 when 'manager' then 1 else 2 end")
                 ->orderBy(User::query()->select('name_search')->whereColumn('users.id', 'zumra_memberships.user_id'))
@@ -272,7 +272,7 @@ class MondeZumra extends Component
             // Pour le fondateur et les responsables : les demandes à traiter et les invitations en attente.
             'requests' => $manages
                 ? JoinRequest::query()->where('zumra_id', $zumra->id)->where('state', JoinRequestState::Pending->value)
-                    ->whereHas('user', fn (Builder $user) => $user->whereNotNull('email_verified_at'))
+                    ->whereHas('user', fn (Builder $user) => $user->active())
                     ->with(['user.profile.city', 'user.profile.offeredSkills'])->orderBy('created_at')->get()
                 : collect(),
             'invitations' => $manages

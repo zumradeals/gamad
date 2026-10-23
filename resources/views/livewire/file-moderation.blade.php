@@ -8,6 +8,8 @@
         <x-status>{{ session('status') }}</x-status>
     @endif
 
+    @include('livewire.partials.moderation-nav', ['current' => 'file'])
+
     <nav aria-label="Files de modération" class="flex gap-2">
         <button type="button" wire:click="setTab('examiner')" aria-pressed="{{ $tab === 'examiner' ? 'true' : 'false' }}"
                 @class(['min-h-11 rounded-chip px-4 text-[13px]', 'bg-ink font-bold text-white' => $tab === 'examiner', 'border border-chip-line bg-card font-semibold text-ink' => $tab !== 'examiner'])>À examiner ({{ $toReviewCount }})</button>

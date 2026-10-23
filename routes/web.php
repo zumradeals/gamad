@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PersonController;
+use App\Http\Controllers\SuspendedController;
 use App\Http\Controllers\TextesController;
 use App\Http\Controllers\WelcomeController;
+use App\Livewire\AvisModeration;
 use App\Livewire\CarrefourPersonnes;
 use App\Livewire\CarrefourProjets;
 use App\Livewire\CarrefourZumras;
@@ -13,6 +15,8 @@ use App\Livewire\FileModeration;
 use App\Livewire\FormulaireProjet;
 use App\Livewire\FormulaireZumra;
 use App\Livewire\InviterPersonnes;
+use App\Livewire\JournalAdministration;
+use App\Livewire\ModerationPersonnes;
 use App\Livewire\ModifierProfil;
 use App\Livewire\MondeProjet;
 use App\Livewire\MondeZumra;
@@ -50,6 +54,8 @@ Route::get('/projets/{project}', MondeProjet::class)->whereUuid('project')->name
 // Une publication publique se lit sans compte ; répondre demande un compte (D-085). Une publication interdite répond 404.
 Route::get('/publications/{publication}', PagePublication::class)->whereUuid('publication')->name('publications.show');
 
+Route::get('/compte-suspendu', SuspendedController::class)->middleware('auth')->name('suspendu');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/zumra/creer', FormulaireZumra::class)->name('zumras.create');
     Route::get('/zumra/{zumra}/inviter', InviterPersonnes::class)->whereUuid('zumra')->name('zumras.invite');
@@ -63,6 +69,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/agir/{slug}', PublierPublication::class)->name('agir.publier');
     Route::get('/publications/{publication}/signaler', SignalerPublication::class)->whereUuid('publication')->name('publications.signaler');
     Route::get('/moderation', FileModeration::class)->middleware('can:moderate')->name('moderation');
+    Route::get('/moderation/personnes', ModerationPersonnes::class)->middleware('can:moderate')->name('moderation.personnes');
+    Route::get('/moderation/journal', JournalAdministration::class)->middleware('can:moderate')->name('moderation.journal');
+    Route::get('/espace/avis', AvisModeration::class)->name('avis');
     Route::get('/conversations/{conversation}', PageConversation::class)->whereUuid('conversation')->name('conversations.show');
     Route::get('/notifications', PageNotifications::class)->name('notifications');
     Route::get('/notifications/{notification}', [NotificationController::class, 'open'])->whereUuid('notification')->name('notifications.open');

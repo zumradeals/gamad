@@ -33,6 +33,7 @@ class Todo
     public function for(User $user): array
     {
         return [
+            ...$this->moderationNotice($user),
             ...$this->hiddenPublications($user),
             ...$this->reportsToReview($user),
             ...$this->zumraInvitations($user),
@@ -42,6 +43,24 @@ class Todo
             ...$this->unreadMessages($user),
             ...$this->thanks($user),
         ];
+    }
+
+    /** La modération a envoyé un avis à la personne, qui n'y a pas encore répondu (D-145). */
+    private function moderationNotice(User $user): array
+    {
+        $notice = $user->openNotice();
+
+        if (! $notice || $notice->isExplained()) {
+            return [];
+        }
+
+        return [[
+            'key' => 'notice-'.$notice->getKey(),
+            'title' => 'Un avis de la modération vous attend',
+            'detail' => 'Vous pouvez vous expliquer jusqu’au '.$notice->deadline()->copy()->locale('fr')->timezone('Africa/Abidjan')->translatedFormat('j F'),
+            'action' => 'Expliquer',
+            'url' => route('avis'),
+        ]];
     }
 
     /** Une publication de la personne a été masquée et la modération attend son explication (écran 14). */
@@ -98,8 +117,8 @@ class Todo
     {
         return Zumra::query()
             ->whereHas('memberships', fn ($query) => $query->where('user_id', $user->getKey())->whereIn('role', ['founder', 'manager']))
-            ->whereHas('joinRequests', fn ($query) => $query->where('state', JoinRequestState::Pending->value)->whereHas('user', fn ($person) => $person->whereNotNull('email_verified_at')))
-            ->withCount(['joinRequests as pending_count' => fn ($query) => $query->where('state', JoinRequestState::Pending->value)->whereHas('user', fn ($person) => $person->whereNotNull('email_verified_at'))])
+            ->whereHas('joinRequests', fn ($query) => $query->where('state', JoinRequestState::Pending->value)->whereHas('user', fn ($person) => $person->active()))
+            ->withCount(['joinRequests as pending_count' => fn ($query) => $query->where('state', JoinRequestState::Pending->value)->whereHas('user', fn ($person) => $person->active())])
             ->orderBy('name_key')->limit(self::MAX_LINES)->get()
             ->map(fn (Zumra $zumra) => [
                 'key' => 'requests-'.$zumra->getKey(),
@@ -113,7 +132,7 @@ class Todo
     /** Pour le fondateur et les responsables : des demandes de participation à un projet attendent une décision (une ligne par projet). */
     private function participationRequestsToDecide(User $user): array
     {
-        $pending = fn ($query) => $query->where('state', JoinRequestState::Pending->value)->whereHas('user', fn ($person) => $person->whereNotNull('email_verified_at'));
+        $pending = fn ($query) => $query->where('state', JoinRequestState::Pending->value)->whereHas('user', fn ($person) => $person->active());
 
         return Project::query()
             ->whereIn('zumra_id', $user->managedZumraIds())

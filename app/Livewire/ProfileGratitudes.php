@@ -50,7 +50,7 @@ class ProfileGratitudes extends Component
         $gratitudes = Gratitude::query()
             ->where('helper_id', $profile->user_id)
             // La personne qui remercie existe pour les autres seulement si son adresse e-mail est vérifiée (comme ses publications).
-            ->whereHas('author', fn ($author) => $author->whereNotNull('email_verified_at'))
+            ->whereHas('author', fn ($author) => $author->active())
             ->when(! $isOwner, fn ($query) => $query->whereNull('hidden_at'))
             ->with(['author.profile', 'publication'])
             ->orderByDesc('created_at')->orderByDesc('id')

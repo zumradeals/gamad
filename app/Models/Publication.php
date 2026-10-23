@@ -132,7 +132,7 @@ class Publication extends Model
 
         return $query->where(function (Builder $query) use ($viewer) {
             $query->where(function (Builder $query) use ($viewer) {
-                $query->whereHas('author', fn (Builder $author) => $author->whereNotNull('email_verified_at'));
+                $query->whereHas('author', fn (Builder $author) => $author->active());
 
                 $query->where(function (Builder $level) use ($viewer) {
                     $level->where('visibility', self::PUBLIC);

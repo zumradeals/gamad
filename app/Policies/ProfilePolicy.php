@@ -18,7 +18,7 @@ class ProfilePolicy
             return Response::allow();
         }
 
-        if (! $profile->user->hasVerifiedEmail()) {
+        if (! $profile->user->isActive()) {
             return Response::denyAsNotFound();
         }
 

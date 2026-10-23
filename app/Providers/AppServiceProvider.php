@@ -25,6 +25,13 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::define('super-admin', fn (User $user) => $user->isSuperAdmin());
         Gate::define('moderate', fn (User $user) => $user->isModerator() || $user->isSuperAdmin());
+
+        // Sanctionner une personne (D-151) : jamais soi-même, jamais le super administrateur ; un modérateur n'agit que sur
+        // les personnes ordinaires, la modération d'un modérateur revient au super administrateur.
+        Gate::define('sanction-person', fn (User $actor, User $person) => $actor->can('moderate')
+            && $actor->isNot($person)
+            && ! $person->isSuperAdmin()
+            && (! $person->isModerator() || $actor->isSuperAdmin()));
     }
 
     /**

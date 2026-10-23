@@ -24,6 +24,17 @@ enum NotificationKind: string
     case ProjectParticipationAccepted = 'project_participation_accepted';
     case ProjectMemberAdded = 'project_member_added';
     case ProjectMemberRemoved = 'project_member_removed';
+    case PublicationExplained = 'publication_explained';
+    case ModerationNoticeIssued = 'moderation_notice_issued';
+    case ModerationNoticeExplained = 'moderation_notice_explained';
+    case ModerationNoticeClosed = 'moderation_notice_closed';
+    case PersonReinstated = 'person_reinstated';
+
+    /** Une notification qui s'adresse à la modération (et non à l'auteur d'un acte de modération). */
+    public function isForModeration(): bool
+    {
+        return in_array($this, [self::PublicationExplained, self::ModerationNoticeExplained], true);
+    }
 
     /** Le texte de la notification commence-t-il par le nom d'une personne ? (Non pour un transfert de fondation.) */
     public function showsActor(): bool
@@ -68,6 +79,11 @@ enum NotificationKind: string
             self::ProjectParticipationAccepted => "a accepté votre participation au projet{$about}.",
             self::ProjectMemberAdded => "vous a ajouté à l'équipe du projet{$about}.",
             self::ProjectMemberRemoved => "vous a retiré de l'équipe du projet{$about}.",
+            self::PublicationExplained => "a écrit son explication sur la publication masquée{$about}.",
+            self::ModerationNoticeIssued => 'vous a envoyé un avis de la modération. Vous pouvez vous expliquer.',
+            self::ModerationNoticeExplained => 'a répondu à l’avis de la modération.',
+            self::ModerationNoticeClosed => 'a classé l’avis de la modération : aucune suite.',
+            self::PersonReinstated => 'a rétabli votre compte.',
         };
     }
 }
