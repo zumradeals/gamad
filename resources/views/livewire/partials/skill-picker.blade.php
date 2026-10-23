@@ -13,7 +13,7 @@
 
 <section aria-labelledby="{{ $list }}-titre" @class(['flex flex-col gap-3', 'rounded-card border border-line bg-card p-4 md:p-[18px]' => ! ($plain ?? false)])>
     <div class="flex flex-col gap-1">
-        <label for="{{ $inputName }}" id="{{ $list }}-titre" @class(['text-[16px] font-extrabold', 'text-type-knowledge-fg' => $tone === 'green', 'text-type-learning-fg' => $tone === 'blue', 'text-ink' => $tone === 'neutral'])>{{ $title }}</label>
+        <label for="{{ $inputName }}" id="{{ $list }}-titre" @class(['text-[16px] font-extrabold' => ! ($plain ?? false), 'text-[13px] font-bold text-muted' => ($plain ?? false), 'text-type-knowledge-fg' => $tone === 'green' && ! ($plain ?? false), 'text-type-learning-fg' => $tone === 'blue' && ! ($plain ?? false), 'text-ink' => $tone === 'neutral' && ! ($plain ?? false)])>{{ $title }}</label>
         <span class="text-[13px] text-muted">{{ $help }} Jusqu’à {{ $max }} ({{ count($items) }} choisie{{ count($items) > 1 ? 's' : '' }}).</span>
     </div>
 
