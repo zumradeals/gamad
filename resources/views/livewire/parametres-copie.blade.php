@@ -41,7 +41,7 @@
             @if ($status['dernier_essai'])
                 <p class="text-[14px]"><strong>Dernier essai de restauration réussi :</strong> {{ $date($status['dernier_essai']) }}.</p>
             @else
-                <p class="text-[14px]"><strong>Essai de restauration :</strong> jamais fait. Il prouve que les copies se relisent vraiment ; il se lance sur le serveur (voir « Essayer le Lot 5c »).</p>
+                <p class="text-[14px]"><strong>Essai de restauration :</strong> jamais fait. Il prouve que les copies se relisent vraiment ; il se lance sur le serveur (voir « Essayer le Lot 5, troisième étape »).</p>
             @endif
             @if ($status['dernier_echec'])
                 <p class="text-[13px] text-muted">Dernier incident : {{ $date($status['dernier_echec']['quand']) }} — {{ $status['dernier_echec']['message'] }}@if ($status['dernier_echec']['depasse']) (depuis, une copie a réussi)@endif</p>

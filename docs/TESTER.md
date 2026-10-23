@@ -337,7 +337,7 @@ Il vous faut votre compte de **super administrateur** et une fenêtre privée (v
 5. **Inscription.** Dans la fenêtre privée, **Créer un compte** demande maintenant de cocher « J'ai lu et j'accepte la charte de conduite » (lien vers la charte) : sans la case, l'inscription est refusée avec un message. **Retirer l'adoption** remet tout comme avant (page introuvable, case absente).
 6. Chaque adoption, retrait et changement de champ est inscrit au journal d'administration (lisible dès la PR 5b).
 
-**Ce qui n'existe pas encore :** sauvegardes hors serveur et préparation du pilote (5c). Les personnes déjà inscrites ne sont pas invitées à accepter la charte (voir D-150).
+**Ce qui n'existe pas encore :** rien de plus dans cette étape (la copie hors serveur et le pilote sont en 5c). Les personnes déjà inscrites ne sont pas invitées à accepter la charte (voir D-150).
 
 ## 15. Essayer le Lot 5, deuxième étape (5b) : journal, avis et suspension
 
@@ -353,7 +353,70 @@ Il vous faut trois comptes : le vôtre (super administrateur), un **modérateur*
 
 **Ce qui n'existe pas encore :** suspension immédiate sans avis (voir D-152) ; recours dans l'application pour une personne suspendue (le contact des mentions légales est affiché une fois celles-ci adoptées).
 
-## 16. Ce qu'il faut regarder à chaque écran
+## 16. Essayer le Lot 5, troisième étape (5c) : copie hors serveur et connexion faible
+
+Il vous faut votre compte de super administrateur, les **accès de votre stockage objet compatible S3** (adresse https, nom du bucket, clé d'accès, clé secrète) et l'accès au serveur (une ligne de commande, pour l'essai de restauration seulement).
+
+1. **Saisir les accès.** **Espace → Administration → Paramètres → Copie hors serveur → Ouvrir**. L'état dit « Non configurée : aucune sauvegarde n'existe hors du serveur ». Renseignez l'adresse, le bucket, les deux clés, puis **Enregistrer et tester la connexion**. Un petit fichier est écrit, relu et effacé sur votre stockage : si cela échoue, un message dit pourquoi et **rien n'est enregistré**.
+2. **Noter la phrase de secours.** Elle s'affiche **une seule fois** dans un encadré. Notez-la hors du serveur (gestionnaire de mots de passe, papier en lieu sûr), puis **J'ai noté la phrase**. Sans elle, les copies sont illisibles pour tout le monde. Plus tard, **Réafficher la phrase de secours** redemande votre mot de passe et s'inscrit au journal.
+3. **Première copie.** Sur le serveur : `sudo gamad-reseau-copie-hors-serveur copier`. Elle répond « Copie hors serveur réussie et vérifiée ». Rechargez la page des Paramètres : « Dernière copie réussie » affiche l'heure. Sans rien faire, la copie se lance seule chaque nuit vers 4 h 30.
+4. **Chez le fournisseur.** Ouvrez votre stockage : vous n'y voyez que des noms illisibles et des fichiers illisibles. C'est voulu.
+5. **L'essai de restauration (obligatoire avant la fin du Lot 5).** Sur le serveur : `sudo gamad-reseau-copie-hors-serveur essai-restauration`. Il rapatrie la dernière copie, la restaure dans une base temporaire, compte les tables, les migrations et les personnes, supprime la base temporaire et répond « ESSAI DE RESTAURATION RÉUSSI ». La page des Paramètres l'affiche ensuite. **La base de production n'est jamais touchée.** Si le message n'apparaît pas, le Lot 5 n'est pas terminé : notez ce que le serveur répond.
+6. **Si la copie tombe en panne.** Si aucune copie n'a réussi depuis plus de 36 heures, un cadre rouge l'indique dans les Paramètres. `sudo gamad-reseau-copie-hors-serveur etat` donne le détail.
+7. **Changer d'accès plus tard.** Dans le même écran, les clés laissées vides sont conservées. La phrase de secours ne se change pas.
+8. **Connexion faible.** Sur un téléphone en 3G ou en réseau lent, ouvrez l'accueil, le Fil, une ZUMRA : la première ouverture est la plus longue (script de l'application, environ 180 ko transférés) ; les suivantes sont presque immédiates. Mesures de référence ci-dessous.
+
+**Mesures de référence (téléphone simulé 390 px, connexion simulée par le navigateur, serveur de développement ; ce ne sont pas des mesures sur un vrai réseau mobile) :**
+
+| Connexion simulée | Avant les correctifs : première ouverture / suivantes | Après (compression et cache) : première ouverture / suivantes |
+| --- | --- | --- |
+| Lente : 400 kb/s, 400 ms | 10,8 s / 3,5 s (environ 500 ko) | 4,5 s / 0,5 à 0,6 s (environ 182 ko, puis 3 à 10 ko) |
+
+Sur une connexion 3G à 1,6 Mb/s et 150 ms, la première ouverture avant correctifs prenait 2,8 s. Toutes les pages mesurées (accueil, connexion, inscription, ZUMRA, projets, Fil, personnes, Espace, notifications) ont le même poids de base : script de l'application (83 ko compressés), feuille de style (9 ko), cinq polices (60 ko), page (3 à 7 ko).
+
+**Ce qui n'existe pas encore :** alerte par e-mail si la copie échoue (l'alerte est dans les Paramètres) ; changement de la phrase de secours ; copie des journaux.
+
+## 17. Préparer et dérouler le pilote fermé
+
+Le pilote réunit **30 à 50 personnes et 3 ZUMRA pendant 4 semaines** (D-157). Ce guide est une proposition de travail : adaptez-la. L'ouverture publique reste votre décision.
+
+**A. Avant d'inviter quelqu'un (cochez chaque ligne)**
+- [ ] Le site répond en https sur votre domaine (accueil visible dans une fenêtre privée).
+- [ ] Les e-mails partent : **Paramètres → Courriel → Envoyer un e-mail de test** reçu, et un compte de test reçoit bien son e-mail de vérification.
+- [ ] La **charte de conduite** et les **mentions légales** sont relues, complétées et **adoptées** (Paramètres → Charte et mentions légales). L'inscription demande alors de cocher la charte.
+- [ ] La **copie hors serveur** est configurée, la première copie est réussie et l'**essai de restauration a réussi** (section 16).
+- [ ] Au moins **deux modérateurs** sont désignés, en plus de vous, et chacun a ouvert **Modération** une fois.
+- [ ] Vous avez essayé « Signaler » vous-même sur une publication de test (section 7).
+- [ ] Vous avez parcouru les sections 2 à 15 sur votre téléphone, sans écran vide ou bouton mort.
+
+**B. Les 4 semaines**
+- *Semaine 1 : poser le décor.* Vous choisissez 3 fondateurs de ZUMRA et leur donnez l'adresse. Chaque fondateur crée sa ZUMRA, invite les premiers membres et publie une première offre ou un premier besoin. Objectif : environ 10 personnes, 3 ZUMRA qui existent vraiment.
+- *Semaine 2 : faire circuler.* Invitez le reste des 30 à 50 personnes (adresse donnée de la main à la main : il n'existe pas de lien d'invitation, voir D-157). Chacun complète son profil, répond à une publication (geste), écrit au moins un message. Objectif : des conversations réelles, des « À faire maintenant » traités.
+- *Semaine 3 : agir ensemble.* Chaque ZUMRA lance un projet, avance ses étapes, publie une avancée ; les besoins reçoivent des remerciements. **Scénarios de modération à jouer pendant cette semaine** (condition D-078) : (1) une personne signale une publication ; le modérateur la masque avec un motif ; l'auteur s'explique ; le modérateur la rétablit. (2) Un signalement classé sans suite. (3) Un **avis** à un compte de test, sa réponse, puis le classement ; **ne suspendez pas** une vraie personne pour essayer, utilisez un compte de test et rétablissez-le. (4) Vous lisez le **journal** : chaque acte y est.
+- *Semaine 4 : bilan.* Posez-vous les questions de la section C et décidez : continuer, corriger, ou ouvrir.
+
+**C. Chaque jour pendant le pilote (5 minutes)**
+1. **Espace → À faire maintenant** : ce qui vous attend.
+2. **Modération** : signalements à examiner, avis en cours.
+3. **Paramètres → Copie hors serveur** : « Dernière copie réussie » date de moins de 36 heures.
+4. Une réponse aux personnes qui vous écrivent : la modération est la première promesse de GAMAD.
+
+**D. Il faut arrêter ou suspendre le pilote si**
+- des données sont perdues ou un compte mélangé avec un autre ;
+- l'e-mail ou le téléphone d'une personne est visible par quelqu'un d'autre ;
+- la copie hors serveur est en échec depuis plus de 36 heures et ne se répare pas ;
+- un cas de harcèlement n'est pas traité sous 48 heures.
+
+**E. Pour décider l'ouverture publique (votre décision, à inscrire dans DECISIONS.md)**
+- [ ] Les quatre scénarios de modération de la semaine 3 ont été joués, par au moins deux modérateurs.
+- [ ] Aucune cause d'arrêt (section D) n'est survenue, ou elle est corrigée et expliquée.
+- [ ] Une copie hors serveur a été restaurée avec succès **pendant** le pilote (refaites l'essai de restauration en semaine 4).
+- [ ] Les personnes du pilote ont pu utiliser le site sur leur téléphone, y compris en réseau lent.
+- [ ] La charte et les mentions légales sont adoptées et visibles en pied de page.
+
+**Ce que le pilote ne fait pas :** pas de paiement (Lot 6), pas de mécanisme d'invitation ou de fermeture des inscriptions (à décider si le pilote doit être fermé techniquement), pas de statistiques d'usage au-delà des chiffres réels déjà visibles (personnes, ZUMRA, projets).
+
+## 18. Ce qu'il faut regarder à chaque écran
 
 - [ ] Le texte se lit sans zoomer, rien ne dépasse de l'écran, aucun défilement de côté.
 - [ ] Les boutons sont faciles à toucher du pouce.
@@ -361,7 +424,7 @@ Il vous faut trois comptes : le vôtre (super administrateur), un **modérateur*
 - [ ] Les messages d'erreur sont clairs et en français.
 - [ ] Tout bouton ou lien visible mène à une vraie page.
 
-## 17. Les mises à jour se font toutes seules
+## 19. Les mises à jour se font toutes seules
 
 Chaque fois qu'un changement est fusionné dans `main`, le site se met à jour tout seul en **5 à 10 minutes** : rechargez la page après ce délai.
 Si une mise à jour échoue, la version actuelle reste en ligne et l'échec est noté dans un journal côté serveur ; si une mise à jour
@@ -370,7 +433,7 @@ sait revenir en arrière (voir `deploy/LISEZMOI.md`, réservé à l'administrati
 
 Les données sont sauvegardées chaque nuit (7 jours conservés).
 
-## 18. Ce qui n'existe pas encore (c'est normal)
+## 20. Ce qui n'existe pas encore (c'est normal)
 
 « Commenter », « Partager », « Suivre », « Inviter », recherche générale, paiement : ces modules sont masqués tant que leur lot
 n'est pas construit.
