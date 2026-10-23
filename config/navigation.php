@@ -24,10 +24,10 @@ return [
 
     // Barre du haut, ordinateur. L'avatar mène toujours à Espace.
     'desktop' => [
-        ['key' => 'fil', 'label' => 'Fil', 'route' => 'fil', 'enabled' => true],
-        ['key' => 'personnes', 'label' => 'Personnes', 'route' => 'personnes.index', 'active' => 'personnes.*', 'enabled' => true],
+        ['key' => 'fil', 'icon' => 'home', 'label' => 'Fil', 'route' => 'fil', 'enabled' => true],
+        ['key' => 'personnes', 'icon' => 'group', 'label' => 'Personnes', 'route' => 'personnes.index', 'active' => 'personnes.*', 'enabled' => true],
         ['key' => 'besoins', 'label' => 'Besoins', 'route' => null, 'enabled' => false],
-        ['key' => 'projets', 'label' => 'Projets', 'route' => 'projets.index', 'active' => 'projets.*', 'enabled' => true],
-        ['key' => 'zumra', 'label' => 'ZUMRA', 'route' => 'zumras.index', 'active' => 'zumras.*', 'enabled' => true],
+        ['key' => 'projets', 'icon' => 'project', 'label' => 'Projets', 'route' => 'projets.index', 'active' => 'projets.*', 'enabled' => true],
+        ['key' => 'zumra', 'icon' => 'community', 'label' => 'ZUMRA', 'route' => 'zumras.index', 'active' => 'zumras.*', 'enabled' => true],
     ],
 ];

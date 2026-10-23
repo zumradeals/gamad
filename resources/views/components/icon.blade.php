@@ -2,6 +2,13 @@
 
 @php
     $paths = [
+        'home' => '<path d="M3 10l9-7 9 7v11h-6v-7H9v7H3z"></path>',
+        'project' => '<rect x="3" y="7" width="18" height="14" rx="2"></rect><path d="M8 7V4h8v3M3 12h18M10 12v3h4v-3"></path>',
+        'community' => '<circle cx="12" cy="7" r="3"></circle><path d="M6 21v-3a6 6 0 0 1 12 0v3M4 10a2 2 0 1 0 0-4M20 10a2 2 0 1 1 0-4M2 20v-4a4 4 0 0 1 3-4M22 20v-4a4 4 0 0 0-3-4"></path>',
+        'tasks' => '<rect x="5" y="4" width="14" height="18" rx="2"></rect><path d="M9 4V2h6v2M8 12l2 2 5-5M9 18h6"></path>',
+        'idea' => '<path d="M9 18h6M10 22h4M8 14a7 7 0 1 1 8 0c-1 .7-1 2-1 4H9c0-2 0-3.3-1-4z"></path>',
+        'learn' => '<path d="M2 9l10-5 10 5-10 5zM6 11v6c4 3 8 3 12 0v-6M22 9v8"></path>',
+        'arrow-right' => '<path d="M4 12h16M15 7l5 5-5 5"></path>',
         'feed' => '<path d="M4 6h16M4 12h16M4 18h10"></path>',
         'compass' => '<circle cx="12" cy="12" r="9"></circle><path d="M15.5 8.5l-2 5-5 2 2-5z"></path>',
         'plus' => '<path d="M12 5v14M5 12h14"></path>',

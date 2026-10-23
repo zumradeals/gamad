@@ -130,3 +130,15 @@ Police unique : **Plus Jakarta Sans** (graisses 400, 500, 600, 700, 800), auto-h
   écrans de saisie gardent une largeur de lecture de 920 px.
 - Un module non construit est **masqué** dans la navigation, jamais simulé.
 - Chaque liste a un état vide qui propose une action concrète (« Créer ma ZUMRA », « Compléter mon profil »).
+
+## 6. Refonte du Fil validée le 23 octobre 2026 (D-151)
+
+La nouvelle composition remplace la présentation des écrans 1 et 4 pour le Fil. Les règles métier et les états restent ceux des lots livrés.
+
+- Grand écran, dès 1 280 px : trois colonnes dans le conteneur de 1 240 px, marges de 24 px, gouttières de 20 px. Profil de 228 px à gauche ; Fil central flexible ; exploration de 276 px à droite.
+- De 1 024 à 1 279 px : profil et Fil. En dessous : Fil seul, barre de navigation basse et filtres défilants ; aucune colonne masquée ne contient une fonction accessible uniquement depuis le Fil.
+- Profil : couverture décorative bleu profond, avatar réel ou initiales chevauchants, nom, ville et présentation si renseignées ; capacités réelles et lien vers le profil. Raccourcis vers Modifier mon profil, Mes ZUMRA et À faire maintenant.
+- Centre : zone de publication à trois raccourcis de type, filtres sur fond blanc avec soulignement actif, ordre chronologique explicite. Cartes avec auteur, type, texte, faits d'engagement réels et actions compactes ; Signaler reste accessible. Le composant de publication conserve son ancien rendu hors du Fil.
+- Droite : liens vers les trois Carrefours et invitation à Agir. Aucune recommandation, statistique ou donnée fictive.
+- Barre d'application commune : icônes et libellés, onglet actif souligné, Notifications, Mon espace, Agir. Devise Formation — Travail — Adoration sous le logo. Le menu ordinateur apparaît à 1 024 px pour éviter le débordement sur tablette.
+- Cartes du Fil : rayon 12 px, bordure `line`, ombre très discrète ; police et couleurs du référentiel conservées. Cibles tactiles de 44 px minimum.

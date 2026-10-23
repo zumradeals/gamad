@@ -21,18 +21,22 @@
     @livewireStyles
 </head>
 <body class="flex flex-col bg-ground text-ink antialiased">
-    <header class="border-b border-line bg-card">
-        <div class="mx-auto flex w-full max-w-[1240px] items-center gap-6 px-4 py-3.5 md:px-6 md:py-2.5">
+    <header class="sticky top-0 z-20 border-b border-line bg-card">
+        <div class="mx-auto flex w-full max-w-[1240px] items-center gap-3 px-4 py-3 lg:gap-5 lg:px-6 lg:py-0">
             <a href="{{ auth()->check() ? route('fil') : url('/') }}" class="no-underline" aria-label="GAMAD — accueil">
-                <x-logo />
+                <span class="flex flex-col">
+                    <span class="flex items-center gap-1.5 text-[24px] font-extrabold leading-tight tracking-[-0.7px] text-ink">GAMAD<span class="size-1.5 rounded-[2px] bg-accent" aria-hidden="true"></span></span>
+                    <span class="text-[10px] font-medium text-muted">Formation — Travail — Adoration</span>
+                </span>
             </a>
 
             @auth
-            <nav aria-label="Navigation principale" class="hidden gap-1 md:flex">
+            <nav aria-label="Navigation principale" class="hidden self-stretch lg:flex">
                 @foreach ($desktopItems as $item)
                     <a href="{{ route($item['route']) }}"
                        @if ($isActive($item)) aria-current="page" @endif
-                       class="flex min-h-11 min-w-11 items-center justify-center rounded-[10px] px-3.5 text-[14px] no-underline {{ $isActive($item) ? 'bg-soft-blue font-extrabold text-ink' : 'font-semibold text-muted hover:text-ink' }}">
+                       class="flex min-h-[72px] min-w-11 items-center justify-center gap-2 border-b-[3px] px-3 text-[13px] no-underline {{ $isActive($item) ? 'border-ink font-extrabold text-ink' : 'border-transparent font-semibold text-muted hover:border-line hover:text-ink' }}">
+                        @if (isset($item['icon']))<x-icon :name="$item['icon']" :size="22" />@endif
                         {{ $item['label'] }}
                     </a>
                 @endforeach
@@ -42,18 +46,19 @@
             <span class="flex-1"></span>
 
             @auth
-                <livewire:notification-bell />
+                <div class="flex items-center gap-1">
+                    <livewire:notification-bell />
+                    <a href="{{ route('notifications') }}" class="hidden min-h-11 items-center text-[12px] font-semibold text-muted no-underline hover:text-ink xl:flex">Notifications</a>
+                </div>
+                <a href="{{ route('espace') }}" aria-label="Mon espace" class="hidden min-h-11 items-center gap-2 border-l border-line pl-4 text-ink no-underline hover:text-ink lg:flex">
+                    <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-ink text-[12px] font-extrabold text-white">{{ auth()->user()?->initials() }}</span>
+                    <span class="hidden text-[12px] font-semibold xl:inline">Mon espace</span>
+                </a>
                 @if ($agir)
-                    <a href="{{ route($agir['route']) }}"
-                       class="hidden min-h-11 items-center gap-1.5 rounded-button bg-accent px-[18px] text-[15px] font-extrabold text-ink no-underline hover:text-ink md:flex">
+                    <a href="{{ route($agir['route']) }}" class="hidden min-h-11 items-center gap-1.5 rounded-button bg-accent px-4 text-[14px] font-extrabold text-ink no-underline hover:text-ink lg:flex">
                         <x-icon name="plus" :size="18" :stroke="2.5" />{{ $agir['label'] }}
                     </a>
                 @endif
-                <a href="{{ route('espace') }}"
-                   aria-label="Mon espace"
-                   class="hidden size-11 items-center justify-center rounded-full bg-ink font-extrabold text-white no-underline hover:text-white md:flex">
-                    {{ auth()->user()?->initial() }}
-                </a>
             @else
                 {{-- Visiteur sans compte (Carrefour Personnes, Monde d'une personne publics) : seulement entrer ou s'inscrire. --}}
                 <div class="flex items-center gap-2">
@@ -66,7 +71,7 @@
         </div>
     </header>
 
-    <main @class(['mx-auto w-full flex-1 px-4 pt-4 md:px-6 md:pb-10 md:pt-6', 'max-w-[920px]' => $narrow, 'max-w-[1240px]' => ! $narrow, 'pb-[104px]' => auth()->check(), 'pb-10' => ! auth()->check()])>
+    <main @class(['mx-auto w-full flex-1 px-4 pt-4 md:px-6 lg:pb-10 lg:pt-6', 'max-w-[920px]' => $narrow, 'max-w-[1240px]' => ! $narrow, 'pb-[104px]' => auth()->check(), 'pb-10' => ! auth()->check()])>
         {{ $slot }}
 
         <div class="mt-6">@include('partials.legal-links')</div>
@@ -74,13 +79,13 @@
 
     @auth
     <nav aria-label="Navigation principale"
-         class="fixed inset-x-0 bottom-0 z-10 border-t border-line bg-card md:hidden"
+         class="fixed inset-x-0 bottom-0 z-10 border-t border-line bg-card lg:hidden"
          style="padding-bottom: env(safe-area-inset-bottom)">
-        <div class="mx-auto flex h-[76px] max-w-md items-center justify-center gap-6">
+        <div class="mx-auto flex h-[76px] max-w-md items-center justify-around px-2">
             @foreach ($phoneItems as $item)
                 @if ($item['prominent'] ?? false)
                     <a href="{{ route($item['route']) }}"
-                       class="flex w-24 flex-col items-center gap-[3px] text-[11px] font-bold text-ink no-underline hover:text-ink">
+                       class="flex min-w-0 flex-1 flex-col items-center gap-[3px] text-[11px] font-bold text-ink no-underline hover:text-ink">
                         <span class="-mt-[18px] flex size-12 items-center justify-center rounded-full border-[3px] border-white bg-accent">
                             <x-icon :name="$item['icon']" :size="24" :stroke="2.5" />
                         </span>
@@ -89,7 +94,7 @@
                 @else
                     <a href="{{ route($item['route']) }}"
                        @if ($isActive($item)) aria-current="page" @endif
-                       class="flex min-h-11 w-24 flex-col items-center justify-center gap-[3px] text-[11px] no-underline {{ $isActive($item) ? 'font-bold text-ink hover:text-ink' : 'font-semibold text-muted hover:text-ink' }}">
+                       class="flex min-h-11 min-w-0 flex-1 flex-col items-center justify-center gap-[3px] text-[11px] no-underline {{ $isActive($item) ? 'font-bold text-ink hover:text-ink' : 'font-semibold text-muted hover:text-ink' }}">
                         <x-icon :name="$item['icon']" />
                         {{ $item['label'] }}
                     </a>
