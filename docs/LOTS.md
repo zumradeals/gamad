@@ -8,7 +8,7 @@ lot en « Terminé ».
 | --- | --- | --- |
 | 0 | Socle | **Terminé** (essai du Président réussi sur reseau.dgafrique.com le 2026-10-22) |
 | 0.1 | Mise en ligne et paramètres | **Terminé** (essai du Président réussi sur reseau.dgafrique.com le 2026-10-22) |
-| 1 | Personne | **En cours** |
+| 1 | Personne | **Terminé** (marqué terminé le 2026-10-23 sur instruction du Président) |
 | 2 | Fil global et gestes | **Terminé** (PR 2a, 2b et 2c fusionnées, marqué terminé par le Président le 2026-10-23) |
 | 3 | ZUMRA | **Terminé** (PR 3a, 3b et 3c fusionnées, marqué terminé le 2026-10-23 sur instruction du Président) |
 | 4 | Projets | À venir |
@@ -141,7 +141,7 @@ rapport ; pas de fusion par Claude.
 
 ---
 
-## Lot 1 — Personne (En cours)
+## Lot 1 — Personne (Terminé)
 
 Maquettes : écrans 5, 6 et 7 de `docs/DESIGN.md`. Décisions : D-065 à D-070.
 
