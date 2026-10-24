@@ -1,8 +1,11 @@
 <?php
 
 use App\Enums\PublicationType;
+use App\Livewire\Fil;
 use App\Livewire\ModerationCommentaires;
 use App\Livewire\PublicationDiscussion;
+use App\Models\Conversation;
+use App\Models\Gesture;
 use App\Models\PublicationComment;
 use App\Models\PublicationCommentReport;
 use App\Models\User;
@@ -13,6 +16,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 beforeEach(function () {
     $this->auteur = person('Awa Traoré');
@@ -28,7 +32,7 @@ function commentaires(): PublicationComments
 it('affiche le lien social et la discussion sur les publications personnelles', function () {
     $this->actingAs($this->lecteur)->get(route('publications.show', $this->publication))
         ->assertOk()->assertSeeText('Discussion publique')->assertSeeText('Participer à la discussion');
-    Livewire::actingAs($this->lecteur)->test(\App\Livewire\Fil::class)->assertSeeText('Commenter');
+    Livewire::actingAs($this->lecteur)->test(Fil::class)->assertSeeText('Commenter');
 
     $c = commentaires()->create($this->lecteur, $this->publication, 'Un conseil utile.');
     $this->get(route('publications.show', $this->publication))->assertSeeText($c->body);
@@ -44,11 +48,11 @@ it('publie une réponse à un seul niveau sans créer un geste ou un échange pr
     $reply = PublicationComment::where('parent_id', $c->id)->firstOrFail();
     expect($reply->author_id)->toBe($this->auteur->id)
         ->and($reply->parent_id)->toBe($c->id)
-        ->and(\App\Models\Gesture::count())->toBe(0)
-        ->and(\App\Models\Conversation::count())->toBe(0);
+        ->and(Gesture::count())->toBe(0)
+        ->and(Conversation::count())->toBe(0);
 
     expect(fn () => commentaires()->create($this->lecteur, $this->publication, 'Profondeur interdite.', $reply->id))
-        ->toThrow(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+        ->toThrow(HttpException::class);
 });
 
 it('autorise modification puis suppression uniquement par son auteur', function () {
@@ -82,7 +86,7 @@ it('protège les commentaires des publications réservées et masquées', functi
     expect(fn () => commentaires()->create(User::factory()->unverified()->create(), $hidden, 'Interdit'))->toThrow(AuthorizationException::class);
 
     app(Moderation::class)->hide(User::factory()->moderator()->create(), $this->publication, 'À examiner');
-    expect(fn () => commentaires()->create($this->lecteur, $this->publication, 'Après masquage'))->toThrow(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+    expect(fn () => commentaires()->create($this->lecteur, $this->publication, 'Après masquage'))->toThrow(HttpException::class);
 });
 
 it('respecte les blocages et ne commente pas les publications collectives', function () {
@@ -91,7 +95,7 @@ it('respecte les blocages et ne commente pas les publications collectives', func
     $org = zumra($this->auteur);
     $collective = publication($this->auteur, PublicationType::Knowledge);
     $collective->forceFill(['zumra_id' => $org->id])->save();
-    expect(fn () => commentaires()->create(person('Autre'), $collective, 'Non'))->toThrow(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+    expect(fn () => commentaires()->create(person('Autre'), $collective, 'Non'))->toThrow(HttpException::class);
 });
 
 it('enregistre un signalement privé, refuse le doublon et son propre commentaire', function () {
