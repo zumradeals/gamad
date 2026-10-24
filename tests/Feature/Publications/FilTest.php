@@ -114,10 +114,10 @@ it('ne propose que les filtres Tout, Besoins, Savoirs, Apprendre, Aides, ZUMRA e
     expect(array_values(array_filter($filtres)))->toBe(['Tout', 'Mes suivis', 'Besoins', 'Savoirs', 'Apprendre', 'Aides', 'ZUMRA', 'Projets']);
 });
 
-it('n’affiche ni Commenter, ni Partager, ni compteur d’approbation, et « Signaler » seulement sur la publication d’un autre', function () {
+it('affiche Commenter sans compteur d’approbation, et « Signaler » seulement sur la publication d’un autre', function () {
     publication(User::factory()->create(), data: ['body' => 'Un besoin']);
 
-    fil()->assertDontSeeText('Commenter')->assertDontSeeText('Partager')
+    fil()->assertSeeText('Commenter')->assertDontSeeText('Partager')
         ->assertDontSeeText('J’aime')->assertDontSeeText('Like')->assertSeeText('Signaler');
 
     // Sur sa propre publication, on ne se signale pas soi-même.

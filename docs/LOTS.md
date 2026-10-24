@@ -48,6 +48,8 @@ sur réalisations et signalements/recours ; trois tables additives, aucun justif
 entrée non connectée /fil vers la présentation, suppression de la devise et des mentions du Mouvement
 dans les textes éditoriaux. Authentification et historiques conservés.
 
+**D-193 étend R1 à la vie sociale**, par trois PR successives après validation des maquettes : commentaires publics sous publications personnelles avec modération ; enregistrements privés et partage ; Accueil social et découverte chronologique. Chaque PR est testée et présentée sur téléphone, sans réouvrir les modules gelés.
+
 **Critères de fin :** parcours sur téléphone, tests en mode initial et régression du système conservé,
 CI verte, aucune suppression de données ni rupture des confirmations de paiement ou de la visibilité.
 Seul le Président clôt ce lot après essai. Réouverture des modules sur nouvelle décision seulement.

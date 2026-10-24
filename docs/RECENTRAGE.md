@@ -324,3 +324,28 @@ Depuis le bilan, création volontaire d’une réalisation par le formulaire exi
 de confirmation selon D-189. Aucune publication ou confirmation automatique.
 Conseil de profil : une suggestion déterministe privée, sans score ni diplôme requis ; capacité,
 réalisation ou présentation selon les éléments manquants. R1 reste En cours.
+
+
+## Vie sociale et conversations publiques — D-193
+
+Le Président valide les maquettes téléphone et ordinateur de l'Accueil social et d'une publication avec
+commentaires. Principe : la confiance peut précéder la collaboration ; aucune publication n'est obligée
+de devenir un geste. Livraison par trois PR distinctes, après contrôle : (1) commentaires et réponses,
+(2) enregistrement privé et partage de lien, (3) découverte chronologique et harmonisation de l'Accueil.
+
+PR 1 : les publications personnelles, publiques ou réservées aux inscrits, reçoivent une discussion
+publique selon leur audience ; les publications collectives historiques restent inchangées. Lecture
+autorisée au même public que la publication. Écriture, modification, suppression et signalement
+demandent un compte actif et une adresse vérifiée. Texte brut, 500 caractères, réponses à un seul niveau.
+L'auteur seul peut modifier ou retirer son texte ; la suppression enlève son texte mais conserve le
+contexte des réponses. Les contenus masqués affichent un emplacement neutre, jamais le texte.
+Une publication devenue invisible ne laisse pas voir ses commentaires ; interdiction revérifiée côté serveur.
+Aucune conversation privée, relation ou geste créé automatiquement, aucun score ni compteur de popularité.
+
+Un signalement par personne et commentaire avec un motif de la liste existante ; auteur du signalement
+non communiqué. Les modérateurs ont une file spécifique et peuvent masquer, classer ou rétablir ;
+les décisions ont un motif et une trace dans le journal d'administration. Un auteur masqué peut
+expliquer son commentaire ; il ne peut pas restaurer lui-même le contenu. Les actes de modération sur
+son propre commentaire sont refusés. Nouvelles tables additives, cascade à la suppression du compte
+et de la publication, aucune dépendance supplémentaire. Le délai et la recette restent ceux de R1.
+Notifications sociales, enregistrements et évolution du Fil relèvent des PR suivantes.

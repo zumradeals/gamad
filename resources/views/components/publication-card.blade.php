@@ -168,4 +168,7 @@
             @endif
         @endif
     </div>
+    @if (! $publication->zumra_id && ! $publication->project_id && ! $publication->isHidden())
+        <a href="{{ route('publications.show', $publication) }}#discussion" class="inline-flex min-h-11 items-center self-start gap-2 text-[13px] font-bold text-link underline-offset-4 hover:underline"><x-icon name="chat" :size="17" />Commenter</a>
+    @endif
 </article>

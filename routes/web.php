@@ -22,6 +22,7 @@ use App\Livewire\InviterPersonnes;
 use App\Livewire\JournalAdministration;
 use App\Livewire\MesAttestations;
 use App\Livewire\ModerationConfiance;
+use App\Livewire\ModerationCommentaires;
 use App\Livewire\ModerationPersonnes;
 use App\Livewire\ModifierProfil;
 use App\Livewire\MondeProjet;
@@ -91,6 +92,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/publications/{publication}/signaler', SignalerPublication::class)->whereUuid('publication')->name('publications.signaler');
     Route::get('/moderation', FileModeration::class)->middleware('can:moderate')->name('moderation');
     Route::get('/moderation/personnes', ModerationPersonnes::class)->middleware('can:moderate')->name('moderation.personnes');
+    Route::get('/moderation/commentaires', ModerationCommentaires::class)->middleware('can:moderate')->name('moderation.commentaires');
     Route::get('/moderation/journal', JournalAdministration::class)->middleware('can:moderate')->name('moderation.journal');
     Route::get('/espace/portefeuille', PagePortefeuille::class)->middleware('wallets')->name('portefeuille');
     Route::get('/zumra/{zumra}/portefeuille', PagePortefeuille::class)->whereUuid('zumra')->middleware('wallets')->name('zumras.portefeuille');
