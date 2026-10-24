@@ -7,6 +7,7 @@ use App\Http\Controllers\CompanyExperienceController;
 use App\Http\Controllers\CompanyExperienceReviewController;
 use App\Http\Controllers\CompanyFollowController;
 use App\Http\Controllers\CompanyPostController;
+use App\Http\Controllers\CompanyReportController;
 use App\Http\Controllers\CompanyVisualController;
 use App\Http\Controllers\GeniusPayWebhookController;
 use App\Http\Controllers\NotificationController;
@@ -23,6 +24,7 @@ use App\Livewire\CarrefourProjets;
 use App\Livewire\CarrefourZumras;
 use App\Livewire\CompanyCreate;
 use App\Livewire\CompanyDirectory;
+use App\Livewire\CompanyResubmit;
 use App\Livewire\CompanyModeration;
 use App\Livewire\ContributionsAdministration;
 use App\Livewire\Espace;
@@ -96,6 +98,12 @@ Route::get('/compte-suspendu', SuspendedController::class)->middleware('auth')->
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/entreprises/creer', CompanyCreate::class)->name('entreprises.create');
+    Route::get('/entreprises/{company}/corriger', CompanyResubmit::class)
+        ->where('company', '.+-[a-z0-9]{8}')->name('entreprises.resubmit');
+    Route::get('/entreprises/{company}/signaler', [CompanyReportController::class, 'create'])
+        ->where('company', '.+-[a-z0-9]{8}')->name('entreprises.reports.create');
+    Route::post('/entreprises/{company}/signaler', [CompanyReportController::class, 'store'])
+        ->where('company', '.+-[a-z0-9]{8}')->name('entreprises.reports.store');
     Route::get('/entreprises/{company}/identite', [CompanyBrandingController::class, 'edit'])
         ->where('company', '.+-[a-z0-9]{8}')->name('entreprises.branding.edit');
     Route::post('/entreprises/{company}/identite', [CompanyBrandingController::class, 'update'])

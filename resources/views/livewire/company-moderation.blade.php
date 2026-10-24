@@ -5,6 +5,28 @@
     </div>
     @if (session('status'))<x-status>{{ session('status') }}</x-status>@endif
     @foreach ($errors->all() as $error)<p role="alert" class="rounded-button border border-danger bg-card p-3 text-[13px] text-danger">{{ $error }}</p>@endforeach
+    <section class="rounded-card border border-line bg-card p-5">
+        <h2 class="text-[20px] font-extrabold">Signalements d’entreprises</h2>
+        <p class="mt-2 text-[13px] text-muted">Les signalants restent confidentiels. En cas d'usurpation sérieuse, suspendre la page avec le bouton ci-dessous, puis motiver la clôture du signalement.</p>
+        <div class="mt-4 space-y-4">
+            @forelse ($reports as $report)
+                <article wire:key="company-report-{{ $report->id }}" class="rounded-button border border-line p-4">
+                    <h3 class="text-[16px] font-extrabold">{{ $report->company?->name }}</h3>
+                    <p class="mt-1 text-[12px] font-semibold text-muted">Motif : {{ $report->reason }} · Signalant : {{ $report->reporter?->name }}</p>
+                    <p class="mt-2 whitespace-pre-line break-words text-[14px]">{{ $report->details }}</p>
+                    <label class="mt-3 flex flex-col gap-1 text-[13px] font-bold">Décision motivée
+                        <textarea wire:model="reportNotes.{{ $report->id }}" maxlength="500" rows="2" class="rounded-button border border-chip-line p-3"></textarea>
+                    </label>
+                    <div class="mt-3 flex flex-wrap gap-3">
+                        <x-button type="button" variant="secondary" wire:click="resolveReport('{{ $report->id }}')" wire:loading.attr="disabled">Classer avec motif</x-button>
+                        @if ($report->company)<a href="{{ route('entreprises.show', $report->company) }}" class="inline-flex min-h-11 items-center text-[13px] font-bold text-link">Consulter la page</a>@endif
+                    </div>
+                </article>
+            @empty
+                <p class="text-[13px] text-muted">Aucun signalement à examiner.</p>
+            @endforelse
+        </div>
+    </section>
     <div class="grid gap-4">
         @forelse ($companies as $company)
             <article wire:key="company-review-{{ $company->id }}-{{ $company->revision }}" class="rounded-card border border-line bg-card p-5">
