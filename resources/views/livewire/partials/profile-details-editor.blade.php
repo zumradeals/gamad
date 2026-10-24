@@ -28,7 +28,7 @@
     @if (count($skill_details) < 10)<x-button type="button" variant="secondary" wire:click="addSkillDetail">Décrire un savoir-faire</x-button>@endif
     @foreach ($errors->get('skill_details*') as $messages)@foreach ($messages as $message)<p role="alert" class="text-danger">{{ $message }}</p>@endforeach @endforeach
 </section>
-<section class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-6">
+<section id="profile-experiences" class="flex scroll-mt-44 flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-6">
     <h2 class="text-[18px] font-extrabold">Mon parcours et mes expériences</h2>
     <p class="text-[13px] text-muted">Un apprentissage, un engagement, une expérience de vie ou de travail : racontez ce qui vous a construit. Ces informations sont déclarées par vous.</p>
     @foreach ($experiences as $i => $experience)
@@ -50,7 +50,7 @@
 </section>
 <section class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-6">
     <h2 class="text-[18px] font-extrabold">À la une sur mon profil</h2>
-    <p class="text-[13px] text-muted">Choisissez jusqu’à trois publications. Leur visibilité est conservée : une publication réservée aux inscrits ne devient pas publique ici.</p>
+    <p class="text-[13px] text-muted">Choisissez jusqu’à trois publications pour mettre vos réalisations et votre savoir-faire en évidence. Leur visibilité est conservée : une publication réservée aux inscrits ne devient pas publique ici.</p>
     <div class="max-h-72 overflow-y-auto">
         @forelse ($ownPosts as $post)
             <label class="flex min-h-11 cursor-pointer items-start gap-3 py-2"><input type="checkbox" wire:model="featured_publications" value="{{ $post->id }}" class="mt-1 size-5 shrink-0 accent-ink"><span class="min-w-0 break-words text-[14px]">{{ Str::limit($post->body, 120) }} <span class="text-[12px] text-muted">· {{ $post->visibility === 'public' ? 'Public' : 'Inscrits seulement' }}</span></span></label>

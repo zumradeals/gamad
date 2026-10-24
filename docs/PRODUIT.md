@@ -268,3 +268,9 @@ restent hors de cette étape. Les propositions de l’ancien chat ne réactivent
 En cours jusqu’à la recette du Président. Recette : deux comptes, capacités communes, zones et conditions
 compatibles puis incompatibles, notifications activées/désactivées, ignorance, clôture, blocage, visibilité et
 expiration ; aucune nouvelle conversation avant acceptation.
+
+## Profil personnel — présentation D-188
+Intitulé facultatif de 100 caractères ; couverture issue d’une publication personnelle illustrée choisie,
+sans copie de média ni changement de visibilité. Capacités, publications mises en avant et parcours déclaré
+précèdent le fil des publications. Contrat, limites et état vide dans RECENTRAGE.md § Profil personnel lisible
+en une minute. Ni diplôme obligatoire ni certification implicite.

@@ -270,3 +270,12 @@ seulement si rémunéré. Sur les publications : nature, conditions, lieu/distan
 promesse de mission. Dans le Fil et Mon espace : section « Des pistes pour avancer », cartes avec raisons et
 liens de découverte, boutons Ignorer et Ne m’intéresse pas, sans note ni nombre public. États vides, réglages,
 chargement et erreurs ; cibles 44 px minimum et une colonne à 390 px. Le Fil chronologique garde son ordre.
+
+## Profil personnel — D-188
+Maquette validée le 24 octobre 2026 : fond ivoire, cartes blanches, bleu encre et accent jaune existants.
+Couverture panoramique facultative, portrait chevauchant, nom/intitulé/bio/localité/capacités puis contact.
+Ancres Savoir-faire, Réalisations, Parcours, Publications. Grille principale + colonne secondaire à partir
+de 1024 px ; une colonne à 390 px. Savoir-faire en cartes, médias des réalisations respectant leurs proportions,
+parcours chronologique dans l’ordre choisi par l’auteur. Pas de données d’exemple en production. Fond neutre
+sans couverture, états vides avec invitation à compléter réservée au propriétaire. Les actions de contact
+réelles restent dans PersonContact, avec chargement/erreur/attente et confirmation des actes destructeurs.

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PublicationType;
 use App\Models\Profile;
 use App\Models\Publication;
 use App\Models\Zumra;
@@ -33,10 +34,22 @@ class PersonController extends Controller
             : collect();
 
         $personalPosts = Publication::query()->visibleTo($viewer)->whereNull('hidden_at')->whereNull('zumra_id')->where('author_id', $profile->user_id)->latest()->limit(20)->get();
-        $references = collect($profile->featured_publications ?? [])->merge(collect($profile->skill_details ?? [])->pluck('publication_id'))->filter()->unique();
+        $references = collect($profile->featured_publications ?? [])->merge(collect($profile->skill_details ?? [])->pluck('publication_id'))->push($profile->cover_publication_id)->filter()->unique();
         $visibleReferences = Publication::query()->visibleTo($viewer)->whereNull('hidden_at')->whereNull('zumra_id')->where('author_id', $profile->user_id)->whereIn('id', $references)->get()->keyBy('id');
 
-        return view('pages.personne', ['personalPosts' => $personalPosts, 'visibleReferences' => $visibleReferences, 'profile' => $profile, 'isOwner' => $isOwner, 'inviteZumras' => $inviteZumras, 'contributorBadge' => app(Contributions::class)->showsBadge($profile->user)]);
+        $cover = $visibleReferences->get($profile->cover_publication_id);
+        if ($cover?->media_kind !== 'image' || ! $cover->media_path) {
+            $cover = null;
+        }
+        $showcasePosts = collect($profile->featured_publications ?? [])->map(fn ($id) => $visibleReferences->get($id))->filter()->values();
+        if ($showcasePosts->isEmpty()) {
+            $showcasePosts = $personalPosts->where('type', PublicationType::PersonalWork)->take(3)->values();
+        }
+        $currentOffer = $personalPosts->first(fn (Publication $post) => $post->type === PublicationType::Offer
+            && (! ($post->matching['enabled'] ?? false) || ($post->matching['open'] ?? true))
+            && (empty($post->matching['until']) || $post->matching['until'] >= today()->toDateString()));
+
+        return view('pages.personne', ['personalPosts' => $personalPosts, 'visibleReferences' => $visibleReferences, 'cover' => $cover, 'showcasePosts' => $showcasePosts, 'currentOffer' => $currentOffer, 'profile' => $profile, 'isOwner' => $isOwner, 'inviteZumras' => $inviteZumras, 'contributorBadge' => app(Contributions::class)->showsBadge($profile->user)]);
     }
 
     /**

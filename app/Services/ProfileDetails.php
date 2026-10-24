@@ -14,8 +14,13 @@ class ProfileDetails
 {
     public function clean(User $user, array $data, array $offered): array
     {
-        $fields = array_intersect_key($data, array_flip(['introduction', 'experiences', 'skill_details', 'featured_publications']));
+        $fields = array_intersect_key($data, array_flip(['headline', 'cover_publication_id', 'introduction', 'experiences', 'skill_details', 'featured_publications']));
+        if (array_key_exists('cover_publication_id', $fields) && $fields['cover_publication_id'] === '') {
+            $fields['cover_publication_id'] = null;
+        }
         $fields = Validator::make($fields, [
+            'headline' => ['sometimes', 'nullable', 'string', 'max:100'],
+            'cover_publication_id' => ['sometimes', 'nullable', 'uuid'],
             'introduction' => ['sometimes', 'nullable', 'string', 'max:1200'],
             'experiences' => ['sometimes', 'array', 'max:10'],
             'experiences.*' => ['array:title,kind,period,description'],
@@ -31,6 +36,14 @@ class ProfileDetails
             'featured_publications' => ['sometimes', 'array', 'max:3'],
             'featured_publications.*' => ['required', 'uuid', 'distinct'],
         ])->validate();
+        if (array_key_exists('headline', $fields)) {
+            $fields['headline'] = preg_replace('/\s+/u', ' ', trim((string) $fields['headline'])) ?: null;
+        }
+        if (filled($fields['cover_publication_id'] ?? null) && ! Publication::query()
+            ->where('author_id', $user->id)->whereNull('zumra_id')->whereNull('hidden_at')
+            ->where('media_kind', 'image')->whereNotNull('media_path')->whereKey($fields['cover_publication_id'])->exists()) {
+            throw ValidationException::withMessages(['cover_publication_id' => 'Choisissez une de vos publications personnelles avec une image encore visible.']);
+        }
         foreach (['experiences', 'skill_details'] as $key) {
             if (isset($fields[$key])) {
                 $fields[$key] = array_values(array_map(fn ($row) => array_map(fn ($text) => is_string($text) ? Normalizer::multiline($text) : $text, $row), $fields[$key]));

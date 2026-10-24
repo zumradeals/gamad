@@ -36,6 +36,10 @@ class ModifierProfil extends Component
 
     public string $bio = '';
 
+    public string $headline = '';
+
+    public string $cover_publication_id = '';
+
     public array $matching_preferences = [];
 
     public string $introduction = '';
@@ -107,6 +111,13 @@ class ModifierProfil extends Component
         }
         $this->name = Auth::user()->name;
         $this->bio = (string) $profile->bio;
+        $this->headline = (string) $profile->headline;
+        $this->cover_publication_id = (string) $profile->cover_publication_id;
+        if ($this->cover_publication_id !== '' && ! Publication::where('author_id', Auth::id())
+            ->whereNull('zumra_id')->whereNull('hidden_at')->where('media_kind', 'image')
+            ->whereNotNull('media_path')->whereKey($this->cover_publication_id)->exists()) {
+            $this->cover_publication_id = '';
+        }
         $this->introduction = (string) $profile->introduction;
         $this->experiences = $profile->experiences ?? [];
         $this->skill_details = $profile->skill_details ?? [];
@@ -199,6 +210,8 @@ class ModifierProfil extends Component
             [
                 'name' => $this->name,
                 'bio' => $this->bio,
+                'headline' => $this->headline,
+                'cover_publication_id' => $this->cover_publication_id,
                 'matching_preferences' => $this->matching_preferences,
                 'introduction' => $this->introduction,
                 'experiences' => $this->experiences,
@@ -252,8 +265,8 @@ class ModifierProfil extends Component
             'showPhoto' => ! $this->removePhoto && ($this->photo !== null || $profile->hasPhoto()),
             'bioMax' => Profile::BIO_MAX,
             'matchingCities' => City::query()->active()->with('country')->orderBy('name')->get(),
-            'ownPosts' => Publication::where('author_id', Auth::id())->whereNull('zumra_id')->whereNull('hidden_at')->orderByDesc('created_at')->limit(100)->get(['id', 'body', 'visibility'])
-                ->merge(Publication::where('author_id', Auth::id())->whereNull('zumra_id')->whereNull('hidden_at')->whereIn('id', collect($profile->featured_publications ?? [])->merge(collect($profile->skill_details ?? [])->pluck('publication_id'))->filter())->get(['id', 'body', 'visibility']))->unique('id')->values(),
+            'ownPosts' => Publication::where('author_id', Auth::id())->whereNull('zumra_id')->whereNull('hidden_at')->orderByDesc('created_at')->limit(100)->get(['id', 'body', 'visibility', 'media_kind', 'media_path'])
+                ->merge(Publication::where('author_id', Auth::id())->whereNull('zumra_id')->whereNull('hidden_at')->whereIn('id', collect($profile->featured_publications ?? [])->merge(collect($profile->skill_details ?? [])->pluck('publication_id'))->push($profile->cover_publication_id)->filter())->get(['id', 'body', 'visibility', 'media_kind', 'media_path']))->unique('id')->values(),
         ]);
     }
 

@@ -45,6 +45,7 @@
             @endif
 
             <x-wire-field name="name" label="Nom affiché" autocomplete="name" maxlength="255" />
+            <x-wire-field name="headline" label="Mon métier ou ce qui me définit (facultatif)" maxlength="100" placeholder="Ex. Plombier · Installation et dépannage" :value="$headline" hint="En une phrase, ce que vous savez faire ou souhaitez apporter. Aucun diplôme n’est nécessaire." />
 
             <div class="flex flex-col gap-1.5" x-data="{ count: [...$wire.bio].length }">
                 <label for="bio" class="text-[13px] font-semibold">Présentation courte</label>
@@ -56,6 +57,19 @@
                 @error('bio')
                     <p id="bio-error" role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>
                 @enderror
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <label for="cover-publication" class="text-[13px] font-semibold">Image de couverture (facultative)</label>
+                <select id="cover-publication" wire:model="cover_publication_id" class="min-h-12 w-full rounded-button border border-chip-line bg-card px-3 text-[14px]">
+                    <option value="" @selected($cover_publication_id === '')>Fond sobre, sans image</option>
+                    @foreach ($ownPosts->where('media_kind', 'image')->filter(fn ($post) => filled($post->media_path)) as $post)
+                        <option value="{{ $post->id }}" @selected($cover_publication_id === $post->id)>{{ Str::limit($post->body, 70) }} · {{ $post->visibility === 'public' ? 'Public' : 'Inscrits seulement' }}</option>
+                    @endforeach
+                </select>
+                <p class="text-[12px] text-muted">Choisissez l’image d’une de vos publications. Elle sera recadrée en bandeau, sans changer sa visibilité : les visiteurs non autorisés verront un fond sobre.</p>
+                <a href="{{ route('agir.publier', 'ma-realisation') }}" class="inline-flex min-h-11 items-center self-start text-[13px] font-bold">Publier une réalisation avec une image →</a>
+                @error('cover_publication_id')<p role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>@enderror
             </div>
 
             <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
