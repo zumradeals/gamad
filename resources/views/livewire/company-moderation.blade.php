@@ -5,6 +5,24 @@
     </div>
     @if (session('status'))<x-status>{{ session('status') }}</x-status>@endif
     @foreach ($errors->all() as $error)<p role="alert" class="rounded-button border border-danger bg-card p-3 text-[13px] text-danger">{{ $error }}</p>@endforeach
+    <section class="rounded-card border border-line bg-card p-5">
+        <h2 class="text-[19px] font-extrabold">Recours et signalements</h2>
+        <div class="mt-3 space-y-3">
+            @forelse ($appeals as $appeal)
+                <article wire:key="company-appeal-{{ $appeal->id }}" class="rounded-button border border-line p-4">
+                    <p class="text-[14px] font-bold">{{ $appeal->company?->name }} · {{ $appeal->kind === 'report' ? 'Signalement' : 'Recours' }}</p>
+                    <p class="mt-1 whitespace-pre-line break-words text-[13px]">{{ $appeal->reason }}</p>
+                    <p class="mt-1 text-[12px] text-muted">Demandeur : {{ $appeal->requester?->name ?? 'Compte supprimé' }}</p>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        <x-button type="button" wire:click="decideAppeal('{{ $appeal->id }}', 'accept')" wire:confirm="Un recours accepté ouvre un nouvel examen. Un signalement accepté suspend la page." wire:loading.attr="disabled" variant="accent">Accepter et agir</x-button>
+                        <x-button type="button" wire:click="decideAppeal('{{ $appeal->id }}', 'reject')" wire:loading.attr="disabled" variant="secondary">Classer sans suite</x-button>
+                    </div>
+                </article>
+            @empty
+                <p class="text-[13px] text-muted">Aucun dossier en attente.</p>
+            @endforelse
+        </div>
+    </section>
     <div class="grid gap-4">
         @forelse ($companies as $company)
             <article wire:key="company-review-{{ $company->id }}-{{ $company->revision }}" class="rounded-card border border-line bg-card p-5">

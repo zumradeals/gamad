@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CompanyAppealController;
+use App\Http\Controllers\CompanyReportController;
 use App\Http\Controllers\CompanyBrandingController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CompanyDocumentController;
@@ -97,6 +98,8 @@ Route::get('/compte-suspendu', SuspendedController::class)->middleware('auth')->
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/entreprises/creer', CompanyCreate::class)->name('entreprises.create');
+    Route::post('/entreprises/{company}/signaler', CompanyReportController::class)
+        ->where('company', '.+-[a-z0-9]{8}')->name('entreprises.report');
     Route::post('/entreprises/{company}/recours', CompanyAppealController::class)
         ->where('company', '.+-[a-z0-9]{8}')->name('entreprises.appeal');
     Route::get('/entreprises/{company}/identite', [CompanyBrandingController::class, 'edit'])

@@ -65,6 +65,18 @@
 
     @if (session('status'))<x-status>{{ session('status') }}</x-status>@endif
 
+    @if ($company->verified() && auth()->check() && auth()->id() !== $company->owner_id)
+        <details class="rounded-card border border-line bg-card p-4">
+            <summary class="cursor-pointer text-[13px] font-semibold">Signaler une usurpation de cette entreprise</summary>
+            <form action="{{ route('entreprises.report', $company) }}" method="POST" class="mt-3 space-y-2">
+                @csrf
+                <label for="company-report" class="block text-[13px] font-bold">Motif du signalement</label>
+                <textarea id="company-report" name="reason" minlength="20" maxlength="1000" required rows="3" class="w-full rounded-button border border-chip-line p-3" placeholder="Décrivez précisément le problème…"></textarea>
+                <x-button type="submit" variant="secondary">Signaler à GAMAD</x-button>
+            </form>
+        </details>
+    @endif
+
     @if ($isOwner && $company->verified())
         <section class="flex flex-wrap items-center justify-between gap-3 rounded-card border border-line bg-card p-4 md:p-5">
             <div><h2 class="text-[17px] font-extrabold">Faire vivre la page entreprise</h2>

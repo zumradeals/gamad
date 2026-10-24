@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Company;
 use App\Enums\NotificationKind;
+use App\Models\Company;
+use App\Models\CompanyAppeal;
 use App\Models\User;
 use App\Services\Notifier;
 use Illuminate\Http\Request;
@@ -25,11 +26,13 @@ class CompanyAppealController extends Controller
             throw ValidationException::withMessages(['reason' => 'Un recours récent a déjà été transmis.']);
         }
 
-        // Ne réactive jamais la page : la modération conserve la décision.
-        $company->update(['review_note' => 'Recours transmis par le propriétaire : '.$data['reason']]);
+        if (CompanyAppeal::where('company_id', $company->id)->where('kind', 'appeal')->where('status', 'pending')->exists()) {
+            throw ValidationException::withMessages(['reason' => 'Un recours est déjà en cours.']);
+        }
+        CompanyAppeal::create(['company_id' => $company->id, 'requester_id' => $actor->id, 'kind' => 'appeal', 'reason' => $data['reason'], 'status' => 'pending']);
         RateLimiter::hit($key, 86400);
         User::query()->where('platform_role', 'super_admin')->each(
-            fn (User $admin) => $notifier->push($admin, NotificationKind::CompanyRequest, $actor)
+            fn (User $admin) => $notifier->push($admin, NotificationKind::CompanyAppeal, $actor)
         );
 
         return redirect()->route('entreprises.show', $company)->with('status', 'Recours transmis. La page reste non publique pendant son examen.');

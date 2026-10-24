@@ -9,6 +9,7 @@ enum NotificationKind: string
     case CompanyRequest = 'company_request';
     case CompanyDecision = 'company_decision';
     case CompanyReview = 'company_review';
+    case CompanyAppeal = 'company_appeal';
     case TrustReview = 'trust_review';
     case MatchFound = 'match_found';
     case ConnectionRequested = 'connection_requested';
@@ -47,7 +48,7 @@ enum NotificationKind: string
     /** Le texte de la notification commence-t-il par le nom d'une personne ? (Non pour un transfert de fondation.) */
     public function showsActor(): bool
     {
-        return ! in_array($this, [self::ZumraFounderTransferred, self::MatchFound, self::TrustUpdated, self::TrustReview, self::CompanyReview], true);
+        return ! in_array($this, [self::ZumraFounderTransferred, self::MatchFound, self::TrustUpdated, self::TrustReview, self::CompanyReview, self::CompanyAppeal], true);
     }
 
     /** Une notification qui parle d'une ZUMRA (son nom prend la place de l'extrait de publication). */
@@ -72,6 +73,7 @@ enum NotificationKind: string
             self::CompanyRequest => 'a déclaré une expérience professionnelle auprès de votre entreprise. Une confirmation est attendue.',
             self::CompanyDecision => 'a traité votre expérience professionnelle. Consultez votre parcours pour voir la décision.',
             self::CompanyReview => 'Votre dossier entreprise a changé de statut. Consultez votre page.',
+            self::CompanyAppeal => 'Un recours ou signalement entreprise attend un examen.',
 
             self::TrustReview => 'Des demandes de confiance attendent un examen.',
             self::MatchFound => 'De nouvelles pistes correspondent à vos préférences. Découvrez pourquoi.',
