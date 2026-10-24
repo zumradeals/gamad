@@ -8,6 +8,8 @@ namespace App\Enums;
  */
 enum PublicationType: string
 {
+    case PersonalWork = 'personal_work';
+    case Share = 'share';
     case Need = 'need';
     case Knowledge = 'knowledge';
     case LearningWish = 'learning_wish';
@@ -20,6 +22,8 @@ enum PublicationType: string
     public function label(): string
     {
         return match ($this) {
+            self::PersonalWork => 'Ma réalisation',
+            self::Share => 'Je partage',
             self::Need => "J'ai besoin",
             self::Knowledge => 'Je partage un savoir',
             self::LearningWish => 'Je veux apprendre',
@@ -34,6 +38,8 @@ enum PublicationType: string
     public function slug(): string
     {
         return match ($this) {
+            self::PersonalWork => 'ma-realisation',
+            self::Share => 'partage',
             self::Need => 'besoin',
             self::Knowledge => 'savoir',
             self::LearningWish => 'apprendre',
@@ -59,6 +65,7 @@ enum PublicationType: string
     public function gestureLabel(): string
     {
         return match ($this) {
+            self::PersonalWork, self::Share => 'Échanger',
             self::Need => 'Je peux aider',
             self::Knowledge => 'Je veux apprendre',
             self::LearningWish => 'Je peux transmettre',
@@ -81,6 +88,7 @@ enum PublicationType: string
         $plural = $count > 1;
 
         return $count.' '.match ($this) {
+            self::PersonalWork, self::Share => $plural ? 'personnes souhaitent échanger' : 'personne souhaite échanger',
             self::Need => $plural ? 'personnes proposent leur aide' : 'personne propose son aide',
             self::Knowledge => $plural ? 'personnes veulent apprendre' : 'personne veut apprendre',
             self::LearningWish => $plural ? 'personnes peuvent transmettre' : 'personne peut transmettre',
@@ -94,6 +102,7 @@ enum PublicationType: string
     public function receivedTitle(): string
     {
         return match ($this) {
+            self::PersonalWork, self::Share => 'Demandes d’échange',
             self::Need => 'Propositions reçues',
             self::Knowledge => 'Personnes qui veulent apprendre',
             self::LearningWish => 'Personnes qui peuvent transmettre',
@@ -107,6 +116,8 @@ enum PublicationType: string
     public function ownTitle(): string
     {
         return match ($this) {
+            self::PersonalWork => 'Ma réalisation',
+            self::Share => 'Mon partage',
             self::Need => 'Mon besoin',
             self::Knowledge => 'Mon savoir partagé',
             self::LearningWish => 'Mon souhait d’apprendre',
@@ -121,6 +132,7 @@ enum PublicationType: string
     public function badgeClasses(): string
     {
         return match ($this) {
+            self::PersonalWork, self::Share => 'bg-type-knowledge-bg text-type-knowledge-fg',
             self::Need => 'bg-type-need-bg text-type-need-fg',
             self::Knowledge => 'bg-type-knowledge-bg text-type-knowledge-fg',
             self::LearningWish => 'bg-type-learning-bg text-type-learning-fg',
@@ -134,7 +146,7 @@ enum PublicationType: string
     /** Types qu'une personne publie en son nom (D-081) : l'Appel à rejoindre n'existe que pour une ZUMRA. */
     public static function forPerson(): array
     {
-        return [self::Need, self::Knowledge, self::LearningWish, self::Offer];
+        return [self::Need, self::Knowledge, self::LearningWish, self::Offer, self::PersonalWork, self::Share];
     }
 
     /** Types publiés au nom d'une ZUMRA (D-116) : « Je veux apprendre » reste personnel, les avancées et réalisations se font au nom d'un projet (forProject). */
@@ -161,6 +173,11 @@ enum PublicationType: string
         return $this === self::ProjectUpdate || $this === self::Achievement;
     }
 
+    public function isExchange(): bool
+    {
+        return in_array($this, [self::PersonalWork, self::Share], true);
+    }
+
     /** Ce type reçoit des gestes : ni l'Appel à rejoindre (demande d'adhésion), ni l'avancée ni la réalisation (soutien, D-139). */
     public function takesGestures(): bool
     {
@@ -182,6 +199,8 @@ enum PublicationType: string
     public function pitch(): string
     {
         return match ($this) {
+            self::PersonalWork => 'Montrez ce que vous avez réalisé, seul ou avec d’autres.',
+            self::Share => 'Partagez une idée, une image, une vidéo ou un document et ouvrez la discussion.',
             self::Need => "Dites ce qui vous manque. Quelqu'un peut vous aider.",
             self::Knowledge => 'Partagez un conseil, une fiche ou un atelier.',
             self::LearningWish => "Dites ce que vous voulez apprendre. Quelqu'un peut vous transmettre.",

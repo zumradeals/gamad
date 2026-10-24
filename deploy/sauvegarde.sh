@@ -67,12 +67,35 @@ if [ -n "$premiere_photo" ]; then
     PHOTOS_ETAT="Photos archivées : $(basename "$PHOTOS_FICHIER")."
 fi
 
+# Fichiers des publications personnelles (D-186).
+MEDIAS_RACINE="$APP_DIR/shared/storage/app/private"
+MEDIAS_DOSSIER="$MEDIAS_RACINE/publication-media"
+MEDIAS_FICHIER="$BACKUP_DIR/medias-$HORODATAGE.tar.gz"
+MEDIAS_ETAT="Aucun fichier de publication à archiver."
+premier_media=""
+if [ -d "$MEDIAS_DOSSIER" ]; then
+    premier_media="$(find "$MEDIAS_DOSSIER" -type f -print -quit 2>/dev/null || true)"
+fi
+if [ -n "$premier_media" ]; then
+    if tar -czf "$MEDIAS_FICHIER" -C "$MEDIAS_RACINE" publication-media; then
+        :
+    else
+        code_tar=$?
+        if [ "$code_tar" -ne 1 ]; then
+            rm -f "$MEDIAS_FICHIER"
+            false
+        fi
+    fi
+    tar -tzf "$MEDIAS_FICHIER" >/dev/null
+    MEDIAS_ETAT="Fichiers de publications archivés : $(basename "$MEDIAS_FICHIER")."
+fi
+
 # Conserve les $BACKUP_KEEP plus récentes de chaque sorte.
-for motif in "$DB_NAME-*.dump" "env-*" "photos-*.tar.gz"; do
+for motif in "$DB_NAME-*.dump" "env-*" "photos-*.tar.gz" "medias-*.tar.gz"; do
     { ls -1t "$BACKUP_DIR"/$motif 2>/dev/null || true; } | tail -n +"$((BACKUP_KEEP + 1))" | xargs -r rm -f
 done
 
 # Informations de confort : leur échec ne doit pas faire passer pour raté une sauvegarde réussie.
 TAILLE="$(du -h "$FICHIER" | cut -f1 || true)"
 NOMBRE="$(ls -1 "$BACKUP_DIR"/"$DB_NAME"-*.dump | wc -l || true)"
-journal "Sauvegarde réussie : $(basename "$FICHIER") ($TAILLE). $NOMBRE conservée(s). $PHOTOS_ETAT"
+journal "Sauvegarde réussie : $(basename "$FICHIER") ($TAILLE). $NOMBRE conservée(s). $PHOTOS_ETAT $MEDIAS_ETAT"

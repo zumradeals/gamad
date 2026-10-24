@@ -7,6 +7,7 @@ use App\Models\City;
 use App\Models\Country;
 use App\Models\Domain;
 use App\Models\Profile;
+use App\Models\Publication;
 use App\Models\User;
 use App\Services\ProfileEditor;
 use App\Services\ProfilePhoto;
@@ -33,6 +34,40 @@ class ModifierProfil extends Component
     public string $name = '';
 
     public string $bio = '';
+
+    public string $introduction = '';
+
+    public array $experiences = [];
+
+    public array $skill_details = [];
+
+    public array $featured_publications = [];
+
+    public function addExperience(): void
+    {
+        if (count($this->experiences) < 10) {
+            $this->experiences[] = ['title' => '', 'kind' => 'personal', 'period' => '', 'description' => ''];
+        }
+    }
+
+    public function removeExperience(int $index): void
+    {
+        unset($this->experiences[$index]);
+        $this->experiences = array_values($this->experiences);
+    }
+
+    public function addSkillDetail(): void
+    {
+        if (count($this->skill_details) < 10) {
+            $this->skill_details[] = ['skill' => $this->offered[0] ?? '', 'description' => '', 'publication_id' => ''];
+        }
+    }
+
+    public function removeSkillDetail(int $index): void
+    {
+        unset($this->skill_details[$index]);
+        $this->skill_details = array_values($this->skill_details);
+    }
 
     public string $country_id = '';
 
@@ -65,6 +100,20 @@ class ModifierProfil extends Component
 
         $this->name = Auth::user()->name;
         $this->bio = (string) $profile->bio;
+        $this->introduction = (string) $profile->introduction;
+        $this->experiences = $profile->experiences ?? [];
+        $this->skill_details = $profile->skill_details ?? [];
+        $this->featured_publications = $profile->featured_publications ?? [];
+        $references = collect($this->featured_publications)->merge(collect($this->skill_details)->pluck('publication_id'))->filter()->unique();
+        $valid = Publication::where('author_id', Auth::id())->whereNull('zumra_id')->whereNull('hidden_at')->whereIn('id', $references)->pluck('id')->all();
+        $this->featured_publications = array_values(array_intersect($this->featured_publications, $valid));
+        $this->skill_details = array_map(function ($detail) use ($valid) {
+            if (! in_array($detail['publication_id'] ?? null, $valid, true)) {
+                $detail['publication_id'] = null;
+            }
+
+            return $detail;
+        }, $this->skill_details);
         $this->country_id = (string) $profile->country_id;
         $this->city_id = (string) $profile->city_id;
         $this->visibility = $profile->visibility;
@@ -143,6 +192,10 @@ class ModifierProfil extends Component
             [
                 'name' => $this->name,
                 'bio' => $this->bio,
+                'introduction' => $this->introduction,
+                'experiences' => $this->experiences,
+                'skill_details' => $this->skill_details,
+                'featured_publications' => $this->featured_publications,
                 'country_id' => $this->country_id,
                 'city_id' => $this->city_id,
                 'visibility' => $this->visibility,
@@ -190,6 +243,8 @@ class ModifierProfil extends Component
             'pendingPhotoUrl' => $this->pendingPhotoUrl(),
             'showPhoto' => ! $this->removePhoto && ($this->photo !== null || $profile->hasPhoto()),
             'bioMax' => Profile::BIO_MAX,
+            'ownPosts' => Publication::where('author_id', Auth::id())->whereNull('zumra_id')->whereNull('hidden_at')->orderByDesc('created_at')->limit(100)->get(['id', 'body', 'visibility'])
+                ->merge(Publication::where('author_id', Auth::id())->whereNull('zumra_id')->whereNull('hidden_at')->whereIn('id', collect($profile->featured_publications ?? [])->merge(collect($profile->skill_details ?? [])->pluck('publication_id'))->filter())->get(['id', 'body', 'visibility']))->unique('id')->values(),
         ]);
     }
 

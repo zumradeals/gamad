@@ -3,6 +3,7 @@
 use App\Http\Controllers\GeniusPayWebhookController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PersonController;
+use App\Http\Controllers\PublicationMediaController;
 use App\Http\Controllers\SuspendedController;
 use App\Http\Controllers\TextesController;
 use App\Http\Controllers\WelcomeController;
@@ -65,6 +66,7 @@ Route::get('/projets', CarrefourProjets::class)->name('projets.index');
 Route::get('/projets/{project}', MondeProjet::class)->whereUuid('project')->name('projets.show');
 
 // Une publication publique se lit sans compte ; répondre demande un compte (D-085). Une publication interdite répond 404.
+Route::get('/publications/{publication}/fichier', PublicationMediaController::class)->whereUuid('publication')->name('publications.media');
 Route::get('/publications/{publication}', PagePublication::class)->whereUuid('publication')->name('publications.show');
 
 Route::get('/compte-suspendu', SuspendedController::class)->middleware('auth')->name('suspendu');

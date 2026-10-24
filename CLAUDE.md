@@ -5,7 +5,9 @@
 Le Président demande une entrée unifiée **Fil · Agir · Mon espace** (D-184). Les profils et la recherche
 de personnes restent accessibles depuis le Fil et les publications, sans menu Personnes permanent.
 La priorité est le parcours besoin → proposition précise → conversation → prochaine action confirmée.
-Les outils spécialisés (fichiers, audio/vidéo, formations, stockage, etc.) restent différés, sans choix technique engagé.
+D-186 ajoute les profils enrichis, réalisations et partages personnels (texte, image, vidéo ou PDF),
+le geste Échanger, les suivis et les relations réciproques privées. Lire le contrat détaillé en fin de
+`docs/RECENTRAGE.md`. Les outils spécialisés de formation, stockage général et temps réel restent différés.
 Lire d'abord `docs/RECENTRAGE.md`, puis les quatre sources d'autorité ci-dessous.
 **Suspendre toute extension des ZUMRA, Projets, contributions et portefeuilles** : leur code et leurs données
 restent conservés, leurs nouvelles utilisations sont gelées selon le contrat de transition. Ne pas les

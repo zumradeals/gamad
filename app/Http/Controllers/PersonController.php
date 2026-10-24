@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Profile;
+use App\Models\Publication;
 use App\Models\Zumra;
 use App\Services\Contributions;
 use App\Support\Experience;
@@ -31,7 +32,11 @@ class PersonController extends Controller
                 ->orderBy('name_key')->get()
             : collect();
 
-        return view('pages.personne', ['profile' => $profile, 'isOwner' => $isOwner, 'inviteZumras' => $inviteZumras, 'contributorBadge' => app(Contributions::class)->showsBadge($profile->user)]);
+        $personalPosts = Publication::query()->visibleTo($viewer)->whereNull('hidden_at')->whereNull('zumra_id')->where('author_id', $profile->user_id)->latest()->limit(20)->get();
+        $references = collect($profile->featured_publications ?? [])->merge(collect($profile->skill_details ?? [])->pluck('publication_id'))->filter()->unique();
+        $visibleReferences = Publication::query()->visibleTo($viewer)->whereNull('hidden_at')->whereNull('zumra_id')->where('author_id', $profile->user_id)->whereIn('id', $references)->get()->keyBy('id');
+
+        return view('pages.personne', ['personalPosts' => $personalPosts, 'visibleReferences' => $visibleReferences, 'profile' => $profile, 'isOwner' => $isOwner, 'inviteZumras' => $inviteZumras, 'contributorBadge' => app(Contributions::class)->showsBadge($profile->user)]);
     }
 
     /**

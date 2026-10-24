@@ -62,6 +62,8 @@ class ProfileEditor
             throw ValidationException::withMessages(['domain_ids' => 'Trois domaines au plus.']);
         }
 
+        $details = app(ProfileDetails::class)->clean($user, $data, $offered);
+
         $newPhotoPath = null;
 
         if ($photo !== null) {
@@ -79,7 +81,7 @@ class ProfileEditor
         $finalPhotoPath = null;
 
         try {
-            DB::transaction(function () use ($user, $name, $bio, $data, $offered, $wanted, $domainIds, $newPhotoPath, $removePhoto, &$oldPhotoPath, &$finalPhotoPath) {
+            DB::transaction(function () use ($user, $name, $bio, $data, $offered, $wanted, $domainIds, $details, $newPhotoPath, $removePhoto, &$oldPhotoPath, &$finalPhotoPath) {
                 /** @var Profile $profile */
                 $profile = Profile::query()->where('user_id', $user->getKey())->lockForUpdate()->firstOrFail();
 
@@ -92,6 +94,7 @@ class ProfileEditor
                 $finalPhotoPath = $newPhotoPath ?? ($removePhoto ? null : $oldPhotoPath);
 
                 $profile->update([
+                    ...$details,
                     'bio' => $bio === '' ? null : $bio,
                     'country_id' => $countryId,
                     'city_id' => $cityId,

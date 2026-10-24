@@ -31,6 +31,8 @@
                 <span class="inline-flex items-center gap-1.5 self-start rounded-chip bg-type-call-bg px-3 py-1 text-[12px] font-bold text-type-call-fg" data-testid="badge-contributeur"><x-icon name="check" :size="14" :stroke="3" />Contributeur</span>
             @endif
 
+            @unless ($isOwner)<livewire:person-contact :profile="$profile" />@endunless
+
             @foreach ($inviteZumras as $inviteZumra)
                 <x-button :href="route('zumras.invite', [$inviteZumra, 'personne' => $profile->public_id])" variant="secondary" class="md:self-start md:px-8">{{ $inviteZumras->count() === 1 ? 'Inviter dans ma ZUMRA' : 'Inviter dans '.$inviteZumra->name }}</x-button>
             @endforeach
@@ -43,6 +45,8 @@
             @endif
         </header>
 
+        @include('pages.partials-person-showcase')
+
         <nav aria-label="Onglets du profil" class="-mx-4 flex border-b border-line bg-card px-2 md:mx-0 md:rounded-card md:border">
             <a href="{{ route('personnes.show', $profile->public_id) }}" aria-current="page"
                class="flex min-h-12 items-center border-b-[3px] border-accent px-3 text-[14px] font-extrabold text-ink no-underline hover:text-ink">Apporte · Apprend</a>
@@ -53,7 +57,7 @@
         @if ($empty)
             <section class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
                 @if ($isOwner)
-                    <h2 class="text-[17px] font-extrabold">Votre profil est encore vide.</h2>
+                    <h2 class="text-[17px] font-extrabold">{{ filled($profile->introduction) || count($profile->experiences ?? []) || $personalPosts->isNotEmpty() ? 'Qu’aimeriez-vous apporter ou apprendre ?' : 'Votre profil est encore vide.' }}</h2>
                     <p class="text-muted">Dites ce que vous pouvez apporter et ce que vous voulez apprendre : d’autres personnes vous trouveront.</p>
                     <x-button :href="route('espace.profil')">Compléter mon profil</x-button>
                 @else

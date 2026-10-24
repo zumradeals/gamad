@@ -143,3 +143,21 @@ Ces règles sont vérifiées par `tests/Feature/Deploy/` (elles s'exécutent à 
 - Le code du dépôt (`/srv/gamad-reseau/repo`) appartient au compte dédié : toute commande `git` y est lancée avec
   `runuser -u gamad-reseau --` (sinon git refuse : « dubious ownership »).
 - Pour tester un script `install.sh` sans l'exécuter : `GAMAD_SOURCE_ONLY=1 source deploy/install.sh` charge ses fonctions seulement.
+
+### Fichiers des publications personnelles (D-186)
+
+La sauvegarde quotidienne ajoute `medias-AAAA-MM-JJ_HHMMSS.tar.gz` lorsque
+`shared/storage/app/private/publication-media` contient des fichiers ; la rétention et la copie hors serveur
+s’appliquent comme aux photos. Restaurer cette archive à la même racine privée que l’archive des photos,
+puis rendre `publication-media` à l’utilisateur du service. Restaurer base et fichiers depuis la même sauvegarde.
+Les envois sont limités à 5 Mo pour images/PDF et 10 Mo pour vidéos ; les limites PHP et du proxy doivent permettre
+10 Mo plus l’enveloppe HTTP. Les vidéos MP4/WebM utilisent les commandes et codecs du navigateur, sans transcodage.
+
+Pour un serveur déjà installé, le minuteur déploie l’application et sa migration, mais ne remplace pas les
+scripts privilégiés ni la configuration du serveur. Après déploiement, l’administrateur doit mettre à jour
+`/usr/local/lib/gamad-reseau/sauvegarde.sh` et `copie-hors-serveur.sh` depuis les fichiers correspondants de
+`/srv/gamad-reseau/current/deploy/`, avec le propriétaire root et le mode 0755. Dans le **seul pool GAMAD**
+`/etc/php/<version>/fpm/pool.d/gamad-reseau.conf`, régler `upload_max_filesize` à `10M` et `post_max_size` à `12M` ;
+dans le **seul vhost GAMAD**, régler `client_max_body_size` à `12m`. Vérifier PHP-FPM et `nginx -t` avant de
+recharger les services concernés. L’installateur inclut ces limites pour les nouvelles installations. Sans cet
+ajustement sur une ancienne installation, le proxy peut refuser une vidéo avant que l’application ne la reçoive.

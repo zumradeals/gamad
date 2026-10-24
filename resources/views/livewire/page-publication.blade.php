@@ -62,6 +62,7 @@
                 @endif
             </div>
             <p class="whitespace-pre-line break-words text-[15px] leading-normal">{{ $publication->body }}</p>
+    <x-publication-media :publication="$publication" />
             @if ($publication->skills->isNotEmpty())
                 <ul class="flex flex-wrap gap-1.5" aria-label="Capacités">
                     @foreach ($publication->skills as $skill)

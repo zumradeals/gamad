@@ -118,7 +118,7 @@ it('conserve les quatre publications personnelles et la recherche de capacités'
         Livewire::actingAs($user)->test(PublierPublication::class, ['slug' => $type->slug()])
             ->set('body', 'Une publication personnelle : '.$type->value)->call('publish')->assertHasNoErrors();
     }
-    expect(Publication::query()->where('author_id', $user->id)->count())->toBe(4);
+    expect(Publication::query()->where('author_id', $user->id)->count())->toBe(6);
     Livewire::test(CarrefourPersonnes::class)->set('query', 'couture')->assertSeeText('Awa');
 });
 

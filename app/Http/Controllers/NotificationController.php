@@ -23,6 +23,8 @@ class NotificationController extends Controller
         $publication = $notification->publication;
 
         $target = match ($notification->kind) {
+            NotificationKind::ConnectionRequested => route('espace').'#mes-liens',
+            NotificationKind::ConnectionAccepted => $conversation && Gate::forUser($user)->allows('view', $conversation) ? route('conversations.show', $conversation) : route('espace').'#mes-liens',
             NotificationKind::MessageReceived, NotificationKind::GestureAccepted => $conversation && Gate::forUser($user)->allows('view', $conversation)
                 ? route('conversations.show', $conversation)
                 : ($publication && Gate::forUser($user)->allows('view', $publication) ? route('publications.show', $publication) : null),
@@ -44,6 +46,6 @@ class NotificationController extends Controller
         };
 
         // Ce que la notification annonçait n'existe plus (publication ou conversation supprimée) : retour à la liste.
-        return redirect($target ?? route('notifications'));
+        return new RedirectResponse($target ?? route('notifications'));
     }
 }

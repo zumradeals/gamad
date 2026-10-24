@@ -18,7 +18,7 @@
             <h1 class="truncate text-[15px] font-extrabold">{{ $other?->name ?? 'Personne supprimée' }}</h1>
             @if ($conversation->publication && Gate::forUser($viewer)->allows('view', $conversation->publication))
                 <a href="{{ route('publications.show', $conversation->publication) }}" class="-my-3.5 truncate py-3.5 text-[12px] font-semibold">À propos de : {{ $about }}</a>
-            @elseif (! $conversation->publication)
+            @elseif (! $conversation->publication && $conversation->origin !== 'relation')
                 <span class="text-[12px] text-muted">Publication supprimée</span>
             @endif
         </div>
@@ -96,6 +96,6 @@
             </div>
         </form>
     @elseif (! $canSend)
-        <p class="rounded-card border border-line bg-card p-4 text-[14px] font-semibold text-muted">Cette personne a supprimé son compte : vous pouvez relire la conversation, mais plus lui écrire.</p>
+        <p class="rounded-card border border-line bg-card p-4 text-[14px] font-semibold text-muted">{{ $other ? 'Cet échange n’accepte plus de messages. Vous pouvez toujours relire la conversation.' : 'Cette personne a supprimé son compte : vous pouvez relire la conversation, mais plus lui écrire.' }}</p>
     @endif
 </div>

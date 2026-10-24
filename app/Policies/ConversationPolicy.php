@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\Conversation;
 use App\Models\User;
+use App\Services\People;
 use Illuminate\Auth\Access\Response;
 
 /** Une conversation privée n'existe que pour ses deux participants : pour tout autre, elle répond 404. */
@@ -25,6 +26,11 @@ class ConversationPolicy
             return $view;
         }
 
-        return $conversation->otherPerson($user) ? Response::allow() : Response::deny('Cette personne a supprimé son compte : vous ne pouvez plus lui écrire.');
+        $other = $conversation->otherPerson($user);
+        if ($other && (! $user->isActive() || ! $other->isActive() || People::blocked($user, $other, fresh: true))) {
+            return Response::deny('Cet échange n’accepte plus de messages.');
+        }
+
+        return $other ? Response::allow() : Response::deny('Cette personne a supprimé son compte : vous ne pouvez plus lui écrire.');
     }
 }

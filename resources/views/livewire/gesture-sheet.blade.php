@@ -19,11 +19,11 @@
                     </button>
                 </div>
 
-                <p class="text-[14px] leading-[1.55]">{{ $firstName }} recevra votre {{ $type->isNeed() ? 'proposition' : 'réponse' }} et pourra <strong>l’accepter</strong>.</p>
+                <p class="text-[14px] leading-[1.55]">{{ $firstName }} recevra votre {{ $type->isExchange() ? 'demande d’échange' : ($type->isNeed() ? 'proposition' : 'réponse') }} et pourra <strong>l’accepter</strong>.</p>
 
                 <form wire:submit="send" class="flex flex-col gap-3.5">
                     <div class="flex flex-col gap-1.5" x-data="{ count: [...$wire.message].length }">
-                        <label for="geste-mot" class="text-[13px] font-bold text-muted">Un mot pour {{ $firstName }} (facultatif)</label>
+                        <label for="geste-mot" class="text-[13px] font-bold text-muted">{{ $type->isExchange() ? 'De quoi aimeriez-vous échanger ?' : 'Un mot pour '.$firstName.' (facultatif)' }}</label>
                         <textarea id="geste-mot" wire:model="message" rows="3" maxlength="{{ \App\Models\Gesture::MESSAGE_MAX }}"
                                   x-on:input="count = [...$event.target.value].length"
                                   @class(['min-h-24 w-full resize-none rounded-button border bg-card px-3.5 py-3 text-[15px] leading-normal', $errors->has('message') ? 'border-danger' : 'border-chip-line'])
@@ -34,6 +34,7 @@
                         @enderror
                     </div>
 
+                    @unless ($type->isExchange())
                     <details class="rounded-button border border-line p-3" @if ($errors->has('availability') || $errors->has('helpFormat')) open @endif>
                         <summary class="min-h-11 cursor-pointer content-center text-[14px] font-bold">Préciser ma proposition (facultatif)</summary>
                         <div class="mt-2 flex flex-col gap-3">
@@ -42,15 +43,17 @@
                             <p class="text-[12px] text-muted">Ces précisions accompagnent votre proposition, dans la limite totale de {{ \App\Models\Gesture::MESSAGE_MAX }} caractères. Vous conviendrez de la suite après acceptation.</p>
                         </div>
                     </details>
+                    @endunless
+                    @if ($type->isExchange())<p class="text-[12px] text-muted">Votre demande porte sur cette publication. L’échange privé s’ouvrira après son accord, sans créer automatiquement une relation.</p>@endif
 
                     <p class="text-[12px] leading-normal text-muted">Votre profil (nom, ville, capacités) sera visible par {{ $firstName }}. Jamais votre e-mail ni votre téléphone.</p>
 
                     <x-button wire:loading.attr="disabled" wire:target="send" class="min-h-[52px]">
-                        <span wire:loading.remove wire:target="send">{{ $type->isNeed() ? 'Envoyer ma proposition' : 'Envoyer ma réponse' }}</span>
+                        <span wire:loading.remove wire:target="send">{{ $type->isExchange() ? 'Envoyer ma demande d’échange' : ($type->isNeed() ? 'Envoyer ma proposition' : 'Envoyer ma réponse') }}</span>
                         <span wire:loading wire:target="send">Envoi…</span>
                     </x-button>
                     <x-button type="button" variant="secondary" wire:click="close" class="!border-transparent !text-muted">Annuler</x-button>
-                    <p class="text-[12px] leading-normal text-muted">Vous pourrez retirer votre {{ $type->isNeed() ? 'proposition' : 'réponse' }} tant qu’elle n’est pas acceptée.</p>
+                    <p class="text-[12px] leading-normal text-muted">Vous pourrez retirer votre {{ $type->isExchange() ? 'demande d’échange' : ($type->isNeed() ? 'proposition' : 'réponse') }} tant qu’elle n’est pas acceptée.</p>
                 </form>
             </div>
         </div>

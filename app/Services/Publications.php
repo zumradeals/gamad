@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -89,26 +90,38 @@ class Publications
             [config('gamad.limits.publications_per_day'), 86400, 'Vous avez atteint la limite de publications pour aujourd’hui.'],
         ], 'body');
 
-        return DB::transaction(function () use ($author, $type, $body, $visibility, $domainId, $cityId, $skills, $zumra, $project) {
-            $publication = new Publication([
-                'type' => $type,
-                'body' => $body,
-                'domain_id' => $domainId,
-                'city_id' => $cityId,
-                'visibility' => $visibility,
-                'need_state' => $type->isNeed() ? NeedState::Open : null,
-            ]);
-            $publication->author()->associate($author);
-            $publication->zumra()->associate($zumra);
-            $publication->project()->associate($project);
-            $publication->save();
+        if (($zumra || $project) && isset($data['media'])) {
+            throw ValidationException::withMessages(['media' => 'Les fichiers sont réservés aux publications personnelles.']);
+        }
+        $media = app(PublicationMedia::class)->store($data['media'] ?? null);
+        try {
+            return DB::transaction(function () use ($author, $type, $body, $visibility, $domainId, $cityId, $skills, $zumra, $project, $media) {
+                $publication = new Publication([
+                    ...$media,
+                    'type' => $type,
+                    'body' => $body,
+                    'domain_id' => $domainId,
+                    'city_id' => $cityId,
+                    'visibility' => $visibility,
+                    'need_state' => $type->isNeed() ? NeedState::Open : null,
+                ]);
+                $publication->author()->associate($author);
+                $publication->zumra()->associate($zumra);
+                $publication->project()->associate($project);
+                $publication->save();
 
-            $publication->skills()->attach(collect($skills)->mapWithKeys(
-                fn (string $name, int $position) => [Skill::findOrCreateByName($name)->id => ['position' => $position]]
-            )->all());
+                $publication->skills()->attach(collect($skills)->mapWithKeys(
+                    fn (string $name, int $position) => [Skill::findOrCreateByName($name)->id => ['position' => $position]]
+                )->all());
 
-            return $publication;
-        });
+                return $publication;
+            });
+        } catch (\Throwable $error) {
+            if (isset($media['media_path'])) {
+                Storage::disk('local')->delete($media['media_path']);
+            }
+            throw $error;
+        }
     }
 
     /** « Marquer comme résolu » : l'auteur seul (D-083). */

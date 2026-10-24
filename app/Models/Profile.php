@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\People;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -31,6 +32,11 @@ class Profile extends Model
     public const PHOTO_DISK = 'local';
 
     protected $guarded = ['id', 'user_id', 'public_id'];
+
+    protected function casts(): array
+    {
+        return ['experiences' => 'array', 'skill_details' => 'array', 'featured_publications' => 'array'];
+    }
 
     protected static function booted(): void
     {
@@ -92,6 +98,10 @@ class Profile extends Model
      */
     public function scopeVisibleTo(Builder $query, ?User $viewer): Builder
     {
+        if ($viewer && ! $viewer->can('moderate')) {
+            $query->whereNotIn('user_id', People::excludedIds($viewer));
+        }
+
         return $query->where(function (Builder $query) use ($viewer) {
             $query->where(function (Builder $query) use ($viewer) {
                 $query->whereHas('user', fn (Builder $user) => $user->active());

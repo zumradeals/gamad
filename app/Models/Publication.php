@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\GestureState;
 use App\Enums\NeedState;
 use App\Enums\PublicationType;
+use App\Services\People;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Publication d'une personne dans le Fil (D-081). Un besoin est une publication de type « J'ai besoin » qui porte un état.
@@ -33,6 +35,18 @@ class Publication extends Model
     public const ZUMRA = 'zumra';
 
     protected $guarded = ['id', 'author_id'];
+
+    protected static function booted(): void
+    {
+        static::deleting(fn (Publication $publication) => $publication->deleteMediaFile());
+    }
+
+    public function deleteMediaFile(): void
+    {
+        if ($this->media_path) {
+            Storage::disk('local')->delete($this->media_path);
+        }
+    }
 
     protected function casts(): array
     {
@@ -113,6 +127,9 @@ class Publication extends Model
      */
     public function scopeVisibleTo(Builder $query, ?User $viewer): Builder
     {
+        if ($viewer && ! $viewer->can('moderate')) {
+            $query->whereNotIn('author_id', People::excludedIds($viewer));
+        }
         // Une publication masquée n'existe plus que pour ceux qui la gèrent et la modération (D-089).
         if (! $viewer?->can('moderate')) {
             $managed = $viewer ? $viewer->managedZumraIds() : [];

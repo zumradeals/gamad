@@ -32,6 +32,14 @@ function lancerSauvegarde(array $options = []): array
         file_put_contents("$photos/$nom", $contenu);
     }
 
+    if (isset($options['medias'])) {
+        $medias = "$dossier/app/shared/storage/app/private/publication-media";
+        mkdir($medias, 0777, true);
+        foreach ($options['medias'] as $nom => $contenu) {
+            file_put_contents("$medias/$nom", $contenu);
+        }
+    }
+
     // Faux « tar » : il fait le vrai travail, puis sort avec le code demandé (1 = fichier modifié pendant la lecture).
     if (isset($options['tar_code'])) {
         $vraiTar = trim((string) shell_exec('command -v tar'));
@@ -197,4 +205,14 @@ it('ne touche ni au dossier des photos de l’application ni à rien d’autre q
 
     expect(file_get_contents($r['dossier'].'/app/shared/storage/app/private/profile-photos/a.jpg'))->toBe('x')
         ->and(file_get_contents($r['dossier'].'/app/shared/.env'))->toContain('cle-de-test');
+});
+
+it('sauvegarde aussi les fichiers privés des publications et permet leur restauration', function () {
+    $r = lancerSauvegarde(['medias' => ['image.jpg' => 'pixels', 'document.pdf' => 'pdf']]);
+    $archives = glob($r['dossier'].'/sauvegardes/medias-*.tar.gz');
+    expect($r['code'])->toBe(0)->and($archives)->toHaveCount(1)->and($r['journal'])->toContain('Fichiers de publications archivés');
+    $cible = $r['dossier'].'/restauration-medias';
+    mkdir($cible);
+    $extraction = Process::run(['tar', '-xzf', $archives[0], '-C', $cible]);
+    expect($extraction->exitCode())->toBe(0)->and(file_get_contents($cible.'/publication-media/document.pdf'))->toBe('pdf');
 });
