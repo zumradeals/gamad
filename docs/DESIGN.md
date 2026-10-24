@@ -261,3 +261,12 @@ lignes à 390 px ; boutons 44 px minimum, contenus longs reviennent à la ligne.
 public. Entrer en relation demande un mot avant envoi ; le refus n’ouvre aucune conversation. Les actions destructrices
 retrait de relation et blocage demandent confirmation. États vides explicatifs, erreurs côté formulaire et envoi désactivé
 pendant chargement. « Mes suivis » est un filtre du Fil et conserve sa recherche.
+
+## Suggestions et conditions de participation — D-187
+Réglages privés dans Modifier mon profil, avec cases à cocher pour intentions, conditions et jours, localités
+choisies explicitement, distance et période. Activation du matching et activation des notifications séparées.
+Dans Agir, panneau facultatif « Conditions et matching », libellés financiers explicites, budget indicatif
+seulement si rémunéré. Sur les publications : nature, conditions, lieu/distance et disponibilités, jamais de
+promesse de mission. Dans le Fil et Mon espace : section « Des pistes pour avancer », cartes avec raisons et
+liens de découverte, boutons Ignorer et Ne m’intéresse pas, sans note ni nombre public. États vides, réglages,
+chargement et erreurs ; cibles 44 px minimum et une colonne à 390 px. Le Fil chronologique garde son ordre.

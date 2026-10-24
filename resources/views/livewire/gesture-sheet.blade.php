@@ -13,13 +13,15 @@
                 <span class="mx-auto h-1 w-10 rounded-full bg-chip-line md:hidden" aria-hidden="true"></span>
 
                 <div class="flex items-center justify-between">
-                    <h2 id="geste-titre" class="text-[18px] font-extrabold">{{ $type->gestureLabel() }}</h2>
+                    <h2 id="geste-titre" class="text-[18px] font-extrabold">{{ $publication->gestureLabel() }}</h2>
                     <button type="button" wire:click="close" aria-label="Fermer" class="flex size-11 items-center justify-center rounded-full text-ink">
                         <x-icon name="close" />
                     </button>
                 </div>
 
                 <p class="text-[14px] leading-[1.55]">{{ $firstName }} recevra votre {{ $type->isExchange() ? 'demande d’échange' : ($type->isNeed() ? 'proposition' : 'réponse') }} et pourra <strong>l’accepter</strong>.</p>
+
+                <x-opportunity-conditions :publication="$publication" />
 
                 <form wire:submit="send" class="flex flex-col gap-3.5">
                     <div class="flex flex-col gap-1.5" x-data="{ count: [...$wire.message].length }">

@@ -10,6 +10,7 @@ use App\Services\Gratitudes;
 use App\Services\Moderation;
 use App\Services\Publications;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
@@ -87,6 +88,17 @@ class PagePublication extends Component
         $moderation->explain(Auth::user(), $this->publication(), $this->explanation);
 
         session()->flash('status', 'Votre explication est envoyée à la modération.');
+    }
+
+    public function closeMatching(): void
+    {
+        DB::transaction(function () {
+            $post = Publication::whereKey($this->publicationId)->lockForUpdate()->firstOrFail();
+            Gate::authorize('manage', $post);
+            abort_unless(! $post->zumra_id && ($post->matching['enabled'] ?? false), 403);
+            $post->update(['matching' => array_replace($post->matching, ['open' => false])]);
+        });
+        session()->flash('status', 'Cette publication ne produit plus de suggestions.');
     }
 
     public function close(Publications $publications): void

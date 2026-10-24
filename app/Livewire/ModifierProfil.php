@@ -9,6 +9,7 @@ use App\Models\Domain;
 use App\Models\Profile;
 use App\Models\Publication;
 use App\Models\User;
+use App\Services\MatchingConditions;
 use App\Services\ProfileEditor;
 use App\Services\ProfilePhoto;
 use App\Support\Normalizer;
@@ -34,6 +35,8 @@ class ModifierProfil extends Component
     public string $name = '';
 
     public string $bio = '';
+
+    public array $matching_preferences = [];
 
     public string $introduction = '';
 
@@ -98,6 +101,10 @@ class ModifierProfil extends Component
     {
         $profile = $this->profile();
 
+        $this->matching_preferences = array_replace(MatchingConditions::defaults(), $profile->matching_preferences ?? []);
+        if ($profile->matching_preferences === null && $profile->city_id) {
+            $this->matching_preferences['zones'] = [$profile->city_id];
+        }
         $this->name = Auth::user()->name;
         $this->bio = (string) $profile->bio;
         $this->introduction = (string) $profile->introduction;
@@ -192,6 +199,7 @@ class ModifierProfil extends Component
             [
                 'name' => $this->name,
                 'bio' => $this->bio,
+                'matching_preferences' => $this->matching_preferences,
                 'introduction' => $this->introduction,
                 'experiences' => $this->experiences,
                 'skill_details' => $this->skill_details,
@@ -243,6 +251,7 @@ class ModifierProfil extends Component
             'pendingPhotoUrl' => $this->pendingPhotoUrl(),
             'showPhoto' => ! $this->removePhoto && ($this->photo !== null || $profile->hasPhoto()),
             'bioMax' => Profile::BIO_MAX,
+            'matchingCities' => City::query()->active()->with('country')->orderBy('name')->get(),
             'ownPosts' => Publication::where('author_id', Auth::id())->whereNull('zumra_id')->whereNull('hidden_at')->orderByDesc('created_at')->limit(100)->get(['id', 'body', 'visibility'])
                 ->merge(Publication::where('author_id', Auth::id())->whereNull('zumra_id')->whereNull('hidden_at')->whereIn('id', collect($profile->featured_publications ?? [])->merge(collect($profile->skill_details ?? [])->pluck('publication_id'))->filter())->get(['id', 'body', 'visibility']))->unique('id')->values(),
         ]);

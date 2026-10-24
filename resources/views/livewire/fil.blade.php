@@ -103,6 +103,8 @@
             </div>
         </section>
 
+        <livewire:match-suggestions />
+
         @if (\App\Support\Experience::initial() && $searchText !== '')
             <div class="flex flex-wrap items-center justify-between gap-2 px-1 text-[13px]">
                 <p class="min-w-0 text-muted [overflow-wrap:anywhere]" role="status">Recherche dans le Fil : « {{ $searchText }} »</p>

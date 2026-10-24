@@ -85,6 +85,11 @@ class Publications
         $cityId = $this->activeId(City::class, $data['city_id'] ?? null, 'city_id', 'Choisissez une ville dans la liste.');
         $skills = SkillList::clean($data['skills'] ?? [], 'skills', Publication::MAX_SKILLS, 'Trois capacités au plus.');
 
+        $matching = isset($data['matching']) ? app(MatchingConditions::class)->publication($data['matching'], $type, $cityId, $skills) : null;
+        if ($matching && ($zumra || $project)) {
+            throw ValidationException::withMessages(['matching' => 'Le matching est réservé aux publications personnelles.']);
+        }
+
         $this->throttle("publish:{$author->getKey()}", [
             [config('gamad.limits.publications_per_hour'), 3600, 'Vous publiez trop vite. Réessayez dans un moment.'],
             [config('gamad.limits.publications_per_day'), 86400, 'Vous avez atteint la limite de publications pour aujourd’hui.'],
@@ -95,9 +100,10 @@ class Publications
         }
         $media = app(PublicationMedia::class)->store($data['media'] ?? null);
         try {
-            return DB::transaction(function () use ($author, $type, $body, $visibility, $domainId, $cityId, $skills, $zumra, $project, $media) {
+            $published = DB::transaction(function () use ($author, $type, $body, $visibility, $domainId, $cityId, $skills, $zumra, $project, $media, $matching) {
                 $publication = new Publication([
                     ...$media,
+                    'matching' => $matching,
                     'type' => $type,
                     'body' => $body,
                     'domain_id' => $domainId,
@@ -116,6 +122,9 @@ class Publications
 
                 return $publication;
             });
+            app(Matching::class)->publicationChanged($published);
+
+            return $published;
         } catch (\Throwable $error) {
             if (isset($media['media_path'])) {
                 Storage::disk('local')->delete($media['media_path']);

@@ -34,6 +34,9 @@ conversations. **D-186 étend explicitement R1** aux profils enrichis, réalisat
 échanges consentis, suivis et relations réciproques privées : trois tables de liens et colonnes additives de profil/fichier,
 selon `RECENTRAGE.md` § Profils, publications et liens personnels. Les outils spécialisés de formation, stockage général
 et temps réel restent différés. Aucun module collectif ou financier réactivé.
+**D-187 étend R1 au matching** : préférences et disponibilités privées, conditions bénévoles/rémunérées des
+publications, suggestions explicables et notifications internes facultatives, ignorance et clôture. Deux colonnes
+JSON bornées et une table de correspondances privées sont autorisées selon le contrat de RECENTRAGE.md.
 
 **Critères de fin :** parcours sur téléphone, tests en mode initial et régression du système conservé,
 CI verte, aucune suppression de données ni rupture des confirmations de paiement ou de la visibilité.

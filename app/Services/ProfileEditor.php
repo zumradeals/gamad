@@ -63,6 +63,9 @@ class ProfileEditor
         }
 
         $details = app(ProfileDetails::class)->clean($user, $data, $offered);
+        if (array_key_exists('matching_preferences', $data)) {
+            $details['matching_preferences'] = app(MatchingConditions::class)->preferences($data['matching_preferences']);
+        }
 
         $newPhotoPath = null;
 
@@ -112,6 +115,10 @@ class ProfileEditor
             }
 
             throw $e;
+        }
+
+        if (array_key_exists('matching_preferences', $data)) {
+            app(Matching::class)->profileChanged($user->id);
         }
 
         if ($oldPhotoPath !== null && $oldPhotoPath !== $finalPhotoPath) {

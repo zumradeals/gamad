@@ -38,10 +38,10 @@
     };
 @endphp
 
-<article {{ $attributes->class(['flex flex-col gap-3 border border-line bg-card p-4 md:p-[18px]', 'feed-publication feed-panel' => $compact, 'rounded-card' => ! $compact]) }} aria-label="{{ $type->label() }} de {{ $zumra?->name ?? $author->name }}">
+<article {{ $attributes->class(['flex flex-col gap-3 border border-line bg-card p-4 md:p-[18px]', 'feed-publication feed-panel' => $compact, 'rounded-card' => ! $compact]) }} aria-label="{{ $publication->displayLabel() }} de {{ $zumra?->name ?? $author->name }}">
     @unless ($compact)
         <div class="flex items-center justify-between gap-2">
-            <span class="self-start rounded-chip px-2.5 py-1 text-[12px] font-bold {{ $type->badgeClasses() }}">{{ $type->label() }}</span>
+            <span class="self-start rounded-chip px-2.5 py-1 text-[12px] font-bold {{ $type->badgeClasses() }}">{{ $publication->displayLabel() }}</span>
             @if ($state && $state !== NeedState::Open)
                 <span class="rounded-chip px-2.5 py-1 text-[12px] font-extrabold {{ $stateClasses }}">{{ $state->label() }}</span>
             @endif
@@ -76,7 +76,7 @@
 
     @if ($compact)
         <div class="flex items-center justify-between gap-2">
-            <span class="self-start rounded-chip px-2.5 py-1 text-[12px] font-bold {{ $type->badgeClasses() }}">{{ $type->label() }}</span>
+            <span class="self-start rounded-chip px-2.5 py-1 text-[12px] font-bold {{ $type->badgeClasses() }}">{{ $publication->displayLabel() }}</span>
             @if ($state && $state !== NeedState::Open)
                 <span class="rounded-chip px-2.5 py-1 text-[12px] font-extrabold {{ $stateClasses }}">{{ $state->label() }}</span>
             @endif
@@ -85,6 +85,7 @@
 
     <p class="whitespace-pre-line break-words text-[15px] leading-normal">{{ $publication->body }}</p>
     <x-publication-media :publication="$publication" />
+    <x-opportunity-conditions :publication="$publication" />
 
     @if ($publication->skills->isNotEmpty())
         <ul class="flex flex-wrap gap-1.5" aria-label="Capacités">
@@ -139,7 +140,7 @@
             @if ($viewer && in_array($zumra->id, $memberOf ?? $viewer->zumraMemberships()->pluck('zumra_id')->all(), true))
                 <span class="inline-flex min-h-11 items-center gap-1.5 text-[14px] font-extrabold text-type-knowledge-fg"><x-icon name="check" :size="16" :stroke="3" />Vous êtes dans cette ZUMRA</span>
             @elseif (! \App\Support\Experience::initial())
-                <x-button :href="route('zumras.show', $zumra).'#rejoindre'">{{ $type->gestureLabel() }}</x-button>
+                <x-button :href="route('zumras.show', $zumra).'#rejoindre'">{{ $publication->gestureLabel() }}</x-button>
             @endif
         @elseif ($viewer)
             @if ($gesture && $gesture->state === GestureState::Accepted)
@@ -159,7 +160,7 @@
             @elseif (! $publication->acceptsGestures())
                 <span class="inline-flex min-h-11 items-center text-[14px] font-semibold text-muted">{{ $state === NeedState::Resolved ? 'Ce besoin est résolu.' : 'Ce besoin est fermé.' }}</span>
             @else
-                <x-button type="button" :variant="$compact ? 'secondary' : 'primary'" wire:click="$dispatch('open-gesture', { id: '{{ $publication->id }}' })">{{ $type->gestureLabel() }}</x-button>
+                <x-button type="button" :variant="$compact ? 'secondary' : 'primary'" wire:click="$dispatch('open-gesture', { id: '{{ $publication->id }}' })">{{ $publication->gestureLabel() }}</x-button>
             @endif
         @else
             @if ($publication->acceptsGestures())

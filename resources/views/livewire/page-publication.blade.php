@@ -16,11 +16,15 @@
 <div class="flex flex-col gap-3.5">
     <div class="-mx-4 -mt-4 flex min-h-14 items-center gap-1 border-b border-line bg-card px-2 py-1.5 md:mx-0 md:mt-0 md:rounded-card md:border">
         <a href="{{ $viewer ? route('fil') : url('/') }}" aria-label="{{ $viewer ? 'Retour au Fil' : 'Retour à l’accueil' }}" class="flex size-11 items-center justify-center text-ink hover:text-ink"><x-icon name="back" /></a>
-        <h1 class="flex-1 text-[17px] font-extrabold">{{ $isAuthor ? $type->ownTitle() : $type->label() }}</h1>
+        <h1 class="flex-1 text-[17px] font-extrabold">{{ $isAuthor ? $publication->ownTitle() : $publication->displayLabel() }}</h1>
     </div>
 
     @if (session('status'))
         <x-status>{{ session('status') }}</x-status>
+    @endif
+
+    @if ($isAuthor && ($publication->matching['enabled'] ?? false) && ($publication->matching['open'] ?? false))
+        <x-button type="button" variant="secondary" wire:click="closeMatching" wire:confirm="Retirer cette publication des suggestions ? Les échanges existants restent accessibles.">Fermer au matching</x-button>
     @endif
 
     @if ($publication->isHidden() && ($isAuthor || ($viewer && $viewer->can('moderate'))))
@@ -56,13 +60,14 @@
     @if ($isAuthor)
         <section aria-label="Ma publication" class="flex flex-col gap-2.5 rounded-card border border-line bg-card p-4">
             <div class="flex items-center justify-between gap-2">
-                <span class="self-start rounded-chip px-2.5 py-1 text-[12px] font-bold {{ $type->badgeClasses() }}">{{ $type->label() }}</span>
+                <span class="self-start rounded-chip px-2.5 py-1 text-[12px] font-bold {{ $type->badgeClasses() }}">{{ $publication->displayLabel() }}</span>
                 @if ($state)
                     <span class="rounded-chip px-2.5 py-1 text-[12px] font-extrabold {{ $stateClasses }}">{{ $state->label() }}</span>
                 @endif
             </div>
             <p class="whitespace-pre-line break-words text-[15px] leading-normal">{{ $publication->body }}</p>
     <x-publication-media :publication="$publication" />
+    <x-opportunity-conditions :publication="$publication" />
             @if ($publication->skills->isNotEmpty())
                 <ul class="flex flex-wrap gap-1.5" aria-label="Capacités">
                     @foreach ($publication->skills as $skill)
@@ -93,7 +98,7 @@
                 $helperProfile?->setRelation('user', $helper);
                 $canSee = $helperProfile && Gate::forUser($viewer)->allows('view', $helperProfile);
             @endphp
-            <section wire:key="geste-{{ $item->id }}" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4" aria-label="{{ $type->gestureLabel() }} : {{ $helper->name }}">
+            <section wire:key="geste-{{ $item->id }}" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4" aria-label="{{ $publication->gestureLabel() }} : {{ $helper->name }}">
                 <div class="flex items-center gap-3">
                     @if ($helperProfile)
                         <x-avatar :profile="$helperProfile" :size="48" />

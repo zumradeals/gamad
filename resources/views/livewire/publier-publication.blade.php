@@ -11,6 +11,13 @@
         'offer' => ['Proposer mon aide', 'Votre aide', 'Publier mon offre', 'Ex. Je peux aider à tenir les comptes d’une petite boutique, le soir après 18 h.'],
     ][$type->value];
     [$heading, $label, $button, $placeholder] = $titles;
+    if ($type === \App\Enums\PublicationType::Offer && ($matching['enabled'] ?? false)) {
+        if ($matching['activity'] === 'training') {
+            [$heading, $label, $button, $placeholder] = ['Proposer une formation', 'Votre formation ou transmission', 'Publier mon offre de formation', 'Ce que vous transmettez, à qui, où et dans quelles conditions.'];
+        } elseif ($matching['terms'] === 'paid') {
+            [$heading, $label, $button, $placeholder] = ['Proposer mes services', 'Votre prestation', 'Publier mon offre de services', 'Ce que vous pouvez réaliser, vos disponibilités et les conditions proposées.'];
+        }
+    }
 @endphp
 
 <div class="flex flex-col gap-3.5">
@@ -20,7 +27,7 @@
     </div>
 
     <form wire:submit="publish" class="flex flex-col gap-3.5">
-        <span class="self-start rounded-chip px-2.5 py-1 text-[12px] font-bold {{ $type->badgeClasses() }}">{{ $type->label() }}</span>
+        <span class="self-start rounded-chip px-2.5 py-1 text-[12px] font-bold {{ $type->badgeClasses() }}">{{ \App\Services\MatchingConditions::label($type, $matching ?? []) }}</span>
         @if ($project)
             <p class="rounded-button bg-soft-blue px-3 py-2.5 text-[13px] font-semibold">Vous publiez au nom du projet <strong>{{ $project->name }}</strong> ({{ $zumra->name }}).</p>
         @elseif ($zumra)
@@ -60,6 +67,10 @@
                     <p class="text-[12px] leading-relaxed text-muted">Ces précisions seront ajoutées au texte publié, dans la limite totale de {{ $bodyMax }} caractères. N’indiquez ni adresse privée, ni téléphone, ni e-mail.</p>
                 </div>
             </details>
+        @endif
+
+        @if (! $zumra && ! $project && in_array($type, [\App\Enums\PublicationType::Need, \App\Enums\PublicationType::Offer, \App\Enums\PublicationType::Knowledge, \App\Enums\PublicationType::LearningWish], true))
+            @include('livewire.partials.matching-publication-editor')
         @endif
 
         @include('livewire.partials.skill-picker', [
