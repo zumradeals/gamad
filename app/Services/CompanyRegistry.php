@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\NotificationKind;
 use App\Models\Company;
 use App\Models\CompanyDocument;
 use App\Models\User;
@@ -74,6 +75,8 @@ class CompanyRegistry
                     ]);
                 }
 
+                app(Notifier::class)->companyModerators(NotificationKind::CompanyReviewRequested, $actor, $company);
+
                 return $company;
             }, 3);
         } catch (\Throwable $exception) {
@@ -113,6 +116,7 @@ class CompanyRegistry
                 'review_note' => $action === 'verify' ? null : trim($note),
             ])->save();
             AdminJournal::record($reviewer, 'companies.'.$action, $row, $action === 'verify' ? null : trim($note), ['revision' => $row->revision]);
+            app(Notifier::class)->company($row->owner, NotificationKind::CompanyReviewUpdated, $reviewer, $row);
         }, 3);
     }
 }
