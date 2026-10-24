@@ -20,7 +20,7 @@
             ['Besoins à découvrir', 'Voir où vous pouvez aider', 'fil', 'heart', 'bg-type-need-bg text-type-need-fg'],
         ];
     }
-    $profileShortcuts = [['Mon profil', route('espace.profil'), 'user'], ['À faire maintenant', route('espace').'#afaire', 'tasks']];
+    $profileShortcuts = [['Mon profil', route('espace.profil'), 'user'], ['Mes enregistrements', route('espace.enregistrements'), 'book'], ['À faire maintenant', route('espace').'#afaire', 'tasks']];
     if (! \App\Support\Experience::initial()) {
         array_splice($profileShortcuts, 1, 0, [['Mes ZUMRA', route('zumras.index').'#mes-zumra', 'community']]);
     }
@@ -129,7 +129,7 @@
 
         <div class="feed-posts" wire:loading.class="opacity-60" wire:target="setFilter, more">
             @forelse ($posts as $post)
-                <x-publication-card compact wire:key="publication-{{ $post->id }}" :publication="$post" :viewer="$viewer" :gesture="$gestures[$post->id] ?? null" :supported="$supported" :managed="$managedZumraIds" :member-of="$memberOf" />
+                <x-publication-card compact wire:key="publication-{{ $post->id }}" :publication="$post" :viewer="$viewer" :gesture="$gestures[$post->id] ?? null" :supported="$supported" :saved="in_array($post->id, $savedIds, true)" :managed="$managedZumraIds" :member-of="$memberOf" />
             @empty
                 <section aria-labelledby="vide" class="feed-panel flex flex-col items-start gap-3 p-5 md:p-6">
                     <span class="flex size-11 items-center justify-center rounded-button bg-type-call-bg text-type-call-fg" aria-hidden="true"><x-icon name="idea" :size="24" /></span>

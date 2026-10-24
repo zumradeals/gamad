@@ -5,9 +5,9 @@
     - gesture     : son geste sur cette publication (ou null)
     - link        : vrai pour ajouter un lien vers la page de la publication (Fil)
     - browse      : vrai dans un Carrefour (D-161) : un seul bouton « Voir … » mène à la publication, où se trouvent le geste et « Signaler »
-    Pas de « Commenter » ni de « Partager » : ils ne font pas partie de ce lot (D-090). « Signaler » s'ajoute pour qui est connecté.
+    Interactions sociales D-193 : Commenter, Enregistrer et Partager sur les publications personnelles. Aucun compteur public.
 --}}
-@props(['publication', 'viewer' => null, 'gesture' => null, 'link' => true, 'managed' => null, 'memberOf' => null, 'supported' => null, 'compact' => false, 'browse' => false])
+@props(['publication', 'viewer' => null, 'gesture' => null, 'link' => true, 'managed' => null, 'memberOf' => null, 'supported' => null, 'compact' => false, 'browse' => false, 'saved' => false])
 
 @php
     use App\Enums\GestureState;
@@ -169,6 +169,11 @@
         @endif
     </div>
     @if (! $publication->zumra_id && ! $publication->project_id && ! $publication->isHidden())
-        <a href="{{ route('publications.show', $publication) }}#discussion" class="inline-flex min-h-11 items-center self-start gap-2 text-[13px] font-bold text-link underline-offset-4 hover:underline"><x-icon name="chat" :size="17" />Commenter</a>
+        <div class="flex flex-wrap items-start gap-2">
+            <a href="{{ route('publications.show', $publication) }}#discussion" class="inline-flex min-h-11 items-center self-start gap-2 text-[13px] font-bold text-link underline-offset-4 hover:underline"><x-icon name="chat" :size="17" />Commenter</a>
+            @if ($compact)
+                @include('partials.publication-social-actions', ['saved' => $saved])
+            @endif
+        </div>
     @endif
 </article>

@@ -349,3 +349,11 @@ expliquer son commentaire ; il ne peut pas restaurer lui-même le contenu. Les a
 son propre commentaire sont refusés. Nouvelles tables additives, cascade à la suppression du compte
 et de la publication, aucune dépendance supplémentaire. Le délai et la recette restent ceux de R1.
 Notifications sociales, enregistrements et évolution du Fil relèvent des PR suivantes.
+
+## Enregistrer et partager — D-193, PR 2/3
+Enregistrement personnel explicite des publications personnelles seulement, dans une table additive
+unique par personne et publication, sans nombre public, classement ou signal de popularité. Les éléments
+sont visibles uniquement au propriétaire, au même niveau de droits que lors de la lecture : une
+publication masquée, supprimée, bloquée ou devenue inaccessible disparaît de la liste, sans divulgation.
+Un lien partagé ne contourne jamais la visibilité ; le partage ne crée ni audience ni nouvelle copie
+publique. L'interface offre une solution manuelle si le partage natif ou le presse-papiers est indisponible.

@@ -6,6 +6,7 @@ use App\Enums\GestureState;
 use App\Enums\PublicationType;
 use App\Models\Gesture;
 use App\Models\Publication;
+use App\Services\PublicationBookmarks;
 use App\Services\Supports;
 use App\Support\Experience;
 use App\Support\Normalizer;
@@ -131,6 +132,7 @@ class Fil extends Component
             'profile' => $viewer->ensureProfile()->load(['city', 'offeredSkills', 'wantedSkills']),
             'filter' => $filter,
             'supported' => app(Supports::class)->supportedBy($viewer, $posts->pluck('id')),
+            'savedIds' => app(PublicationBookmarks::class)->savedIds($viewer, $posts->pluck('id')),
             'managedZumraIds' => $viewer->managedZumraIds(),
             'memberOf' => $viewer->zumraMemberships()->pluck('zumra_id')->all(),
         ]);

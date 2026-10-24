@@ -117,7 +117,7 @@ it('ne propose que les filtres Tout, Besoins, Savoirs, Apprendre, Aides, ZUMRA e
 it('affiche Commenter sans compteur d’approbation, et « Signaler » seulement sur la publication d’un autre', function () {
     publication(User::factory()->create(), data: ['body' => 'Un besoin']);
 
-    fil()->assertSeeText('Commenter')->assertDontSeeText('Partager')
+    fil()->assertSeeText('Commenter')->assertSeeText('Partager')->assertSeeText('Enregistrer')
         ->assertDontSeeText('J’aime')->assertDontSeeText('Like')->assertSeeText('Signaler');
 
     // Sur sa propre publication, on ne se signale pas soi-même.
