@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Controllers\CompanyBrandingController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CompanyDocumentController;
 use App\Http\Controllers\CompanyExperienceController;
 use App\Http\Controllers\CompanyExperienceReviewController;
 use App\Http\Controllers\CompanyFollowController;
 use App\Http\Controllers\CompanyPostController;
+use App\Http\Controllers\CompanyVisualController;
 use App\Http\Controllers\GeniusPayWebhookController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PersonController;
@@ -74,6 +76,8 @@ Route::get('/personnes/{profile:public_id}/photo', [PersonController::class, 'ph
 // Les entreprises non vérifiées n'apparaissent ni dans l'annuaire ni dans les profils publics.
 Route::get('/entreprises', CompanyDirectory::class)->name('entreprises.index');
 Route::get('/entreprises/{company}', [CompanyController::class, 'show'])->where('company', '.+-[a-z0-9]{8}')->name('entreprises.show');
+Route::get('/entreprises/{company}/visuel/{kind}', CompanyVisualController::class)
+    ->where('company', '.+-[a-z0-9]{8}')->where('kind', 'logo|banner')->name('entreprises.visual');
 
 // Le Carrefour ZUMRA et l'en-tête d'une ZUMRA sont publics ; les membres demandent un compte vérifié (D-112).
 Route::get('/zumra', CarrefourZumras::class)->name('zumras.index');
@@ -92,6 +96,10 @@ Route::get('/compte-suspendu', SuspendedController::class)->middleware('auth')->
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/entreprises/creer', CompanyCreate::class)->name('entreprises.create');
+    Route::get('/entreprises/{company}/identite', [CompanyBrandingController::class, 'edit'])
+        ->where('company', '.+-[a-z0-9]{8}')->name('entreprises.branding.edit');
+    Route::post('/entreprises/{company}/identite', [CompanyBrandingController::class, 'update'])
+        ->where('company', '.+-[a-z0-9]{8}')->name('entreprises.branding.update');
     Route::get('/entreprises/{company}/publier', [CompanyPostController::class, 'create'])
         ->where('company', '.+-[a-z0-9]{8}')->name('entreprises.posts.create');
     Route::post('/entreprises/{company}/publier', [CompanyPostController::class, 'store'])

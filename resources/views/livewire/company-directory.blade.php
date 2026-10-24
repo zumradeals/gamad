@@ -28,11 +28,21 @@
                 @forelse ($companies as $company)
                     <article wire:key="company-{{ $company->id }}" class="group flex flex-col overflow-hidden rounded-card border border-line bg-card">
                         <div class="relative h-[84px] overflow-hidden bg-ink" aria-hidden="true">
+                            @if ($company->banner_path)
+                                <img src="{{ route('entreprises.visual', [$company, 'banner']) }}" alt="" loading="lazy" class="absolute inset-0 size-full object-cover">
+                            @else
                             <span class="absolute -right-6 -top-10 size-40 rounded-full border-[20px] border-accent/25"></span>
                             <span class="absolute bottom-0 left-3 h-8 w-24 rounded-t-full bg-white/10"></span>
+                            @endif
                         </div>
                         <div class="flex flex-1 flex-col gap-3 px-4 pb-5">
-                            <span class="-mt-7 flex size-14 items-center justify-center rounded-[16px] border-[4px] border-card bg-soft-blue text-[19px] font-extrabold text-ink" aria-hidden="true">{{ mb_strtoupper(mb_substr($company->name, 0, 2)) }}</span>
+                            <span class="-mt-7 flex size-14 items-center justify-center rounded-[16px] border-[4px] border-card bg-soft-blue text-[19px] font-extrabold text-ink" aria-label="Logo de {{ $company->name }}">
+                                @if ($company->logo_path)
+                                    <img src="{{ route('entreprises.visual', [$company, 'logo']) }}" alt="" loading="lazy" class="size-full rounded-[12px] bg-white object-contain">
+                                @else
+                                    {{ mb_strtoupper(mb_substr($company->name, 0, 2)) }}
+                                @endif
+                            </span>
                             <div class="space-y-1">
                                 <h3 class="break-words text-[18px] font-extrabold"><a href="{{ route('entreprises.show', $company) }}" class="text-ink no-underline group-hover:underline">{{ $company->name }}</a></h3>
                                 <p class="text-[13px] font-semibold text-muted">{{ $company->sector }} @if ($company->city) · {{ $company->city }} @endif</p>

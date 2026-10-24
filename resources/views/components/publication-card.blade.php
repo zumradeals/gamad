@@ -51,7 +51,13 @@
 
     <div class="feed-post-author flex items-center gap-2.5">
         @if ($company)
-            <span aria-hidden="true" class="flex size-10 shrink-0 items-center justify-center rounded-button bg-type-knowledge-bg text-[14px] font-extrabold text-type-knowledge-fg">{{ mb_strtoupper(mb_substr($company->name, 0, 2)) }}</span>
+            <span aria-hidden="true" class="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-button bg-type-knowledge-bg text-[14px] font-extrabold text-type-knowledge-fg">
+                @if ($company->logo_path)
+                    <img src="{{ route('entreprises.visual', [$company, 'logo']) }}" alt="" loading="lazy" class="size-full bg-white object-contain">
+                @else
+                    {{ mb_strtoupper(mb_substr($company->name, 0, 2)) }}
+                @endif
+            </span>
         @elseif ($zumra)
             <x-zumra-initials :zumra="$zumra" :size="40" />
         @elseif ($profile)
