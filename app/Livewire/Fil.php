@@ -6,7 +6,6 @@ use App\Enums\GestureState;
 use App\Enums\PublicationType;
 use App\Models\Gesture;
 use App\Models\Publication;
-use App\Models\User;
 use App\Services\People;
 use App\Services\PublicationBookmarks;
 use App\Services\Supports;
@@ -92,7 +91,7 @@ class Fil extends Component
     /** Un geste envoyé, retiré, accepté ou décliné : la page se redessine. */
     private function knows(string $filter): bool
     {
-        return in_array($filter, ['suivis', self::DISCOVER_FILTER, self::SHARES_FILTER], true) || array_key_exists($filter, self::FILTERS) || (! Experience::initial() && in_array($filter, [self::ZUMRA_FILTER, self::PROJECT_FILTER], true));
+        return in_array($filter, ['suivis', self::DISCOVER_FILTER, self::SHARES_FILTER], true) || array_key_exists($filter, self::FILTERS) || (!Experience::initial() && in_array($filter, [self::ZUMRA_FILTER, self::PROJECT_FILTER], true));
     }
 
     /**
@@ -114,7 +113,9 @@ class Fil extends Component
     }
 
     #[On('gesture-changed')]
-    public function refresh(): void {}
+    public function refresh(): void
+    {
+    }
 
     public function render()
     {
