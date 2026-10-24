@@ -7,18 +7,25 @@
 
         <p class="text-[14px] leading-normal text-muted">Choisissez ce que vous voulez faire. Votre publication apparaîtra dans les publications, avec le bouton d’action qui convient.</p>
 
-        @foreach (\App\Enums\PublicationType::forPerson() as $type)
-            <a href="{{ route('agir.publier', $type->slug()) }}" class="flex min-h-[72px] items-center gap-3.5 rounded-card border border-line bg-card px-4 py-3.5 text-ink no-underline hover:text-ink">
-                <span class="flex size-11 shrink-0 items-center justify-center rounded-button {{ $type->badgeClasses() }}">
-                    <x-icon :name="$type->isNeed() ? 'chat' : 'heart'" />
-                </span>
-                <span class="flex flex-1 flex-col gap-0.5">
-                    <span class="text-[16px] font-extrabold">{{ $type->label() }}</span>
-                    <span class="text-[13px] leading-[1.4] text-muted">{{ $type->pitch() }}</span>
-                </span>
-                <x-icon name="next" :size="20" />
-            </a>
-        @endforeach
+        @php
+            $intentions = [
+                ['Trouver de l’aide', 'Faire réaliser quelque chose ou résoudre une difficulté.', ['besoin' => 'Exprimer mon besoin']],
+                ['Apprendre quelque chose', 'Acquérir un savoir-faire pour pouvoir le faire vous-même.', ['apprendre' => 'Dire ce que je veux apprendre']],
+                ['Proposer quelque chose', 'Mettre votre temps, vos services ou vos connaissances à disposition.', ['aide' => 'Proposer une aide ou un service', 'savoir' => 'Transmettre un savoir']],
+                ['Partager', 'Montrer une réalisation, raconter une expérience ou partager une idée.', ['partage' => 'Partager une publication', 'ma-realisation' => 'Montrer ma réalisation']],
+            ];
+        @endphp
+        <div class="grid gap-3 sm:grid-cols-2">
+            @foreach ($intentions as [$title, $description, $choices])
+                <section class="flex flex-col gap-3 rounded-card border border-line bg-card p-4">
+                    <h2 class="text-[18px] font-extrabold">{{ $title }}</h2>
+                    <p class="text-[14px] leading-normal text-muted">{{ $description }}</p>
+                    @foreach ($choices as $slug => $label)
+                        <a href="{{ route('agir.publier', $slug) }}" class="inline-flex min-h-11 items-center justify-between gap-2 rounded-button border border-chip-line px-3 py-2 text-[14px] font-bold">{{ $label }} <x-icon name="next" :size="20" /></a>
+                    @endforeach
+                </section>
+            @endforeach
+        </div>
 
         <p class="text-[12px] leading-normal text-muted">Vous publiez en tant que vous-même ({{ auth()->user()->name }}).@if (! \App\Support\Experience::initial() && auth()->user()->managedZumraIds() !== []) Pour publier au nom d’une ZUMRA que vous gérez, ouvrez-la dans l’onglet ZUMRA.@endif</p>
     </div>

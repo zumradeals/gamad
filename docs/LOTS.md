@@ -431,3 +431,13 @@ Décisions : D-004, D-163 à D-174 ; D-019 est remplacée par D-166 ; D-171 est 
 **Hors périmètre :** transferts entre utilisateurs, retraits, achats (aucun catalogue), assistant IA, paliers ou palmarès de contributeurs, toute visibilité achetée.
 
 **Terminé quand** une personne et une ZUMRA rechargent un portefeuille et contribuent en mode d'essai, le registre se réconcilie avec le relevé du prestataire, aucun mouvement ne peut être modifié ni effacé, le Président affecte le fonds de contribution et voit le tableau, `php artisan test` et la CI passent, et l'avis juridique est obtenu avant tout argent réel.
+
+
+## Parcours Agir — D-191
+Le Président approuve quatre intentions : Trouver de l’aide, Apprendre quelque chose,
+Proposer quelque chose et Partager. Elles orientent vers les types existants ; besoin = résultat
+recherché, apprentissage = compétence à acquérir. Gratuité et rémunération sont indépendantes.
+Formulaire progressif, détails facultatifs, relecture et retour Modifier sans perdre la saisie.
+Matching facultatif présenté comme « M’aider à trouver les bonnes personnes ». Les validations
+serveur, les droits et la limite de 500 caractères restent applicables à la publication finale.
+Aucune nouvelle dépendance ni réouverture de module. R1 reste En cours.

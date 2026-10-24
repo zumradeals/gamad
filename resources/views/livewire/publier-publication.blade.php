@@ -2,9 +2,9 @@
     $titles = [
         'personal_work' => ['Ma réalisation', 'Ce que j’ai réalisé', 'Publier ma réalisation', 'Ex. J’ai remis en état cette machine avec des pièces de récupération. Voici comment.'],
         'share' => ['Je partage', 'Votre partage', 'Publier mon partage', 'Une idée, un retour d’expérience, une découverte… De quoi aimeriez-vous parler ?'],
-        'need' => ['Nouveau besoin', 'Votre besoin', 'Publier mon besoin', 'Ex. Je cherche quelqu’un qui sait installer un logiciel de caisse pour ma boutique, samedi matin si possible.'],
+        'need' => ['Nouveau besoin', 'Quel résultat souhaitez-vous obtenir ?', 'Publier mon besoin', 'Ex. Je cherche quelqu’un qui sait installer un logiciel de caisse pour ma boutique, samedi matin si possible.'],
         'knowledge' => ['Partager un savoir', 'Votre savoir', 'Publier mon savoir', 'Ex. Atelier ouvert à tous : tenir les comptes d’un petit commerce. Samedi à 10 h, en ligne.'],
-        'learning_wish' => ['Je veux apprendre', 'Ce que vous voulez apprendre', 'Publier ma demande', 'Ex. Je veux apprendre à installer et réparer des panneaux solaires. Je suis disponible le week-end.'],
+        'learning_wish' => ['Je veux apprendre', 'Que voulez-vous savoir faire ?', 'Publier ma demande', 'Ex. Je veux apprendre à installer et réparer des panneaux solaires. Je suis disponible le week-end.'],
         'zumra_call' => ['Appel à rejoindre', 'Votre appel', 'Publier l’appel', 'Ex. Nous cherchons des couturières et des couturiers pour rejoindre la ZUMRA : atelier chaque samedi matin.'],
         'project_update' => ['Avancée de projet', 'Votre avancée', 'Publier l’avancée', 'Ex. Les trois premières écoles ont validé la commande : nous commençons la coupe lundi.'],
         'achievement' => ['Réalisation', 'Ce qui a été fait', 'Publier la réalisation', 'Ex. 120 uniformes ont été livrés aux élèves de deux écoles du quartier.'],
@@ -26,7 +26,7 @@
         <h1 class="flex-1 text-[17px] font-extrabold">{{ $heading }}</h1>
     </div>
 
-    <form wire:submit="publish" class="flex flex-col gap-3.5">
+    <form wire:submit="{{ ($previewing || $zumra || $project) ? 'publish' : 'preview' }}" class="flex flex-col gap-3.5">
         <span class="self-start rounded-chip px-2.5 py-1 text-[12px] font-bold {{ $type->badgeClasses() }}">{{ \App\Services\MatchingConditions::label($type, $matching ?? []) }}</span>
         @if ($project)
             <p class="rounded-button bg-soft-blue px-3 py-2.5 text-[13px] font-semibold">Vous publiez au nom du projet <strong>{{ $project->name }}</strong> ({{ $zumra->name }}).</p>
@@ -34,6 +34,21 @@
             <p class="rounded-button bg-soft-blue px-3 py-2.5 text-[13px] font-semibold">Vous publiez au nom de <strong>{{ $zumra->name }}</strong>.</p>
         @endif
 
+        @if ($previewing)
+            <section class="flex flex-col gap-3 rounded-card border border-line bg-card p-4" aria-label="Aperçu de la publication">
+                <h2 class="text-[18px] font-extrabold">Relisez avant de publier</h2>
+                <p class="whitespace-pre-wrap break-words text-[15px]">{{ $previewBody }}</p>
+                <p class="text-[13px] text-muted">Visibilité : {{ $visibility === 'public' ? 'Public' : 'Accès réservé' }}</p>
+                @if ($media)<p class="break-words text-[13px]">Fichier joint : {{ $media->getClientOriginalName() }}</p>@endif
+                @if (in_array($type, [\App\Enums\PublicationType::Need, \App\Enums\PublicationType::LearningWish, \App\Enums\PublicationType::Offer, \App\Enums\PublicationType::Knowledge], true))
+                    <p class="text-[13px] font-bold">Conditions : {{ \App\Services\MatchingConditions::TERMS[$matching['terms'] ?? 'discuss'] ?? 'À convenir explicitement' }}</p>
+                    @if (!empty($matching['budget']))<p class="text-[13px]">{{ $matching['budget'] }}</p>@endif
+                    <p class="text-[12px] text-muted">Les conditions doivent être convenues ensemble avant de commencer. GAMAD ne crée aucun contrat ni paiement.</p>
+                @endif
+                <x-button type="button" variant="secondary" wire:click="edit">Modifier</x-button>
+            </section>
+        @endif
+        <div @if ($previewing) hidden @endif class="flex flex-col gap-3.5">
         <div class="flex flex-col gap-1.5" x-data="{ count: [...$wire.body].length }">
             <label for="body" class="text-[13px] font-bold text-muted">{{ $label }}</label>
             <textarea id="body" wire:model="body" rows="6" maxlength="{{ $bodyMax }}" placeholder="{{ $placeholder }}"
@@ -44,7 +59,7 @@
             @error('body')
                 <p id="body-error" role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>
             @enderror
-            <p class="text-[12px] leading-normal text-muted">Soyez précis : ce qu’il faut faire, où, et quand. Ne mettez ni téléphone ni e-mail ici. Le texte reste un texte simple : les adresses web n’y sont pas cliquables.</p>
+            <p class="text-[12px] leading-normal text-muted">{{ $type === \App\Enums\PublicationType::LearningWish ? 'Indiquez ce que vous savez déjà, ce que vous aimeriez apprendre et vos disponibilités.' : 'Soyez précis : ce qu’il faut faire, où, et quand.' }} Ne mettez ni téléphone ni e-mail ici. Le texte reste un texte simple : les adresses web n’y sont pas cliquables.</p>
         </div>
 
         @if (! $zumra && ! $project)
@@ -60,7 +75,7 @@
 
         @if ($type->isNeed())
             <details class="rounded-card border border-line bg-card p-4" @if ($errors->has('needPurpose') || $errors->has('needTiming')) open @endif>
-                <summary class="min-h-11 cursor-pointer content-center text-[15px] font-extrabold">Préciser mon besoin (facultatif)</summary>
+                <summary class="min-h-11 cursor-pointer content-center text-[15px] font-extrabold">Ajouter des précisions (facultatif)</summary>
                 <div class="mt-3 flex flex-col gap-3">
                     <x-wire-field name="needPurpose" label="Pour faire quoi ?" maxlength="150" placeholder="Ex. Tenir les comptes de ma boutique" />
                     <x-wire-field name="needTiming" label="Où et quand ?" maxlength="100" placeholder="Ex. À distance, samedi matin" />
@@ -73,6 +88,9 @@
             @include('livewire.partials.matching-publication-editor')
         @endif
 
+        <details class="rounded-card border border-line bg-card p-4" @if ($errors->has('skills*') || $errors->has('domain_id') || $errors->has('city_id')) open @endif>
+            <summary class="min-h-11 cursor-pointer content-center font-bold">Capacités et lieu (facultatif)</summary>
+            <div class="mt-3 flex flex-col gap-3">
         @include('livewire.partials.skill-picker', [
             'list' => 'skills', 'items' => $skills, 'input' => $skillsInput, 'suggestions' => $suggestions, 'tone' => 'neutral', 'plain' => true,
             'max' => \App\Models\Publication::MAX_SKILLS,
@@ -109,6 +127,9 @@
             <p class="text-[12px] leading-normal text-muted">{{ $profileHasCity ? 'Repris de votre profil. Vous pouvez le changer pour cette publication.' : 'Vous pouvez choisir une ville, ou renseigner la vôtre dans votre profil.' }}</p>
         </div>
 
+        </div>
+        </details>
+
         <fieldset class="flex flex-col gap-1.5">
             <legend class="mb-1 text-[13px] font-bold text-muted">Qui peut la voir ?</legend>
             <div @class(['grid gap-2', 'grid-cols-2' => ! $zumra, 'grid-cols-1 sm:grid-cols-3' => $zumra])>
@@ -123,8 +144,10 @@
             @enderror
         </fieldset>
 
-        <x-button wire:loading.attr="disabled" wire:target="publish,media" class="min-h-[52px]">
-            <span wire:loading.remove wire:target="publish">{{ $button }}</span>
+        </div>
+        @if ($previewing && $errors->any())<p role="alert" class="text-danger">La publication nécessite une correction. Choisissez Modifier pour consulter les erreurs.</p>@endif
+        <x-button wire:loading.attr="disabled" wire:target="publish,preview,media" class="min-h-[52px]">
+            <span wire:loading.remove wire:target="publish">{{ ($previewing || $zumra || $project) ? $button : 'Voir l’aperçu' }}</span>
             <span wire:loading wire:target="publish">Publication…</span>
         </x-button>
 

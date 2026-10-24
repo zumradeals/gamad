@@ -58,6 +58,8 @@ class PublierPublication extends Component
         }
     }
 
+    public bool $previewing = false;
+
     public string $body = '';
 
     public string $needPurpose = '';
@@ -139,6 +141,40 @@ class PublierPublication extends Component
         // Les erreurs d'un envoi précédent ne survivent pas à un nouvel envoi.
         $this->resetErrorBag();
 
+        $body = $this->composedBody();
+
+        $publication = $publications->publish(Auth::user(), $this->type(), [
+            'body' => $body,
+            'domain_id' => $this->domain_id,
+            'city_id' => $this->city_id,
+            'visibility' => $this->visibility,
+            'skills' => $this->skills,
+            'media' => $this->media,
+            ...(! $this->zumraId && ! $this->projectId ? ['matching' => $this->matching] : []),
+        ], $this->zumra(), $this->project());
+
+        session()->flash('status', 'Publié. Elle apparaît dans les publications.');
+
+        return $this->redirect(route('publications.show', $publication), navigate: false);
+    }
+
+    public function preview(): void
+    {
+        Gate::authorize('create', Publication::class);
+        $body = $this->composedBody();
+        if ($body === '' || mb_strlen($body) > Publication::BODY_MAX) {
+            throw ValidationException::withMessages(['body' => 'Écrivez votre publication dans la limite de '.Publication::BODY_MAX.' caractères, précisions comprises.']);
+        }
+        $this->previewing = true;
+    }
+
+    public function edit(): void
+    {
+        $this->previewing = false;
+    }
+
+    private function composedBody(): string
+    {
         $body = $this->body;
         if ($this->type()->isNeed()) {
             $this->validate(['needPurpose' => ['nullable', 'string', 'max:150'], 'needTiming' => ['nullable', 'string', 'max:100']], [], ['needPurpose' => 'but du besoin', 'needTiming' => 'disponibilités']);
@@ -158,24 +194,13 @@ class PublierPublication extends Component
             $body = implode("\n\n", $parts);
         }
 
-        $publication = $publications->publish(Auth::user(), $this->type(), [
-            'body' => $body,
-            'domain_id' => $this->domain_id,
-            'city_id' => $this->city_id,
-            'visibility' => $this->visibility,
-            'skills' => $this->skills,
-            'media' => $this->media,
-            ...(! $this->zumraId && ! $this->projectId ? ['matching' => $this->matching] : []),
-        ], $this->zumra(), $this->project());
-
-        session()->flash('status', 'Publié. Elle apparaît dans les publications.');
-
-        return $this->redirect(route('publications.show', $publication), navigate: false);
+        return Normalizer::multiline($body);
     }
 
     public function render()
     {
         return view('livewire.publier-publication', [
+            'previewBody' => $this->previewing ? $this->composedBody() : '',
             'type' => $this->type(),
             'domains' => Domain::query()->active()->ordered()->get(),
             'cities' => City::query()->active()->get()->sortBy(fn (City $city) => Normalizer::key($city->label()))->values(),

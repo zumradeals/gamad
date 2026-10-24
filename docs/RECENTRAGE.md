@@ -296,3 +296,13 @@ publications personnelles non masquées ; les aperçus d’un auteur au profil r
 L’introduction de la charte est alignée éditorialement, sans modifier les autres règles, dates d’adoption ou
 consentements antérieurs. Pas de migration, nouveau stockage, ouverture publique automatique, assouplissement
 de l’authentification ou indexation automatique. R1 reste En cours.
+
+
+## Parcours Agir — D-191
+Le Président approuve quatre intentions : Trouver de l’aide, Apprendre quelque chose,
+Proposer quelque chose et Partager. Elles orientent vers les types existants ; besoin = résultat
+recherché, apprentissage = compétence à acquérir. Gratuité et rémunération sont indépendantes.
+Formulaire progressif, détails facultatifs, relecture et retour Modifier sans perdre la saisie.
+Matching facultatif présenté comme « M’aider à trouver les bonnes personnes ». Les validations
+serveur, les droits et la limite de 500 caractères restent applicables à la publication finale.
+Aucune nouvelle dépendance ni réouverture de module. R1 reste En cours.
