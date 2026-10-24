@@ -151,8 +151,13 @@
                     @else
                         <h2 id="vide" class="text-[18px] font-extrabold">Rien dans cette catégorie pour l’instant.</h2>
                     @endif
-                    <p class="text-[14px] leading-relaxed text-muted">Soyez la première personne à publier : un besoin, un savoir à partager, ce que vous voulez apprendre.</p>
-                    <x-button :href="route('agir')" variant="accent"><x-icon name="plus" :size="18" class="mr-2" />Agir</x-button>
+                    @if ($filter === 'partages')
+                        <p class="text-[14px] leading-relaxed text-muted">Les expériences et réalisations apparaîtront ici dès qu'elles seront partagées.</p>
+                        <x-button :href="route('agir.publier', 'partage')" variant="accent">Partager mon expérience</x-button>
+                    @elseif (! in_array($filter, ['suivis', 'decouvrir'], true))
+                        <p class="text-[14px] leading-relaxed text-muted">Vous pouvez partager un besoin, un savoir ou une expérience, à votre rythme.</p>
+                        <x-button :href="route('agir')" variant="accent"><x-icon name="plus" :size="18" class="mr-2" />Agir</x-button>
+                    @endif
                 </section>
             @endforelse
         </div>
