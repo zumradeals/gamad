@@ -6,7 +6,6 @@ use App\Services\CompanyBranding;
 use App\Services\CompanyRegistry;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 
 function companyForBranding(User $owner, bool $verified = true): Company
 {
