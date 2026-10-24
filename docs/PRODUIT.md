@@ -250,8 +250,7 @@ ne crée ni engagement ni paiement. Fil · Agir · Mon espace reste la navigatio
 - Notifications internes séparément consenties (désactivées par défaut), jamais d’e-mail/SMS. Une alerte générique
   non lue au plus, cinq nouvelles alertes au plus par jour d’Abidjan ; chaque correspondance ne notifie qu’une
   fois. Les écritures sont sérialisées sur le destinataire. Activer les notifications peut annoncer les
-  correspondances actuelles non ignorées ; aucun rattrapage en boucle. Désactiver enlève l’alerte non lue de
-  matching. Les notifications des autres usages ne sont pas modifiées.
+  correspondances actuelles non ignorées ; aucun rattrapage en boucle. Désactiver marque l’alerte courante de matching comme lue, sans effacer son historique ni remettre à zéro le plafond quotidien. Les notifications des autres usages ne sont pas modifiées.
 - Une publication peut être fermée au matching par son gestionnaire. Besoins résolus/fermés, publications
   masquées, profils indisponibles/suspendus, comptes supprimés, périodes terminées et contenus non visibles
   cessent d’être proposés. Les détails et conversations antérieures restent soumis à leurs règles existantes.

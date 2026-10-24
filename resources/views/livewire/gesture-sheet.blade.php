@@ -21,6 +21,8 @@
 
                 <p class="text-[14px] leading-[1.55]">{{ $firstName }} recevra votre {{ $type->isExchange() ? 'demande d’échange' : ($type->isNeed() ? 'proposition' : 'réponse') }} et pourra <strong>l’accepter</strong>.</p>
 
+                <x-opportunity-conditions :publication="$publication" />
+
                 <form wire:submit="send" class="flex flex-col gap-3.5">
                     <div class="flex flex-col gap-1.5" x-data="{ count: [...$wire.message].length }">
                         <label for="geste-mot" class="text-[13px] font-bold text-muted">{{ $type->isExchange() ? 'De quoi aimeriez-vous échanger ?' : 'Un mot pour '.$firstName.' (facultatif)' }}</label>

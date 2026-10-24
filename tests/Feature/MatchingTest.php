@@ -93,11 +93,12 @@ it('ne déduit pas que deux communes d’un même district sont le même lieu', 
 });
 
 it('écarte les périodes et jours incompatibles ainsi que les personnes indisponibles', function () {
-    matchingPreferences($this->helper, ['from' => today()->addDays(2)->toDateString(), 'until' => today()->addDays(4)->toDateString(), 'days' => [1]]);
-    matchingPublication($this->author, changes: ['from' => today()->addDays(6)->toDateString(), 'until' => today()->addDays(8)->toDateString()]);
+    $start = today()->next('Monday');
+    matchingPreferences($this->helper, ['from' => $start->copy()->toDateString(), 'until' => $start->copy()->addDays(3)->toDateString(), 'days' => [1]]);
+    matchingPublication($this->author, changes: ['from' => $start->copy()->addDays(6)->toDateString(), 'until' => $start->copy()->addDays(8)->toDateString()]);
     matchingPublication($this->author, changes: ['days' => [2]]);
     expect($this->engine->suggestions($this->helper))->toBeEmpty();
-    matchingPublication($this->author, changes: ['from' => today()->addDays(2)->toDateString(), 'until' => today()->addDays(4)->toDateString(), 'days' => [1]]);
+    matchingPublication($this->author, changes: ['from' => $start->copy()->toDateString(), 'until' => $start->copy()->addDays(3)->toDateString(), 'days' => [1]]);
     expect($this->engine->suggestions($this->helper))->toHaveCount(1);
     matchingPreferences($this->helper, ['available' => false]);
     expect($this->engine->suggestions($this->helper))->toBeEmpty();
@@ -139,7 +140,7 @@ it('retire les suggestions clôturées expirées résolues ou masquées même si
     expect($this->engine->suggestions($this->helper))->toHaveCount(1);
     app(Moderation::class)->hide(User::factory()->superAdmin()->create(), $other, 'Motif de recette');
     expect($this->engine->suggestions($this->helper))->toBeEmpty();
-    matchingPublication($this->author, changes: ['until' => yesterday()->toDateString()]);
+    matchingPublication($this->author, changes: ['until' => today()->subDay()->toDateString()]);
     expect($this->engine->suggestions($this->helper))->toBeEmpty();
 });
 
@@ -222,4 +223,55 @@ it('ne se propose pas soi-même et ne conserve aucun reçu après suppression du
     expect(MatchSuggestion::count())->toBe(1);
     $this->helper->delete();
     expect(MatchSuggestion::count())->toBe(0);
+});
+
+it('retire immédiatement une personne devenue inactive et ne propose pas les personnes bloquées à la modération', function () {
+    matchingPreferences($this->helper);
+    $post = matchingPublication($this->author);
+    expect($this->engine->suggestions($this->helper))->toHaveCount(1);
+    $this->author->forceFill(['email_verified_at' => null])->save();
+    expect($this->engine->suggestions($this->helper))->toBeEmpty();
+    $this->author->forceFill(['email_verified_at' => now()])->save();
+    $moderator = User::factory()->superAdmin()->create();
+    $moderator->profile->offeredSkills()->attach($this->helper->profile->offeredSkills->first()->id, ['kind' => 'offered', 'position' => 0]);
+    matchingPreferences($moderator);
+    app(People::class)->block($this->author, $moderator, true);
+    expect($this->engine->suggestions($moderator))->toBeEmpty();
+});
+
+it('retire les pistes lorsque les préférences sont désactivées et enlève l’alerte de matching non lue', function () {
+    matchingPreferences($this->helper, ['notify' => true]);
+    matchingPublication($this->author);
+    expect(UserNotification::where('kind', NotificationKind::MatchFound)->count())->toBe(1);
+    Livewire::actingAs($this->helper)->test(ModifierProfil::class)->set('matching_preferences.enabled', false)->call('save')->assertHasNoErrors();
+    expect(UserNotification::where('kind', NotificationKind::MatchFound)->whereNull('read_at')->count())->toBe(0)->and(UserNotification::where('kind', NotificationKind::MatchFound)->count())->toBe(1)->and($this->engine->suggestions($this->helper->fresh()))->toBeEmpty();
+});
+
+it('ne produit pas de correspondance si le seul jour commun ne tombe pas dans la période commune', function () {
+    $tuesday = today()->next('Tuesday');
+    matchingPreferences($this->helper, ['from' => $tuesday->toDateString(), 'until' => $tuesday->toDateString(), 'days' => [1]]);
+    matchingPublication($this->author, changes: ['from' => $tuesday->toDateString(), 'until' => $tuesday->toDateString(), 'days' => [1]]);
+    expect($this->engine->suggestions($this->helper))->toBeEmpty();
+});
+
+it('refuse le matching collectif même par un appel direct au service', function () {
+    config(['gamad.initial_experience' => false]);
+    $zumra = zumra($this->author);
+    expect(fn () => app(Publications::class)->publish($this->author, PublicationType::Need, ['body' => 'Besoin collectif', 'skills' => ['Couture'], 'matching' => array_replace(MatchingConditions::publicationDefaults(PublicationType::Need), ['enabled' => true, 'remote' => true])], $zumra))->toThrow(ValidationException::class);
+});
+
+it('ne remet pas le plafond d’alertes à zéro en désactivant puis réactivant les notifications', function () {
+    matchingPreferences($this->helper, ['notify' => true]);
+    foreach (range(1, 5) as $i) {
+        matchingPublication($this->author, data: ['body' => 'Occasion '.$i]);
+        if ($i < 5) {
+            UserNotification::where('user_id', $this->helper->id)->update(['read_at' => now()]);
+        }
+    }
+    matchingPreferences($this->helper, ['notify' => false]);
+    $this->engine->profileChanged($this->helper->id);
+    matchingPreferences($this->helper, ['notify' => true]);
+    $this->engine->profileChanged($this->helper->id);
+    matchingPublication($this->author, data: ['body' => 'Sixième occasion']);
+    expect(UserNotification::where('kind', NotificationKind::MatchFound)->count())->toBe(5)->and(UserNotification::where('kind', NotificationKind::MatchFound)->whereNull('read_at')->count())->toBe(0);
 });

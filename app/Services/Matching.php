@@ -9,6 +9,7 @@ use App\Models\Profile;
 use App\Models\Publication;
 use App\Models\User;
 use App\Models\UserNotification;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -71,7 +72,7 @@ class Matching
             }
             $prefs = $this->preferences($user->ensureProfile());
             if (! $prefs['enabled'] || ! $prefs['notify']) {
-                UserNotification::where('user_id', $userId)->where('kind', NotificationKind::MatchFound)->whereNull('read_at')->delete();
+                UserNotification::where('user_id', $userId)->where('kind', NotificationKind::MatchFound)->whereNull('read_at')->update(['read_at' => now()]);
             }
             $this->discover($user, 100);
         });
@@ -97,7 +98,7 @@ class Matching
     {
         $this->discover($user, min(101, max(1, $limit + 1)));
         $items = collect();
-        foreach (MatchSuggestion::where('user_id', $user->id)->whereNull('ignored_at')->with(['publication.author.profile', 'publication.skills', 'publication.city', 'profile.user', 'profile.offeredSkills', 'profile.wantedSkills', 'offer.author.profile', 'offer.skills', 'offer.city'])->orderByDesc('created_at')->orderByDesc('id')->lazy(100) as $row) {
+        foreach (MatchSuggestion::where('user_id', $user->id)->whereNull('ignored_at')->with(['publication.author.profile', 'publication.skills', 'publication.city', 'profile.user', 'profile.offeredSkills', 'profile.wantedSkills', 'offer.author.profile', 'offer.skills', 'offer.city'])->orderByDesc(Publication::select('created_at')->whereColumn('publications.id', 'match_suggestions.publication_id'))->orderByDesc('id')->lazy(100) as $row) {
             $detail = $this->detail($user, $row);
             if ($detail) {
                 $items->push(['suggestion' => $row, ...$detail]);
@@ -227,7 +228,7 @@ class Matching
 
     public function detail(User $user, MatchSuggestion $row, bool $fresh = false): ?array
     {
-        if (! $user->isActive() || $row->user_id !== $user->id || ! $this->ready($user->ensureProfile())) {
+        if (! Gate::forUser($user)->allows('view', $row) || ! $this->ready($user->ensureProfile())) {
             return null;
         }
         $post = $row->publication;
@@ -283,7 +284,7 @@ class Matching
     {
         $cfg = $this->settings($post);
 
-        return ! $post->zumra_id && ! $post->project_id && ! $post->isHidden() && $post->author->isActive() && $cfg['enabled'] && $cfg['open'] && (! $cfg['until'] || $cfg['until'] >= today('Africa/Abidjan')->toDateString()) && (! $post->isNeed() || $post->need_state?->isActive());
+        return ! $post->zumra_id && ! $post->project_id && ! $post->isHidden() && $post->author->isActive() && $cfg['enabled'] && $cfg['open'] && $this->preferences($post->author->ensureProfile())['available'] && (! $cfg['until'] || $cfg['until'] >= today('Africa/Abidjan')->toDateString()) && (! $post->isNeed() || $post->need_state?->isActive());
     }
 
     private function profileRelation(Publication $post): ?string
@@ -352,6 +353,24 @@ class Matching
     {
         if (! $place || ($a['from'] && $b['until'] && $a['from'] > $b['until']) || ($b['from'] && $a['until'] && $b['from'] > $a['until']) || ($a['days'] && $b['days'] && array_intersect($a['days'], $b['days']) === [])) {
             return null;
+        }
+
+        $start = max([today('Africa/Abidjan')->toDateString(), $a['from'], $b['from']]);
+        $ends = array_filter([$a['until'], $b['until']]);
+        $end = $ends ? min($ends) : null;
+        $days = $a['days'] && $b['days'] ? array_values(array_intersect($a['days'], $b['days'])) : ($a['days'] ?: $b['days']);
+        if ($end && $days) {
+            $possible = false;
+            $date = CarbonImmutable::parse($start, 'Africa/Abidjan');
+            for ($i = 0; $i < 7 && $date->toDateString() <= $end; $i++, $date = $date->addDay()) {
+                if (in_array($date->dayOfWeekIso, $days, true)) {
+                    $possible = true;
+                    break;
+                }
+            }
+            if (! $possible) {
+                return null;
+            }
         }
 
         return ['Capacité commune : '.implode(', ', $skills), $place, MatchingConditions::TERMS[$a['terms']], $a['from'] && $a['until'] && $b['from'] && $b['until'] ? 'Les périodes déclarées se recoupent' : 'Disponibilités à préciser ensemble'];
