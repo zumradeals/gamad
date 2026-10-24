@@ -1,8 +1,8 @@
 # CLAUDE.md — Réseau social d'action GAMAD
 
-## Priorité actuelle — Fil, profils et entraide (D-183, D-184)
+## Priorité actuelle — Accueil, profils et entraide (D-183, D-184)
 
-Le Président demande une entrée unifiée **Fil · Agir · Mon espace** (D-184). Les profils et la recherche
+Le Président demande une entrée unifiée **Accueil · Agir · Mon espace** (D-184, D-190). Les profils et la recherche
 de personnes restent accessibles depuis le Fil et les publications, sans menu Personnes permanent.
 La priorité est le parcours besoin → proposition précise → conversation → prochaine action confirmée.
 D-186 ajoute les profils enrichis, réalisations et partages personnels (texte, image, vidéo ou PDF),
