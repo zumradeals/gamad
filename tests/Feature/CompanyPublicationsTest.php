@@ -9,6 +9,7 @@ use App\Services\CompanyRegistry;
 use App\Services\PublicationBookmarks;
 use App\Services\PublicationComments;
 use App\Services\Publications;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -148,7 +149,8 @@ it('intègre les entreprises suivies dans Mes suivis sans suivre indirectement l
     // Même s'il s'agit du compte auteur de la publication, on ne suit pas indirectement la personne.
     $this->assertDatabaseMissing('person_follows', ['user_id' => $viewer->id, 'followed_id' => $owner->id]);
     $feed->call('setFilter', 'entreprises')->assertSeeText('Des nouvelles réservées au fil des abonnés.');
-    $feed->call('followAuthor', $post->id)->assertNotFound();
+    expect(fn () => Livewire::actingAs($viewer)->test(Fil::class)->call('followAuthor', $post->id))
+        ->toThrow(ModelNotFoundException::class);
 });
 
 it('rend une entreprise nouvelle découvrable jusqu’à son suivi, sans classement de popularité', function () {
@@ -178,7 +180,7 @@ it('réutilise les commentaires et enregistrements des publications sans nouveau
     $this->actingAs($viewer)->get(route('publications.show', $post))
         ->assertOk()->assertSeeText('Merci pour votre partage.')
         ->assertSeeText($company->name)
-        ->assertSeeText('Enregistrer');
+        ->assertSeeText('Partager');
 });
 
 it('fait disparaître immédiatement les publications de toute entreprise suspendue, même par URL directe', function () {
