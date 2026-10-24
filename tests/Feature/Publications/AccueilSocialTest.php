@@ -3,6 +3,7 @@
 use App\Enums\PublicationType;
 use App\Livewire\Fil;
 use App\Services\People;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 
@@ -91,8 +92,10 @@ it('ne découvre aucun contenu de personne bloquée et refuse le suivi malgré u
 
     app(People::class)->block($viewer, $auteur, true);
     Livewire::actingAs($viewer)->test(Fil::class)->call('setFilter', 'decouvrir')
-        ->assertDontSeeText('Ne pas faire apparaître')
-        ->call('followAuthor', $post->id)->assertNotFound();
+        ->assertDontSeeText('Ne pas faire apparaître');
+    // La couche Eloquent refuse la publication masquée avant même le service de suivi.
+    expect(fn () => Livewire::actingAs($viewer)->test(Fil::class)->call('followAuthor', $post->id))
+        ->toThrow(ModelNotFoundException::class);
     expect(DB::table('person_follows')->where('user_id', $viewer->id)->where('followed_id', $auteur->id)->exists())->toBeFalse();
 });
 
