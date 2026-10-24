@@ -24,7 +24,7 @@ it('découvre des publications publiques de personnes non suivies, sans révéle
     $feed->assertSeeText('Un partage inédit')->assertSeeText('Un savoir ouvert')
         ->assertDontSeeText('Ma propre expérience')->assertDontSeeText('Un savoir déjà suivi')
         ->assertDontSeeText('Contenu réservé')
-        ->assertSeeText('Publications publiques de nouvelles personnes');
+        ->assertSeeText('Publications publiques de nouvelles personnes et entreprises');
 
     expect($decouverte->isPublic())->toBeTrue();
 });
@@ -63,7 +63,7 @@ it('montre les publications accessibles des personnes suivies, y compris celles 
 
     Livewire::actingAs($viewer)->test(Fil::class)->call('setFilter', 'suivis')
         ->assertSeeText('Journal public')->assertSeeText('Journal membres')
-        ->assertDontSeeText('Auteur extérieur')->assertSeeText('Publications récentes des personnes suivies');
+        ->assertDontSeeText('Auteur extérieur')->assertSeeText('Publications des personnes et entreprises suivies');
 });
 
 it('autorise le suivi depuis une publication visible mais pas depuis sa propre publication', function () {

@@ -38,7 +38,7 @@ class PersonController extends Controller
 
         $personalPosts = Publication::query()->visibleTo($viewer)->whereNull('hidden_at')->whereNull('zumra_id')->whereNull('company_id')->where('author_id', $profile->user_id)->latest()->limit(20)->get();
         $references = collect($profile->featured_publications ?? [])->merge(collect($profile->skill_details ?? [])->pluck('publication_id'))->push($profile->cover_publication_id)->filter()->unique();
-        $visibleReferences = Publication::query()->visibleTo($viewer)->whereNull('hidden_at')->whereNull('zumra_id')->where('author_id', $profile->user_id)->whereIn('id', $references)->get()->keyBy('id');
+        $visibleReferences = Publication::query()->visibleTo($viewer)->whereNull('hidden_at')->whereNull('zumra_id')->where('author_id', $profile->user_id)->whereNull('company_id')->whereIn('id', $references)->get()->keyBy('id');
 
         $cover = $visibleReferences->get($profile->cover_publication_id);
         if ($cover?->media_kind !== 'image' || ! $cover->media_path) {
