@@ -293,3 +293,13 @@ création de compte et découverte explicites. Sections : usages concrets, profi
 fonctionnement et confiance. Navigation publique par ancres, connexion toujours accessible et menu mobile
 natif. Palette et gabarits existants ; une colonne à 390 px. Marque GAMAD sans ancienne devise.
 Navigation connectée Accueil · Agir · Mon espace, recherche après Accueil.
+
+
+## Parcours Agir — D-191
+Le Président approuve quatre intentions : Trouver de l’aide, Apprendre quelque chose,
+Proposer quelque chose et Partager. Elles orientent vers les types existants ; besoin = résultat
+recherché, apprentissage = compétence à acquérir. Gratuité et rémunération sont indépendantes.
+Formulaire progressif, détails facultatifs, relecture et retour Modifier sans perdre la saisie.
+Matching facultatif présenté comme « M’aider à trouver les bonnes personnes ». Les validations
+serveur, les droits et la limite de 500 caractères restent applicables à la publication finale.
+Aucune nouvelle dépendance ni réouverture de module. R1 reste En cours.

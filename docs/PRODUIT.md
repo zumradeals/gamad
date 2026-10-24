@@ -284,3 +284,13 @@ RECENTRAGE.md § Identité vérifiée et expériences confirmées. Aucun diplôm
 Le menu Fil est renommé Accueil ; le contenu reste un fil de publications. Les routes historiques sont
 conservées. Présentation publique sans devise ni référence d’appartenance ; profils, occasions et réalisations
 publics seulement. Inscription/connexion explicites. Voir RECENTRAGE.md § Entrée publique et vocabulaire.
+
+
+## Parcours Agir — D-191
+Le Président approuve quatre intentions : Trouver de l’aide, Apprendre quelque chose,
+Proposer quelque chose et Partager. Elles orientent vers les types existants ; besoin = résultat
+recherché, apprentissage = compétence à acquérir. Gratuité et rémunération sont indépendantes.
+Formulaire progressif, détails facultatifs, relecture et retour Modifier sans perdre la saisie.
+Matching facultatif présenté comme « M’aider à trouver les bonnes personnes ». Les validations
+serveur, les droits et la limite de 500 caractères restent applicables à la publication finale.
+Aucune nouvelle dépendance ni réouverture de module. R1 reste En cours.
