@@ -64,9 +64,9 @@
                             <p class="text-[12px] text-muted">{{ $experience->relationshipLabel() }} · {{ $experience->period }}</p>
                         </div>
                         @if ($experience->confirmed())
-                            <span class="inline-flex items-center gap-1 rounded-chip bg-type-knowledge-bg px-3 py-1.5 text-[12px] font-bold text-type-knowledge-fg"><x-icon name="check-circle" :size="16"/> Confirmée par l'entreprise</span>
+                            <span class="inline-flex items-center gap-1 rounded-chip bg-type-knowledge-bg px-3 py-1.5 text-[12px] font-bold text-type-knowledge-fg"><x-icon name="check-circle" :size="16"/> Confirmée par l’entreprise</span>
                         @else
-                            <span class="rounded-chip bg-ground px-3 py-1.5 text-[12px] font-bold text-muted">Non encore confirmée par l'entreprise</span>
+                            <span class="rounded-chip bg-ground px-3 py-1.5 text-[12px] font-bold text-muted">{{ $experience->status === 'pending' ? 'Non encore confirmée par l’entreprise' : 'Non confirmée par l’entreprise' }}</span>
                         @endif
                     </div>
                     @if ($experience->description)<p class="mt-2 whitespace-pre-line text-[14px] leading-relaxed">{{ $experience->description }}</p>@endif

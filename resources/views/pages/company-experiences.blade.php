@@ -63,7 +63,7 @@
                                 <p class="text-[13px] font-bold">{{ $experience->company->name }} · {{ $experience->relationshipLabel() }} · {{ $experience->period }}</p>
                             </div>
                             @if ($experience->confirmed())
-                                <span class="rounded-chip bg-type-knowledge-bg px-2.5 py-1.5 text-[12px] font-bold text-type-knowledge-fg">Confirmée par l'entreprise</span>
+                                <span class="rounded-chip bg-type-knowledge-bg px-2.5 py-1.5 text-[12px] font-bold text-type-knowledge-fg">Confirmée par l’entreprise</span>
                             @else
                                 <span class="rounded-chip bg-ground px-2.5 py-1.5 text-[12px] font-bold text-muted">Non confirmée</span>
                             @endif

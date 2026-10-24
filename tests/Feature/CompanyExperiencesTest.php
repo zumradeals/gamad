@@ -16,7 +16,7 @@ function verifiedCompanyForCareer(User $owner, bool $verify = true): Company
         'name' => 'Entreprise pilote carrière',
         'legal_name' => 'Entreprise pilote carrière SARL',
         'registration_country' => 'CI',
-        'registration_number' => 'CI-ABJ-CARRIERES-'.substr($owner->id, 0, 8),
+        'registration_number' => 'CI-ABJ-CARRIERES-'.substr(str_replace('-', '', $owner->id), -12),
         'sector' => 'Télécommunications',
         'city' => 'Abidjan',
     ], ['rccm' => UploadedFile::fake()->create('rccm.pdf', 80, 'application/pdf')]);
@@ -170,7 +170,7 @@ it('permet de refuser une déclaration sans la présenter comme confirmée', fun
 
     expect($experience->fresh()->status)->toBe('declined')
         ->and($experience->fresh()->confirmed())->toBeFalse();
-    $this->get(route('personnes.show', $moussa->profile))->assertSeeText('Non encore confirmée par l’entreprise');
+    $this->get(route('personnes.show', $moussa->profile))->assertSeeText('Non confirmée par l’entreprise');
 });
 
 it('permet d’ajouter un dossier depuis la page Mes expériences et conserve le choix de l’entreprise', function () {
