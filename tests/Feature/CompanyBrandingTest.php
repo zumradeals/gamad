@@ -82,7 +82,7 @@ it('traite réellement logo et bannière en JPEG sans exposer les fichiers priv�
         }
         $this->get(route('entreprises.visual', [$fresh, $kind]))
             ->assertOk()->assertHeader('Content-Type', 'image/jpeg')
-            ->assertHeader('Cache-Control', 'private, no-cache')
+            ->assertHeader('Cache-Control', 'no-cache, private')
             ->assertHeader('X-Content-Type-Options', 'nosniff');
     }
 
