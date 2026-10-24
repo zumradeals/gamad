@@ -40,6 +40,7 @@ class User extends Authenticatable implements MustVerifyEmail
             app(Wallets::class)->assertAccountCanBeDeleted($user);
 
             $user->profile?->deletePhotoFile();
+            Publication::query()->where('author_id', $user->id)->whereNotNull('media_path')->each(fn (Publication $post) => $post->deleteMediaFile());
 
             // Fondateur d'une ZUMRA : la fondation passe à un autre membre, ou la ZUMRA disparaît s'il n'y en a pas (D-115).
             app(Memberships::class)->passFoundationFrom($user);

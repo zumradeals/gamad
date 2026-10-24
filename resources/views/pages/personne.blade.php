@@ -31,6 +31,8 @@
                 <span class="inline-flex items-center gap-1.5 self-start rounded-chip bg-type-call-bg px-3 py-1 text-[12px] font-bold text-type-call-fg" data-testid="badge-contributeur"><x-icon name="check" :size="14" :stroke="3" />Contributeur</span>
             @endif
 
+            @unless ($isOwner)<livewire:person-contact :profile="$profile" />@endunless
+
             @foreach ($inviteZumras as $inviteZumra)
                 <x-button :href="route('zumras.invite', [$inviteZumra, 'personne' => $profile->public_id])" variant="secondary" class="md:self-start md:px-8">{{ $inviteZumras->count() === 1 ? 'Inviter dans ma ZUMRA' : 'Inviter dans '.$inviteZumra->name }}</x-button>
             @endforeach
@@ -42,6 +44,8 @@
                 @endunless
             @endif
         </header>
+
+        @include('pages.partials-person-showcase')
 
         <nav aria-label="Onglets du profil" class="-mx-4 flex border-b border-line bg-card px-2 md:mx-0 md:rounded-card md:border">
             <a href="{{ route('personnes.show', $profile->public_id) }}" aria-current="page"

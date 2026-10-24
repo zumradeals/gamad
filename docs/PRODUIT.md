@@ -158,3 +158,54 @@ Artisanat.
 - Dans une conversation existante, chaque participant peut proposer une prochaine action (280 caractères maximum), avec une date facultative, aujourd’hui ou plus tard en heure d’Abidjan. L’autre personne doit la confirmer ; l’auteur ne peut pas s’auto-confirmer. Une nouvelle proposition remplace l’action courante et annule toute confirmation précédente. Chacun peut retirer l’action.
 - Les écritures sont autorisées seulement aux participants vérifiés pouvant encore écrire dans la conversation. Une version vérifiée sous verrou empêche une réponse d’ancienne page de confirmer ou remplacer une action modifiée entre-temps. Les changements apparaissent aussi comme messages privés de leur auteur ; aucun rappel, calendrier, tâche publique ou nouveau monde.
 - L’action courante et sa date sont effacées si l’un des participants supprime son compte ; les messages suivent les règles existantes d’effacement de leur auteur. La confirmation ne recopie pas le contenu personnel proposé par l’autre.
+
+
+## Profils, publications et liens personnels — D-186
+
+Décision du Président du 24 octobre 2026, approuvée dans la conversation puis mise en œuvre par Codex.
+Le périmètre R1 comprend désormais ces fonctionnalités, sans rouvrir les modules collectifs ou financiers.
+
+- **Profil** : présentation libre facultative (1 200 caractères) en plus de la bio ; dix expériences au plus
+  (intitulé 100, nature personnelle / professionnelle / associative-bénévole / apprentissage, période ou contexte 80,
+  description 500). Informations déclarées par l’auteur, sans certification ni notation. Dix descriptions de savoir-faire
+  au plus (une capacité apportée existante, explication 280, publication personnelle illustrative facultative).
+  Trois publications personnelles à la une au plus. Les références sont relues avec les droits actuels du visiteur :
+  aucun extrait ni fichier d’une publication masquée ou privée n’est révélé par sa sélection sur le profil.
+- **Publier** : ajout de « Ma réalisation » (`personal_work`, distinct des anciennes réalisations de projets) et
+  « Je partage » (`share`). Texte de 500 caractères conservé ; un fichier facultatif pour tout type personnel :
+  JPEG/PNG/WebP ou PDF 5 Mo, MP4/WebM 10 Mo. Les images sont réencodées en JPEG, orientées, sans métadonnées,
+  proportions conservées, côté maximal 2 048 pixels et entrée limitée à 25 mégapixels. Aucun transcodage vidéo,
+  galerie, lecteur de formation ou espace de stockage général. Les PDF et vidéos conservent leurs métadonnées :
+  l’auteur doit vérifier ce qu’il partage. Les PDF se téléchargent, jamais de HTML/SVG ou document bureautique actif.
+  Fichiers sur disque local privé, servis par une route autorisée à chaque requête, y compris les requêtes vidéo Range.
+  Suppression des fichiers au départ du compte ou de la publication ; sauvegarde quotidienne incluse.
+- **Échanger** : geste des réalisations personnelles et partages, motif obligatoire (280 caractères au total).
+  Le destinataire accepte ou décline par le parcours existant ; accepter ouvre une conversation rattachée à la
+  publication, sans créer une relation durable. Aucun « j’aime », classement ou note.
+- **Suivre** : abonnement unilatéral, réversible, sans notification ni permission de contact supplémentaire.
+  « Mes suivis » montre chronologiquement les seules publications personnelles **publiques** des personnes suivies,
+  même si le visiteur dispose par ailleurs d’accès plus larges. Pas de nombre public d’abonnés ni liste publique.
+- **Entrer en relation** : demande avec mot obligatoire de 1 à 280 caractères. Une demande courante par paire,
+  pas d’acceptation automatique des demandes croisées. Seul le destinataire accepte ou décline ; seul l’expéditeur
+  retire une demande. Acceptation : relation réciproque et conversation immédiatement accessible avec « Écrire ».
+  Notifications internes à la demande et à l’acceptation, jamais d’e-mail automatique. Limite de 20 demandes par
+  personne et par 24 heures ; après retrait, refus ou suppression d’un lien, sept jours avant une nouvelle demande.
+  Les décisions vérifient la version affichée et les écritures d’une paire sont sérialisées dans un ordre stable.
+  Retirer la relation conserve la conversation déjà consentie ; une nouvelle relation réutilise cette conversation.
+- **Mon espace → Mes liens** : demandes reçues/envoyées, relations, suivis et blocages, accessibles uniquement
+  au propriétaire ; dix lignes par affichage, « Voir plus » jusqu’à 200. Aucun nouveau menu principal.
+- **Bloquer** : retire suivis dans les deux sens et relation/demande courante ; empêche tout nouveau contact,
+  geste accepté ou message dans les deux sens. Les profils/publications disparaissent de leurs recherches et URLs
+  authentifiées respectives, fichiers inclus. Les conversations déjà consenties restent lisibles. Le blocage ne
+  retire pas un contenu public aux visiteurs déconnectés ; il ne remplace pas le signalement. Chaque personne ne
+  peut lever que son propre blocage. Débloquer ne restaure ni suivi ni relation. Pas de notification du blocage.
+
+Une migration additive crée trois tables privées (`person_follows`, `person_connections`, `person_blocks`),
+quatre colonnes de profil et quatre colonnes de fichier sur les publications ; elle étend les contraintes de types
+et notifications. Aucun enregistrement existant n’est réécrit. Un retour de migration refuse de supprimer les
+nouveaux types tant que des publications existent. Aucune nouvelle dépendance.
+
+Essai du Président : compléter son profil et choisir une publication à la une ; avec un second compte, suivre,
+filtrer « Mes suivis », demander une relation puis accepter depuis Mon espace, écrire directement, retirer et
+bloquer ; publier une image, une vidéo courte et un PDF ; contrôler avec un visiteur déconnecté que les contenus
+réservés aux inscrits et leurs fichiers restent inaccessibles.

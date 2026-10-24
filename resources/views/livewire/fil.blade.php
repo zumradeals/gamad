@@ -1,5 +1,5 @@
 @php
-    $filters = ['tout' => 'Tout', 'besoins' => 'Besoins', 'savoirs' => 'Savoirs', 'apprendre' => 'Apprendre', 'aides' => 'Aides', 'zumra' => 'ZUMRA', 'projets' => 'Projets'];
+    $filters = ['tout' => 'Tout', 'suivis' => 'Mes suivis', 'besoins' => 'Besoins', 'savoirs' => 'Savoirs', 'apprendre' => 'Apprendre', 'aides' => 'Aides', 'zumra' => 'ZUMRA', 'projets' => 'Projets'];
     if (\App\Support\Experience::initial()) {
         unset($filters['zumra'], $filters['projets']);
     }

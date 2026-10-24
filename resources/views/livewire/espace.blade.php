@@ -142,7 +142,7 @@
 
         <section aria-labelledby="echanges" class="space-panel flex min-w-0 flex-col gap-3 p-4 md:p-5">
             <h2 id="echanges" class="flex items-center gap-2.5 text-[18px] font-extrabold"><x-icon name="chat" :size="23" />Mes échanges</h2>
-            <p class="text-[14px] text-muted">Vos conversations privées, ouvertes après une proposition acceptée.</p>
+            <p class="text-[14px] text-muted">Vos échanges privés et vos conversations avec les personnes en relation avec vous.</p>
             @forelse ($conversations as $conversation)
                 <a wire:key="espace-conversation-{{ $conversation->id }}" href="{{ route('conversations.show', $conversation) }}" class="flex min-h-11 items-center justify-between gap-3 border-t border-line-soft py-2 text-[14px] font-semibold"><span class="min-w-0 [overflow-wrap:anywhere]">{{ $conversation->otherPerson($user)?->name ?? 'Personne supprimée' }}</span><x-icon name="arrow-right" :size="18" class="shrink-0" /></a>
             @empty
@@ -150,6 +150,8 @@
             @endforelse
             {{ $conversations->links() }}
         </section>
+
+        <livewire:my-network />
 
         @if ($legacyZumras->isNotEmpty() || $legacyWallets->isNotEmpty())
             <details class="space-panel p-4 md:p-5">

@@ -31,6 +31,40 @@ class ProfilePhoto
      *
      * @throws InvalidArgumentException message en français, affichable tel quel
      */
+    public static function encodePublication(string $raw): string
+    {
+        if (! self::available()) {
+            throw new InvalidArgumentException('L’envoi d’images n’est pas disponible sur ce serveur.');
+        }
+        $info = @getimagesizefromstring($raw);
+        if (! $info || ! in_array($info[2], [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_WEBP], true) || $info[0] * $info[1] > 25000000) {
+            throw new InvalidArgumentException('Choisissez une image JPEG, PNG ou WebP de 25 millions de pixels au plus.');
+        }
+        $source = @imagecreatefromstring($raw);
+        if (! $source) {
+            throw new InvalidArgumentException('Cette image ne peut pas être lue.');
+        }
+        if ($info[2] === IMAGETYPE_JPEG) {
+            $source = self::oriented($source, self::orientation($raw));
+        }
+        $width = imagesx($source);
+        $height = imagesy($source);
+        $ratio = min(1, 2048 / max($width, $height));
+        $target = imagecreatetruecolor(max(1, (int) round($width * $ratio)), max(1, (int) round($height * $ratio)));
+        imagefill($target, 0, 0, imagecolorallocate($target, 255, 255, 255));
+        imagecopyresampled($target, $source, 0, 0, 0, 0, imagesx($target), imagesy($target), $width, $height);
+        ob_start();
+        imagejpeg($target, null, 85);
+        $jpeg = ob_get_clean();
+        imagedestroy($source);
+        imagedestroy($target);
+        if (! $jpeg) {
+            throw new InvalidArgumentException('Cette image ne peut pas être enregistrée.');
+        }
+
+        return $jpeg;
+    }
+
     public static function encode(string $data): string
     {
         $info = @getimagesizefromstring($data);

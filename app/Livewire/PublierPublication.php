@@ -19,6 +19,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 /**
  * Publier (écrans 8 et 9) : un écran pour les quatre types de publication du Lot 2 (D-081). Le texte est un texte brut de
@@ -28,7 +29,15 @@ use Livewire\Component;
 #[Title('Publier')]
 class PublierPublication extends Component
 {
-    use PicksSkills;
+    use PicksSkills, WithFileUploads;
+
+    public $media = null;
+
+    public function removeMedia(): void
+    {
+        $this->media = null;
+        $this->resetErrorBag('media');
+    }
 
     #[Locked]
     public ?string $zumraId = null;
@@ -144,6 +153,7 @@ class PublierPublication extends Component
             'city_id' => $this->city_id,
             'visibility' => $this->visibility,
             'skills' => $this->skills,
+            'media' => $this->media,
         ], $this->zumra(), $this->project());
 
         session()->flash('status', 'Publié. Elle apparaît dans le Fil.');

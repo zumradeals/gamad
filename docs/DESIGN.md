@@ -247,3 +247,17 @@ La nouvelle composition remplace la présentation des écrans 1 et 4 pour le Fil
 - Dans le parcours initial connecté, la recherche occupe l’espace après Fil sur ordinateur. Sur téléphone, elle passe sur une seconde ligne sous le logo et les notifications, dans l’en-tête.
 - Champ unique et deux boutons de 44 px avec noms accessibles : rechercher dans le Fil, trouver une personne. Les formulaires GET reprennent les résultats et les droits existants ; le filtre du Fil courant est conservé à la soumission avec JavaScript.
 - La carte « Que voulez-vous faire avancer ? » redevient le premier élément de la colonne centrale du Fil. Le panneau de recherche central disparaît du parcours initial ; un état de recherche actif et son effacement restent visibles près des filtres.
+
+## Extension des profils et liens personnels (D-186)
+
+Navigation Fil · Agir · Mon espace conservée. Le profil présente son identité et les gestes Suivre / Entrer en relation,
+puis sa présentation, les publications à la une, les savoir-faire expliqués, le parcours et les publications récentes.
+Les capacités et apprentissages existants restent disponibles. Informations déclarées, aucune jauge de compétence.
+Les fichiers apparaissent dans les publications et leurs références sur le profil : image aux proportions conservées,
+vidéo avec commandes natives sans lecture automatique, PDF avec téléchargement explicite.
+
+Mon espace accueille Mes liens : Demandes, Relations, Mes suivis, Blocages. Les onglets se replient sur plusieurs
+lignes à 390 px ; boutons 44 px minimum, contenus longs reviennent à la ligne. Les relations n’affichent aucun compteur
+public. Entrer en relation demande un mot avant envoi ; le refus n’ouvre aucune conversation. Les actions destructrices
+retrait de relation et blocage demandent confirmation. États vides explicatifs, erreurs côté formulaire et envoi désactivé
+pendant chargement. « Mes suivis » est un filtre du Fil et conserve sa recherche.

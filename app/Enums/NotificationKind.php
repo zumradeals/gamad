@@ -5,6 +5,8 @@ namespace App\Enums;
 /** Ce qui peut être signalé à une personne dans l'application (écran 15). Jamais par e-mail ni par SMS à ce stade. */
 enum NotificationKind: string
 {
+    case ConnectionRequested = 'connection_requested';
+    case ConnectionAccepted = 'connection_accepted';
     case GestureReceived = 'gesture_received';
     case GestureAccepted = 'gesture_accepted';
     case MessageReceived = 'message_received';
@@ -60,6 +62,8 @@ enum NotificationKind: string
         $about = $about === null ? '' : " « {$about} »";
 
         return match ($this) {
+            self::ConnectionRequested => 'souhaite entrer en relation avec vous.',
+            self::ConnectionAccepted => 'a accepté votre demande de relation.',
             self::GestureReceived => "a répondu à votre publication{$about}.",
             self::GestureAccepted => "a accepté votre réponse{$about}.",
             self::MessageReceived => 'vous a écrit un message.',

@@ -143,3 +143,12 @@ Ces règles sont vérifiées par `tests/Feature/Deploy/` (elles s'exécutent à 
 - Le code du dépôt (`/srv/gamad-reseau/repo`) appartient au compte dédié : toute commande `git` y est lancée avec
   `runuser -u gamad-reseau --` (sinon git refuse : « dubious ownership »).
 - Pour tester un script `install.sh` sans l'exécuter : `GAMAD_SOURCE_ONLY=1 source deploy/install.sh` charge ses fonctions seulement.
+
+### Fichiers des publications personnelles (D-186)
+
+La sauvegarde quotidienne ajoute `medias-AAAA-MM-JJ_HHMMSS.tar.gz` lorsque
+`shared/storage/app/private/publication-media` contient des fichiers ; la rétention et la copie hors serveur
+s’appliquent comme aux photos. Restaurer cette archive à la même racine privée que l’archive des photos,
+puis rendre `publication-media` à l’utilisateur du service. Restaurer base et fichiers depuis la même sauvegarde.
+Les envois sont limités à 5 Mo pour images/PDF et 10 Mo pour vidéos ; les limites PHP et du proxy doivent permettre
+10 Mo plus l’enveloppe HTTP. Les vidéos MP4/WebM utilisent les commandes et codecs du navigateur, sans transcodage.

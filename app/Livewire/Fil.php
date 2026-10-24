@@ -11,6 +11,7 @@ use App\Support\Experience;
 use App\Support\Normalizer;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
@@ -83,7 +84,7 @@ class Fil extends Component
     /** Un geste envoyé, retiré, accepté ou décliné : la page se redessine. */
     private function knows(string $filter): bool
     {
-        return array_key_exists($filter, self::FILTERS) || (! Experience::initial() && in_array($filter, [self::ZUMRA_FILTER, self::PROJECT_FILTER], true));
+        return $filter === 'suivis' || array_key_exists($filter, self::FILTERS) || (! Experience::initial() && in_array($filter, [self::ZUMRA_FILTER, self::PROJECT_FILTER], true));
     }
 
     #[On('gesture-changed')]
@@ -107,6 +108,7 @@ class Fil extends Component
                     ->orWhereHas('author', fn (Builder $author) => $author->where('name_search', 'like', Normalizer::likeContains($key)));
             }))
             ->when(array_key_exists($filter, self::FILTERS), fn ($query) => $query->where('type', self::FILTERS[$filter]->value))
+            ->when($filter === 'suivis', fn ($query) => $query->where('visibility', Publication::PUBLIC)->whereNull('zumra_id')->whereIn('author_id', DB::table('person_follows')->where('user_id', $viewer->id)->select('followed_id')))
             ->when($filter === self::ZUMRA_FILTER, fn ($query) => $query->whereNotNull('zumra_id'))
             ->when($filter === self::PROJECT_FILTER, fn ($query) => $query->whereNotNull('project_id'))
             ->with(['author.profile', 'domain', 'city', 'skills', 'zumra', 'project'])

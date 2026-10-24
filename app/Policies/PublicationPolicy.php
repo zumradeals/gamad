@@ -7,6 +7,7 @@ use App\Enums\NeedState;
 use App\Models\Gesture;
 use App\Models\Publication;
 use App\Models\User;
+use App\Services\People;
 use Illuminate\Auth\Access\Response;
 
 /**
@@ -24,6 +25,10 @@ class PublicationPolicy
         // Chacun voit les siennes ; celles de niveau ZUMRA ne se lisent que par un membre de la ZUMRA (D-112).
         if ($viewer && $viewer->getKey() === $publication->author_id && $publication->visibility !== Publication::ZUMRA) {
             return Response::allow();
+        }
+
+        if ($viewer && People::blocked($viewer, $publication->author)) {
+            return Response::denyAsNotFound();
         }
 
         // Masquée (D-089) : pour tout autre que ceux qui la gèrent et la modération, elle n'existe pas.

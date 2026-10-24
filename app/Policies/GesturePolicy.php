@@ -5,6 +5,7 @@ namespace App\Policies;
 use App\Enums\GestureState;
 use App\Models\Gesture;
 use App\Models\User;
+use App\Services\People;
 use Illuminate\Auth\Access\Response;
 
 /** Qui peut décider d'un geste, et qui peut le retirer (D-082, D-083). */
@@ -17,6 +18,9 @@ class GesturePolicy
     public function decide(User $user, Gesture $gesture): Response
     {
         $publication = $gesture->publication;
+        if (People::blocked($user, $gesture->author)) {
+            return Response::deny('Ce contact est bloqué.');
+        }
 
         if (! $publication->isManagedBy($user)) {
             return Response::deny('Seul l’auteur de la publication décide.');

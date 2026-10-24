@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\Profile;
 use App\Models\User;
+use App\Services\People;
 use Illuminate\Auth\Access\Response;
 
 /**
@@ -16,6 +17,10 @@ class ProfilePolicy
     {
         if ($viewer && $viewer->getKey() === $profile->user_id) {
             return Response::allow();
+        }
+
+        if ($viewer && People::blocked($viewer, $profile->user)) {
+            return Response::denyAsNotFound();
         }
 
         if (! $profile->user->isActive()) {

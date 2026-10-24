@@ -1,5 +1,7 @@
 @php
     $titles = [
+        'personal_work' => ['Ma réalisation', 'Ce que j’ai réalisé', 'Publier ma réalisation', 'Ex. J’ai remis en état cette machine avec des pièces de récupération. Voici comment.'],
+        'share' => ['Je partage', 'Votre partage', 'Publier mon partage', 'Une idée, un retour d’expérience, une découverte… De quoi aimeriez-vous parler ?'],
         'need' => ['Nouveau besoin', 'Votre besoin', 'Publier mon besoin', 'Ex. Je cherche quelqu’un qui sait installer un logiciel de caisse pour ma boutique, samedi matin si possible.'],
         'knowledge' => ['Partager un savoir', 'Votre savoir', 'Publier mon savoir', 'Ex. Atelier ouvert à tous : tenir les comptes d’un petit commerce. Samedi à 10 h, en ligne.'],
         'learning_wish' => ['Je veux apprendre', 'Ce que vous voulez apprendre', 'Publier ma demande', 'Ex. Je veux apprendre à installer et réparer des panneaux solaires. Je suis disponible le week-end.'],
@@ -37,6 +39,17 @@
             @enderror
             <p class="text-[12px] leading-normal text-muted">Soyez précis : ce qu’il faut faire, où, et quand. Ne mettez ni téléphone ni e-mail ici. Le texte reste un texte simple : les adresses web n’y sont pas cliquables.</p>
         </div>
+
+        @if (! $zumra && ! $project)
+            <div class="flex flex-col gap-2 rounded-card border border-line bg-card p-4">
+                <label for="publication-media" class="text-[15px] font-extrabold">Ajouter une image, une vidéo ou un document</label>
+                <p class="text-[12px] text-muted">Un fichier facultatif : JPEG, PNG, WebP ou PDF (5 Mo), MP4 ou WebM (10 Mo). Ajoutez une légende dans votre texte.</p>
+                <input id="publication-media" type="file" wire:model="media" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,application/pdf" class="min-h-11 w-full min-w-0 text-[13px]">
+                <p wire:loading wire:target="media" class="text-[13px] text-muted" role="status">Envoi du fichier…</p>
+                @if ($media)<span class="break-words text-[13px] font-semibold">{{ $media->getClientOriginalName() }}</span><x-button type="button" variant="secondary" wire:click="removeMedia">Retirer le fichier</x-button>@endif
+                @error('media')<p role="alert" class="text-[13px] text-danger">{{ $message }}</p>@enderror
+            </div>
+        @endif
 
         @if ($type->isNeed())
             <details class="rounded-card border border-line bg-card p-4" @if ($errors->has('needPurpose') || $errors->has('needTiming')) open @endif>
@@ -99,7 +112,7 @@
             @enderror
         </fieldset>
 
-        <x-button wire:loading.attr="disabled" wire:target="publish" class="min-h-[52px]">
+        <x-button wire:loading.attr="disabled" wire:target="publish,media" class="min-h-[52px]">
             <span wire:loading.remove wire:target="publish">{{ $button }}</span>
             <span wire:loading wire:target="publish">Publication…</span>
         </x-button>

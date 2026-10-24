@@ -36,6 +36,10 @@ class Gestures
             throw ValidationException::withMessages(['message' => 'Un mot ne peut pas dépasser '.Gesture::MESSAGE_MAX.' caractères.']);
         }
 
+        if ($publication->type->isExchange() && $message === '') {
+            throw ValidationException::withMessages(['message' => 'Dites ce que vous aimeriez échanger à propos de cette publication.']);
+        }
+
         $this->throttle($user);
 
         return DB::transaction(function () use ($user, $publication, $message) {
