@@ -24,6 +24,14 @@ class NotificationController extends Controller
 
         $target = match ($notification->kind) {
             NotificationKind::TrustUpdated => route('espace.attestations'),
+            NotificationKind::CompanyExpRequested => $notification->company?->verified() && $notification->company->owner_id === $user->id
+                ? route('entreprises.experiences.review', $notification->company) : route('notifications'),
+            NotificationKind::CompanyExpConfirmed, NotificationKind::CompanyExpDeclined => $notification->companyExperience?->user_id === $user->id
+                ? route('espace.company-experiences') : route('notifications'),
+            NotificationKind::CompanyReviewUpdated => $notification->company?->owner_id === $user->id
+                ? route('entreprises.show', $notification->company) : route('notifications'),
+            NotificationKind::CompanyReviewRequested, NotificationKind::CompanyReportReceived => $user->isSuperAdmin()
+                ? route('moderation.entreprises') : route('notifications'),
             NotificationKind::TrustReview => $user->isSuperAdmin() ? route('moderation.confiance') : route('espace'),
             NotificationKind::MatchFound => route('espace').'#suggestions',
             NotificationKind::ConnectionRequested => route('espace').'#mes-liens',

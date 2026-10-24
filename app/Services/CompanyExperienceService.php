@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\NotificationKind;
 use App\Models\Company;
 use App\Models\CompanyExperience;
 use App\Models\User;
@@ -50,6 +51,8 @@ class CompanyExperienceService
         $experience->status = 'pending';
         $experience->save();
 
+        app(Notifier::class)->company($company->owner, NotificationKind::CompanyExpRequested, $user, $company, $experience);
+
         return $experience;
     }
 
@@ -74,6 +77,7 @@ class CompanyExperienceService
                 'decided_by_id' => $actor->id,
                 'decided_at' => now(),
             ])->save();
+            app(Notifier::class)->company($row->user, $decision === 'confirm' ? NotificationKind::CompanyExpConfirmed : NotificationKind::CompanyExpDeclined, $actor, $company, $row);
         }, 3);
     }
 

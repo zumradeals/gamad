@@ -1,6 +1,6 @@
 <div class="flex min-w-0 flex-col gap-5">
     <a href="{{ route('espace') }}" class="inline-flex min-h-11 items-center gap-2 self-start font-bold"><x-icon name="back" :size="18" />Mon espace</a>
-    <div><h1 class="text-[26px] font-extrabold">Mes attestations</h1><p class="mt-2 text-[14px] text-muted">Une identité contrôlée, des expériences précises. Aucun badge ne garantit l’absence d’arnaque.</p></div>
+    <div><h1 class="text-[26px] font-extrabold">Mes attestations</h1><p class="mt-2 text-[14px] text-muted">Dispositif individuel antérieur, conservé pour consulter les attestations existantes. Il est indépendant des confirmations d'expérience par les entreprises vérifiées.</p></div>
     @if (session('status'))<x-status>{{ session('status') }}</x-status>@endif
     @foreach ($errors->all() as $error)<p role="alert" class="rounded-button border border-danger bg-card p-3 text-[14px] text-danger">{{ $error }}</p>@endforeach
     <p wire:loading role="status" class="text-[13px] text-muted">Enregistrement…</p>

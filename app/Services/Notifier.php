@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Enums\NotificationKind;
 use App\Enums\PlatformRole;
+use App\Models\Company;
+use App\Models\CompanyExperience;
 use App\Models\Conversation;
 use App\Models\Project;
 use App\Models\Publication;
@@ -51,6 +53,26 @@ class Notifier
         $notification->zumra()->associate($zumra);
         $notification->project()->associate($project);
         $notification->save();
+    }
+
+    /** Les alertes entreprise renvoient au dossier concerné, jamais à une page générique. */
+    public function company(?User $to, NotificationKind $kind, ?User $actor, Company $company, ?CompanyExperience $experience = null): void
+    {
+        if ($to === null || $actor?->id === $to->id) {
+            return;
+        }
+        $alert = new UserNotification(['kind' => $kind]);
+        $alert->user()->associate($to);
+        $alert->actor()->associate($actor);
+        $alert->company()->associate($company);
+        $alert->companyExperience()->associate($experience);
+        $alert->save();
+    }
+
+    public function companyModerators(NotificationKind $kind, User $actor, Company $company): void
+    {
+        User::active()->where('platform_role', PlatformRole::SuperAdmin->value)
+            ->each(fn (User $reviewer) => $this->company($reviewer, $kind, $actor, $company));
     }
 
     /** Prévient toute la modération (modérateurs et super administrateur), sauf la personne qui agit. */

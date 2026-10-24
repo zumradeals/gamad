@@ -1,12 +1,15 @@
 <?php
 
 use App\Http\Controllers\CompanyBrandingController;
+use App\Http\Controllers\CompanyContactController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CompanyDocumentController;
 use App\Http\Controllers\CompanyExperienceController;
 use App\Http\Controllers\CompanyExperienceReviewController;
 use App\Http\Controllers\CompanyFollowController;
 use App\Http\Controllers\CompanyPostController;
+use App\Http\Controllers\CompanyReportController;
+use App\Http\Controllers\CompanyResubmitController;
 use App\Http\Controllers\CompanyVisualController;
 use App\Http\Controllers\GeniusPayWebhookController;
 use App\Http\Controllers\NotificationController;
@@ -96,6 +99,18 @@ Route::get('/compte-suspendu', SuspendedController::class)->middleware('auth')->
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/entreprises/creer', CompanyCreate::class)->name('entreprises.create');
+    Route::get('/entreprises/{company}/contacter', [CompanyContactController::class, 'create'])
+        ->where('company', '.+-[a-z0-9]{8}')->name('entreprises.contact');
+    Route::post('/entreprises/{company}/contacter', [CompanyContactController::class, 'store'])
+        ->where('company', '.+-[a-z0-9]{8}')->name('entreprises.contact.store');
+    Route::get('/entreprises/{company}/corriger', [CompanyResubmitController::class, 'edit'])
+        ->where('company', '.+-[a-z0-9]{8}')->name('entreprises.resubmit');
+    Route::post('/entreprises/{company}/corriger', [CompanyResubmitController::class, 'submit'])
+        ->where('company', '.+-[a-z0-9]{8}')->name('entreprises.resubmit.store');
+    Route::get('/entreprises/{company}/signaler', [CompanyReportController::class, 'create'])
+        ->where('company', '.+-[a-z0-9]{8}')->name('entreprises.reports.create');
+    Route::post('/entreprises/{company}/signaler', [CompanyReportController::class, 'store'])
+        ->where('company', '.+-[a-z0-9]{8}')->name('entreprises.reports.store');
     Route::get('/entreprises/{company}/identite', [CompanyBrandingController::class, 'edit'])
         ->where('company', '.+-[a-z0-9]{8}')->name('entreprises.branding.edit');
     Route::post('/entreprises/{company}/identite', [CompanyBrandingController::class, 'update'])

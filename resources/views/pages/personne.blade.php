@@ -31,7 +31,7 @@
                     <div class="flex min-w-0 flex-1 flex-col gap-2">
                         <h1 class="break-words text-[28px] font-extrabold leading-tight tracking-[-0.5px] md:text-[32px]">{{ $user->name }}</h1>
                         @if ($verifiedIdentity ?? null)
-                            <details class="self-start"><summary class="flex min-h-11 cursor-pointer items-center gap-2 rounded-chip bg-type-learning-bg px-3 py-2 text-[13px] font-bold text-type-learning-fg"><x-icon name="check-circle" :size="18" />Identité vérifiée par GAMAD</summary><p class="mt-2 max-w-lg text-[12px] text-muted">Identité contrôlée le {{ $verifiedIdentity->verified_at->format('d/m/Y') }}, valable jusqu’au {{ $verifiedIdentity->expires_at->format('d/m/Y') }}. Cette vérification ne certifie pas les prestations proposées.</p></details>
+                            <details class="self-start"><summary class="flex min-h-11 cursor-pointer items-center gap-2 rounded-chip bg-type-learning-bg px-3 py-2 text-[13px] font-bold text-type-learning-fg"><x-icon name="check-circle" :size="18" />Identité personnelle vérifiée par GAMAD</summary><p class="mt-2 max-w-lg text-[12px] text-muted">Identité contrôlée le {{ $verifiedIdentity->verified_at->format('d/m/Y') }}, valable jusqu’au {{ $verifiedIdentity->expires_at->format('d/m/Y') }}. Cette vérification individuelle facultative ne confirme aucune expérience auprès d'une entreprise. Les expériences d'entreprise ont leur propre confirmation.</p></details>
                         @endif
                         @if ($profile->headline)<p class="break-words text-[17px] font-bold leading-snug md:text-[19px]">{{ $profile->headline }}</p>@endif
                         @if ($place !== '')<p class="flex items-start gap-1.5 text-[13px] text-muted"><x-icon name="pin" :size="16" class="mt-0.5 shrink-0" /><span>{{ $place }}</span></p>@endif
@@ -58,7 +58,7 @@
                             @unless ($profile->isPublic())<p class="pb-3 text-[12px] text-muted">L’accès reste réservé aux personnes inscrites.</p>@endunless
                         </details>
                         @if (auth()->user()?->isActive() && ! $isOwner)<a href="{{ route('personnes.signaler', $profile->public_id) }}" class="inline-flex min-h-11 items-center gap-2 text-[12px] font-semibold text-muted"><x-icon name="shield" :size="16" />Signaler ce profil</a>@endif
-                        @if ($isOwner)<a href="{{ route('espace.attestations') }}" class="inline-flex min-h-11 items-center text-[13px] font-bold">Mes attestations →</a>@endif
+                        @if ($isOwner)<a href="{{ route('espace.attestations') }}" class="inline-flex min-h-11 items-center text-[13px] font-bold">Mes attestations individuelles (ancien dispositif) →</a>@endif
                         @foreach ($inviteZumras as $inviteZumra)<x-button :href="route('zumras.invite', [$inviteZumra, 'personne' => $profile->public_id])" variant="secondary">{{ $inviteZumras->count() === 1 ? 'Inviter dans ma ZUMRA' : 'Inviter dans '.$inviteZumra->name }}</x-button>@endforeach
                     </div>
                 </div>

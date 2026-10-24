@@ -46,6 +46,7 @@
                         @else
                             <x-button :href="route('login')" variant="accent">Suivre</x-button>
                         @endauth
+                        <a href="{{ route('entreprises.contact', $company) }}" class="inline-flex min-h-11 items-center gap-2 rounded-button border border-line px-3 text-[13px] font-bold">Contacter</a>
                         <button type="button" x-data x-on:click="navigator.share ? navigator.share({ title: @js($company->name), url: @js(route('entreprises.show', $company)) }).catch(() => {}) : navigator.clipboard?.writeText(@js(route('entreprises.show', $company)))" class="inline-flex min-h-11 items-center gap-1 rounded-button border border-line px-3 text-[13px] font-bold" aria-label="Partager la page"><x-icon name="external" :size="17"/> Partager</button>
                     @endif
                 </div>
@@ -80,7 +81,14 @@
             <h2 class="text-[16px] font-extrabold">Aperçu privé de votre entreprise</h2>
             <p class="mt-1 text-[14px] text-muted">Cette page ne figure pas dans la recherche et les autres membres n'y ont pas accès tant que l'immatriculation n'est pas vérifiée.</p>
             @if ($company->review_note)<p class="mt-2 break-words text-[13px] font-semibold">Message de l'examen : {{ $company->review_note }}</p>@endif
+            @if ($company->status === 'declined')
+                <a href="{{ route('entreprises.resubmit', $company) }}" class="mt-3 inline-flex min-h-11 items-center text-[13px] font-bold text-link">Corriger mes justificatifs et redemander un examen</a>
+            @endif
         </section>
+    @endif
+
+    @if ($company->verified() && ! $isOwner)
+        <div class="text-right"><a href="{{ auth()->check() ? route('entreprises.reports.create', $company) : route('login') }}" class="inline-flex min-h-11 items-center text-[12px] font-semibold text-muted underline">Signaler cette page entreprise</a></div>
     @endif
 
     <div class="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">

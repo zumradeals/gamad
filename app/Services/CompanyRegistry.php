@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use App\Enums\NotificationKind;
 use App\Models\Company;
 use App\Models\CompanyDocument;
+use App\Models\CompanyReport;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -74,12 +76,90 @@ class CompanyRegistry
                     ]);
                 }
 
+                app(Notifier::class)->companyModerators(NotificationKind::CompanyReviewRequested, $actor, $company);
+
                 return $company;
             }, 3);
         } catch (\Throwable $exception) {
             Storage::disk('local')->delete($stored);
             throw $exception;
         }
+    }
+
+    /**
+     * Demande corrigée : seuls les nouveaux justificatifs remplacent les précédents.
+     * Immatriculation, identité légale et propriétaire ne sont jamais modifiés.
+     */
+    public function resubmit(User $actor, Company $company, int $revision, array $documents): void
+    {
+        abort_unless($actor->fresh()->isActive() && $actor->hasVerifiedEmail() && $actor->id === $company->owner_id, 403);
+        Validator::make($documents, [
+            'rccm' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'dfe' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'idu' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+        ])->validate();
+        $created = [];
+        $oldPaths = [];
+
+        try {
+            DB::transaction(function () use ($actor, $company, $revision, $documents, &$created, &$oldPaths) {
+                $row = Company::whereKey($company->id)->lockForUpdate()->firstOrFail();
+                abort_unless($row->owner_id === $actor->id && $row->status === 'declined', 403);
+                if ($row->revision !== $revision) {
+                    throw ValidationException::withMessages(['rccm' => 'Le dossier a changé. Rechargez cette page.']);
+                }
+                foreach (['rccm', 'dfe', 'idu'] as $kind) {
+                    if (empty($documents[$kind])) {
+                        continue;
+                    }
+                    $file = $documents[$kind];
+                    $path = $file->store('companies/'.$row->id.'/documents', 'local');
+                    if ($path === false) {
+                        throw ValidationException::withMessages(['rccm' => 'Le dépôt du document a échoué.']);
+                    }
+                    $created[] = $path;
+                    $previous = CompanyDocument::where('company_id', $row->id)->where('kind', $kind)->first();
+                    if ($previous) {
+                        $oldPaths[] = $previous->private_path;
+                        $previous->update(['private_path' => $path, 'extension' => strtolower($file->extension() ?: 'pdf')]);
+                    } else {
+                        CompanyDocument::create([
+                            'company_id' => $row->id, 'kind' => $kind,
+                            'private_path' => $path, 'extension' => strtolower($file->extension() ?: 'pdf'),
+                        ]);
+                    }
+                }
+                $row->forceFill([
+                    'status' => 'pending', 'revision' => $row->revision + 1,
+                    'review_note' => null, 'reviewer_id' => null, 'verified_at' => null,
+                ])->save();
+                app(Notifier::class)->companyModerators(NotificationKind::CompanyReviewRequested, $actor, $row);
+            }, 3);
+        } catch (\Throwable $error) {
+            Storage::disk('local')->delete($created);
+            throw $error;
+        }
+        Storage::disk('local')->delete($oldPaths);
+    }
+
+    /** Clôturer un signalement : suspendre séparément une page si l'usurpation est confirmée. */
+    public function resolveReport(User $reviewer, CompanyReport $report, string $note): void
+    {
+        abort_unless($reviewer->fresh()->isActive() && $reviewer->isSuperAdmin(), 403);
+        $note = trim($note);
+        if (mb_strlen($note) < 8 || mb_strlen($note) > 500) {
+            throw ValidationException::withMessages(['report' => 'Précisez une décision motivée (8 à 500 caractères).']);
+        }
+
+        DB::transaction(function () use ($reviewer, $report, $note) {
+            $row = CompanyReport::whereKey($report->id)->lockForUpdate()->firstOrFail();
+            abort_unless($row->status === 'open', 422);
+            $row->forceFill([
+                'status' => 'resolved', 'resolution_note' => $note,
+                'reviewer_id' => $reviewer->id, 'resolved_at' => now(),
+            ])->save();
+            AdminJournal::record($reviewer, 'companies.report_resolved', $row->company, $note);
+        }, 3);
     }
 
     /**
@@ -113,6 +193,7 @@ class CompanyRegistry
                 'review_note' => $action === 'verify' ? null : trim($note),
             ])->save();
             AdminJournal::record($reviewer, 'companies.'.$action, $row, $action === 'verify' ? null : trim($note), ['revision' => $row->revision]);
+            app(Notifier::class)->company($row->owner, NotificationKind::CompanyReviewUpdated, $reviewer, $row);
         }, 3);
     }
 }

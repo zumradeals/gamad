@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Company;
+use App\Models\CompanyReport;
 use App\Services\CompanyRegistry;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -14,6 +15,8 @@ use Livewire\Component;
 class CompanyModeration extends Component
 {
     public array $notes = [];
+
+    public array $reportNotes = [];
 
     private function authorizeReview(): void
     {
@@ -34,11 +37,20 @@ class CompanyModeration extends Component
         session()->flash('status', 'Décision enregistrée.');
     }
 
+    public function resolveReport(string $id, CompanyRegistry $registry): void
+    {
+        $this->authorizeReview();
+        $registry->resolveReport(Auth::user(), CompanyReport::findOrFail($id), $this->reportNotes[$id] ?? '');
+        unset($this->reportNotes[$id]);
+        session()->flash('status', 'Signalement traité.');
+    }
+
     public function render()
     {
         $this->authorizeReview();
 
         return view('livewire.company-moderation', [
+            'reports' => CompanyReport::with(['company', 'reporter'])->where('status', 'open')->oldest()->limit(80)->get(),
             'companies' => Company::with(['owner', 'documents'])
                 ->whereIn('status', ['pending', 'verified'])
                 ->orderByRaw("case when status = 'pending' then 0 else 1 end")

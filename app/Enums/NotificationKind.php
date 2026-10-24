@@ -6,6 +6,12 @@ namespace App\Enums;
 enum NotificationKind: string
 {
     case TrustUpdated = 'trust_updated';
+    case CompanyExpRequested = 'company_exp_requested';
+    case CompanyExpConfirmed = 'company_exp_confirmed';
+    case CompanyExpDeclined = 'company_exp_declined';
+    case CompanyReviewUpdated = 'company_review_updated';
+    case CompanyReviewRequested = 'company_review_requested';
+    case CompanyReportReceived = 'company_report_received';
     case TrustReview = 'trust_review';
     case MatchFound = 'match_found';
     case ConnectionRequested = 'connection_requested';
@@ -44,7 +50,7 @@ enum NotificationKind: string
     /** Le texte de la notification commence-t-il par le nom d'une personne ? (Non pour un transfert de fondation.) */
     public function showsActor(): bool
     {
-        return ! in_array($this, [self::ZumraFounderTransferred, self::MatchFound, self::TrustUpdated, self::TrustReview], true);
+        return ! in_array($this, [self::ZumraFounderTransferred, self::MatchFound, self::TrustUpdated, self::TrustReview, self::CompanyReviewUpdated, self::CompanyReviewRequested, self::CompanyReportReceived], true);
     }
 
     /** Une notification qui parle d'une ZUMRA (son nom prend la place de l'extrait de publication). */
@@ -66,6 +72,12 @@ enum NotificationKind: string
 
         return match ($this) {
             self::TrustUpdated => 'Votre espace d’attestations a été mis à jour.',
+            self::CompanyExpRequested => 'vous demande de confirmer une expérience professionnelle.',
+            self::CompanyExpConfirmed => 'a confirmé votre expérience professionnelle.',
+            self::CompanyExpDeclined => 'n’a pas confirmé votre expérience professionnelle.',
+            self::CompanyReviewUpdated => 'La vérification administrative de votre entreprise a changé. Consultez votre page.',
+            self::CompanyReviewRequested => 'Un dossier entreprise attend un contrôle administratif.',
+            self::CompanyReportReceived => 'Un signalement concernant une page entreprise attend un examen.',
             self::TrustReview => 'Des demandes de confiance attendent un examen.',
             self::MatchFound => 'De nouvelles pistes correspondent à vos préférences. Découvrez pourquoi.',
             self::ConnectionRequested => 'souhaite entrer en relation avec vous.',
