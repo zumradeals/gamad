@@ -26,7 +26,7 @@
         <h1 class="flex-1 text-[17px] font-extrabold">{{ $heading }}</h1>
     </div>
 
-    <form wire:submit="{{ $previewing ? 'publish' : 'preview' }}" class="flex flex-col gap-3.5">
+    <form wire:submit="{{ ($previewing || $zumra || $project) ? 'publish' : 'preview' }}" class="flex flex-col gap-3.5">
         <span class="self-start rounded-chip px-2.5 py-1 text-[12px] font-bold {{ $type->badgeClasses() }}">{{ \App\Services\MatchingConditions::label($type, $matching ?? []) }}</span>
         @if ($project)
             <p class="rounded-button bg-soft-blue px-3 py-2.5 text-[13px] font-semibold">Vous publiez au nom du projet <strong>{{ $project->name }}</strong> ({{ $zumra->name }}).</p>
@@ -147,7 +147,7 @@
         </div>
         @if ($previewing && $errors->any())<p role="alert" class="text-danger">La publication nécessite une correction. Choisissez Modifier pour consulter les erreurs.</p>@endif
         <x-button wire:loading.attr="disabled" wire:target="publish,preview,media" class="min-h-[52px]">
-            <span wire:loading.remove wire:target="publish">{{ $previewing ? $button : 'Voir l’aperçu' }}</span>
+            <span wire:loading.remove wire:target="publish">{{ ($previewing || $zumra || $project) ? $button : 'Voir l’aperçu' }}</span>
             <span wire:loading wire:target="publish">Publication…</span>
         </x-button>
 
