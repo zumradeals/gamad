@@ -357,3 +357,19 @@ sont visibles uniquement au propriétaire, au même niveau de droits que lors de
 publication masquée, supprimée, bloquée ou devenue inaccessible disparaît de la liste, sans divulgation.
 Un lien partagé ne contourne jamais la visibilité ; le partage ne crée ni audience ni nouvelle copie
 publique. L'interface offre une solution manuelle si le partage natif ou le presse-papiers est indisponible.
+
+
+## Accueil social et Découvrir — D-193, PR 3/3
+
+L'Accueil garde les filtres existants et ajoute « Découvrir » et « Partages », avec « Mes suivis »
+mis en avant. « Partages » réunit les expériences personnelles et réalisations ; « Découvrir »
+affiche, chronologiquement, les publications personnelles publiques d'auteurs autres que soi
+et encore non suivis. Les auteurs suivis sont affichés dans « Mes suivis » selon la visibilité
+normale d'un membre connecté (publications publiques et réservées aux membres accessibles).
+Un clic volontaire « Suivre » est possible depuis une carte dont le profil d'auteur est visible ;
+le service de suivi préexistant vérifie le compte, le profil et les blocages. Aucun suivi automatique,
+aucune nouvelle relation privée, aucun tri par réputation ou par nombre d'interactions.
+Les cartes du Fil donnent priorité visuelle à Commenter, Enregistrer et Partager mais conservent
+séparément les gestes d'action. L'invitation à publier présente le partage et les réalisations
+comme des usages ordinaires, sans obligation d'agir. La navigation principale reste inchangée.
+Aucune notification sociale supplémentaire n'est créée par cette PR.

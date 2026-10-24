@@ -31,13 +31,14 @@ beforeEach(function () {
 
 it('suit une personne sans relation, conversation ni accès privé supplémentaire', function () {
     $public = publication($this->b, PublicationType::Share, ['body' => 'Une idée publique']);
-    publication($this->b, data: ['visibility' => Publication::MEMBERS]);
+    $members = publication($this->b, data: ['visibility' => Publication::MEMBERS]);
     publication($this->a, data: ['body' => 'Ma publication']);
     $this->people->follow($this->a, $this->b, true);
     $this->people->follow($this->a, $this->b, true);
     expect(DB::table('person_follows')->count())->toBe(1)->and(Conversation::count())->toBe(0)->and(PersonConnection::count())->toBe(0);
     $page = Livewire::actingAs($this->a)->test(Fil::class)->call('setFilter', 'suivis');
-    expect($page->viewData('posts')->pluck('id')->all())->toBe([$public->id]);
+    // Suivre une personne ne donne aucun droit supplémentaire, mais un membre vérifié voit déjà ses publications « membres ».
+    expect($page->viewData('posts')->pluck('id')->sort()->values()->all())->toBe(collect([$public->id, $members->id])->sort()->values()->all());
     $this->people->follow($this->a, $this->b, false);
     expect($page->call('refresh')->viewData('posts'))->toBeEmpty();
 });

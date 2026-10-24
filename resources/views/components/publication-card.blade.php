@@ -7,7 +7,7 @@
     - browse      : vrai dans un Carrefour (D-161) : un seul bouton « Voir … » mène à la publication, où se trouvent le geste et « Signaler »
     Interactions sociales D-193 : Commenter, Enregistrer et Partager sur les publications personnelles. Aucun compteur public.
 --}}
-@props(['publication', 'viewer' => null, 'gesture' => null, 'link' => true, 'managed' => null, 'memberOf' => null, 'supported' => null, 'compact' => false, 'browse' => false, 'saved' => false])
+@props(['publication', 'viewer' => null, 'gesture' => null, 'link' => true, 'managed' => null, 'memberOf' => null, 'supported' => null, 'compact' => false, 'browse' => false, 'saved' => false, 'showFollow' => false, 'followed' => false])
 
 @php
     use App\Enums\GestureState;
@@ -69,8 +69,12 @@
                 <span class="feed-post-meta -mt-2 text-[12px] text-muted">{{ $meta }}</span>
             @endif
         </div>
-        @if ($compact && ! $browse && $viewer && ! $isOwner)
-            <a href="{{ route('publications.signaler', $publication) }}" class="inline-flex min-h-11 shrink-0 items-center self-start text-[11px] font-semibold text-muted underline-offset-4 hover:text-ink hover:underline">Signaler</a>
+        @if ($compact && $showFollow && ! $browse && $viewer?->isActive() && ! $isOwner && $canSeeAuthor && ! $zumra && ! $publication->project_id)
+            @if ($followed)
+                <span class="inline-flex min-h-11 items-center text-[12px] font-bold text-type-knowledge-fg">Personne suivie</span>
+            @else
+                <button type="button" wire:click="followAuthor('{{ $publication->id }}')" wire:loading.attr="disabled" wire:target="followAuthor" class="inline-flex min-h-11 shrink-0 items-center gap-1 text-[12px] font-bold text-link">+ Suivre</button>
+            @endif
         @endif
     </div>
 
@@ -112,7 +116,7 @@
         <a href="{{ route('publications.signaler', $publication) }}" class="inline-flex min-h-11 items-center self-start text-[13px] font-semibold text-muted underline hover:text-ink">Signaler</a>
     @endif
 
-    <div @class(['feed-post-actions flex flex-col items-start gap-2' => $compact, 'contents' => ! $compact])>
+    <div @class(['feed-post-actions order-2 flex flex-col items-start gap-2' => $compact, 'contents' => ! $compact])>
         @if ($browse)
             <x-button :href="route('publications.show', $publication)" variant="secondary">{{ $isOwner ? 'Voir mon besoin' : 'Voir le besoin' }}</x-button>
         @elseif ($isOwner)
@@ -169,10 +173,13 @@
         @endif
     </div>
     @if (! $publication->zumra_id && ! $publication->project_id && ! $publication->isHidden())
-        <div class="flex flex-wrap items-start gap-2">
+        <div @class(['flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-line-soft pt-2', 'order-1' => $compact])>
             <a href="{{ route('publications.show', $publication) }}#discussion" class="inline-flex min-h-11 items-center self-start gap-2 text-[13px] font-bold text-link underline-offset-4 hover:underline"><x-icon name="chat" :size="17" />Commenter</a>
             @if ($compact)
                 @include('partials.publication-social-actions', ['saved' => $saved])
+            @endif
+            @if ($compact && ! $browse && $viewer && ! $isOwner)
+                <a href="{{ route('publications.signaler', $publication) }}" class="inline-flex min-h-11 items-center text-[12px] font-semibold text-muted underline-offset-4 hover:text-ink hover:underline">Signaler</a>
             @endif
         </div>
     @endif

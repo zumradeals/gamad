@@ -1,12 +1,12 @@
 @php
-    $filters = ['tout' => 'Tout', 'suivis' => 'Mes suivis', 'besoins' => 'Besoins', 'savoirs' => 'Savoirs', 'apprendre' => 'Apprendre', 'aides' => 'Aides', 'zumra' => 'ZUMRA', 'projets' => 'Projets'];
+    $filters = ['tout' => 'Tout', 'suivis' => 'Mes suivis', 'decouvrir' => 'Découvrir', 'partages' => 'Partages', 'besoins' => 'Besoins', 'savoirs' => 'Savoirs', 'apprendre' => 'Apprendre', 'aides' => 'Aides', 'zumra' => 'ZUMRA', 'projets' => 'Projets'];
     if (\App\Support\Experience::initial()) {
         unset($filters['zumra'], $filters['projets']);
     }
     $shortcuts = [
-        [\App\Enums\PublicationType::Need, 'idea', 'text-type-need-fg'],
-        [\App\Enums\PublicationType::Knowledge, 'book', 'text-type-knowledge-fg'],
-        [\App\Enums\PublicationType::LearningWish, 'learn', 'text-type-learning-fg'],
+        [\App\Enums\PublicationType::Share, 'idea', 'text-type-knowledge-fg'],
+        [\App\Enums\PublicationType::PersonalWork, 'document', 'text-type-learning-fg'],
+        [\App\Enums\PublicationType::Need, 'heart', 'text-type-need-fg'],
     ];
     $directories = [
         ['Personnes', 'Trouver des capacités', 'personnes.index', 'group', 'bg-type-call-bg text-type-call-fg'],
@@ -92,7 +92,7 @@
         <section aria-label="Publier" class="feed-panel p-4">
             <div class="flex items-center gap-3">
                 <x-avatar :profile="$profile" :size="44" />
-                <a href="{{ route('agir') }}" class="flex min-h-12 min-w-0 flex-1 items-center rounded-button border border-chip-line bg-card px-3.5 text-[14px] text-muted no-underline transition hover:border-ink hover:bg-ground hover:text-ink">Que voulez-vous faire avancer ?</a>
+                <a href="{{ route('agir') }}" class="flex min-h-12 min-w-0 flex-1 items-center rounded-button border border-chip-line bg-card px-3.5 text-[14px] text-muted no-underline transition hover:border-ink hover:bg-ground hover:text-ink">Qu'avez-vous envie de partager aujourd'hui ?</a>
             </div>
             <div class="mt-3 grid grid-cols-3 divide-x divide-line-soft border-t border-line-soft pt-2">
                 @foreach ($shortcuts as [$shortcut, $icon, $color])
@@ -104,6 +104,7 @@
         </section>
 
         <livewire:match-suggestions />
+        <p class="px-1 text-[13px] leading-relaxed text-muted">Partagez une expérience, montrez une réalisation ou découvrez des personnes. Aucune action n'est obligatoire pour participer.</p>
 
         @if (\App\Support\Experience::initial() && $searchText !== '')
             <div class="flex flex-wrap items-center justify-between gap-2 px-1 text-[13px]">
@@ -119,7 +120,7 @@
         </nav>
 
         <div class="flex items-center gap-3 px-0.5 text-[12px] text-muted">
-            <span>Les publications les plus récentes</span><span class="h-px flex-1 bg-line" aria-hidden="true"></span>
+            <span>{{ match ($filter) { 'suivis' => 'Publications récentes des personnes suivies', 'decouvrir' => 'Publications publiques de nouvelles personnes', 'partages' => 'Partages et réalisations récents', default => 'Les publications les plus récentes' } }} · sans classement de popularité</span><span class="h-px flex-1 bg-line" aria-hidden="true"></span>
         </div>
 
         @if (session('status'))
@@ -129,7 +130,7 @@
 
         <div class="feed-posts" wire:loading.class="opacity-60" wire:target="setFilter, more">
             @forelse ($posts as $post)
-                <x-publication-card compact wire:key="publication-{{ $post->id }}" :publication="$post" :viewer="$viewer" :gesture="$gestures[$post->id] ?? null" :supported="$supported" :saved="in_array($post->id, $savedIds, true)" :managed="$managedZumraIds" :member-of="$memberOf" />
+                <x-publication-card compact wire:key="publication-{{ $post->id }}" :publication="$post" :viewer="$viewer" :gesture="$gestures[$post->id] ?? null" :supported="$supported" :saved="in_array($post->id, $savedIds, true)" :show-follow="true" :followed="in_array($post->author_id, $followedAuthorIds, true)" :managed="$managedZumraIds" :member-of="$memberOf" />
             @empty
                 <section aria-labelledby="vide" class="feed-panel flex flex-col items-start gap-3 p-5 md:p-6">
                     <span class="flex size-11 items-center justify-center rounded-button bg-type-call-bg text-type-call-fg" aria-hidden="true"><x-icon name="idea" :size="24" /></span>
@@ -137,13 +138,26 @@
                         <h2 id="vide" class="text-[18px] font-extrabold">Aucune publication ne correspond à cette recherche.</h2>
                         <p class="text-[14px] text-muted">Essayez un autre mot, ou cherchez une personne par ses capacités.</p>
                         <x-button type="button" variant="secondary" wire:click="clearSearch">Effacer la recherche</x-button>
+                    @elseif ($filter === 'suivis')
+                        <h2 id="vide" class="text-[18px] font-extrabold">Rien de nouveau chez les personnes suivies.</h2>
+                        <p class="text-[14px] text-muted">Découvrez d'autres parcours puis choisissez librement qui suivre.</p>
+                        <x-button type="button" variant="secondary" wire:click="setFilter('decouvrir')">Découvrir des personnes</x-button>
+                    @elseif ($filter === 'decouvrir')
+                        <h2 id="vide" class="text-[18px] font-extrabold">Aucune nouvelle publication à découvrir.</h2>
+                        <p class="text-[14px] text-muted">Les publications publiques de personnes que vous ne suivez pas apparaîtront ici, de la plus récente à la plus ancienne.</p>
+                        <x-button type="button" variant="secondary" wire:click="setFilter('tout')">Voir tout l'Accueil</x-button>
                     @elseif ($filter === 'tout')
                         <p><strong id="vide" class="text-[18px] font-extrabold">Les publications apparaîtront ici.</strong> <span class="text-muted"><a href="{{ route('espace.profil') }}" class="font-semibold">Commencez par compléter votre profil.</a></span></p>
                     @else
                         <h2 id="vide" class="text-[18px] font-extrabold">Rien dans cette catégorie pour l’instant.</h2>
                     @endif
-                    <p class="text-[14px] leading-relaxed text-muted">Soyez la première personne à publier : un besoin, un savoir à partager, ce que vous voulez apprendre.</p>
-                    <x-button :href="route('agir')" variant="accent"><x-icon name="plus" :size="18" class="mr-2" />Agir</x-button>
+                    @if ($filter === 'partages')
+                        <p class="text-[14px] leading-relaxed text-muted">Les expériences et réalisations apparaîtront ici dès qu'elles seront partagées.</p>
+                        <x-button :href="route('agir.publier', 'partage')" variant="accent">Partager mon expérience</x-button>
+                    @elseif (! in_array($filter, ['suivis', 'decouvrir'], true))
+                        <p class="text-[14px] leading-relaxed text-muted">Vous pouvez partager un besoin, un savoir ou une expérience, à votre rythme.</p>
+                        <x-button :href="route('agir')" variant="accent"><x-icon name="plus" :size="18" class="mr-2" />Agir</x-button>
+                    @endif
                 </section>
             @endforelse
         </div>
@@ -168,9 +182,10 @@
         </section>
         <section class="feed-panel flex flex-col gap-4 p-5">
             <span class="h-1 w-10 rounded-full bg-ink" aria-hidden="true"></span>
-            <h2 class="text-[17px] font-extrabold">Votre prochaine action</h2>
-            <p class="text-[14px] leading-relaxed text-muted">Un savoir à transmettre ? Un besoin à exprimer ? Faites le premier pas.</p>
-            <x-button :href="route('agir')" variant="accent">Agir maintenant</x-button>
+            <h2 class="text-[17px] font-extrabold">Votre réseau évolue</h2>
+            <p class="text-[14px] leading-relaxed text-muted">Retrouvez les expériences des personnes suivies, découvrez de nouveaux parcours et partagez librement les vôtres.</p>
+            <x-button :href="route('fil', ['filtre' => 'decouvrir'])" variant="secondary">Découvrir des publications</x-button>
+            <x-button :href="route('fil', ['filtre' => 'suivis'])" variant="secondary">Retrouver mes suivis</x-button>
         </section>
     </aside>
 
