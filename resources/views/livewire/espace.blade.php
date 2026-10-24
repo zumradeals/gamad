@@ -84,6 +84,19 @@
             <p class="border-t border-line-soft pt-3 text-[12px] leading-relaxed text-muted">Cette liste ne montre que ce qui attend une action de votre part. Elle se vide quand vous avez tout traité.</p>
         </section>
 
+        <section class="space-panel flex flex-wrap items-center justify-between gap-3 border-l-[3px] border-l-type-knowledge-fg p-4 md:p-5">
+            <div class="min-w-0">
+                <h2 class="text-[17px] font-extrabold">Mon entreprise sur GAMAD</h2>
+                <p class="mt-1 text-[13px] text-muted">Créez votre page entreprise et retrouvez vos dossiers en attente de vérification administrative.</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <x-button :href="route('entreprises.create')" variant="secondary">Mes pages entreprises</x-button>
+                @if (auth()->user()?->isSuperAdmin())
+                    <x-button :href="route('moderation.entreprises')" variant="secondary">Vérifier les entreprises</x-button>
+                @endif
+            </div>
+        </section>
+
         <div class="grid min-w-0 gap-4 xl:grid-cols-2">
             <section aria-labelledby="profil" class="space-panel flex min-w-0 flex-col gap-3 p-4 md:p-5">
                 <h2 id="profil" class="flex items-center gap-2.5 text-[18px] font-extrabold"><x-icon name="user" :size="23" />Mon profil</h2>

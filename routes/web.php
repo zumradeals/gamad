@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\CompanyDocumentController;
+use App\Http\Controllers\CompanyFollowController;
 use App\Http\Controllers\GeniusPayWebhookController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PersonController;
@@ -13,6 +16,9 @@ use App\Livewire\CarrefourBesoins;
 use App\Livewire\CarrefourPersonnes;
 use App\Livewire\CarrefourProjets;
 use App\Livewire\CarrefourZumras;
+use App\Livewire\CompanyCreate;
+use App\Livewire\CompanyDirectory;
+use App\Livewire\CompanyModeration;
 use App\Livewire\ContributionsAdministration;
 use App\Livewire\Espace;
 use App\Livewire\Fil;
@@ -62,6 +68,10 @@ Route::get('/personnes', CarrefourPersonnes::class)->name('personnes.index');
 Route::get('/personnes/{profile:public_id}', [PersonController::class, 'show'])->name('personnes.show');
 Route::get('/personnes/{profile:public_id}/photo', [PersonController::class, 'photo'])->name('personnes.photo');
 
+// Les entreprises non vérifiées n'apparaissent ni dans l'annuaire ni dans les profils publics.
+Route::get('/entreprises', CompanyDirectory::class)->name('entreprises.index');
+Route::get('/entreprises/{company}', [CompanyController::class, 'show'])->where('company', '.+-[a-z0-9]{8}')->name('entreprises.show');
+
 // Le Carrefour ZUMRA et l'en-tête d'une ZUMRA sont publics ; les membres demandent un compte vérifié (D-112).
 Route::get('/zumra', CarrefourZumras::class)->name('zumras.index');
 Route::get('/rapport-contributions', RapportContributions::class)->middleware('wallets')->name('rapport-contributions');
@@ -78,6 +88,11 @@ Route::get('/publications/{publication}', PagePublication::class)->whereUuid('pu
 Route::get('/compte-suspendu', SuspendedController::class)->middleware('auth')->name('suspendu');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/entreprises/creer', CompanyCreate::class)->name('entreprises.create');
+    Route::post('/entreprises/{company}/suivre', CompanyFollowController::class)->where('company', '.+-[a-z0-9]{8}')->name('entreprises.follow');
+    Route::get('/moderation/entreprises', CompanyModeration::class)->middleware('can:super-admin')->name('moderation.entreprises');
+    Route::get('/moderation/entreprises/{company}/documents/{document}', CompanyDocumentController::class)
+        ->whereUuid('document')->middleware('can:super-admin')->name('entreprises.document');
     Route::get('/espace/attestations', MesAttestations::class)->name('espace.attestations');
     Route::get('/espace/enregistrements', MesEnregistrements::class)->name('espace.enregistrements');
     Route::post('/publications/{publication}/enregistrer', PublicationBookmarkController::class)->whereUuid('publication')->name('publications.bookmark');

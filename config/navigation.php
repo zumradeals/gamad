@@ -48,5 +48,6 @@ return [
         ['key' => 'personnes', 'label' => 'Personnes', 'description' => 'Trouver des capacités et des personnes qui peuvent aider.', 'route' => 'personnes.index', 'icon' => 'group'],
         ['key' => 'besoins', 'label' => 'Besoins', 'description' => 'Voir ce qui manque pour faire avancer une action.', 'route' => 'besoins.index', 'icon' => 'heart'],
         ['key' => 'projets', 'label' => 'Projets', 'description' => 'Découvrir les initiatives et leur prochaine étape.', 'route' => 'projets.index', 'icon' => 'project'],
+        ['key' => 'entreprises', 'label' => 'Entreprises', 'description' => 'Découvrir les entreprises administrativement vérifiées.', 'route' => 'entreprises.index', 'icon' => 'project'],
     ],
 ];

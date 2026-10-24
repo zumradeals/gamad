@@ -10,6 +10,7 @@
     ];
     $directories = [
         ['Personnes', 'Trouver des capacités', 'personnes.index', 'group', 'bg-type-call-bg text-type-call-fg'],
+        ['Entreprises', 'Découvrir des organisations vérifiées', 'entreprises.index', 'project', 'bg-type-knowledge-bg text-type-knowledge-fg'],
         ['Besoins', 'Voir ce qui manque', 'besoins.index', 'heart', 'bg-type-need-bg text-type-need-fg'],
         ['ZUMRA', 'Découvrir les communautés', 'zumras.index', 'community', 'bg-type-learning-bg text-type-learning-fg'],
         ['Projets', 'Voir les actions en cours', 'projets.index', 'project', 'bg-type-knowledge-bg text-type-knowledge-fg'],
@@ -17,6 +18,7 @@
     if (\App\Support\Experience::initial()) {
         $directories = [
             ['Trouver une personne', 'Rechercher par capacité ou par nom', 'personnes.index', 'group', 'bg-type-call-bg text-type-call-fg'],
+            ['Entreprises', 'Des organisations à découvrir', 'entreprises.index', 'project', 'bg-type-knowledge-bg text-type-knowledge-fg'],
             ['Besoins à découvrir', 'Voir où vous pouvez aider', 'fil', 'heart', 'bg-type-need-bg text-type-need-fg'],
         ];
     }

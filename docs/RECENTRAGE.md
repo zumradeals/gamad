@@ -373,3 +373,24 @@ Les cartes du Fil donnent priorité visuelle à Commenter, Enregistrer et Partag
 séparément les gestes d'action. L'invitation à publier présente le partage et les réalisations
 comme des usages ordinaires, sans obligation d'agir. La navigation principale reste inchangée.
 Aucune notification sociale supplémentaire n'est créée par cette PR.
+
+
+## Entreprises — D-194, phase pilote
+
+La page entreprise prolonge le réseau de personnes, sans réactiver ZUMRA, Projets, finances ou
+un outil RH. Première livraison : annuaire public uniquement des entreprises dont l'immatriculation
+a été vérifiée, fiche entreprise responsive, création par membre actif et vérifié, dépôt privé de
+RCCM ou document d'immatriculation équivalent, avec DFE/IDU facultatifs, examen manuel par
+super-administrateur et journal des décisions. Doublons d'immatriculation refusés pour un même pays.
+Seul le vérificateur consulte les pièces. Aucun badge attribué automatiquement.
+Aucune vérification supplémentaire du représentant de la page pendant le pilote. Le badge
+« Immatriculation vérifiée » ne prétend pas authentifier personnellement le gestionnaire.
+L'auteur d'un dossier en attente voit un aperçu privé ; les visiteurs obtiennent 404.
+Suivi volontaire d'une page vérifiée, privé, sans compteur, sans publication fictive.
+Le dépôt documentaire et l'examen des dossiers nécessitent de conserver et protéger les pièces
+sur le stockage privé GAMAD ; l'entreprise reste responsable de leur légitimité, mais GAMAD
+ne peut pas se décharger de sa propre sécurité des données.
+Les références professionnelles vers les pages entreprises restent interdites jusqu'à
+l'implémentation d'une sélection limitée aux entreprises vérifiées et d'une confirmation explicite.
+L'ancienne vérification humaine individuelle D-189 est en cours de remplacement : son code et son
+historique ne sont pas retirés dans cette PR afin de préserver les anciennes données.
