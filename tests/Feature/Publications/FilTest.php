@@ -106,12 +106,12 @@ it('filtre : Tout, Besoins, Savoirs, Apprendre, Aides', function () {
     Livewire::withQueryParams(['filtre' => 'besoins'])->actingAs(User::factory()->create())->test(Fil::class)->assertSet('filter', 'besoins')->assertDontSeeText('Texte savoir');
 });
 
-it('ne propose que les filtres Tout, Besoins, Savoirs, Apprendre, Aides, ZUMRA et Projets (D-098)', function () {
+it('propose les filtres sociaux et métiers sans classement de popularité (D-193)', function () {
     $html = fil()->html();
     preg_match('/<nav aria-label="Filtrer les publications".*?<\/nav>/s', $html, $nav);
     $filtres = array_map(fn ($t) => trim(strip_tags($t)), explode('</button>', $nav[0]));
 
-    expect(array_values(array_filter($filtres)))->toBe(['Tout', 'Mes suivis', 'Besoins', 'Savoirs', 'Apprendre', 'Aides', 'ZUMRA', 'Projets']);
+    expect(array_values(array_filter($filtres)))->toBe(['Tout', 'Mes suivis', 'Découvrir', 'Partages', 'Besoins', 'Savoirs', 'Apprendre', 'Aides', 'ZUMRA', 'Projets']);
 });
 
 it('affiche Commenter sans compteur d’approbation, et « Signaler » seulement sur la publication d’un autre', function () {
@@ -277,8 +277,8 @@ it('montre à gauche, sur ordinateur, mon profil tel que les autres le voient', 
 it('propose sur la zone de publication les raccourcis de type, qui mènent au bon formulaire', function () {
     $html = fil()->html();
 
-    expect($html)->toContain(route('agir'))->toContain(route('agir.publier', 'besoin'))->toContain(route('agir.publier', 'savoir'))->toContain(route('agir.publier', 'apprendre'))
-        ->and($html)->toContain('Que voulez-vous faire avancer ?');
+    expect($html)->toContain(route('agir'))->toContain(route('agir.publier', 'besoin'))->toContain(route('agir.publier', 'partage'))->toContain(route('agir.publier', 'ma-realisation'))
+        ->and($html)->toContain("Qu'avez-vous envie de partager aujourd'hui ?");
 });
 
 it('ouvre le Fil sans erreur à 390 px : aucun ordre ni algorithme caché dans les requêtes', function () {
