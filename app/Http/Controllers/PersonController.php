@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Enums\PublicationType;
-use App\Models\Profile;
 use App\Models\CompanyExperience;
+use App\Models\Profile;
 use App\Models\Publication;
 use App\Models\WorkAttestation;
 use App\Models\Zumra;
