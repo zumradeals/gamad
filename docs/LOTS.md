@@ -44,6 +44,10 @@ capacités et réalisations avant le parcours et les publications ; aucun change
 **D-189 étend R1 aux attestations personnelles** : identité contrôlée manuellement, références consenties
 sur réalisations et signalements/recours ; trois tables additives, aucun justificatif sensible téléversé.
 
+**D-190 étend R1 à la cohérence publique** : menu Accueil, présentation publique refondue,
+entrée non connectée /fil vers la présentation, suppression de la devise et des mentions du Mouvement
+dans les textes éditoriaux. Authentification et historiques conservés.
+
 **Critères de fin :** parcours sur téléphone, tests en mode initial et régression du système conservé,
 CI verte, aucune suppression de données ni rupture des confirmations de paiement ou de la visibilité.
 Seul le Président clôt ce lot après essai. Réouverture des modules sur nouvelle décision seulement.

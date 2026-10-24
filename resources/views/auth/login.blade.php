@@ -17,6 +17,7 @@
     </form>
 
     <div class="flex flex-col gap-1 text-[14px] font-semibold">
+        <a href="{{ route('home') }}" class="inline-flex min-h-11 items-center">Découvrir GAMAD sans compte</a>
         <a href="{{ route('password.request') }}" class="inline-flex min-h-11 items-center">Mot de passe oublié ?</a>
         <a href="{{ route('register') }}" class="inline-flex min-h-11 items-center">Créer un compte</a>
     </div>

@@ -23,14 +23,14 @@ function ordre($composant): array
 }
 
 it('est réservé aux personnes connectées et vérifiées', function () {
-    $this->get('/fil')->assertRedirect('/login');
+    $this->get('/fil')->assertRedirect(route('home'));
     $this->actingAs(User::factory()->unverified()->create())->get('/fil')->assertRedirect();
     $this->actingAs(User::factory()->create())->get('/fil')->assertOk();
 });
 
 it('n’affiche que du contenu réel : un Fil vide l’est vraiment, avec une invitation à agir', function () {
     $this->actingAs(User::factory()->create())->get('/fil')->assertOk()
-        ->assertSeeText('Le Fil se remplira bientôt. Commencez par compléter votre profil.')
+        ->assertSeeText('Les publications apparaîtront ici. Commencez par compléter votre profil.')
         ->assertSeeText('Agir')
         ->assertDontSeeText('Awa Traoré')
         ->assertDontSeeText('GAMAD Technology')
@@ -108,7 +108,7 @@ it('filtre : Tout, Besoins, Savoirs, Apprendre, Aides', function () {
 
 it('ne propose que les filtres Tout, Besoins, Savoirs, Apprendre, Aides, ZUMRA et Projets (D-098)', function () {
     $html = fil()->html();
-    preg_match('/<nav aria-label="Filtrer le Fil".*?<\/nav>/s', $html, $nav);
+    preg_match('/<nav aria-label="Filtrer les publications".*?<\/nav>/s', $html, $nav);
     $filtres = array_map(fn ($t) => trim(strip_tags($t)), explode('</button>', $nav[0]));
 
     expect(array_values(array_filter($filtres)))->toBe(['Tout', 'Mes suivis', 'Besoins', 'Savoirs', 'Apprendre', 'Aides', 'ZUMRA', 'Projets']);

@@ -1,138 +1,71 @@
-@php
-    $steps = [
-        ['user', 'bg-type-learning-bg text-type-learning-fg', 'Partagez vos capacités', 'Dites ce que vous pouvez apporter et ce que vous voulez apprendre.'],
-        ['community', 'bg-type-knowledge-bg text-type-knowledge-fg', 'Trouvez votre ZUMRA', 'Rejoignez une communauté qui apprend, travaille et agit ensemble.'],
-        ['project', 'bg-type-call-bg text-type-call-fg', 'Faites avancer un projet', 'Un but, des étapes et une équipe pour agir concrètement.'],
-        ['idea', 'bg-type-need-bg text-type-need-fg', 'Passez à l’action', 'Dans le Fil, répondez par un geste : aider, apprendre ou transmettre.'],
-    ];
-    $directories = [
-        ['user', 'bg-type-learning-bg text-type-learning-fg', 'Personnes', 'Des capacités à rencontrer', 'Découvrir les personnes', 'personnes.index'],
-        ['community', 'bg-type-knowledge-bg text-type-knowledge-fg', 'ZUMRA', 'Des communautés pour agir ensemble', 'Explorer les ZUMRA', 'zumras.index'],
-        ['project', 'bg-type-call-bg text-type-call-fg', 'Projets', 'Des actions qui prennent forme', 'Voir les projets', 'projets.index'],
-    ];
-    if (\App\Support\Experience::initial()) {
-        $steps = [
-            ['user', 'bg-type-learning-bg text-type-learning-fg', 'Partagez vos capacités', 'Dites ce que vous pouvez apporter et ce que vous voulez apprendre.'],
-            ['group', 'bg-type-knowledge-bg text-type-knowledge-fg', 'Rencontrez des personnes', 'Trouvez quelqu’un par ses capacités, sa ville ou son domaine.'],
-            ['idea', 'bg-type-need-bg text-type-need-fg', 'Exprimez un besoin', 'Dans le Fil, dites ce qui vous manque ou partagez un savoir.'],
-            ['heart', 'bg-type-call-bg text-type-call-fg', 'Entraidez-vous', 'Proposez votre aide. Une réponse acceptée ouvre un échange privé.'],
-        ];
-        $directories = [
-            ['user', 'bg-type-learning-bg text-type-learning-fg', 'Personnes', 'Des capacités à rencontrer', 'Découvrir les personnes', 'personnes.index'],
-            ['feed', 'bg-type-knowledge-bg text-type-knowledge-fg', 'Fil', 'Des savoirs, des besoins et des gestes d’entraide', 'Rejoindre le Fil', 'register'],
-        ];
-    }
-@endphp
-
 <x-layouts.landing>
     <section class="landing-container landing-hero" aria-labelledby="accroche">
         <div class="flex min-w-0 flex-col items-start gap-5">
-            <span class="inline-flex items-center gap-2 rounded-chip border border-ink px-3 py-1.5 text-[11px] font-extrabold tracking-wide"><x-icon name="group" :size="18" />Le Réseau GAMAD</span>
-            <h1 id="accroche" class="landing-headline"><span class="block">Des personnes.</span> <span class="block">Des actions.</span> <span class="landing-highlight">Un impact réel.</span></h1>
-            <p class="max-w-lg text-[16px] leading-relaxed md:text-[17px]">Apportez ce que vous savez faire, apprenez ce qui vous manque, agissez avec d’autres.</p>
+            <span class="inline-flex items-center gap-2 rounded-chip border border-line bg-card px-3 py-2 text-[12px] font-bold"><x-icon name="group" :size="18" />Le Réseau GAMAD</span>
+            <h1 id="accroche" class="landing-headline">Votre savoir-faire <span class="landing-highlight">mérite d’être connu.</span></h1>
+            <p class="max-w-lg text-[16px] leading-relaxed md:text-[18px]">Rencontrez des personnes, partagez vos réalisations et trouvez des occasions d’apprendre, d’aider ou de travailler.</p>
             <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-                <x-button :href="route('register')" variant="accent" class="gap-5">Créer un compte<x-icon name="arrow-right" :size="20" /></x-button>
-                <x-button :href="route('login')" variant="secondary">Se connecter</x-button>
+                <x-button :href="route('register')" variant="accent" class="gap-3">Créer un compte<x-icon name="arrow-right" :size="18" /></x-button>
+                <x-button :href="route('personnes.index')" variant="secondary">Découvrir les personnes</x-button>
             </div>
-            <p class="text-[14px] leading-relaxed text-muted">Un compte GAMAD ne vaut pas adhésion au Mouvement.</p>
+            <p class="text-[13px] text-muted">Artisan, salarié, indépendant, étudiant ou autodidacte : chacun a quelque chose à apporter.</p>
         </div>
-
         <figure class="landing-hero-visual">
-            <div class="landing-photo">
-                <img src="{{ asset('images/gamad-accueil-hero.webp') }}" alt="Illustration de quatre adultes échangeant et apprenant ensemble autour d’un ordinateur." width="510" height="280" fetchpriority="high" decoding="async" class="block h-auto w-full rounded-[20px]">
-            </div>
-            <figcaption class="landing-photo-caption">
-                <p class="mb-2 text-[11px] font-extrabold">Des échanges qui deviennent des actions</p>
-                <div class="flex flex-wrap gap-2 text-[11px] font-bold">
-                    <span class="inline-flex items-center gap-2 rounded-button bg-type-need-bg px-3 py-2 text-type-need-fg"><x-icon name="group" :size="19" />Je peux aider</span>
-                    <span class="inline-flex items-center gap-2 rounded-button bg-type-learning-bg px-3 py-2 text-type-learning-fg"><x-icon name="book" :size="19" />Je veux apprendre</span>
-                </div>
-            </figcaption>
+            <div class="landing-photo"><img src="{{ asset('images/gamad-accueil-hero.webp') }}" alt="Illustration de quatre adultes échangeant et apprenant ensemble autour d’un ordinateur." width="510" height="280" fetchpriority="high" decoding="async" class="block h-auto w-full rounded-[20px]"></div>
+            <figcaption class="landing-photo-caption"><p class="text-[14px] font-extrabold">Une rencontre peut ouvrir de nouvelles possibilités.</p><p class="mt-2 text-[12px] text-muted">Un savoir partagé, un besoin exprimé, une relation qui commence.</p></figcaption>
         </figure>
     </section>
 
-    <div class="bg-card">
-        <section id="comment" aria-labelledby="comment-titre" class="landing-container landing-section">
-            <h2 id="comment-titre" class="landing-section-title">Comment ça marche</h2>
-            <p class="mb-5 mt-1 text-[15px] text-muted">De vos capacités aux actions concrètes.</p>
-            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                @foreach ($steps as [$icon, $colors, $title, $description])
-                    <article class="landing-card flex flex-col gap-3 p-5">
-                        <div class="mb-1 flex items-start justify-between gap-3"><span class="flex size-12 items-center justify-center rounded-card {{ $colors }}"><x-icon :name="$icon" :size="27" /></span><span class="text-[11px] font-semibold text-muted">{{ sprintf('%02d', $loop->iteration) }}</span></div>
-                        <h3 class="text-[16px] font-extrabold leading-snug">{{ $title }}</h3>
-                        <p class="text-[14px] leading-relaxed text-muted">{{ $description }}</p>
-                    </article>
-                @endforeach
-            </div>
-        </section>
-
-        <section id="explorer" aria-labelledby="explorer-titre" class="landing-container landing-section !pt-2">
-            <h2 id="explorer-titre" class="landing-section-title">Découvrez le réseau</h2>
-            <p class="mb-5 mt-1 text-[15px] text-muted">{{ \App\Support\Experience::initial() ? 'Des personnes à rencontrer, des savoirs à partager, des besoins auxquels répondre.' : 'Des personnes, des communautés, des projets à explorer.' }}</p>
-            <div @class(['grid gap-4', 'md:grid-cols-2' => \App\Support\Experience::initial(), 'md:grid-cols-3' => ! \App\Support\Experience::initial()])>
-                @foreach ($directories as [$icon, $colors, $title, $description, $label, $route])
-                    <a href="{{ route($route) }}" class="landing-card group flex min-w-0 items-start gap-4 p-5 text-ink no-underline transition hover:border-ink hover:text-ink">
-                        <span class="flex size-12 shrink-0 items-center justify-center rounded-card {{ $colors }}"><x-icon :name="$icon" :size="27" /></span>
-                        <span class="flex min-w-0 flex-col"><span class="text-[16px] font-extrabold">{{ $title }}</span><span class="mt-1 text-[14px] leading-relaxed text-muted">{{ $description }}</span><span class="mt-4 inline-flex min-h-11 items-center gap-2 text-[13px] font-bold text-link group-hover:underline">{{ $label }}<x-icon name="arrow-right" :size="17" class="shrink-0" /></span></span>
-                    </a>
-                @endforeach
-            </div>
-
-            @if ($figures !== [] || $recentZumras->isNotEmpty() || $recentProjects->isNotEmpty())
-                <section aria-labelledby="reel" class="mt-6 flex flex-col gap-4">
-                    <div class="flex flex-wrap items-center justify-between gap-3">
-                        <h3 id="reel" class="text-[17px] font-extrabold">Ce qui se passe en ce moment</h3>
-                        @if ($figures !== [])
-                            <ul class="flex flex-wrap gap-x-4 gap-y-2" aria-label="GAMAD en chiffres">
-                                @foreach ($figures as $label => $n)
-                                    <li class="text-[14px] text-muted"><strong class="font-extrabold text-ink">{{ $n }}</strong> {{ $label === 'personnes' && $n === 1 ? 'personne' : ($label === 'projets' && $n === 1 ? 'projet' : $label) }}</li>
-                                @endforeach
-                            </ul>
-                        @endif
-                    </div>
-                    @if ($recentZumras->isNotEmpty())
-                        <div>
-                            <h4 class="mb-3 text-[15px] font-extrabold">{{ $recentZumras->count() === 1 ? 'Une communauté à découvrir' : 'Des communautés à découvrir' }}</h4>
-                            <div class="grid gap-4 lg:grid-cols-2">
-                                @foreach ($recentZumras as $zumra)
-                                    <div class="landing-card flex min-w-0 flex-wrap items-center gap-3 p-4">
-                                        <x-zumra-initials :zumra="$zumra" :size="48" />
-                                        <div class="min-w-0 flex-1 basis-40"><a href="{{ route('zumras.show', $zumra) }}" class="inline-flex min-h-11 items-center break-words text-[15px] font-extrabold text-ink no-underline hover:text-link">{{ $zumra->name }}</a><p class="text-[14px] leading-relaxed text-muted">{{ collect([$zumra->domain->name, $zumra->city?->label()])->filter()->implode(' · ') }}</p></div>
-                                        <x-button :href="route('zumras.show', $zumra)" variant="secondary" class="!px-4 !text-[13px]">Découvrir</x-button>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    @endif
-                    @if ($recentProjects->isNotEmpty())
-                        <div class="grid gap-4 md:grid-cols-3">
-                            @foreach ($recentProjects as $project)
-                                <a href="{{ route('projets.show', $project) }}" class="landing-card flex min-w-0 flex-col gap-2 p-4 text-ink no-underline hover:border-ink hover:text-ink">
-                                    <span class="self-start rounded-chip px-2.5 py-1 text-[12px] font-bold {{ $project->state->badgeClasses() }}">{{ $project->state->label() }}</span>
-                                    <span class="break-words text-[15px] font-extrabold">{{ $project->name }}</span><span class="break-words text-[14px] text-muted">Projet de {{ $project->zumra->name }}</span>
-                                </a>
-                            @endforeach
-                        </div>
-                    @endif
-                </section>
-            @endif
-        </section>
-
-        <section aria-labelledby="promesses" class="landing-container pb-10">
-            <div class="rounded-card bg-ink px-5 py-7 text-white md:p-8">
-                <h2 id="promesses" class="text-[22px] font-extrabold leading-tight md:text-center md:text-[25px]">Un réseau fondé sur l’action et le respect</h2>
-                <div class="mt-6 grid gap-6 md:grid-cols-3 md:gap-0 md:divide-x md:divide-white/20">
-                    <div class="flex items-start gap-3 md:pr-5"><x-icon name="group" :size="27" class="shrink-0 text-accent" /><div><h3 class="text-[14px] font-extrabold">Des engagements, pas des « j’aime »</h3><p class="mt-1 text-[13px] leading-relaxed text-white/90">Aucune note ni classement de personnes.</p></div></div>
-                    <div class="flex items-start gap-3 md:px-5"><x-icon name="lock" :size="27" class="shrink-0 text-accent" /><div><h3 class="text-[14px] font-extrabold">Votre vie privée respectée</h3><p class="mt-1 text-[13px] leading-relaxed text-white/90">Votre e-mail et votre téléphone restent privés.</p></div></div>
-                    <div class="flex items-start gap-3 md:pl-5"><x-icon name="community" :size="27" class="shrink-0 text-accent" /><div><h3 class="text-[14px] font-extrabold">Un réseau ouvert à tous</h3><p class="mt-1 text-[13px] leading-relaxed text-white/90">Créer un compte ne signifie pas adhérer au Mouvement GAMAD.</p></div></div>
-                </div>
-            </div>
-        </section>
-    </div>
-
-    <section class="landing-container flex flex-col items-center gap-3 py-10 text-center" aria-label="Rejoindre GAMAD">
-        <h2 class="text-[24px] font-extrabold leading-tight md:text-[28px]">Et vous, que voulez-vous faire avancer ?</h2>
-        <p class="text-[14px] leading-relaxed text-muted">Un savoir à partager, une envie d’apprendre, un besoin à exprimer.</p>
-        <x-button :href="route('register')" variant="accent" class="mt-2 gap-5">Créer un compte<x-icon name="arrow-right" :size="19" /></x-button>
+    <section class="border-y border-line bg-card" aria-label="Rechercher une personne">
+        <form action="{{ route('personnes.index') }}" method="GET" role="search" class="landing-container flex flex-col gap-3 py-6 md:flex-row md:items-center md:gap-6">
+            <label for="public-search" class="shrink-0 text-[17px] font-extrabold">Qui cherchez-vous ?</label>
+            <div class="flex min-w-0 flex-1 items-center gap-2 rounded-button border border-chip-line bg-ground p-1.5"><x-icon name="search" :size="20" class="ml-2 shrink-0" /><input id="public-search" type="search" name="q" maxlength="100" placeholder="Un nom ou un savoir-faire : plomberie, couture…" class="min-h-11 min-w-0 flex-1 bg-transparent px-1 text-[14px] outline-none"><button type="submit" class="inline-flex min-h-11 shrink-0 items-center justify-center rounded-button bg-ink px-3 text-[13px] font-bold text-white sm:px-5">Rechercher</button></div>
+        </form>
     </section>
+
+    <section id="comment" class="landing-container landing-section" aria-labelledby="comment-titre">
+        <div class="max-w-2xl"><p class="mb-2 text-[12px] font-extrabold uppercase tracking-wider text-muted">Des possibilités au quotidien</p><h2 id="comment-titre" class="landing-section-title">Votre profil ouvre la conversation.</h2><p class="mt-3 text-[15px] leading-relaxed text-muted">Montrez ce que vous savez faire et découvrez ce que vous pouvez construire avec d’autres.</p></div>
+        <div class="mt-6 grid gap-4 md:grid-cols-3">
+            @foreach ([['user', 'Montrez votre savoir-faire', 'Présentez vos capacités, vos expériences et vos réalisations, avec ou sans diplôme.'], ['group', 'Rencontrez des personnes', 'Découvrez des profils et entrez en relation autour d’un savoir, d’un besoin ou d’une envie commune.'], ['idea', 'Exprimez un besoin', 'Proposez vos services, partagez un savoir ou cherchez une personne pour avancer.']] as [$icon, $title, $description])
+                <article class="landing-card p-6"><span class="mb-4 flex size-11 items-center justify-center rounded-button bg-soft-blue"><x-icon :name="$icon" :size="24" /></span><h3 class="text-[18px] font-extrabold">{{ $title }}</h3><p class="mt-3 text-[14px] leading-relaxed text-muted">{{ $description }}</p></article>
+            @endforeach
+        </div>
+    </section>
+
+    <section id="explorer" class="bg-card" aria-labelledby="explorer-titre">
+        <div class="landing-container landing-section">
+            <div class="flex flex-wrap items-end justify-between gap-3"><div><h2 id="explorer-titre" class="landing-section-title">Des personnes à découvrir.</h2><p class="mt-3 text-[15px] text-muted">Des parcours différents. Des capacités qui peuvent se rencontrer.</p></div><a href="{{ route('personnes.index') }}" class="inline-flex min-h-11 items-center gap-2 text-[14px] font-bold">Explorer les profils<x-icon name="arrow-right" :size="18" /></a></div>
+            @if ($people->isNotEmpty())
+                <div class="mt-6 grid gap-4 md:grid-cols-3">
+                    @foreach ($people as $person)
+                        <article class="flex min-w-0 flex-col rounded-card border border-line bg-ground p-5"><x-avatar :profile="$person" :size="64" /><h3 class="mt-4 break-words text-[18px] font-extrabold">{{ $person->user->name }}</h3>@if ($person->headline)<p class="mt-1 break-words text-[14px] font-semibold">{{ $person->headline }}</p>@endif
+                            @if ($person->city)<p class="mt-2 text-[12px] text-muted">{{ $person->city->label() }}</p>@endif
+                            <ul class="mt-3 flex flex-wrap gap-2">@foreach ($person->offeredSkills->take(3) as $skill)<li class="max-w-full break-words rounded-chip bg-card px-3 py-1.5 text-[12px] font-semibold">{{ $skill->name }}</li>@endforeach</ul>
+                            <a href="{{ route('personnes.show', $person->public_id) }}" class="mt-auto inline-flex min-h-11 items-center pt-3 text-[13px] font-bold">Découvrir son profil →</a>
+                        </article>
+                    @endforeach
+                </div>
+            @else
+                <div class="mt-6 rounded-card border border-line bg-ground p-6"><p class="text-[15px] text-muted">Les profils publics se découvrent ici. Créez le vôtre pour présenter ce que vous savez faire.</p><a href="{{ route('register') }}" class="mt-2 inline-flex min-h-11 items-center text-[14px] font-bold">Créer mon profil →</a></div>
+            @endif
+            @if ($posts->isNotEmpty())
+                <h3 class="mb-4 mt-10 text-[21px] font-extrabold">Des partages et des occasions.</h3>
+                <div class="grid items-start gap-4 md:grid-cols-3">
+                    @foreach ($posts as $post)
+                        <article class="min-w-0 rounded-card border border-line p-5"><span class="rounded-chip px-2.5 py-1.5 text-[12px] font-bold {{ $post->type->badgeClasses() }}">{{ $post->displayLabel() }}</span><p class="mt-3 text-[12px] text-muted">Publié le {{ $post->created_at->format('d/m/Y') }}@if ($post->need_state) · {{ $post->need_state->label() }}@endif @if (($post->matching['enabled'] ?? false) && ! ($post->matching['open'] ?? true)) · Clôturée @endif</p><p class="mt-4 whitespace-pre-line break-words text-[14px] leading-relaxed">{{ Str::limit($post->body, 220) }}</p><x-publication-media :publication="$post" /><a href="{{ route('personnes.show', $post->author->profile->public_id) }}" class="mt-2 inline-flex min-h-11 items-center break-words text-[13px] font-bold">{{ $post->author->name }}</a><a href="{{ route('publications.show', $post) }}" class="flex min-h-11 items-center text-[13px] font-bold">Découvrir la publication →</a></article>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+    </section>
+
+    <section id="confiance" class="landing-container landing-section" aria-labelledby="confiance-titre">
+        <div class="grid gap-6 rounded-card bg-ink p-6 text-white md:grid-cols-[1fr_1.3fr] md:p-10">
+            <div><x-icon name="shield" :size="32" class="mb-4 text-accent" /><h2 id="confiance-titre" class="text-[27px] font-extrabold leading-tight">Des relations qui se construisent avec confiance.</h2><p class="mt-4 text-[14px] leading-relaxed text-white/85">Vous choisissez ce que vous partagez et les personnes avec qui vous échangez.</p></div>
+            <div class="flex flex-col gap-5">
+                @foreach ([['Votre parcours compte', 'Une expérience en atelier, une formation ou une réalisation personnelle peut montrer votre savoir-faire.'], ['Des repères pour faire connaissance', 'GAMAD peut vérifier une identité après un contrôle humain. Une expérience peut être confirmée par une personne identifiée. Chaque mention précise sa portée.'], ['Le contact commence par un accord', 'Une demande de relation peut être acceptée ou déclinée. Votre téléphone et votre e-mail restent privés.']] as [$title, $description])<div class="border-l-2 border-accent pl-4"><h3 class="text-[15px] font-extrabold">{{ $title }}</h3><p class="mt-1 text-[13px] leading-relaxed text-white/85">{{ $description }}</p></div>@endforeach
+            </div>
+        </div>
+    </section>
+    <section class="landing-container flex flex-col items-center gap-4 pb-14 pt-4 text-center" aria-label="Rejoindre GAMAD"><h2 class="landing-section-title">Faites votre place sur GAMAD.</h2><p class="max-w-xl text-[15px] leading-relaxed text-muted">Un savoir-faire à montrer, une personne à rencontrer, une occasion à saisir.</p><x-button :href="route('register')" variant="accent">Créer mon compte</x-button><a href="{{ route('login') }}" class="inline-flex min-h-11 items-center text-[13px] font-semibold">Déjà inscrit ? Se connecter</a></section>
 </x-layouts.landing>

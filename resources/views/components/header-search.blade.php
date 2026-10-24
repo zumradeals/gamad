@@ -10,8 +10,8 @@
            x-on:feed-search-cleared.window="$el.value = ''"
            x-on:popstate.window="$el.value = new URLSearchParams(window.location.search).get('q') || ''"
            class="min-h-11 min-w-0 flex-1 border-0 bg-transparent px-2 text-[13px] text-ink outline-none placeholder:text-muted">
-    <button type="submit" title="Rechercher dans le Fil" class="flex size-11 shrink-0 items-center justify-center rounded-button bg-accent text-ink">
-        <x-icon name="search" :size="20" /><span class="sr-only">Dans le Fil</span>
+    <button type="submit" title="Rechercher dans les publications" class="flex size-11 shrink-0 items-center justify-center rounded-button bg-accent text-ink">
+        <x-icon name="search" :size="20" /><span class="sr-only">Dans les publications</span>
     </button>
     <button type="submit" formaction="{{ route('personnes.index') }}" title="Trouver une personne" class="flex size-11 shrink-0 items-center justify-center rounded-button text-ink hover:bg-soft-blue">
         <x-icon name="group" :size="21" /><span class="sr-only">Trouver une personne</span>

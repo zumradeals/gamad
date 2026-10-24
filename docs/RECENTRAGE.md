@@ -273,3 +273,26 @@ Confiance dans la modération, réservée au super administrateur. Pas de nouvea
 
 Les données déclarées de D-186 restent déclaratives ; seule une confirmation portant la mention explicite
 ci-dessus est une expérience confirmée. R1 reste En cours et les modules gelés restent gelés.
+
+## Entrée publique et vocabulaire — D-190
+
+Vision : GAMAD se présente comme un réseau social accessible, pour montrer son savoir-faire, rencontrer des
+personnes et trouver des occasions d’entraide, de travail ou d’apprentissage. La présentation ne suppose
+aucune appartenance à une organisation. La devise et les mentions du Mouvement sont retirées des textes
+éditoriaux visibles ; les contenus personnels et l’historique des décisions ne sont pas réécrits.
+
+Conception : Accueil · Agir · Mon espace. Accueil nomme l’entrée connectée jusque-là nommée Fil ; le fil de
+publications demeure le contenu de cette page. La page publique / permet de découvrir le réseau, de chercher
+une personne et de voir des profils/publications réellement publics, sans compte. Inscription et connexion
+sont des choix explicites. L’image du héros reste celle déjà validée. Aucun chiffre, profil ou témoignage fictif.
+
+Implémentation : conserver les noms et URL internes fil et /fil pour préserver liens, filtres et retours de
+connexion. Un visiteur non connecté sur cette route est dirigé vers /, sans session de compte requise ; les
+autres routes privées continuent de mener à la connexion. Les personnes connectées vont de / vers /fil.
+La page de connexion reste disponible, avec un retour explicite vers la présentation publique. La navigation,
+les titres et liens de retour affichent Accueil ; la recherche parle de publications. Les carrefours conservés
+et leurs droits restent inchangés. La page publique présente des profils visibles sans compte et leurs
+publications personnelles non masquées ; les aperçus d’un auteur au profil réservé sont exclus.
+L’introduction de la charte est alignée éditorialement, sans modifier les autres règles, dates d’adoption ou
+consentements antérieurs. Pas de migration, nouveau stockage, ouverture publique automatique, assouplissement
+de l’authentification ou indexation automatique. R1 reste En cours.

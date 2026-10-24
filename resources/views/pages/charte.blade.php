@@ -12,7 +12,7 @@
 
         <section class="flex flex-col gap-2">
             <h2 class="text-[18px] font-extrabold">1. L’esprit de GAMAD</h2>
-            <p class="leading-relaxed">GAMAD est un réseau d’action ouvert à tous. On y vient apporter ce que l’on sait faire, apprendre ce que l’on ne sait pas encore, ou dire ce qui nous manque, et agir avec d’autres, dans des ZUMRA et des projets. Avoir un compte ne fait pas de vous un membre du Mouvement GAMAD.</p>
+            <p class="leading-relaxed">GAMAD est un réseau social ouvert à tous. On y présente ses capacités et ses expériences, on partage ses réalisations et on rencontre des personnes pour apprendre, s’entraider ou travailler ensemble.</p>
         </section>
 
         <section class="flex flex-col gap-2">

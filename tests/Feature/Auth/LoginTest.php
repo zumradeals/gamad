@@ -37,7 +37,7 @@ it('limite les tentatives de connexion', function () {
 });
 
 it('renvoie un invité vers la connexion', function () {
-    $this->get('/fil')->assertRedirect(route('login'));
+    $this->get('/fil')->assertRedirect(route('home'));
     $this->get('/espace')->assertRedirect(route('login'));
 });
 

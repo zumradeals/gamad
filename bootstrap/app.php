@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->redirectGuestsTo(fn (Request $request) => $request->routeIs('fil') ? route('home') : route('login'));
         $middleware->alias(['wallets' => EnsureWalletsEnabled::class]);
         $middleware->validateCsrfTokens(except: ['webhooks/geniuspay']);
         $middleware->web(append: [ThrottleRegistration::class, BlockSuspended::class, SimplifyDiscovery::class]);

@@ -145,8 +145,8 @@
 
     @if (in_array($tab, ['formation', 'fil']))
         @if ($tab === 'formation')
-            <section class="flex flex-col gap-1 rounded-card bg-type-call-bg p-4 text-type-call-fg" aria-label="Formation, travail, adoration">
-                <span class="text-[12px] font-extrabold tracking-[1.5px]">FORMATION · TRAVAIL · ADORATION</span>
+            <section class="flex flex-col gap-1 rounded-card bg-type-call-bg p-4 text-type-call-fg" aria-label="Apprendre ensemble">
+                <span class="text-[12px] font-extrabold tracking-[1.5px]">APPRENDRE ENSEMBLE</span>
                 <p class="text-[17px] font-extrabold leading-snug">Ici, on apprend avant de construire.</p>
                 @unless ($role || $initial)
                     <p class="text-[14px] font-semibold leading-snug">Rejoignez la ZUMRA pour suivre ses formations, ou partagez ce que vous savez.</p>

@@ -37,6 +37,6 @@
             </div>
         </article>
         @endif
-    @empty <p class="py-3 text-[14px] text-muted">{{ match ($tab) { 'requests' => 'Aucune demande en attente.', 'relations' => 'Vos relations acceptées apparaîtront ici.', 'follows' => 'Suivez une personne depuis son profil pour retrouver ses publications publiques dans le Fil.', default => 'Vous n’avez bloqué personne.' } }}</p>@endforelse
+    @empty <p class="py-3 text-[14px] text-muted">{{ match ($tab) { 'requests' => 'Aucune demande en attente.', 'relations' => 'Vos relations acceptées apparaîtront ici.', 'follows' => 'Suivez une personne depuis son profil pour retrouver ses publications publiques dans les publications.', default => 'Vous n’avez bloqué personne.' } }}</p>@endforelse
     @if ($hasMore)<x-button type="button" variant="secondary" wire:click="more">Voir plus</x-button>@endif
 </section>

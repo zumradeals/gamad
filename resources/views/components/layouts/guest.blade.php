@@ -12,7 +12,7 @@
 </head>
 <body class="bg-ground text-ink antialiased">
     <div @class(['mx-auto flex min-h-screen w-full flex-col gap-6 px-4 py-8', 'max-w-[440px]' => ! $wide, 'max-w-[1100px] md:px-6' => $wide])>
-        <a href="{{ url('/') }}" class="self-start no-underline" aria-label="GAMAD — accueil">
+        <a href="{{ url('/') }}" class="inline-flex min-h-11 items-center self-start no-underline" aria-label="GAMAD — accueil">
             <x-logo />
         </a>
 

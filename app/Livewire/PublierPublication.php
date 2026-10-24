@@ -168,7 +168,7 @@ class PublierPublication extends Component
             ...(! $this->zumraId && ! $this->projectId ? ['matching' => $this->matching] : []),
         ], $this->zumra(), $this->project());
 
-        session()->flash('status', 'Publié. Elle apparaît dans le Fil.');
+        session()->flash('status', 'Publié. Elle apparaît dans les publications.');
 
         return $this->redirect(route('publications.show', $publication), navigate: false);
     }

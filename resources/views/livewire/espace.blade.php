@@ -133,7 +133,7 @@
                 @else
                     <div class="flex flex-1 flex-col items-center justify-center gap-3 py-2 text-center">
                         <span class="flex size-14 items-center justify-center rounded-card bg-type-call-bg text-type-call-fg"><x-icon name="document" :size="30" /></span>
-                        <div><h3 class="text-[16px] font-extrabold">Votre première action commence ici</h3><p class="mt-1 text-[14px] leading-relaxed text-muted">Un besoin, un savoir ou une aide à proposer : partagez-le dans le Fil.</p></div>
+                        <div><h3 class="text-[16px] font-extrabold">Votre première action commence ici</h3><p class="mt-1 text-[14px] leading-relaxed text-muted">Un besoin, un savoir ou une aide à proposer : partagez-le dans les publications.</p></div>
                         <x-button :href="route('agir')" variant="accent" class="!px-5 !text-[13px]"><x-icon name="plus" :size="18" class="mr-2" />Agir</x-button>
                     </div>
                 @endif
@@ -146,7 +146,7 @@
             @forelse ($conversations as $conversation)
                 <a wire:key="espace-conversation-{{ $conversation->id }}" href="{{ route('conversations.show', $conversation) }}" class="flex min-h-11 items-center justify-between gap-3 border-t border-line-soft py-2 text-[14px] font-semibold"><span class="min-w-0 [overflow-wrap:anywhere]">{{ $conversation->otherPerson($user)?->name ?? 'Personne supprimée' }}</span><x-icon name="arrow-right" :size="18" class="shrink-0" /></a>
             @empty
-                <p class="text-[14px] text-muted">Vos premiers échanges commenceront par un geste dans le Fil.</p>
+                <p class="text-[14px] text-muted">Vos premiers échanges commenceront par un geste dans les publications.</p>
             @endforelse
             {{ $conversations->links() }}
         </section>
