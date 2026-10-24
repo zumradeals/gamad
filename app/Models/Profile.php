@@ -35,7 +35,7 @@ class Profile extends Model
 
     protected function casts(): array
     {
-        return ['experiences' => 'array', 'skill_details' => 'array', 'featured_publications' => 'array'];
+        return ['matching_preferences' => 'array', 'experiences' => 'array', 'skill_details' => 'array', 'featured_publications' => 'array'];
     }
 
     protected static function booted(): void

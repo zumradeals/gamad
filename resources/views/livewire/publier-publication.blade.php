@@ -62,6 +62,10 @@
             </details>
         @endif
 
+        @if (! $zumra && ! $project && in_array($type, [\App\Enums\PublicationType::Need, \App\Enums\PublicationType::Offer, \App\Enums\PublicationType::Knowledge, \App\Enums\PublicationType::LearningWish], true))
+            @include('livewire.partials.matching-publication-editor')
+        @endif
+
         @include('livewire.partials.skill-picker', [
             'list' => 'skills', 'items' => $skills, 'input' => $skillsInput, 'suggestions' => $suggestions, 'tone' => 'neutral', 'plain' => true,
             'max' => \App\Models\Publication::MAX_SKILLS,

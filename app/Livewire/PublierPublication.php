@@ -9,6 +9,7 @@ use App\Models\Domain;
 use App\Models\Project;
 use App\Models\Publication;
 use App\Models\Zumra;
+use App\Services\MatchingConditions;
 use App\Services\Publications;
 use App\Support\Experience;
 use App\Support\Normalizer;
@@ -48,6 +49,15 @@ class PublierPublication extends Component
 
     public string $slug = '';
 
+    public array $matching = [];
+
+    public function updatedMatching($value, string $key): void
+    {
+        if ($key === 'terms' && $value !== 'paid') {
+            $this->matching['budget'] = '';
+        }
+    }
+
     public string $body = '';
 
     public string $needPurpose = '';
@@ -70,6 +80,7 @@ class PublierPublication extends Component
         $type = PublicationType::fromSlug($slug);
         abort_unless($type, 404);
 
+        $this->matching = MatchingConditions::publicationDefaults($type);
         Gate::authorize('create', Publication::class);
 
         $zumra = $zumra?->exists ? $zumra : null;
@@ -154,6 +165,7 @@ class PublierPublication extends Component
             'visibility' => $this->visibility,
             'skills' => $this->skills,
             'media' => $this->media,
+            ...(! $this->zumraId && ! $this->projectId ? ['matching' => $this->matching] : []),
         ], $this->zumra(), $this->project());
 
         session()->flash('status', 'Publié. Elle apparaît dans le Fil.');

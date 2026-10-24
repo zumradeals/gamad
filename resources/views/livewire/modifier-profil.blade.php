@@ -98,6 +98,7 @@
             'title' => 'Je veux apprendre', 'help' => 'Ce que vous aimeriez savoir faire.', 'placeholder' => 'Ex. réparation de panneaux solaires',
         ])
 
+        @include('livewire.partials.matching-profile-editor')
         @include('livewire.partials.profile-details-editor')
 
         <section aria-labelledby="domaines-titre" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]" x-data="{ all: false }">

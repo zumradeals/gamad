@@ -151,6 +151,7 @@
             {{ $conversations->links() }}
         </section>
 
+        <livewire:match-suggestions />
         <livewire:my-network />
 
         @if ($legacyZumras->isNotEmpty() || $legacyWallets->isNotEmpty())

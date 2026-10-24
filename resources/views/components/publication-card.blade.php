@@ -85,6 +85,7 @@
 
     <p class="whitespace-pre-line break-words text-[15px] leading-normal">{{ $publication->body }}</p>
     <x-publication-media :publication="$publication" />
+    <x-opportunity-conditions :publication="$publication" />
 
     @if ($publication->skills->isNotEmpty())
         <ul class="flex flex-wrap gap-1.5" aria-label="Capacités">
@@ -139,7 +140,7 @@
             @if ($viewer && in_array($zumra->id, $memberOf ?? $viewer->zumraMemberships()->pluck('zumra_id')->all(), true))
                 <span class="inline-flex min-h-11 items-center gap-1.5 text-[14px] font-extrabold text-type-knowledge-fg"><x-icon name="check" :size="16" :stroke="3" />Vous êtes dans cette ZUMRA</span>
             @elseif (! \App\Support\Experience::initial())
-                <x-button :href="route('zumras.show', $zumra).'#rejoindre'">{{ $type->gestureLabel() }}</x-button>
+                <x-button :href="route('zumras.show', $zumra).'#rejoindre'">{{ $publication->gestureLabel() }}</x-button>
             @endif
         @elseif ($viewer)
             @if ($gesture && $gesture->state === GestureState::Accepted)
@@ -159,7 +160,7 @@
             @elseif (! $publication->acceptsGestures())
                 <span class="inline-flex min-h-11 items-center text-[14px] font-semibold text-muted">{{ $state === NeedState::Resolved ? 'Ce besoin est résolu.' : 'Ce besoin est fermé.' }}</span>
             @else
-                <x-button type="button" :variant="$compact ? 'secondary' : 'primary'" wire:click="$dispatch('open-gesture', { id: '{{ $publication->id }}' })">{{ $type->gestureLabel() }}</x-button>
+                <x-button type="button" :variant="$compact ? 'secondary' : 'primary'" wire:click="$dispatch('open-gesture', { id: '{{ $publication->id }}' })">{{ $publication->gestureLabel() }}</x-button>
             @endif
         @else
             @if ($publication->acceptsGestures())

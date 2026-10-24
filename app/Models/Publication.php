@@ -51,6 +51,7 @@ class Publication extends Model
     protected function casts(): array
     {
         return [
+            'matching' => 'array',
             'type' => PublicationType::class,
             'need_state' => NeedState::class,
             'resolved_at' => 'datetime',
@@ -216,6 +217,12 @@ class Publication extends Model
         }
 
         return User::query()->whereIn('id', ZumraMembership::query()->where('zumra_id', $this->zumra_id)->whereIn('role', ['founder', 'manager'])->select('user_id'))->get();
+    }
+
+    public function gestureLabel(): string
+    {
+        return $this->isNeed() && ($this->matching['enabled'] ?? false) && ($this->matching['terms'] ?? null) === 'paid'
+            ? 'Proposer mes services' : ($this->type === PublicationType::Offer && ($this->matching['enabled'] ?? false) && ($this->matching['activity'] ?? null) === 'training' ? 'Je veux apprendre' : $this->type->gestureLabel());
     }
 
     public function isNeed(): bool

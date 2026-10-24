@@ -209,3 +209,63 @@ Essai du Président : compléter son profil et choisir une publication à la une
 filtrer « Mes suivis », demander une relation puis accepter depuis Mon espace, écrire directement, retirer et
 bloquer ; publier une image, une vidéo courte et un PDF ; contrôler avec un visiteur déconnecté que les contenus
 réservés aux inscrits et leurs fichiers restent inaccessibles.
+
+
+## Matching de proximité et conditions des occasions — D-187
+
+### Vision
+Un réseau d’entraide et de travail, avec une seule personne et plusieurs façons de participer. Proposer une
+rencontre pertinente ne sélectionne personne pour une mission, ne garantit ni compétence ni disponibilité et
+ne crée ni engagement ni paiement. Fil · Agir · Mon espace reste la navigation ; les gels D-183 restent actifs.
+
+### Conception
+- Participation volontaire : préférences privées modifiables dans Modifier mon profil (désactivées par défaut),
+  intentions proposer ses compétences / transmettre / apprendre, conditions acceptées bénévole-gratuit /
+  rémunéré-payant / à convenir, jusqu’à cinq localités choisies dans les villes/communes administrées, possibilité
+  à distance, période facultative et jours de semaine facultatifs. Aucune géolocalisation, aucun quartier déduit,
+  aucune préférence sensible inférée ; les localités non renseignées ne sont pas inventées. Les plages non
+  renseignées sont annoncées « à préciser » ; les textes libres de disponibilité ne sont jamais interprétés.
+- Les publications personnelles Besoin, Savoir, Apprendre et Offre peuvent activer leur participation au matching,
+  avec au moins une capacité explicite. Besoin = recherche de prestation/aide ; Apprendre = recherche de
+  transmission ; Savoir = offre de transmission ; Offre = prestation/aide ou formation, choisi explicitement.
+  Nature et conditions financières sont distinctes. Les anciens contenus restent sans matching tant qu’ils ne
+  sont pas explicitement renseignés. Partages/réalisations et publications collectives ne sont pas des offres.
+- Conditions : bénévole/gratuit, rémunéré/payant, ou à convenir explicitement ; budget indicatif libre de 100
+  caractères au plus, pour une condition rémunérée seulement. Aucun montant inféré, encaissement ou contrat.
+  Une offre bénévole ne devient pas payante silencieusement. Pour les nouveaux gestes rémunérés sur un besoin,
+  le bouton dit « Proposer mes services ». Le destinataire décide toujours avant la nouvelle conversation.
+- Correspondances : capacité commune exacte (référentiel normalisé), intention complémentaire et conditions
+  compatibles, localité identique dans les zones choisies ou distance acceptée des deux côtés, période et jours
+  déclarés non contradictoires. Aucun score de personne ni classement payé ; ordre chronologique stable.
+  Besoin/Apprendre rapprochent des profils ayant les capacités offertes ; Savoir/Offre de formation des profils
+  souhaitant apprendre ; une Offre de prestation rapproche des Besoins compatibles. Les suggestions vont aux
+  deux côtés lorsque leurs préférences sont activées. Une personne indisponible n’est pas proposée.
+- Chaque carte explique les capacités, le lieu/distance, les conditions et les éventuelles périodes compatibles.
+  Elle mène au profil ou à la publication, puis aux gestes existants ; jamais de contact, candidature, relation ou
+  acceptation automatique. Ignorer/« Ne m’intéresse pas » est privé et persistant pour cette correspondance.
+- Affichage intégré au Fil et à Mon espace, dix suggestions à la fois, « Voir plus » jusqu’à 100. Accès aux
+  réglages depuis les états vides. Les droits sont revérifiés à chaque affichage et action, ainsi qu’à l’envoi
+  d’une notification, y compris les blocages des deux côtés et les profils réservés aux inscrits. Aucun extrait
+  de contenu interdit dans une notification de matching. Les exceptions de modération ne créent pas de matching.
+- Notifications internes séparément consenties (désactivées par défaut), jamais d’e-mail/SMS. Une alerte générique
+  non lue au plus, cinq nouvelles alertes au plus par jour d’Abidjan ; chaque correspondance ne notifie qu’une
+  fois. Les écritures sont sérialisées sur le destinataire. Activer les notifications peut annoncer les
+  correspondances actuelles non ignorées ; aucun rattrapage en boucle. Désactiver enlève l’alerte non lue de
+  matching. Les notifications des autres usages ne sont pas modifiées.
+- Une publication peut être fermée au matching par son gestionnaire. Besoins résolus/fermés, publications
+  masquées, profils indisponibles/suspendus, comptes supprimés, périodes terminées et contenus non visibles
+  cessent d’être proposés. Les détails et conversations antérieures restent soumis à leurs règles existantes.
+
+### Implémentation et reprise
+Une colonne JSON bornée pour les préférences du profil, une pour les conditions de la publication et une table
+privée de correspondances (références, ignorance, notification ; aucun texte ou portrait copié). Les changements
+sont additifs. Les suggestions sont recalculées depuis les données courantes, avec requêtes limitées aux capacités
+concernées ; production des notifications lors des publications et changements de préférences, puis à la lecture
+du Fil/Espace. Aucun service externe, modèle IA, dépendance ou nouvelle infrastructure. Les règles sont dans un
+service commun et une Policy, les composants ne décident pas des autorisations.
+
+Les contrats de mission, références de travail confirmées, facturation, commissions, wallet et nouveaux modules
+restent hors de cette étape. Les propositions de l’ancien chat ne réactivent aucune fonction gelée. R1 reste
+En cours jusqu’à la recette du Président. Recette : deux comptes, capacités communes, zones et conditions
+compatibles puis incompatibles, notifications activées/désactivées, ignorance, clôture, blocage, visibilité et
+expiration ; aucune nouvelle conversation avant acceptation.

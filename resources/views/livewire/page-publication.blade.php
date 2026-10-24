@@ -23,6 +23,10 @@
         <x-status>{{ session('status') }}</x-status>
     @endif
 
+    @if ($isAuthor && ($publication->matching['enabled'] ?? false) && ($publication->matching['open'] ?? false))
+        <x-button type="button" variant="secondary" wire:click="closeMatching" wire:confirm="Retirer cette publication des suggestions ? Les échanges existants restent accessibles.">Fermer au matching</x-button>
+    @endif
+
     @if ($publication->isHidden() && ($isAuthor || ($viewer && $viewer->can('moderate'))))
         <section aria-labelledby="masquee" class="flex flex-col gap-2.5 rounded-card border border-danger bg-card p-4">
             <h2 id="masquee" class="text-[15px] font-extrabold text-danger">Cette publication est masquée</h2>
@@ -63,6 +67,7 @@
             </div>
             <p class="whitespace-pre-line break-words text-[15px] leading-normal">{{ $publication->body }}</p>
     <x-publication-media :publication="$publication" />
+    <x-opportunity-conditions :publication="$publication" />
             @if ($publication->skills->isNotEmpty())
                 <ul class="flex flex-wrap gap-1.5" aria-label="Capacités">
                     @foreach ($publication->skills as $skill)
@@ -93,7 +98,7 @@
                 $helperProfile?->setRelation('user', $helper);
                 $canSee = $helperProfile && Gate::forUser($viewer)->allows('view', $helperProfile);
             @endphp
-            <section wire:key="geste-{{ $item->id }}" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4" aria-label="{{ $type->gestureLabel() }} : {{ $helper->name }}">
+            <section wire:key="geste-{{ $item->id }}" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4" aria-label="{{ $publication->gestureLabel() }} : {{ $helper->name }}">
                 <div class="flex items-center gap-3">
                     @if ($helperProfile)
                         <x-avatar :profile="$helperProfile" :size="48" />

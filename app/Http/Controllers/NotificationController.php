@@ -23,6 +23,7 @@ class NotificationController extends Controller
         $publication = $notification->publication;
 
         $target = match ($notification->kind) {
+            NotificationKind::MatchFound => route('espace').'#suggestions',
             NotificationKind::ConnectionRequested => route('espace').'#mes-liens',
             NotificationKind::ConnectionAccepted => $conversation && Gate::forUser($user)->allows('view', $conversation) ? route('conversations.show', $conversation) : route('espace').'#mes-liens',
             NotificationKind::MessageReceived, NotificationKind::GestureAccepted => $conversation && Gate::forUser($user)->allows('view', $conversation)

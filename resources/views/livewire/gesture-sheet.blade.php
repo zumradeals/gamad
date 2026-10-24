@@ -13,7 +13,7 @@
                 <span class="mx-auto h-1 w-10 rounded-full bg-chip-line md:hidden" aria-hidden="true"></span>
 
                 <div class="flex items-center justify-between">
-                    <h2 id="geste-titre" class="text-[18px] font-extrabold">{{ $type->gestureLabel() }}</h2>
+                    <h2 id="geste-titre" class="text-[18px] font-extrabold">{{ $publication->gestureLabel() }}</h2>
                     <button type="button" wire:click="close" aria-label="Fermer" class="flex size-11 items-center justify-center rounded-full text-ink">
                         <x-icon name="close" />
                     </button>
