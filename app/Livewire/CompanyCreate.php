@@ -58,6 +58,7 @@ class CompanyCreate extends Component
         ], array_filter(['rccm' => $this->rccm, 'dfe' => $this->dfe, 'idu' => $this->idu]));
 
         session()->flash('status', 'Votre demande est enregistrée. La page restera privée jusqu’au contrôle des documents.');
+
         return redirect()->route('entreprises.show', $company);
     }
 
