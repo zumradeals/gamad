@@ -2,9 +2,9 @@
 
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CompanyDocumentController;
-use App\Http\Controllers\CompanyFollowController;
 use App\Http\Controllers\CompanyExperienceController;
 use App\Http\Controllers\CompanyExperienceReviewController;
+use App\Http\Controllers\CompanyFollowController;
 use App\Http\Controllers\GeniusPayWebhookController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PersonController;
