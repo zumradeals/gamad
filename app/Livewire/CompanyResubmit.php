@@ -24,7 +24,9 @@ class CompanyResubmit extends Component
     public int $revision;
 
     public $rccm = null;
+
     public $dfe = null;
+
     public $idu = null;
 
     public function mount(Company $company): void

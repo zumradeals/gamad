@@ -12,6 +12,7 @@ use App\Services\CompanyRegistry;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 function pilot50Company(User $owner): Company
 {
@@ -111,7 +112,7 @@ it('refuse le redépôt d’un compte tiers ou d’une entreprise déjà validé
 
     expect(fn () => app(CompanyRegistry::class)->resubmit($owner, $company, 2, [
         'rccm' => UploadedFile::fake()->create('doc.pdf', 60, 'application/pdf'),
-    ]))->toThrow(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+    ]))->toThrow(HttpException::class);
 });
 
 it('reçoit un signalement sans le dévoiler à l’entreprise et interdit les doublons', function () {

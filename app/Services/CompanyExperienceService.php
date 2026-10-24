@@ -7,7 +7,6 @@ use App\Models\Company;
 use App\Models\CompanyExperience;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use App\Services\Notifier;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
