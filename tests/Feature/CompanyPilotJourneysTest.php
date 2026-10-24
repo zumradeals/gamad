@@ -2,7 +2,6 @@
 
 use App\Enums\NotificationKind;
 use App\Livewire\CompanyModeration;
-use App\Livewire\CompanyResubmit;
 use App\Models\Company;
 use App\Models\CompanyReport;
 use App\Models\User;
@@ -87,9 +86,10 @@ it('autorise le redépôt d’un RCCM après un refus tout en protégeant le dos
 
     $this->actingAs($owner)->get(route('entreprises.resubmit', $company))
         ->assertOk()->assertSeeText('Corriger les justificatifs');
-    Livewire::actingAs($owner)->test(CompanyResubmit::class, ['company' => $company])
-        ->set('rccm', UploadedFile::fake()->create('corrige.pdf', 100, 'application/pdf'))
-        ->call('submit')->assertHasNoErrors();
+    $this->actingAs($owner)->post(route('entreprises.resubmit.store', $company), [
+        'revision' => $company->fresh()->revision,
+        'rccm' => UploadedFile::fake()->create('corrige.pdf', 100, 'application/pdf'),
+    ])->assertRedirect(route('entreprises.show', $company));
 
     $row = $company->fresh();
     expect($row->status)->toBe('pending')->and($row->revision)->toBe(3)
@@ -178,7 +178,7 @@ it('contacte une entreprise par la relation existante sans ouvrir de conversatio
 
     $pair = app(People::class)->pair($visitor, $owner)->sole();
     expect($pair->state)->toBe('pending')->and($pair->conversation_id)->toBeNull()
-        ->and($pair->note)->toContain('entreprise');
+        ->and($pair->note)->toContain('Entreprise');
     $this->post(route('entreprises.contact.store', $company), [
         'note' => 'Je souhaite vous écrire encore.',
     ])->assertSessionHasErrors('note');

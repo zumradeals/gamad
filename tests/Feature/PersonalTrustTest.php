@@ -73,7 +73,7 @@ it('exige un super administrateur distinct et deux contrôles réels avant une a
     expect(fn () => $this->trust->reviewIdentity($this->admin, $row->id, $row->revision, 'verify', method: 'in_person'))->toThrow(ValidationException::class);
     $this->trust->reviewIdentity($this->admin, $row->id, $row->revision, 'verify', method: 'live_review', nameChecked: true, personChecked: true);
     expect($this->trust->identity($this->author))->not->toBeNull()->and(AdminAction::where('action', 'trust.identity_verify')->count())->toBe(1);
-    $this->get(route('personnes.show', $this->author->profile))->assertOk()->assertSeeText('Identité vérifiée par GAMAD')->assertSeeText('ne certifie pas les prestations');
+    $this->get(route('personnes.show', $this->author->profile))->assertOk()->assertSeeText('Identité personnelle vérifiée par GAMAD')->assertSeeText('ne confirme aucune expérience');
     $this->trust->requestIdentity($this->admin, true);
     $own = IdentityVerification::where('user_id', $this->admin->id)->sole();
     expect(fn () => $this->trust->reviewIdentity($this->admin, $own->id, $own->revision, 'verify', method: 'in_person', nameChecked: true, personChecked: true))->toThrow(AuthorizationException::class);

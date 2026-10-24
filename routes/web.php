@@ -9,6 +9,7 @@ use App\Http\Controllers\CompanyExperienceReviewController;
 use App\Http\Controllers\CompanyFollowController;
 use App\Http\Controllers\CompanyPostController;
 use App\Http\Controllers\CompanyReportController;
+use App\Http\Controllers\CompanyResubmitController;
 use App\Http\Controllers\CompanyVisualController;
 use App\Http\Controllers\GeniusPayWebhookController;
 use App\Http\Controllers\NotificationController;
@@ -26,7 +27,6 @@ use App\Livewire\CarrefourZumras;
 use App\Livewire\CompanyCreate;
 use App\Livewire\CompanyDirectory;
 use App\Livewire\CompanyModeration;
-use App\Livewire\CompanyResubmit;
 use App\Livewire\ContributionsAdministration;
 use App\Livewire\Espace;
 use App\Livewire\Fil;
@@ -103,8 +103,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->where('company', '.+-[a-z0-9]{8}')->name('entreprises.contact');
     Route::post('/entreprises/{company}/contacter', [CompanyContactController::class, 'store'])
         ->where('company', '.+-[a-z0-9]{8}')->name('entreprises.contact.store');
-    Route::get('/entreprises/{company}/corriger', CompanyResubmit::class)
+    Route::get('/entreprises/{company}/corriger', [CompanyResubmitController::class, 'edit'])
         ->where('company', '.+-[a-z0-9]{8}')->name('entreprises.resubmit');
+    Route::post('/entreprises/{company}/corriger', [CompanyResubmitController::class, 'submit'])
+        ->where('company', '.+-[a-z0-9]{8}')->name('entreprises.resubmit.store');
     Route::get('/entreprises/{company}/signaler', [CompanyReportController::class, 'create'])
         ->where('company', '.+-[a-z0-9]{8}')->name('entreprises.reports.create');
     Route::post('/entreprises/{company}/signaler', [CompanyReportController::class, 'store'])
