@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\GestureState;
 use App\Enums\NeedState;
 use App\Enums\PublicationType;
+use App\Services\MatchingConditions;
 use App\Services\People;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -217,6 +218,20 @@ class Publication extends Model
         }
 
         return User::query()->whereIn('id', ZumraMembership::query()->where('zumra_id', $this->zumra_id)->whereIn('role', ['founder', 'manager'])->select('user_id'))->get();
+    }
+
+    public function ownTitle(): string
+    {
+        if ($this->type === PublicationType::Offer && ($this->matching['enabled'] ?? false)) {
+            return ($this->matching['activity'] ?? '') === 'training' ? 'Mon offre de formation' : 'Mon offre';
+        }
+
+        return $this->type->ownTitle();
+    }
+
+    public function displayLabel(): string
+    {
+        return MatchingConditions::label($this->type, $this->matching ?? []);
     }
 
     public function gestureLabel(): string

@@ -51,7 +51,7 @@ class PublierPublication extends Component
 
     public array $matching = [];
 
-    public function updatedMatching($value, string $key): void
+    public function updatedMatching($value, ?string $key = null): void
     {
         if ($key === 'terms' && $value !== 'paid') {
             $this->matching['budget'] = '';

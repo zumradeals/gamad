@@ -16,7 +16,7 @@
 <div class="flex flex-col gap-3.5">
     <div class="-mx-4 -mt-4 flex min-h-14 items-center gap-1 border-b border-line bg-card px-2 py-1.5 md:mx-0 md:mt-0 md:rounded-card md:border">
         <a href="{{ $viewer ? route('fil') : url('/') }}" aria-label="{{ $viewer ? 'Retour au Fil' : 'Retour à l’accueil' }}" class="flex size-11 items-center justify-center text-ink hover:text-ink"><x-icon name="back" /></a>
-        <h1 class="flex-1 text-[17px] font-extrabold">{{ $isAuthor ? $type->ownTitle() : $type->label() }}</h1>
+        <h1 class="flex-1 text-[17px] font-extrabold">{{ $isAuthor ? $publication->ownTitle() : $publication->displayLabel() }}</h1>
     </div>
 
     @if (session('status'))
@@ -60,7 +60,7 @@
     @if ($isAuthor)
         <section aria-label="Ma publication" class="flex flex-col gap-2.5 rounded-card border border-line bg-card p-4">
             <div class="flex items-center justify-between gap-2">
-                <span class="self-start rounded-chip px-2.5 py-1 text-[12px] font-bold {{ $type->badgeClasses() }}">{{ $type->label() }}</span>
+                <span class="self-start rounded-chip px-2.5 py-1 text-[12px] font-bold {{ $type->badgeClasses() }}">{{ $publication->displayLabel() }}</span>
                 @if ($state)
                     <span class="rounded-chip px-2.5 py-1 text-[12px] font-extrabold {{ $stateClasses }}">{{ $state->label() }}</span>
                 @endif

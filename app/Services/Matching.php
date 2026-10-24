@@ -249,7 +249,7 @@ class Matching
             }
             $own = $post->author_id === $user->id;
 
-            return ['title' => $own ? $profile->user->name : $post->type->label(), 'body' => $own ? $profile->bio : $post->body, 'url' => $own ? route('personnes.show', $profile) : route('publications.show', $post), 'reasons' => $reasons, 'context' => $own ? $post : null, 'person' => $own ? $profile : $post->author->profile];
+            return ['title' => $own ? $profile->user->name : $post->displayLabel(), 'body' => $own ? $profile->bio : $post->body, 'url' => $own ? route('personnes.show', $profile) : route('publications.show', $post), 'reasons' => $reasons, 'context' => $own ? $post : null, 'person' => $own ? $profile : $post->author->profile];
         }
         $offer = $row->offer;
         if (! $offer || ! in_array($user->id, [$post->author_id, $offer->author_id], true) || ! Gate::forUser($user)->allows('view', $offer)) {
@@ -264,7 +264,7 @@ class Matching
         }
         $reasons = $this->offerReasons($post, $offer);
 
-        return $reasons ? ['title' => $target->type->label(), 'body' => $target->body, 'url' => route('publications.show', $target), 'reasons' => $reasons, 'context' => null, 'person' => $target->author->profile] : null;
+        return $reasons ? ['title' => $target->displayLabel(), 'body' => $target->body, 'url' => route('publications.show', $target), 'reasons' => $reasons, 'context' => null, 'person' => $target->author->profile] : null;
     }
 
     public function ignore(User $user, MatchSuggestion $row): void

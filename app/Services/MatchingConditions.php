@@ -17,6 +17,20 @@ class MatchingConditions
 
     public const DAYS = [1 => 'Lundi', 2 => 'Mardi', 3 => 'Mercredi', 4 => 'Jeudi', 5 => 'Vendredi', 6 => 'Samedi', 7 => 'Dimanche'];
 
+    public static function label(PublicationType $type, array $conditions): string
+    {
+        if ($type === PublicationType::Offer && ($conditions['enabled'] ?? false)) {
+            if (($conditions['activity'] ?? '') === 'training') {
+                return 'Je propose une formation';
+            }
+            if (($conditions['terms'] ?? '') === 'paid') {
+                return 'Je propose mes services';
+            }
+        }
+
+        return $type->label();
+    }
+
     public static function defaults(): array
     {
         return ['enabled' => false, 'notify' => false, 'available' => true, 'intentions' => [], 'terms' => [], 'zones' => [], 'remote' => false, 'from' => '', 'until' => '', 'days' => [], 'note' => ''];

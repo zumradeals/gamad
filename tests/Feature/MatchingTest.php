@@ -275,3 +275,13 @@ it('ne remet pas le plafond d’alertes à zéro en désactivant puis réactivan
     matchingPublication($this->author, data: ['body' => 'Sixième occasion']);
     expect(UserNotification::where('kind', NotificationKind::MatchFound)->count())->toBe(5)->and(UserNotification::where('kind', NotificationKind::MatchFound)->whereNull('read_at')->count())->toBe(0);
 });
+
+it('présente une formation et des services rémunérés avec des libellés adaptés dans le formulaire et le Fil', function () {
+    $page = Livewire::actingAs($this->author)->test(PublierPublication::class, ['slug' => 'aide'])->set('matching.enabled', true)->set('matching.activity', 'training')->set('matching.terms', 'paid');
+    $page->assertSeeText('Proposer une formation')->set('body', 'Un atelier pour apprendre la couture.')->set('skills', ['Couture'])->set('matching.remote', true)->call('publish')->assertHasNoErrors();
+    $post = Publication::sole();
+    expect($post->displayLabel())->toBe('Je propose une formation');
+    $this->actingAs($this->helper)->get(route('publications.show', $post))->assertOk()->assertSeeText('Je propose une formation');
+    $service = matchingPublication($this->author, PublicationType::Offer, ['terms' => 'paid']);
+    expect($service->displayLabel())->toBe('Je propose mes services');
+});
