@@ -2,7 +2,6 @@
 
 use App\Livewire\CompanyCreate;
 use App\Livewire\CompanyDirectory;
-use App\Livewire\CompanyPage;
 use App\Models\AdminAction;
 use App\Models\Company;
 use App\Models\User;
@@ -97,7 +96,7 @@ it('exige une vraie décision de modération avant toute publication dans l’an
         ->assertDontSeeText('justificatif-rccm.pdf');
 
     Livewire::test(CompanyDirectory::class)->assertSeeText($company->name);
-    Livewire::test(CompanyPage::class, ['company' => $company])->assertSeeText($company->sector);
+    $this->get(route('entreprises.show', $company))->assertSeeText($company->sector);
 });
 
 it('permet de suivre volontairement une entreprise vérifiée sans score public', function () {
@@ -110,11 +109,14 @@ it('permet de suivre volontairement une entreprise vérifiée sans score public'
     $this->actingAs($viewer)->get(route('entreprises.show', $company))->assertNotFound();
     app(CompanyRegistry::class)->review($admin, $company, 1, 'verify');
 
-    Livewire::actingAs($viewer)->test(CompanyPage::class, ['company' => $company])
-        ->call('toggleFollow')->assertSeeText('Abonné à la page')->assertDontSeeText('J’aime')
-        ->call('toggleFollow')->assertSeeText('Suivre');
+    $this->actingAs($viewer)->post(route('entreprises.follow', $company))
+        ->assertRedirect(route('entreprises.show', $company));
+    expect(DB::table('company_follows')->where('company_id', $company->id)->count())->toBe(1);
+    $this->get(route('entreprises.show', $company))->assertSeeText('Abonné à la page')->assertDontSeeText('J’aime');
 
+    $this->post(route('entreprises.follow', $company))->assertRedirect();
     expect(DB::table('company_follows')->where('company_id', $company->id)->count())->toBe(0);
+    $this->get(route('entreprises.show', $company))->assertSeeText('Suivre');
 });
 
 it('refuse une immatriculation déjà utilisée même avec des espaces différents', function () {

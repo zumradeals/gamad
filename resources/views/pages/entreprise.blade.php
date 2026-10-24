@@ -1,3 +1,4 @@
+<x-layouts.app :title="$company->name">
 <div class="flex min-w-0 flex-col gap-4">
     <a href="{{ route('entreprises.index') }}" class="inline-flex min-h-11 items-center gap-1 self-start text-[13px] font-bold"><x-icon name="back" :size="17"/> Toutes les entreprises</a>
 
@@ -25,7 +26,9 @@
                 <div class="flex flex-wrap items-center gap-2 md:pt-5">
                     @if ($company->verified())
                         @auth
-                            <x-button type="button" :variant="$following ? 'secondary' : 'accent'" wire:click="toggleFollow" wire:loading.attr="disabled"><x-icon :name="$following ? 'check' : 'plus'" :size="17" class="mr-1"/>{{ $following ? 'Abonné à la page' : 'Suivre' }}</x-button>
+                            <form method="POST" action="{{ route('entreprises.follow', $company) }}">@csrf
+                                <x-button type="submit" :variant="$following ? 'secondary' : 'accent'"><x-icon :name="$following ? 'check' : 'plus'" :size="17" class="mr-1"/>{{ $following ? 'Abonné à la page' : 'Suivre' }}</x-button>
+                            </form>
                         @else
                             <x-button :href="route('login')" variant="accent">Suivre</x-button>
                         @endauth
@@ -82,3 +85,5 @@
         </aside>
     </div>
 </div>
+
+</x-layouts.app>

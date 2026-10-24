@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CompanyDocumentController;
+use App\Http\Controllers\CompanyFollowController;
 use App\Http\Controllers\GeniusPayWebhookController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PersonController;
@@ -17,7 +19,6 @@ use App\Livewire\CarrefourZumras;
 use App\Livewire\CompanyCreate;
 use App\Livewire\CompanyDirectory;
 use App\Livewire\CompanyModeration;
-use App\Livewire\CompanyPage;
 use App\Livewire\ContributionsAdministration;
 use App\Livewire\Espace;
 use App\Livewire\Fil;
@@ -69,7 +70,7 @@ Route::get('/personnes/{profile:public_id}/photo', [PersonController::class, 'ph
 
 // Les entreprises non vérifiées n'apparaissent ni dans l'annuaire ni dans les profils publics.
 Route::get('/entreprises', CompanyDirectory::class)->name('entreprises.index');
-Route::get('/entreprises/{company}', CompanyPage::class)->where('company', '.+-[a-z0-9]{8}')->name('entreprises.show');
+Route::get('/entreprises/{company}', [CompanyController::class, 'show'])->where('company', '.+-[a-z0-9]{8}')->name('entreprises.show');
 
 // Le Carrefour ZUMRA et l'en-tête d'une ZUMRA sont publics ; les membres demandent un compte vérifié (D-112).
 Route::get('/zumra', CarrefourZumras::class)->name('zumras.index');
@@ -88,6 +89,7 @@ Route::get('/compte-suspendu', SuspendedController::class)->middleware('auth')->
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/entreprises/creer', CompanyCreate::class)->name('entreprises.create');
+    Route::post('/entreprises/{company}/suivre', CompanyFollowController::class)->where('company', '.+-[a-z0-9]{8}')->name('entreprises.follow');
     Route::get('/moderation/entreprises', CompanyModeration::class)->middleware('can:super-admin')->name('moderation.entreprises');
     Route::get('/moderation/entreprises/{company}/documents/{document}', CompanyDocumentController::class)
         ->whereUuid('document')->middleware('can:super-admin')->name('entreprises.document');
