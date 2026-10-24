@@ -34,7 +34,7 @@ class CompanyExperienceService
             throw ValidationException::withMessages(['company_id' => 'Seule une entreprise dont l’immatriculation est vérifiée peut être citée dans votre parcours.']);
         }
 
-        if (CompanyExperience::where('user_id', $user->id)->count() >= 10) {
+        if (CompanyExperience::where('user_id', $user->id)->where('status', '!=', 'withdrawn')->count() >= 10) {
             throw ValidationException::withMessages(['company_id' => 'La limite de dix expériences professionnelles est atteinte pour le pilote.']);
         }
 

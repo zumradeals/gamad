@@ -394,3 +394,18 @@ Les références professionnelles vers les pages entreprises restent interdites 
 l'implémentation d'une sélection limitée aux entreprises vérifiées et d'une confirmation explicite.
 L'ancienne vérification humaine individuelle D-189 est en cours de remplacement : son code et son
 historique ne sont pas retirés dans cette PR afin de préserver les anciennes données.
+
+
+## Entreprises, références professionnelles — D-194 (PR 2)
+
+Seules les entreprises vérifiées peuvent être choisies comme référence professionnelle structurée.
+Une déclaration de mission, stage, emploi, ancien emploi ou partenariat est d'abord affichée comme
+« Non encore confirmée par l'entreprise ». Seul le compte de la page entreprise peut ensuite
+confirmer ou refuser, sans vérification supplémentaire du gestionnaire pendant le pilote.
+La confirmation ne vaut jamais vérification de l'identité individuelle par GAMAD.
+L'auteur peut retirer la déclaration. L'affichage de son parcours sur la page entreprise exige
+son consentement explicite ET le contrôle de visibilité habituel de son profil.
+Une entreprise suspendue disparaît des références publiques et les confirmations ne sont
+plus présentées comme actives. Les anciennes expériences libres restent intactes :
+elles ne reçoivent jamais le badge de confirmation d'une entreprise vérifiée.
+Les PR suivantes traiteront les publications et opportunités émises directement par la page.
