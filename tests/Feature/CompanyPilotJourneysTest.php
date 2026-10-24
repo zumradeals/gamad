@@ -5,14 +5,12 @@ use App\Livewire\CompanyModeration;
 use App\Livewire\CompanyResubmit;
 use App\Models\Company;
 use App\Models\CompanyReport;
-use App\Models\PersonConnection;
 use App\Models\User;
 use App\Models\UserNotification;
 use App\Services\CompanyExperienceService;
 use App\Services\CompanyRegistry;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 
 function pilot50Company(User $owner): Company
