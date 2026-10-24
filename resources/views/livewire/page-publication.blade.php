@@ -237,5 +237,8 @@
     @if ($publication->type === \App\Enums\PublicationType::PersonalWork && ! $publication->zumra_id)
         <livewire:attester-realisation :publication="$publication" />
     @endif
+    @if (! $publication->zumra_id && ! $publication->project_id && ! $publication->isHidden())
+        <livewire:publication-discussion :publication="$publication" :key="'discussion-'.$publication->id" />
+    @endif
     <livewire:gesture-sheet />
 </div>
