@@ -13,7 +13,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('publication_id')->constrained('publications')->cascadeOnDelete();
             $table->foreignUuid('author_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignUuid('parent_id')->nullable()->constrained('publication_comments')->nullOnDelete();
+            $table->foreignUuid('parent_id')->nullable();
             $table->string('body', 500)->nullable();
             $table->timestamp('deleted_at')->nullable();
             $table->timestamp('hidden_at')->nullable();
@@ -24,6 +24,11 @@ return new class extends Migration
             $table->timestamps();
             $table->index(['publication_id', 'parent_id', 'created_at']);
             $table->index(['hidden_at', 'created_at']);
+        });
+
+        // PostgreSQL exige que la clé primaire de cette table existe avant la clé étrangère auto-référencée.
+        Schema::table('publication_comments', function (Blueprint $table) {
+            $table->foreign('parent_id')->references('id')->on('publication_comments')->nullOnDelete();
         });
 
         Schema::create('publication_comment_reports', function (Blueprint $table) {
