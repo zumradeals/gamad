@@ -13,7 +13,7 @@ it('n’affiche que Fil, Découvrir, Agir, ZUMRA, Personnes, Besoins, Projets et
     preg_match_all('/<nav aria-label="Navigation principale".*?<\/nav>/s', $html, $navs);
     $texte = trim(preg_replace('/\s+/', ' ', strip_tags(implode(' ', $navs[0]))));
 
-    expect($texte)->toContain('Fil')->toContain('Découvrir')->toContain('Personnes')->toContain('Besoins')->toContain('Projets')->toContain('Agir')->toContain('Espace')->toContain('ZUMRA')
+    expect($texte)->toContain('Accueil')->toContain('Découvrir')->toContain('Personnes')->toContain('Besoins')->toContain('Projets')->toContain('Agir')->toContain('Espace')->toContain('ZUMRA')
         ->not->toContain('Rechercher');
 
     // La cloche des notifications existe depuis le Lot 2b ; la recherche générale vient avec son lot.
@@ -22,7 +22,7 @@ it('n’affiche que Fil, Découvrir, Agir, ZUMRA, Personnes, Besoins, Projets et
 
 it('affiche le message d’état vide du Fil, avec un lien vers « Modifier mon profil »', function () {
     pageDuFil()
-        ->assertSeeText('Le Fil se remplira bientôt. Commencez par compléter votre profil.')
+        ->assertSeeText('Les publications apparaîtront ici. Commencez par compléter votre profil.')
         ->assertSee('href="'.route('espace.profil').'"', false);
 });
 
@@ -82,7 +82,7 @@ it('affiche Besoins dans la barre d’ordinateur d’une personne connectée, da
     preg_match('/<nav aria-label="Navigation principale" class="hidden.*?<\/nav>/s', $html, $barre);
     $texte = trim(preg_replace('/\s+/', ' ', strip_tags($barre[0])));
 
-    expect($texte)->toBe('Fil Personnes Besoins Projets ZUMRA')->and($barre[0])->toContain('href="'.route('besoins.index').'"');
+    expect($texte)->toBe('Accueil Personnes Besoins Projets ZUMRA')->and($barre[0])->toContain('href="'.route('besoins.index').'"');
 });
 
 it('propose à un visiteur sans compte de se connecter ou de créer un compte, sans la navigation de l’application', function () {

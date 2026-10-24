@@ -137,7 +137,7 @@ it('ouvre le Monde sur la Formation : savoirs partagés, ce que les membres save
     app(Publications::class)->publish($this->yao, PublicationType::Need, ['body' => 'Besoin hors Formation'], $this->zumra);
 
     Livewire::actingAs($this->dehors)->test(MondeZumra::class, ['zumra' => $this->zumra])
-        ->assertSet('tab', 'formation')->assertSeeText('FORMATION · TRAVAIL · ADORATION')->assertSeeText('Atelier de coupe')
+        ->assertSet('tab', 'formation')->assertSeeText('APPRENDRE ENSEMBLE')->assertSeeText('Atelier de coupe')
         ->assertDontSeeText('Besoin hors Formation')->assertSeeText('Tissage')->assertSeeText('Broderie')->assertSeeText('Comptabilité');
 });
 

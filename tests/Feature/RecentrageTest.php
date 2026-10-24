@@ -61,7 +61,7 @@ it('ne propose que Fil Agir et Mon espace sans fenêtre de découverte', functio
         $html = $this->actingAs($user)->get(route($route))->assertOk()->getContent();
         preg_match_all('/<nav aria-label="Navigation principale".*?<\/nav>/s', $html, $navs);
         $text = trim(preg_replace('/\s+/', ' ', strip_tags(implode(' ', $navs[0]))));
-        expect($text)->toContain('Fil')->not->toContain('Personnes')->toContain('Agir')->toContain('Mon espace')
+        expect($text)->toContain('Accueil')->not->toContain('Personnes')->toContain('Agir')->toContain('Mon espace')
             ->not->toContain('Découvrir')->not->toContain('ZUMRA')->not->toContain('Projets')->not->toContain('Besoins');
         expect($html)->not->toContain('aria-labelledby="decouvrir-titre"')
             ->not->toContain('href="'.route('zumras.index').'"')->not->toContain('href="'.route('projets.index').'"')
@@ -90,7 +90,7 @@ it('redirige les anciens carrefours vers le parcours actif sans perdre les déta
         $this->get(route($route))->assertRedirect(route('personnes.index'));
     }
     $this->get(route('besoins.index'))->assertRedirect(route('fil', ['filtre' => 'besoins']));
-    $this->get(route('fil', ['filtre' => 'besoins']))->assertRedirect(route('login'));
+    $this->get(route('fil', ['filtre' => 'besoins']))->assertRedirect(route('home'));
 });
 
 it('garde les besoins dans le Fil avec leurs réponses et une conversation retrouvable après lecture', function () {

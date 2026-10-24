@@ -27,7 +27,6 @@
             <a href="{{ auth()->check() ? route('fil') : url('/') }}" class="no-underline" aria-label="GAMAD — accueil">
                 <span class="flex flex-col">
                     <span class="flex items-center gap-1.5 text-[24px] font-extrabold leading-tight tracking-[-0.7px] text-ink">GAMAD<span class="size-1.5 rounded-[2px] bg-accent" aria-hidden="true"></span></span>
-                    <span class="text-[10px] font-medium text-muted">Formation — Travail — Adoration</span>
                 </span>
             </a>
 

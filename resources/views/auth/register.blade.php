@@ -1,4 +1,4 @@
-<x-layouts.guest title="Créer un compte" heading="Créer un compte" intro="Un compte vous permet d’agir sur GAMAD. Il ne fait pas de vous un membre du Mouvement.">
+<x-layouts.guest title="Créer un compte" heading="Créer un compte" intro="Présentez votre savoir-faire, partagez vos réalisations et rencontrez d’autres personnes.">
     <form method="POST" action="{{ route('register.store') }}" class="flex flex-col gap-4" x-data="{ busy: false }" x-on:submit="busy = true">
         @csrf
         <x-field name="name" label="Nom affiché" autocomplete="name" required autofocus />

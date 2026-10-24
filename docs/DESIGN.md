@@ -286,3 +286,10 @@ Cartes Expérience confirmée avec témoin, rôle, intervention et date, sans co
 Outils dans Mon espace et les réalisations ; signalement/recours motivé ; file Confiance dans la
 modération. États vide, attente, refus, expiration, retrait, erreur et chargement ; cibles 44 px,
 une colonne à 390 px. Aucun champ d’envoi de pièce d’identité ou coordonnées privées.
+
+## Accueil public et cohérence globale — D-190
+Héros avec image existante conservée, accroche sur le savoir-faire, recherche de personnes publique,
+création de compte et découverte explicites. Sections : usages concrets, profils et publications réels,
+fonctionnement et confiance. Navigation publique par ancres, connexion toujours accessible et menu mobile
+natif. Palette et gabarits existants ; une colonne à 390 px. Marque GAMAD sans ancienne devise.
+Navigation connectée Accueil · Agir · Mon espace, recherche après Accueil.

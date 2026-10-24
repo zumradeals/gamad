@@ -24,7 +24,7 @@ use Livewire\Component;
  * aucun algorithme de recommandation (D-087). Filtres : Tout, Besoins, Savoirs, Apprendre, Aides (D-098).
  */
 #[Layout('components.layouts.app')]
-#[Title('Fil')]
+#[Title('Accueil')]
 class Fil extends Component
 {
     public const PAGE_SIZE = 10;

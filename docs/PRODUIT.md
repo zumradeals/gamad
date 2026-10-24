@@ -279,3 +279,8 @@ en une minute. Ni diplôme obligatoire ni certification implicite.
 Identité vérifiée par GAMAD et Expérience confirmée sont deux mentions distinctes, révocables et
 limitées à leur objet. Le reste du profil demeure déclaratif. Contrat, droits et limites dans
 RECENTRAGE.md § Identité vérifiée et expériences confirmées. Aucun diplôme, paiement ou score requis.
+
+## Vocabulaire public et entrée — D-190
+Le menu Fil est renommé Accueil ; le contenu reste un fil de publications. Les routes historiques sont
+conservées. Présentation publique sans devise ni référence d’appartenance ; profils, occasions et réalisations
+publics seulement. Inscription/connexion explicites. Voir RECENTRAGE.md § Entrée publique et vocabulaire.

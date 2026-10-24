@@ -30,7 +30,7 @@ it('est réservé aux personnes connectées et vérifiées', function () {
 
 it('n’affiche que du contenu réel : un Fil vide l’est vraiment, avec une invitation à agir', function () {
     $this->actingAs(User::factory()->create())->get('/fil')->assertOk()
-        ->assertSeeText('Le Fil se remplira bientôt. Commencez par compléter votre profil.')
+        ->assertSeeText('Les publications apparaîtront ici. Commencez par compléter votre profil.')
         ->assertSeeText('Agir')
         ->assertDontSeeText('Awa Traoré')
         ->assertDontSeeText('GAMAD Technology')
