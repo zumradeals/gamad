@@ -21,6 +21,16 @@ class UserNotification extends Model
         return ['kind' => NotificationKind::class, 'read_at' => 'datetime', 'created_at' => 'datetime'];
     }
 
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    public function companyExperience(): BelongsTo
+    {
+        return $this->belongsTo(CompanyExperience::class);
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
