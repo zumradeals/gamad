@@ -78,6 +78,7 @@
     </aside>
 
     <div class="feed-main">
+        @unless (\App\Support\Experience::initial())
         <section aria-labelledby="recherche-fil" class="feed-panel p-4">
             <h2 id="recherche-fil" class="mb-3 text-[17px] font-extrabold">Que cherchez-vous ?</h2>
             <form wire:submit="$refresh" class="flex flex-col gap-3">
@@ -87,6 +88,7 @@
             </form>
             @if ($searchText !== '')<p class="mt-3 text-[13px] text-muted" role="status">Publications contenant « {{ $searchText }} » dans leur texte, leurs capacités ou le nom de leur auteur.</p>@endif
         </section>
+        @endunless
         <section aria-label="Publier" class="feed-panel p-4">
             <div class="flex items-center gap-3">
                 <x-avatar :profile="$profile" :size="44" />
@@ -100,6 +102,13 @@
                 @endforeach
             </div>
         </section>
+
+        @if (\App\Support\Experience::initial() && $searchText !== '')
+            <div class="flex flex-wrap items-center justify-between gap-2 px-1 text-[13px]">
+                <p class="min-w-0 text-muted [overflow-wrap:anywhere]" role="status">Recherche dans le Fil : « {{ $searchText }} »</p>
+                <button type="button" wire:click="clearSearch" class="min-h-11 shrink-0 font-semibold underline">Effacer la recherche</button>
+            </div>
+        @endif
 
         <nav aria-label="Filtrer le Fil" class="feed-panel flex overflow-x-auto px-2">
             @foreach ($filters as $key => $label)

@@ -433,3 +433,9 @@
         .person-searchbar > :first-child, .person-searchbar > :last-child { grid-column: auto; }
     }
 }
+
+/* Recherche du parcours initial : dans l’en-tête, après Fil sur ordinateur. */
+@layer components {
+    .header-search { display: flex; min-width: 0; flex-grow: 1; align-items: center; gap: 4px; border: 1px solid var(--color-line); border-radius: 10px; padding: 3px; background: var(--color-ground); }
+    .header-search:focus-within { outline: 3px solid var(--color-link); outline-offset: 2px; }
+}
