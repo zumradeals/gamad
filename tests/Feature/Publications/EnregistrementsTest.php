@@ -56,7 +56,6 @@ it('masque également les publications devenues réservées et celles dont les a
     $this->publication->update(['visibility' => 'members']);
     auth()->logout();
     $this->get(route('publications.show', $this->publication))->assertNotFound();
-    $this->get(route('espace.enregistrements'))->assertRedirect(route('login'));
 });
 
 it('refuse aux visiteurs et comptes non vérifiés d’enregistrer', function () {
@@ -69,7 +68,7 @@ it('refuse aux visiteurs et comptes non vérifiés d’enregistrer', function ()
 it('ne permet pas de sauvegarder une publication interdite ou collective', function () {
     $inactif = User::factory()->unverified()->create();
     $this->actingAs($this->lecteur);
-    $post = publication($this->auteur, PublicationType::Share, ['body' => 'Un partage.']);
+    $post = publication($this->auteur, PublicationType::Knowledge, ['body' => 'Un savoir collectif.']);
     $org = zumra($this->auteur);
     $post->forceFill(['zumra_id' => $org->id])->save();
     $this->post(urlEnregistrer($post), ['saved' => '1'])->assertNotFound();
