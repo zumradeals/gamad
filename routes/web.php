@@ -20,6 +20,8 @@ use App\Livewire\FormulaireProjet;
 use App\Livewire\FormulaireZumra;
 use App\Livewire\InviterPersonnes;
 use App\Livewire\JournalAdministration;
+use App\Livewire\MesAttestations;
+use App\Livewire\ModerationConfiance;
 use App\Livewire\ModerationPersonnes;
 use App\Livewire\ModifierProfil;
 use App\Livewire\MondeProjet;
@@ -39,6 +41,7 @@ use App\Livewire\ParametresTerritoires;
 use App\Livewire\ParametresTextes;
 use App\Livewire\PublierPublication;
 use App\Livewire\RapportContributions;
+use App\Livewire\SignalerProfil;
 use App\Livewire\SignalerPublication;
 use Illuminate\Support\Facades\Route;
 
@@ -72,6 +75,9 @@ Route::get('/publications/{publication}', PagePublication::class)->whereUuid('pu
 Route::get('/compte-suspendu', SuspendedController::class)->middleware('auth')->name('suspendu');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/espace/attestations', MesAttestations::class)->name('espace.attestations');
+    Route::get('/moderation/confiance', ModerationConfiance::class)->middleware('can:super-admin')->name('moderation.confiance');
+    Route::get('/personnes/{profile:public_id}/signaler', SignalerProfil::class)->name('personnes.signaler');
     Route::get('/zumra/creer', FormulaireZumra::class)->name('zumras.create');
     Route::get('/zumra/{zumra}/inviter', InviterPersonnes::class)->whereUuid('zumra')->name('zumras.invite');
     Route::get('/zumra/{zumra}/publier/{slug}', PublierPublication::class)->whereUuid('zumra')->name('zumras.publier');

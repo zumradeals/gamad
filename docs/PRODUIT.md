@@ -274,3 +274,8 @@ Intitulé facultatif de 100 caractères ; couverture issue d’une publication p
 sans copie de média ni changement de visibilité. Capacités, publications mises en avant et parcours déclaré
 précèdent le fil des publications. Contrat, limites et état vide dans RECENTRAGE.md § Profil personnel lisible
 en une minute. Ni diplôme obligatoire ni certification implicite.
+
+## Attestations personnelles — D-189
+Identité vérifiée par GAMAD et Expérience confirmée sont deux mentions distinctes, révocables et
+limitées à leur objet. Le reste du profil demeure déclaratif. Contrat, droits et limites dans
+RECENTRAGE.md § Identité vérifiée et expériences confirmées. Aucun diplôme, paiement ou score requis.

@@ -23,6 +23,8 @@ class NotificationController extends Controller
         $publication = $notification->publication;
 
         $target = match ($notification->kind) {
+            NotificationKind::TrustUpdated => route('espace.attestations'),
+            NotificationKind::TrustReview => $user->isSuperAdmin() ? route('moderation.confiance') : route('espace'),
             NotificationKind::MatchFound => route('espace').'#suggestions',
             NotificationKind::ConnectionRequested => route('espace').'#mes-liens',
             NotificationKind::ConnectionAccepted => $conversation && Gate::forUser($user)->allows('view', $conversation) ? route('conversations.show', $conversation) : route('espace').'#mes-liens',

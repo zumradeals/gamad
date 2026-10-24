@@ -24,12 +24,21 @@ class JournalReader
         'reglages' => ['Réglages', ['setting.', 'settings.', 'backup.', 'wallet.', 'contribution.', 'allocation.']],
         'listes' => ['Listes de référence', ['domain.', 'country.', 'city.']],
         'comptes' => ['Comptes', ['account.']],
+        'confiance' => ['Attestations', ['trust.']],
     ];
 
     /** Familles que lit un modérateur. */
     public const MODERATION_FAMILIES = ['publications', 'personnes'];
 
     private const LABELS = [
+        'trust.identity_reopen' => 'a rouvert un contrôle d’identité après recours pour',
+        'trust.work_reopened' => 'a redemandé confirmation après recours sur',
+        'trust.identity_verify' => 'a vérifié l’identité de',
+        'trust.identity_decline' => 'a refusé la vérification de',
+        'trust.identity_revoke' => 'a retiré la vérification de',
+        'trust.identity_instruct' => 'a précisé les modalités du contrôle de',
+        'trust.work_revoked' => 'a retiré une référence sur',
+        'trust.report_closed' => 'a répondu à un signalement concernant',
         'publication.hidden' => 'a masqué une publication',
         'publication.restored' => 'a rétabli une publication',
         'report.dismissed' => 'a classé des signalements sans suite',

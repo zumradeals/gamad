@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Enums\PublicationType;
 use App\Models\Profile;
 use App\Models\Publication;
+use App\Models\WorkAttestation;
 use App\Models\Zumra;
 use App\Services\Contributions;
+use App\Services\PersonalTrust;
 use App\Support\Experience;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -49,7 +51,7 @@ class PersonController extends Controller
             && (! ($post->matching['enabled'] ?? false) || ($post->matching['open'] ?? true))
             && (empty($post->matching['until']) || $post->matching['until'] >= today()->toDateString()));
 
-        return view('pages.personne', ['personalPosts' => $personalPosts, 'visibleReferences' => $visibleReferences, 'cover' => $cover, 'showcasePosts' => $showcasePosts, 'currentOffer' => $currentOffer, 'profile' => $profile, 'isOwner' => $isOwner, 'inviteZumras' => $inviteZumras, 'contributorBadge' => app(Contributions::class)->showsBadge($profile->user)]);
+        return view('pages.personne', ['verifiedIdentity' => app(PersonalTrust::class)->identity($profile->user), 'confirmedWorks' => WorkAttestation::visibleTo($viewer)->where('author_id', $profile->user_id)->with(['attester.profile', 'author.profile'])->latest('confirmed_at')->limit(10)->get(), 'personalPosts' => $personalPosts, 'visibleReferences' => $visibleReferences, 'cover' => $cover, 'showcasePosts' => $showcasePosts, 'currentOffer' => $currentOffer, 'profile' => $profile, 'isOwner' => $isOwner, 'inviteZumras' => $inviteZumras, 'contributorBadge' => app(Contributions::class)->showsBadge($profile->user)]);
     }
 
     /**

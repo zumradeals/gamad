@@ -74,3 +74,7 @@
 @if ($profile->introduction)
     <section class="rounded-card border border-line bg-card p-5 md:p-6"><h2 class="text-[20px] font-extrabold">Ce qui me fait avancer</h2><p class="mt-3 whitespace-pre-line break-words text-[15px] leading-relaxed">{{ $profile->introduction }}</p></section>
 @endif
+
+@if (($confirmedWorks ?? collect())->isNotEmpty())
+    <section class="flex flex-col gap-4 rounded-card border border-line bg-card p-5 md:p-6"><h2 class="text-[20px] font-extrabold">Expériences confirmées</h2>@foreach ($confirmedWorks as $reference)<x-work-reference :reference="$reference" />@endforeach</section>
+@endif

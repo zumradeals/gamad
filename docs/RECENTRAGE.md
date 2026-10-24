@@ -225,3 +225,50 @@ les trois réalisations personnelles les plus récentes parmi les vingt publicat
 Une section vide ne suggère ni compétence ni expérience inventée. Les offres présentées sont visibles,
 non clôturées et non expirées. Les disponibilités/préférences de matching ne sont pas rendues publiques.
 Aucune nouvelle dépendance, aucun nouveau module, aucune référence de travail certifiée. R1 reste En cours.
+
+## Identité vérifiée et expériences confirmées — D-189
+
+**Vision.** Rendre la confiance compréhensible sans promettre l’absence d’arnaque ni certifier globalement
+une personne. Le diplôme, un paiement et le nombre de relations ne donnent aucun badge.
+
+**Conception.** Deux mentions distinctes : Identité vérifiée par GAMAD (contrôle humain du nom affiché et
+de la personne) ; Expérience confirmée (déclaration précise sur une réalisation, acceptée par un tiers
+identifié). Pas de note ni de compteur public. Demandes et recours dans Mon espace → Mes attestations ;
+confirmation depuis une réalisation personnelle ; signalement depuis un profil ou une référence ; file
+Confiance dans la modération, réservée au super administrateur. Pas de nouveau menu principal.
+
+**Implémentation et limites.** Trois tables additives, identity_verifications, work_attestations, trust_reports.
+- Identité volontaire avec consentement explicite ; aucune image de pièce, numéro de document, date de
+  naissance ou adresse collectés. Le contrôle réel a lieu en présence ou en échange direct, hors collecte
+  documentaire de GAMAD. L’opérateur atteste séparément le rapprochement du justificatif avec le nom affiché
+  et celui de la personne ; aucune approbation automatique ou auto-vérification. Seul un super administrateur
+  actif peut examiner les dossiers d’autrui. Une identité vérifiée expire après un an. Un changement du nom
+  affiché invalide demandes et badges, y compris si l’ancien nom est rétabli ; un compte inactif n’a pas de badge.
+  États pending, verified, declined, revoked, withdrawn ; motif privé et instruction de rendez-vous facultative
+  dans le dossier. Demande suivante après sept jours si refus/retrait ; renouvellement à expiration.
+- Une référence porte sur une publication personnelle Ma réalisation non masquée de l’auteur. L’auteur
+  sollicite au plus trois personnes, déjà en relation réciproque et dont l’identité est vérifiée. Il décrit
+  son intervention (280 caractères) et sa date passée ; le témoin accepte ce texte explicitement et précise
+  son rôle (client, collègue, personne présente). Aucun message privé créé automatiquement. Révision sous
+  verrou contre les anciennes réponses, maximum cinq sollicitations par jour, délai de sept jours après
+  refus/retrait. Le témoin et l’auteur peuvent retirer leur consentement. GAMAD peut révoquer avec motif,
+  jamais confirmer à la place du témoin. Le témoin ne modifie pas le texte accepté par l’auteur.
+- Mention visible uniquement si publication et profils sont visibles et actifs, identité du témoin toujours
+  valable avec la même révision que lors de la confirmation. Expiration, masquage, suppression et blocages
+  sont respectés. Une nouvelle vérification du témoin exige une nouvelle confirmation explicite ; aucun
+  rétablissement automatique après révocation. Un blocage retire les sollicitations et références des deux
+  personnes, sans les réactiver au déblocage. Les coordonnées et preuves privées ne sont jamais exposées.
+- Signalement motivé (500 caractères), cinq par jour et un ouvert par cible/personne. Le nom du signalant
+  n’est pas communiqué à la personne signalée. Les personnes concernées peuvent contester une décision
+  par le même formulaire (catégorie Recours). Un recours ouvert permet de rouvrir le contrôle humain ou de
+  redemander au témoin sa confirmation ; aucune mention n’est rétablie automatiquement. La file permet une réponse motivée, une clôture et les actes
+  distincts de retrait appropriés, avec contrôle des conflits d’intérêt (jamais ses propres dossiers).
+- Les décisions administratives sont tracées dans le journal en ajout seul, sans pièce ni texte de référence
+  copié dans le journal. Les dossiers privés restent liés aux comptes/publications et disparaissent avec
+  eux ; les traces administratives existantes restent conservées selon le fonctionnement du journal.
+  Notifications internes génériques regroupées, sans contenu privé ni message extérieur. Aucun service
+  d’identité externe, paiement, stockage sensible ou certification professionnelle ajouté. Les vérifications
+  humaines effectives et l’organisation des rendez-vous relèvent de GAMAD, pas d’un contrôle simulé.
+
+Les données déclarées de D-186 restent déclaratives ; seule une confirmation portant la mention explicite
+ci-dessus est une expérience confirmée. R1 reste En cours et les modules gelés restent gelés.

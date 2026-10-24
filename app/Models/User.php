@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
@@ -30,6 +31,14 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         // Clé de recherche par nom, sans casse ni accents (Carrefour Personnes).
         static::saving(fn (User $user) => $user->name_search = Normalizer::key($user->name));
+
+        // Le nom contrôlé ne doit jamais redevenir vérifié après un changement puis un retour à l’ancien nom.
+        static::updating(function (User $user) {
+            if ($user->isDirty('name')) {
+                IdentityVerification::where('user_id', $user->id)->whereIn('state', ['pending', 'verified'])
+                    ->update(['state' => 'revoked', 'revision' => DB::raw('revision + 1'), 'reason' => 'Nom affiché modifié : un nouveau contrôle est nécessaire.', 'updated_at' => now()]);
+            }
+        });
 
         // Chaque personne a un profil dès son inscription.
         static::created(fn (User $user) => $user->profile()->create());
@@ -67,6 +76,11 @@ class User extends Authenticatable implements MustVerifyEmail
             }
             Zumra::query()->withoutMembers()->delete();
         });
+    }
+
+    public function identityVerification(): HasOne
+    {
+        return $this->hasOne(IdentityVerification::class);
     }
 
     public function publications(): HasMany
