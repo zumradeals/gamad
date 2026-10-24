@@ -68,7 +68,7 @@ enum PublicationType: string
             self::PersonalWork, self::Share => 'Échanger',
             self::Need => 'Je peux aider',
             self::Knowledge => 'Je veux apprendre',
-            self::LearningWish => 'Je peux transmettre',
+            self::LearningWish => 'Je peux vous accompagner',
             self::Offer => "Ça m'intéresse",
             self::ZumraCall => 'Je veux rejoindre',
             // Une avancée reçoit un soutien (« Je soutiens », D-139) et non un geste ; une réalisation ne reçoit rien.

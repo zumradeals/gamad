@@ -154,6 +154,10 @@ class PublierPublication extends Component
         ], $this->zumra(), $this->project());
 
         session()->flash('status', 'Publié. Elle apparaît dans les publications.');
+        session()->flash('published_id', $publication->id);
+        if (! $this->zumraId && ! $this->projectId) {
+            session()->flash('clear_draft', 'gamad:draft:'.Auth::id().':'.$this->slug);
+        }
 
         return $this->redirect(route('publications.show', $publication), navigate: false);
     }

@@ -139,6 +139,20 @@ class Publications
         $this->changeNeedState($actor, $publication, NeedState::Resolved);
     }
 
+    public function saveOutcome(User $actor, Publication $publication, string $text): void
+    {
+        $text = Normalizer::multiline($text);
+        if (mb_strlen($text) > 280) {
+            throw ValidationException::withMessages(['outcome' => 'Le bilan est limité à 280 caractères.']);
+        }
+        DB::transaction(function () use ($actor, $publication, $text) {
+            $locked = Publication::whereKey($publication->id)->lockForUpdate()->firstOrFail();
+            Gate::forUser($actor)->authorize('manage', $locked);
+            abort_unless($actor->fresh()?->isActive() && $locked->author_id === $actor->id && ! $locked->zumra_id && ! $locked->isHidden() && $locked->type->isNeed() && $locked->need_state === NeedState::Resolved, 403);
+            $locked->update(['outcome' => $text === '' ? null : $text]);
+        });
+    }
+
     /** « Fermer sans suite » : l'auteur seul (D-083). */
     public function close(User $actor, Publication $publication): void
     {

@@ -40,6 +40,7 @@
     </aside>
 
     <div class="space-content">
+        <x-profile-next-step :user="$user" />
         <div class="flex flex-wrap items-start justify-between gap-3">
             <div>
                 <h1 class="text-[26px] font-extrabold leading-tight tracking-[-0.5px] md:text-[28px]">Mon espace</h1>
