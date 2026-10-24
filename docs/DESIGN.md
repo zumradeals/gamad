@@ -241,3 +241,9 @@ La nouvelle composition remplace la présentation des écrans 1 et 4 pour le Fil
 - Besoin et proposition : précisions facultatives repliées dans les formulaires existants. Dire clairement qu’elles seront incluses dans le texte et comptent dans sa limite ; erreurs de validation sans perte de saisie.
 - Conversation : carte « Notre prochaine action » avant les messages. État À confirmer ou Convenue ensemble, texte et date facultative ; proposer, confirmer par l’autre personne, retirer. Le formulaire n’est ouvert qu’à la demande, sa version est figée au début de la saisie pour éviter une écriture concurrente silencieuse. Aucun défilement automatique à l’ouverture qui cacherait l’action ; l’envoi d’un message garde son défilement existant.
 - Aucun onglet, monde ou outil spécialisé supplémentaire. Les réalisations et remerciements existants restent accessibles depuis la publication.
+
+## 18. Recherche dans l’en-tête (D-185)
+
+- Dans le parcours initial connecté, la recherche occupe l’espace après Fil sur ordinateur. Sur téléphone, elle passe sur une seconde ligne sous le logo et les notifications, dans l’en-tête.
+- Champ unique et deux boutons de 44 px avec noms accessibles : rechercher dans le Fil, trouver une personne. Les formulaires GET reprennent les résultats et les droits existants ; le filtre du Fil courant est conservé à la soumission avec JavaScript.
+- La carte « Que voulez-vous faire avancer ? » redevient le premier élément de la colonne centrale du Fil. Le panneau de recherche central disparaît du parcours initial ; un état de recherche actif et son effacement restent visibles près des filtres.

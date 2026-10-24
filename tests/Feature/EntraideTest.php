@@ -27,6 +27,7 @@ it('garde seulement Fil Agir Mon espace dans la navigation, avec les personnes a
     $text = trim(preg_replace('/\s+/', ' ', strip_tags(implode(' ', $navs[0]))));
     expect($text)->toContain('Fil')->toContain('Agir')->toContain('Mon espace')->not->toContain('Personnes')->not->toContain('Découvrir');
     $this->get(route('personnes.index'))->assertOk()->assertSeeText('Retour au Fil');
+    $this->get(route('fil', ['q' => 'terme introuvable']))->assertOk()->assertSeeText('Aucune publication ne correspond')->assertSee('name="q"', false);
 });
 
 it('cherche dans le texte, les capacités et les noms des auteurs sans changer l’ordre chronologique', function () {

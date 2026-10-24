@@ -23,7 +23,7 @@
 </head>
 <body class="flex flex-col bg-ground text-ink antialiased">
     <header class="sticky top-0 z-20 border-b border-line bg-card">
-        <div class="mx-auto flex w-full max-w-[1240px] items-center gap-3 px-4 py-3 lg:gap-5 lg:px-6 lg:py-0">
+        <div class="mx-auto flex w-full max-w-[1240px] flex-wrap items-center gap-3 px-4 py-3 lg:flex-nowrap lg:gap-5 lg:px-6 lg:py-0">
             <a href="{{ auth()->check() ? route('fil') : url('/') }}" class="no-underline" aria-label="GAMAD — accueil">
                 <span class="flex flex-col">
                     <span class="flex items-center gap-1.5 text-[24px] font-extrabold leading-tight tracking-[-0.7px] text-ink">GAMAD<span class="size-1.5 rounded-[2px] bg-accent" aria-hidden="true"></span></span>
@@ -44,7 +44,12 @@
             </nav>
             @endauth
 
-            <span class="flex-1"></span>
+            @if (auth()->check() && \App\Support\Experience::initial())
+                <x-header-search />
+                <span class="flex-1 lg:hidden"></span>
+            @else
+                <span class="flex-1"></span>
+            @endif
 
             @auth
                 <div class="flex items-center gap-1">

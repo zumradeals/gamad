@@ -47,6 +47,7 @@ class Fil extends Component
     {
         $this->reset('query');
         $this->limit = self::PAGE_SIZE;
+        $this->dispatch('feed-search-cleared');
     }
 
     public function findPeople(): void
