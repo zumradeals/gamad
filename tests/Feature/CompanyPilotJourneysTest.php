@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\UserNotification;
 use App\Services\CompanyExperienceService;
 use App\Services\CompanyRegistry;
+use App\Services\People;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -175,7 +176,7 @@ it('contacte une entreprise par la relation existante sans ouvrir de conversatio
         'note' => 'Je souhaiterais échanger sur votre service fibre optique.',
     ])->assertRedirect(route('entreprises.show', $company));
 
-    $pair = app(\App\Services\People::class)->pair($visitor, $owner)->sole();
+    $pair = app(People::class)->pair($visitor, $owner)->sole();
     expect($pair->state)->toBe('pending')->and($pair->conversation_id)->toBeNull()
         ->and($pair->note)->toContain('entreprise');
     $this->post(route('entreprises.contact.store', $company), [
