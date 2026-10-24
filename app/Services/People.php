@@ -54,11 +54,11 @@ class People
         if ($note === '' || mb_strlen($note) > 280) {
             throw ValidationException::withMessages(['note' => 'Expliquez votre envie de faire connaissance en 1 à 280 caractères.']);
         }
-        if (RateLimiter::tooManyAttempts('connection:'.$actor->id, 20)) {
-            throw ValidationException::withMessages(['note' => 'Vous avez atteint la limite de demandes pour aujourd’hui.']);
-        }
         $this->locked($actor, $other, function () use ($actor, $other, $note) {
             $this->authorize($actor, $other);
+            if (RateLimiter::tooManyAttempts('connection:'.$actor->id, 20)) {
+                throw ValidationException::withMessages(['note' => 'Vous avez atteint la limite de demandes pour aujourd’hui.']);
+            }
             $pair = $this->pair($actor, $other)->first();
             if ($pair && (in_array($pair->state, ['pending', 'accepted'], true) || $pair->updated_at->gt(now()->subDays(7)))) {
                 throw ValidationException::withMessages(['note' => 'Une demande existe déjà ou a été traitée récemment.']);

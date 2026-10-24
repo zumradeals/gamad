@@ -539,8 +539,8 @@ request_terminate_timeout = 60s
 catch_workers_output = yes
 security.limit_extensions = .php
 php_admin_value[memory_limit] = 256M
-php_admin_value[upload_max_filesize] = 5M
-php_admin_value[post_max_size] = 6M
+php_admin_value[upload_max_filesize] = 10M
+php_admin_value[post_max_size] = 12M
 php_admin_value[error_log] = @@LOG_DIR@@/php-fpm.log
 php_admin_flag[log_errors] = on
 php_admin_flag[display_errors] = off
@@ -618,7 +618,7 @@ server {
     root @@APP_DIR@@/current/public;
     index index.php;
     charset utf-8;
-    client_max_body_size 5m;
+    client_max_body_size 12m;
 
     add_header Strict-Transport-Security "max-age=15552000" always;
     add_header X-Content-Type-Options "nosniff" always;
