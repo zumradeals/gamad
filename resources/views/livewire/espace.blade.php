@@ -89,7 +89,12 @@
                 <h2 class="text-[17px] font-extrabold">Mon entreprise sur GAMAD</h2>
                 <p class="mt-1 text-[13px] text-muted">Créez votre page entreprise et retrouvez vos dossiers en attente de vérification administrative.</p>
             </div>
-            <x-button :href="route('entreprises.create')" variant="secondary">Mes pages entreprises</x-button>
+            <div class="flex flex-wrap gap-2">
+                <x-button :href="route('entreprises.create')" variant="secondary">Mes pages entreprises</x-button>
+                @if (auth()->user()?->isSuperAdmin())
+                    <x-button :href="route('moderation.entreprises')" variant="secondary">Vérifier les entreprises</x-button>
+                @endif
+            </div>
         </section>
 
         <div class="grid min-w-0 gap-4 xl:grid-cols-2">
