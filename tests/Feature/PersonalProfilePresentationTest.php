@@ -4,6 +4,8 @@ use App\Enums\PublicationType;
 use App\Livewire\ModifierProfil;
 use App\Models\Conversation;
 use App\Models\Publication;
+use App\Models\User;
+use App\Services\Moderation;
 use App\Services\People;
 use App\Services\ProfileDetails;
 use App\Services\ProfileEditor;
@@ -36,7 +38,8 @@ it('refuse une couverture étrangère masquée sans image ou non personnelle et 
     $foreign = publication($this->visitor, PublicationType::PersonalWork);
     $foreign->update(['media_kind' => 'image', 'media_path' => 'publication-media/foreign.jpg']);
     $hidden = publication($this->artisan, PublicationType::PersonalWork);
-    $hidden->update(['media_kind' => 'image', 'media_path' => 'publication-media/hidden.jpg', 'hidden_at' => now()]);
+    $hidden->update(['media_kind' => 'image', 'media_path' => 'publication-media/hidden.jpg']);
+    app(Moderation::class)->hide(User::factory()->superAdmin()->create(), $hidden, 'Masquage pour vérifier la confidentialité de la couverture.');
     $text = publication($this->artisan, PublicationType::Share);
     $document = publication($this->artisan, PublicationType::Share);
     $document->update(['media_kind' => 'pdf', 'media_path' => 'publication-media/document.pdf']);
@@ -61,7 +64,7 @@ it('réévalue la visibilité de la couverture et des réalisations à chaque vi
     auth()->logout();
     $this->get(route('personnes.show', $profile))->assertOk()->assertDontSee(route('publications.media', $post), false)->assertDontSeeText('Une réalisation réservée');
     $this->actingAs($this->visitor)->get(route('personnes.show', $profile))->assertOk()->assertSee('alt="Couverture choisie par Moussa Koné"', false);
-    $post->update(['hidden_at' => now()]);
+    app(Moderation::class)->hide(User::factory()->superAdmin()->create(), $post, 'Masquage pour vérifier la confidentialité de la couverture.');
     $this->get(route('personnes.show', $profile))->assertOk()->assertDontSee(route('publications.media', $post), false)->assertDontSeeText('Une réalisation réservée');
 });
 
