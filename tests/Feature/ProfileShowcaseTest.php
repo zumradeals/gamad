@@ -6,6 +6,7 @@ use App\Livewire\PublierPublication;
 use App\Models\Conversation;
 use App\Models\PersonConnection;
 use App\Models\Publication;
+use App\Models\User;
 use App\Services\Gestures;
 use App\Services\People;
 use App\Services\ProfileDetails;
@@ -130,4 +131,22 @@ it('supprime les fichiers lorsque leur publication ou leur compte est supprimé'
     $path = $post->media_path;
     $this->a->delete();
     Storage::disk('local')->assertMissing($path);
+});
+
+it('sert les vidéos privées avec lecture partielle sans ouvrir l’accès aux visiteurs', function () {
+    $bytes = pack('N', 24).'ftypisom'.pack('N', 0).'isommp42'.pack('N', 16).'mdat'.str_repeat("\0", 8);
+    $file = UploadedFile::fake()->createWithContent('atelier.mp4', $bytes);
+    $post = app(Publications::class)->publish($this->a, PublicationType::Share, ['body' => 'Une démonstration', 'visibility' => Publication::MEMBERS, 'media' => $file]);
+    expect($post->media_kind)->toBe('video');
+    auth()->logout();
+    $this->get(route('publications.media', $post), ['Range' => 'bytes=0-15'])->assertNotFound();
+    $this->actingAs($this->b)->get(route('publications.media', $post), ['Range' => 'bytes=0-15'])->assertStatus(206)->assertHeader('Content-Range', 'bytes 0-15/'.strlen($bytes))->assertHeader('Content-Type', 'video/mp4');
+});
+
+it('continue la modération malgré un blocage par la personne concernée', function () {
+    $moderator = User::factory()->superAdmin()->create();
+    $post = publication($this->a, PublicationType::Share);
+    app(People::class)->block($this->a, $moderator, true);
+    $this->actingAs($moderator)->get(route('publications.show', $post))->assertOk();
+    expect(Publication::visibleTo($moderator)->whereKey($post->id)->exists())->toBeTrue();
 });

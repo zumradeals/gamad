@@ -27,6 +27,6 @@
 @endif
 <section class="flex flex-col gap-3 rounded-card border border-line bg-card p-5 md:p-6"><div><h2 class="text-[20px] font-extrabold">Publications et réalisations</h2><p class="text-[12px] text-muted">Les 20 publications personnelles les plus récentes visibles pour vous.</p></div>
 @forelse ($personalPosts as $post)
-<article class="border-t border-line py-3"><span class="text-[12px] font-bold text-muted">{{ $post->type->label() }} · {{ $post->created_at->format('d/m/Y') }}</span><p class="mt-2 whitespace-pre-line break-words text-[15px] leading-relaxed">{{ $post->body }}</p><x-publication-media :publication="$post" /><a href="{{ route('publications.show', $post) }}" class="inline-flex min-h-11 items-center text-[13px] font-bold">Voir la publication@unless ($isOwner) et {{ $post->type->gestureLabel() === 'Échanger' ? 'échanger' : 'répondre' }}@endunless →</a></article>
+<article class="border-t border-line py-3"><span class="text-[12px] font-bold text-muted">{{ $post->type->label() }} · {{ $post->created_at->format('d/m/Y') }}</span><p class="mt-2 whitespace-pre-line break-words text-[15px] leading-relaxed">{{ $post->body }}</p><x-publication-media :publication="$post" /><a href="{{ route('publications.show', $post) }}" class="inline-flex min-h-11 items-center text-[13px] font-bold">Voir la publication @unless ($isOwner) et {{ $post->type->gestureLabel() === 'Échanger' ? 'échanger' : 'répondre' }}@endunless →</a></article>
 @empty <p class="text-[14px] text-muted">Aucune publication personnelle à afficher pour le moment.</p>@endforelse
 </section>

@@ -27,7 +27,7 @@ class PublicationPolicy
             return Response::allow();
         }
 
-        if ($viewer && People::blocked($viewer, $publication->author)) {
+        if ($viewer && ! $viewer->can('moderate') && People::blocked($viewer, $publication->author)) {
             return Response::denyAsNotFound();
         }
 

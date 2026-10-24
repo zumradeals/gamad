@@ -16,12 +16,14 @@ return new class extends Migration
             $table->foreignUuid('followed_id')->constrained('users')->cascadeOnDelete();
             $table->timestamp('created_at');
             $table->primary(['user_id', 'followed_id']);
+            $table->index('followed_id');
         });
         Schema::create('person_blocks', function (Blueprint $table) {
             $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
             $table->foreignUuid('blocked_id')->constrained('users')->cascadeOnDelete();
             $table->timestamp('created_at');
             $table->primary(['user_id', 'blocked_id']);
+            $table->index('blocked_id');
         });
         Schema::create('person_connections', function (Blueprint $table) {
             $table->uuid('id')->primary();
@@ -34,6 +36,9 @@ return new class extends Migration
             $table->foreignUuid('conversation_id')->nullable()->constrained()->nullOnDelete();
             $table->timestamps();
             $table->unique(['first_id', 'second_id']);
+            $table->index('second_id');
+            $table->index('sender_id');
+            $table->index('conversation_id');
         });
         DB::statement('alter table person_connections add constraint person_connections_pair check (first_id < second_id and sender_id in (first_id, second_id))');
         DB::statement("alter table person_connections add constraint person_connections_state check (state in ('pending', 'accepted', 'declined', 'withdrawn', 'removed'))");

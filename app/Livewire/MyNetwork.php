@@ -42,6 +42,10 @@ class MyNetwork extends Component
 
     public function render()
     {
+        if (! in_array($this->tab, ['requests', 'relations', 'follows', 'blocks'], true)) {
+            $this->tab = 'requests';
+        }
+        $this->limit = max(10, min(200, $this->limit));
         $user = Auth::user();
         abort_unless($user?->isActive(), 403);
         $connections = PersonConnection::query()->forPerson($user);

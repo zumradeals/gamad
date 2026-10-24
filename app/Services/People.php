@@ -72,7 +72,7 @@ class People
             $pair->increment('revision');
             if ($decision === 'remove') {
                 abort_unless($pair->state === 'accepted', 409);
-                $pair->update(['state' => 'removed', 'note' => null, 'revision' => DB::raw('revision + 1')]);
+                $pair->update(['state' => 'removed', 'note' => null]);
 
                 return;
             }

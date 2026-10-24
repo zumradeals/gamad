@@ -104,6 +104,16 @@ class ModifierProfil extends Component
         $this->experiences = $profile->experiences ?? [];
         $this->skill_details = $profile->skill_details ?? [];
         $this->featured_publications = $profile->featured_publications ?? [];
+        $references = collect($this->featured_publications)->merge(collect($this->skill_details)->pluck('publication_id'))->filter()->unique();
+        $valid = Publication::where('author_id', Auth::id())->whereNull('zumra_id')->whereNull('hidden_at')->whereIn('id', $references)->pluck('id')->all();
+        $this->featured_publications = array_values(array_intersect($this->featured_publications, $valid));
+        $this->skill_details = array_map(function ($detail) use ($valid) {
+            if (! in_array($detail['publication_id'] ?? null, $valid, true)) {
+                $detail['publication_id'] = null;
+            }
+
+            return $detail;
+        }, $this->skill_details);
         $this->country_id = (string) $profile->country_id;
         $this->city_id = (string) $profile->city_id;
         $this->visibility = $profile->visibility;
@@ -233,7 +243,8 @@ class ModifierProfil extends Component
             'pendingPhotoUrl' => $this->pendingPhotoUrl(),
             'showPhoto' => ! $this->removePhoto && ($this->photo !== null || $profile->hasPhoto()),
             'bioMax' => Profile::BIO_MAX,
-            'ownPosts' => Publication::where('author_id', Auth::id())->whereNull('zumra_id')->whereNull('hidden_at')->orderByDesc('created_at')->get(['id', 'body', 'visibility']),
+            'ownPosts' => Publication::where('author_id', Auth::id())->whereNull('zumra_id')->whereNull('hidden_at')->orderByDesc('created_at')->limit(100)->get(['id', 'body', 'visibility'])
+                ->merge(Publication::where('author_id', Auth::id())->whereNull('zumra_id')->whereNull('hidden_at')->whereIn('id', collect($profile->featured_publications ?? [])->merge(collect($profile->skill_details ?? [])->pluck('publication_id'))->filter())->get(['id', 'body', 'visibility']))->unique('id')->values(),
         ]);
     }
 

@@ -19,7 +19,7 @@ class ProfilePolicy
             return Response::allow();
         }
 
-        if ($viewer && People::blocked($viewer, $profile->user)) {
+        if ($viewer && ! $viewer->can('moderate') && People::blocked($viewer, $profile->user)) {
             return Response::denyAsNotFound();
         }
 

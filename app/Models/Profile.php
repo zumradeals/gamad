@@ -98,7 +98,7 @@ class Profile extends Model
      */
     public function scopeVisibleTo(Builder $query, ?User $viewer): Builder
     {
-        if ($viewer) {
+        if ($viewer && ! $viewer->can('moderate')) {
             $query->whereNotIn('user_id', People::excludedIds($viewer));
         }
 

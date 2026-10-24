@@ -15,7 +15,7 @@
             <div class="flex items-center gap-3">
                 @if ($tab !== 'blocks' && Gate::allows('view', $person->profile))
                     <x-avatar :profile="$person->profile" :size="40" />
-                    <a href="{{ route('personnes.show', $person->profile) }}" class="min-w-0 break-words text-[15px] font-bold">{{ $person->name }}</a>
+                    <a href="{{ route('personnes.show', $person->profile) }}" class="inline-flex min-h-11 min-w-0 items-center break-words text-[15px] font-bold">{{ $person->name }}</a>
                 @else <span class="break-words text-[15px] font-bold">{{ $person->name }}</span>@endif
             </div>
             @if ($tab === 'requests')

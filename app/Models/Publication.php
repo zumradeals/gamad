@@ -127,7 +127,7 @@ class Publication extends Model
      */
     public function scopeVisibleTo(Builder $query, ?User $viewer): Builder
     {
-        if ($viewer) {
+        if ($viewer && ! $viewer->can('moderate')) {
             $query->whereNotIn('author_id', People::excludedIds($viewer));
         }
         // Une publication masquée n'existe plus que pour ceux qui la gèrent et la modération (D-089).

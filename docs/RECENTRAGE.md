@@ -130,7 +130,7 @@ Le périmètre R1 comprend désormais ces fonctionnalités, sans rouvrir les mod
   au propriétaire ; dix lignes par affichage, « Voir plus » jusqu’à 200. Aucun nouveau menu principal.
 - **Bloquer** : retire suivis dans les deux sens et relation/demande courante ; empêche tout nouveau contact,
   geste accepté ou message dans les deux sens. Les profils/publications disparaissent de leurs recherches et URLs
-  authentifiées respectives, fichiers inclus. Les conversations déjà consenties restent lisibles. Le blocage ne
+  authentifiées respectives, fichiers inclus ; les accès nécessaires à la modération restent conservés. Les conversations déjà consenties restent lisibles. Le blocage ne
   retire pas un contenu public aux visiteurs déconnectés ; il ne remplace pas le signalement. Chaque personne ne
   peut lever que son propre blocage. Débloquer ne restaure ni suivi ni relation. Pas de notification du blocage.
 
