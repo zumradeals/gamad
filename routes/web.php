@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CompanyDocumentController;
+use App\Http\Controllers\CompanyExperienceController;
+use App\Http\Controllers\CompanyExperienceReviewController;
 use App\Http\Controllers\CompanyFollowController;
 use App\Http\Controllers\GeniusPayWebhookController;
 use App\Http\Controllers\NotificationController;
@@ -89,6 +91,16 @@ Route::get('/compte-suspendu', SuspendedController::class)->middleware('auth')->
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/entreprises/creer', CompanyCreate::class)->name('entreprises.create');
+    Route::get('/espace/experiences-professionnelles', [CompanyExperienceController::class, 'index'])->name('espace.company-experiences');
+    Route::post('/espace/experiences-professionnelles', [CompanyExperienceController::class, 'store'])->name('espace.company-experiences.store');
+    Route::post('/espace/experiences-professionnelles/{experience}/retirer', [CompanyExperienceController::class, 'withdraw'])
+        ->whereUuid('experience')->name('espace.company-experiences.withdraw');
+    Route::post('/espace/experiences-professionnelles/{experience}/visibilite', [CompanyExperienceController::class, 'visibility'])
+        ->whereUuid('experience')->name('espace.company-experiences.visibility');
+    Route::get('/entreprises/{company}/confirmations', [CompanyExperienceReviewController::class, 'index'])
+        ->where('company', '.+-[a-z0-9]{8}')->name('entreprises.experiences.review');
+    Route::post('/entreprises/{company}/confirmations/{experience}', [CompanyExperienceReviewController::class, 'decide'])
+        ->where('company', '.+-[a-z0-9]{8}')->whereUuid('experience')->name('entreprises.experiences.decision');
     Route::post('/entreprises/{company}/suivre', CompanyFollowController::class)->where('company', '.+-[a-z0-9]{8}')->name('entreprises.follow');
     Route::get('/moderation/entreprises', CompanyModeration::class)->middleware('can:super-admin')->name('moderation.entreprises');
     Route::get('/moderation/entreprises/{company}/documents/{document}', CompanyDocumentController::class)

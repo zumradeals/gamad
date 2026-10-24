@@ -53,6 +53,30 @@
 
 <section id="parcours" aria-labelledby="parcours-title" class="scroll-mt-44 rounded-card border border-line bg-card p-5 md:p-6">
     <h2 id="parcours-title" class="text-[20px] font-extrabold">Mon parcours et mes expériences</h2>
+    @if (($companyExperiences ?? collect())->isNotEmpty())
+        <div class="mt-4 space-y-3">
+            @foreach ($companyExperiences as $experience)
+                <article class="rounded-button border border-line p-4">
+                    <div class="flex flex-wrap items-start justify-between gap-2">
+                        <div>
+                            <h3 class="text-[16px] font-extrabold">{{ $experience->title }}</h3>
+                            <a class="mt-1 inline-flex min-h-8 items-center gap-1 text-[13px] font-bold" href="{{ route('entreprises.show', $experience->company) }}">{{ $experience->company->name }} →</a>
+                            <p class="text-[12px] text-muted">{{ $experience->relationshipLabel() }} · {{ $experience->period }}</p>
+                        </div>
+                        @if ($experience->confirmed())
+                            <span class="inline-flex items-center gap-1 rounded-chip bg-type-knowledge-bg px-3 py-1.5 text-[12px] font-bold text-type-knowledge-fg"><x-icon name="check-circle" :size="16"/> Confirmée par l’entreprise</span>
+                        @else
+                            <span class="rounded-chip bg-ground px-3 py-1.5 text-[12px] font-bold text-muted">{{ $experience->status === 'pending' ? 'Non encore confirmée par l’entreprise' : 'Non confirmée par l’entreprise' }}</span>
+                        @endif
+                    </div>
+                    @if ($experience->description)<p class="mt-2 whitespace-pre-line text-[14px] leading-relaxed">{{ $experience->description }}</p>@endif
+                </article>
+            @endforeach
+        </div>
+    @endif
+    @if ($isOwner)
+        <a href="{{ route('espace.company-experiences') }}" class="mt-3 inline-flex min-h-11 items-center gap-2 text-[13px] font-extrabold text-link">Gérer mes références professionnelles <x-icon name="arrow-right" :size="16"/></a>
+    @endif
     @if (count($profile->experiences ?? []))
         <ol class="mt-5 ml-2 border-l-2 border-line">
             @foreach ($profile->experiences as $experience)
@@ -66,7 +90,7 @@
         </ol>
         <p class="mt-4 text-[12px] text-muted">Expériences déclarées par {{ $user->name }}.</p>
     @else
-        <p class="mt-3 text-[14px] text-muted">Aucune expérience renseignée pour le moment.</p>
+        @if (($companyExperiences ?? collect())->isEmpty())<p class="mt-3 text-[14px] text-muted">Aucune expérience renseignée pour le moment.</p>@endif
         @if ($isOwner)<a href="{{ route('espace.profil') }}#profile-experiences" class="mt-2 inline-flex min-h-11 items-center text-[14px] font-bold">Raconter mon parcours →</a>@endif
     @endif
 </section>

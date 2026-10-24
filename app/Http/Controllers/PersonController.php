@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\PublicationType;
+use App\Models\CompanyExperience;
 use App\Models\Profile;
 use App\Models\Publication;
 use App\Models\WorkAttestation;
@@ -51,7 +52,12 @@ class PersonController extends Controller
             && (! ($post->matching['enabled'] ?? false) || ($post->matching['open'] ?? true))
             && (empty($post->matching['until']) || $post->matching['until'] >= today()->toDateString()));
 
-        return view('pages.personne', ['verifiedIdentity' => app(PersonalTrust::class)->identity($profile->user), 'confirmedWorks' => WorkAttestation::visibleTo($viewer)->where('author_id', $profile->user_id)->with(['attester.profile', 'author.profile'])->latest('confirmed_at')->limit(10)->get(), 'personalPosts' => $personalPosts, 'visibleReferences' => $visibleReferences, 'cover' => $cover, 'showcasePosts' => $showcasePosts, 'currentOffer' => $currentOffer, 'profile' => $profile, 'isOwner' => $isOwner, 'inviteZumras' => $inviteZumras, 'contributorBadge' => app(Contributions::class)->showsBadge($profile->user)]);
+        $companyExperiences = CompanyExperience::query()->with('company')
+            ->where('user_id', $profile->user_id)->where('status', '!=', 'withdrawn')
+            ->whereHas('company', fn ($query) => $query->publiclyVisible())
+            ->latest()->limit(10)->get();
+
+        return view('pages.personne', ['companyExperiences' => $companyExperiences, 'verifiedIdentity' => app(PersonalTrust::class)->identity($profile->user), 'confirmedWorks' => WorkAttestation::visibleTo($viewer)->where('author_id', $profile->user_id)->with(['attester.profile', 'author.profile'])->latest('confirmed_at')->limit(10)->get(), 'personalPosts' => $personalPosts, 'visibleReferences' => $visibleReferences, 'cover' => $cover, 'showcasePosts' => $showcasePosts, 'currentOffer' => $currentOffer, 'profile' => $profile, 'isOwner' => $isOwner, 'inviteZumras' => $inviteZumras, 'contributorBadge' => app(Contributions::class)->showsBadge($profile->user)]);
     }
 
     /**

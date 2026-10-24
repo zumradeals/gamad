@@ -40,9 +40,18 @@
                 <a href="#presentation" class="inline-flex min-h-11 shrink-0 items-center border-b-[3px] border-accent text-[13px] font-extrabold text-ink no-underline">À propos</a>
                 <a href="#activites" class="inline-flex min-h-11 shrink-0 items-center text-[13px] font-semibold text-muted no-underline">Activités</a>
                 <a href="#contact" class="inline-flex min-h-11 shrink-0 items-center text-[13px] font-semibold text-muted no-underline">Coordonnées</a>
+                @if ($confirmedPeople->isNotEmpty())<a href="#parcours-confirmes" class="inline-flex min-h-11 shrink-0 items-center text-[13px] font-semibold text-muted no-underline">Parcours confirmés</a>@endif
             </nav>
         </div>
     </article>
+
+    @if ($isOwner && $company->verified())
+        <section class="flex flex-wrap items-center justify-between gap-3 rounded-card border border-line bg-card p-4 md:p-5">
+            <div><h2 class="text-[17px] font-extrabold">Confirmer des expériences professionnelles</h2>
+                <p class="mt-1 text-[13px] text-muted">Consultez les déclarations reçues et confirmez uniquement celles qui sont exactes.</p></div>
+            <x-button :href="route('entreprises.experiences.review', $company)" variant="secondary">Gérer les confirmations</x-button>
+        </section>
+    @endif
 
     @if ($isOwner && ! $company->verified())
         <section class="rounded-card border border-line bg-card p-4 md:p-5" role="status">
@@ -58,6 +67,21 @@
                 <div class="mb-4 flex items-center gap-2"><x-icon name="project" :size="22"/><h2 class="text-[21px] font-extrabold">Notre entreprise</h2></div>
                 <p class="whitespace-pre-line break-words text-[15px] leading-relaxed">{{ $company->description ?: ($company->summary ?: 'La présentation détaillée de cette entreprise sera ajoutée ici.') }}</p>
             </section>
+            @if ($confirmedPeople->isNotEmpty())
+                <section id="parcours-confirmes" class="rounded-card border border-line bg-card p-5 md:p-6">
+                    <h2 class="text-[20px] font-extrabold">Parcours confirmés</h2>
+                    <p class="mt-2 text-[13px] text-muted">Ces personnes ont choisi d'afficher ici leur collaboration confirmée avec l'entreprise.</p>
+                    <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                        @foreach ($confirmedPeople as $item)
+                            <a href="{{ route('personnes.show', $item->user->profile) }}" class="flex min-h-20 flex-col gap-1 rounded-button border border-line p-4 no-underline hover:border-ink">
+                                <span class="text-[15px] font-extrabold text-ink">{{ $item->user->name }}</span>
+                                <span class="text-[13px] font-semibold text-muted">{{ $item->title }} · {{ $item->relationshipLabel() }}</span>
+                                <span class="inline-flex items-center gap-1 text-[12px] font-bold text-type-knowledge-fg"><x-icon name="check-circle" :size="15"/> Expérience confirmée</span>
+                            </a>
+                        @endforeach
+                    </div>
+                </section>
+            @endif
             <section id="activites" class="rounded-card border border-line bg-card p-5 md:p-6">
                 <h2 class="text-[21px] font-extrabold">Ce que nous faisons</h2>
                 <div class="mt-4 flex flex-wrap gap-2">
