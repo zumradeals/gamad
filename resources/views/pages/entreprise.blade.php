@@ -40,12 +40,20 @@
                 <a href="#presentation" class="inline-flex min-h-11 shrink-0 items-center border-b-[3px] border-accent text-[13px] font-extrabold text-ink no-underline">À propos</a>
                 <a href="#activites" class="inline-flex min-h-11 shrink-0 items-center text-[13px] font-semibold text-muted no-underline">Activités</a>
                 <a href="#contact" class="inline-flex min-h-11 shrink-0 items-center text-[13px] font-semibold text-muted no-underline">Coordonnées</a>
+                @if ($company->verified())<a href="#publications" class="inline-flex min-h-11 shrink-0 items-center text-[13px] font-semibold text-muted no-underline">Publications</a>@endif
                 @if ($confirmedPeople->isNotEmpty())<a href="#parcours-confirmes" class="inline-flex min-h-11 shrink-0 items-center text-[13px] font-semibold text-muted no-underline">Parcours confirmés</a>@endif
             </nav>
         </div>
     </article>
 
+    @if (session('status'))<x-status>{{ session('status') }}</x-status>@endif
+
     @if ($isOwner && $company->verified())
+        <section class="flex flex-wrap items-center justify-between gap-3 rounded-card border border-line bg-card p-4 md:p-5">
+            <div><h2 class="text-[17px] font-extrabold">Faire vivre la page entreprise</h2>
+                <p class="mt-1 text-[13px] text-muted">Actualités, réalisations et opportunités rejoignent l'Accueil social de GAMAD.</p></div>
+            <x-button :href="route('entreprises.posts.create', $company)" variant="accent">Publier sur GAMAD</x-button>
+        </section>
         <section class="flex flex-wrap items-center justify-between gap-3 rounded-card border border-line bg-card p-4 md:p-5">
             <div><h2 class="text-[17px] font-extrabold">Confirmer des expériences professionnelles</h2>
                 <p class="mt-1 text-[13px] text-muted">Consultez les déclarations reçues et confirmez uniquement celles qui sont exactes.</p></div>
@@ -79,6 +87,29 @@
                                 <span class="inline-flex items-center gap-1 text-[12px] font-bold text-type-knowledge-fg"><x-icon name="check-circle" :size="15"/> Expérience confirmée</span>
                             </a>
                         @endforeach
+                    </div>
+                </section>
+            @endif
+            @if ($company->verified())
+                <section id="publications" class="scroll-mt-44 rounded-card border border-line bg-card p-5 md:p-6">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div><h2 class="text-[21px] font-extrabold">Publications & opportunités</h2><p class="mt-1 text-[13px] text-muted">Les actualités, réalisations et opportunités partagées par cette entreprise.</p></div>
+                        @if ($isOwner)<a href="{{ route('entreprises.posts.create', $company) }}" class="inline-flex min-h-11 items-center gap-1 text-[13px] font-bold text-link">Nouvelle publication <x-icon name="plus" :size="16"/></a>@endif
+                    </div>
+                    <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                        @forelse ($companyPosts as $post)
+                            <article class="flex min-w-0 flex-col overflow-hidden rounded-button border border-line">
+                                <div class="flex flex-col gap-2 p-4">
+                                    <span class="self-start rounded-chip px-2.5 py-1 text-[12px] font-bold {{ $post->type->badgeClasses() }}">{{ $post->displayLabel() }}</span>
+                                    <p class="text-[12px] text-muted">{{ $post->created_at->locale('fr')->format('d/m/Y') }}</p>
+                                    <p class="line-clamp-5 whitespace-pre-line break-words text-[14px] leading-relaxed">{{ $post->body }}</p>
+                                </div>
+                                @if ($post->media_kind === 'image')<div class="max-h-52 overflow-hidden"><x-publication-media :publication="$post"/></div>@endif
+                                <a href="{{ route('publications.show', $post) }}" class="mt-auto inline-flex min-h-11 items-center gap-1 px-4 py-3 text-[13px] font-extrabold text-link">Voir, commenter ou partager <x-icon name="arrow-right" :size="16"/></a>
+                            </article>
+                        @empty
+                            <p class="text-[14px] text-muted sm:col-span-2">L'entreprise n'a pas encore publié d'actualité, de réalisation ou d'opportunité.</p>
+                        @endforelse
                     </div>
                 </section>
             @endif

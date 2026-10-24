@@ -102,6 +102,10 @@
                     <span class="rounded-chip px-2.5 py-1 text-[12px] font-extrabold {{ $stateClasses }}">{{ $state->label() }}</span>
                 @endif
             </div>
+            @if ($publication->company)
+                <a href="{{ route('entreprises.show', $publication->company) }}" class="inline-flex min-h-11 items-center gap-2 text-[14px] font-extrabold text-link"><x-icon name="project" :size="19"/> Publié au nom de {{ $publication->company->name }}</a>
+                <p class="text-[12px] font-semibold text-type-knowledge-fg">Immatriculation vérifiée par GAMAD</p>
+            @endif
             <p class="whitespace-pre-line break-words text-[15px] leading-normal">{{ $publication->body }}</p>
     <x-publication-media :publication="$publication" />
     <x-opportunity-conditions :publication="$publication" />
@@ -234,7 +238,7 @@
         <x-publication-card :publication="$publication" :viewer="$viewer" :gesture="$gesture" :link="false" />
     @endif
 
-    @if ($publication->type === \App\Enums\PublicationType::PersonalWork && ! $publication->zumra_id)
+    @if ($publication->type === \App\Enums\PublicationType::PersonalWork && ! $publication->zumra_id && ! $publication->company_id)
         <livewire:attester-realisation :publication="$publication" />
     @endif
     @if (! $publication->zumra_id && ! $publication->project_id && ! $publication->isHidden())

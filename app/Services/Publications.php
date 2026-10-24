@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\NeedState;
 use App\Enums\PublicationType;
 use App\Models\City;
+use App\Models\Company;
 use App\Models\Domain;
 use App\Models\Project;
 use App\Models\Publication;
@@ -34,13 +35,26 @@ class Publications
      *
      * @throws ValidationException
      */
-    public function publish(User $author, PublicationType $type, array $data, ?Zumra $zumra = null, ?Project $project = null): Publication
+    public function publish(User $author, PublicationType $type, array $data, ?Zumra $zumra = null, ?Project $project = null, ?Company $company = null): Publication
     {
         if (Experience::initial() && ($zumra || $project)) {
             throw ValidationException::withMessages(['body' => 'Les publications collectives sont en pause. Publiez en votre nom depuis Agir.']);
         }
 
         Gate::forUser($author)->authorize('create', Publication::class);
+
+        if ($company) {
+            // Validation obligatoire côté service : un client ne peut pas attribuer
+            // une publication à une autre entreprise via un identifiant manipulé.
+            abort_unless($author->fresh()?->isActive() && $company->fresh()?->verified()
+                && $company->owner_id === $author->id, 403);
+            if ($zumra || $project || ! in_array($type, [PublicationType::Share, PublicationType::PersonalWork, PublicationType::Need], true)) {
+                throw ValidationException::withMessages(['body' => 'Seules les actualités, réalisations et opportunités sont disponibles sur les pages entreprises.']);
+            }
+            if (($data['visibility'] ?? Publication::PUBLIC) !== Publication::PUBLIC || ! empty($data['matching'])) {
+                throw ValidationException::withMessages(['visibility' => 'Les publications d’entreprise sont publiques, sans matching automatique pendant le pilote.']);
+            }
+        }
 
         if ($project) {
             // Publier au nom d'un projet : le fondateur et les responsables de sa ZUMRA seulement (D-127) ; la publication est
@@ -100,7 +114,7 @@ class Publications
         }
         $media = app(PublicationMedia::class)->store($data['media'] ?? null);
         try {
-            $published = DB::transaction(function () use ($author, $type, $body, $visibility, $domainId, $cityId, $skills, $zumra, $project, $media, $matching) {
+            $published = DB::transaction(function () use ($author, $type, $body, $visibility, $domainId, $cityId, $skills, $zumra, $project, $company, $media, $matching) {
                 $publication = new Publication([
                     ...$media,
                     'matching' => $matching,
@@ -114,6 +128,7 @@ class Publications
                 $publication->author()->associate($author);
                 $publication->zumra()->associate($zumra);
                 $publication->project()->associate($project);
+                $publication->company()->associate($company);
                 $publication->save();
 
                 $publication->skills()->attach(collect($skills)->mapWithKeys(

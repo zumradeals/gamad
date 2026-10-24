@@ -111,7 +111,7 @@ it('propose les filtres sociaux et métiers sans classement de popularité (D-19
     preg_match('/<nav aria-label="Filtrer les publications".*?<\/nav>/s', $html, $nav);
     $filtres = array_map(fn ($t) => trim(strip_tags($t)), explode('</button>', $nav[0]));
 
-    expect(array_values(array_filter($filtres)))->toBe(['Tout', 'Mes suivis', 'Découvrir', 'Partages', 'Besoins', 'Savoirs', 'Apprendre', 'Aides', 'ZUMRA', 'Projets']);
+    expect(array_values(array_filter($filtres)))->toBe(['Tout', 'Mes suivis', 'Découvrir', 'Partages', 'Entreprises', 'Besoins', 'Savoirs', 'Apprendre', 'Aides', 'ZUMRA', 'Projets']);
 });
 
 it('affiche Commenter sans compteur d’approbation, et « Signaler » seulement sur la publication d’un autre', function () {
