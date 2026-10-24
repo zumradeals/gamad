@@ -6,6 +6,7 @@ use App\Enums\NotificationKind;
 use App\Models\Conversation;
 use App\Models\PersonConnection;
 use App\Models\User;
+use App\Models\WorkAttestation;
 use App\Support\Normalizer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -113,6 +114,10 @@ class People
             DB::table('person_blocks')->insertOrIgnore(['user_id' => $actor->id, 'blocked_id' => $other->id, 'created_at' => now()]);
             DB::table('person_follows')->where(fn ($q) => $q->where('user_id', $actor->id)->where('followed_id', $other->id))
                 ->orWhere(fn ($q) => $q->where('user_id', $other->id)->where('followed_id', $actor->id))->delete();
+            WorkAttestation::where(function ($q) use ($actor, $other) {
+                $q->where(fn ($p) => $p->where('author_id', $actor->id)->where('attester_id', $other->id))
+                    ->orWhere(fn ($p) => $p->where('author_id', $other->id)->where('attester_id', $actor->id));
+            })->whereIn('state', ['pending', 'confirmed'])->update(['state' => 'withdrawn', 'revision' => DB::raw('revision + 1'), 'reason' => 'Lien retiré à la suite d’un blocage.', 'updated_at' => now()]);
             $this->pair($actor, $other)->update(['state' => 'removed', 'note' => null, 'revision' => DB::raw('revision + 1')]);
         });
     }

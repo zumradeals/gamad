@@ -13,6 +13,7 @@
         </x-status>
     @endif
 
+    <a href="{{ route('espace.attestations') }}" class="inline-flex min-h-11 items-center gap-2 self-start text-[14px] font-bold"><x-icon name="shield" :size="18" />Identité et expériences : mes attestations</a>
     <form wire:submit="save" class="flex flex-col gap-3.5">
         <section aria-label="Identité" class="flex flex-col gap-3.5 rounded-card border border-line bg-card p-4 md:p-[18px]">
             @if ($photoAvailable)

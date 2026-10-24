@@ -197,5 +197,8 @@
         <x-publication-card :publication="$publication" :viewer="$viewer" :gesture="$gesture" :link="false" />
     @endif
 
+    @if ($publication->type === \App\Enums\PublicationType::PersonalWork && ! $publication->zumra_id)
+        <livewire:attester-realisation :publication="$publication" />
+    @endif
     <livewire:gesture-sheet />
 </div>

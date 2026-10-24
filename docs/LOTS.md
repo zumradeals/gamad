@@ -41,6 +41,9 @@ JSON bornées et une table de correspondances privées sont autorisées selon le
 **D-188 étend R1 à la refonte du profil personnel** : intitulé court et couverture référencée facultatifs,
 capacités et réalisations avant le parcours et les publications ; aucun changement des droits de contact.
 
+**D-189 étend R1 aux attestations personnelles** : identité contrôlée manuellement, références consenties
+sur réalisations et signalements/recours ; trois tables additives, aucun justificatif sensible téléversé.
+
 **Critères de fin :** parcours sur téléphone, tests en mode initial et régression du système conservé,
 CI verte, aucune suppression de données ni rupture des confirmations de paiement ou de la visibilité.
 Seul le Président clôt ce lot après essai. Réouverture des modules sur nouvelle décision seulement.

@@ -279,3 +279,10 @@ de 1024 px ; une colonne à 390 px. Savoir-faire en cartes, médias des réalisa
 parcours chronologique dans l’ordre choisi par l’auteur. Pas de données d’exemple en production. Fond neutre
 sans couverture, états vides avec invitation à compléter réservée au propriétaire. Les actions de contact
 réelles restent dans PersonContact, avec chargement/erreur/attente et confirmation des actes destructeurs.
+
+## Attestations personnelles — D-189
+Badge Identité vérifiée dans le profil, détail accessible par dépliage : date, échéance et limite.
+Cartes Expérience confirmée avec témoin, rôle, intervention et date, sans compteur/notation.
+Outils dans Mon espace et les réalisations ; signalement/recours motivé ; file Confiance dans la
+modération. États vide, attente, refus, expiration, retrait, erreur et chargement ; cibles 44 px,
+une colonne à 390 px. Aucun champ d’envoi de pièce d’identité ou coordonnées privées.

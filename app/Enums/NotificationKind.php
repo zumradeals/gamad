@@ -5,6 +5,8 @@ namespace App\Enums;
 /** Ce qui peut être signalé à une personne dans l'application (écran 15). Jamais par e-mail ni par SMS à ce stade. */
 enum NotificationKind: string
 {
+    case TrustUpdated = 'trust_updated';
+    case TrustReview = 'trust_review';
     case MatchFound = 'match_found';
     case ConnectionRequested = 'connection_requested';
     case ConnectionAccepted = 'connection_accepted';
@@ -42,7 +44,7 @@ enum NotificationKind: string
     /** Le texte de la notification commence-t-il par le nom d'une personne ? (Non pour un transfert de fondation.) */
     public function showsActor(): bool
     {
-        return ! in_array($this, [self::ZumraFounderTransferred, self::MatchFound], true);
+        return ! in_array($this, [self::ZumraFounderTransferred, self::MatchFound, self::TrustUpdated, self::TrustReview], true);
     }
 
     /** Une notification qui parle d'une ZUMRA (son nom prend la place de l'extrait de publication). */
@@ -63,6 +65,8 @@ enum NotificationKind: string
         $about = $about === null ? '' : " « {$about} »";
 
         return match ($this) {
+            self::TrustUpdated => 'Votre espace d’attestations a été mis à jour.',
+            self::TrustReview => 'Des demandes de confiance attendent un examen.',
             self::MatchFound => 'De nouvelles pistes correspondent à vos préférences. Découvrez pourquoi.',
             self::ConnectionRequested => 'souhaite entrer en relation avec vous.',
             self::ConnectionAccepted => 'a accepté votre demande de relation.',

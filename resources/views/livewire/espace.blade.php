@@ -152,6 +152,7 @@
         </section>
 
         <livewire:match-suggestions />
+        <section class="space-panel p-5"><h2 class="text-[18px] font-extrabold">Mes attestations</h2><p class="mt-2 text-[14px] text-muted">Faire vérifier mon identité, répondre aux confirmations d’expérience et suivre mes recours.</p><a href="{{ route('espace.attestations') }}" class="mt-2 inline-flex min-h-11 items-center text-[14px] font-bold">Ouvrir mes attestations →</a></section>
         <livewire:my-network />
 
         @if ($legacyZumras->isNotEmpty() || $legacyWallets->isNotEmpty())

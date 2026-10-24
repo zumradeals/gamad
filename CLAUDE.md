@@ -13,6 +13,8 @@ ou rémunérées, localités/distance et disponibilités choisies. Notifications
 privée ; ni contrat de mission, ni paiement, ni réouverture de modules gelés.
 D-188 réorganise le profil personnel autour du savoir-faire, des réalisations et du parcours déclaré ;
 intitulé court et couverture référencée facultatifs, sans exposer les préférences privées de matching.
+D-189 ajoute les attestations personnelles : identité vérifiée par contrôle humain, expériences confirmées
+par des relations identifiées, signalements/recours et retrait tracé. Aucun justificatif d’identité téléversé.
 Lire d'abord `docs/RECENTRAGE.md`, puis les quatre sources d'autorité ci-dessous.
 **Suspendre toute extension des ZUMRA, Projets, contributions et portefeuilles** : leur code et leurs données
 restent conservés, leurs nouvelles utilisations sont gelées selon le contrat de transition. Ne pas les
