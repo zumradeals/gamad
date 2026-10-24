@@ -151,7 +151,7 @@ class PagePublication extends Component
             // Les gestes reçus : ceux en attente d'abord, puis acceptés, puis déclinés ; les gestes retirés disparaissent.
             'received' => $received,
             'saved' => $viewer ? in_array($publication->id, app(PublicationBookmarks::class)->savedIds($viewer, [$publication->id]), true) : false,
-        ])->title($isAuthor ? $type->ownTitle() : $type->label());
+        ])->title($isAuthor ? $publication->ownTitle() : $publication->displayLabel());
     }
 
     /** La publication, après avoir revérifié le droit de la voir (404 sinon, D-085). */
