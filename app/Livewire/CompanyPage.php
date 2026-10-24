@@ -6,6 +6,7 @@ use App\Models\Company;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -13,28 +14,30 @@ use Livewire\Component;
 #[Title('Entreprise')]
 class CompanyPage extends Component
 {
-    public Company $company;
+    #[Locked]
+    public string $companyId;
 
     public function mount(Company $company): void
     {
         $viewer = Auth::user();
         abort_unless($company->verified() || ($viewer?->isActive() && ($viewer->id === $company->owner_id || $viewer->isSuperAdmin())), 404);
-        $this->company = $company;
+        $this->companyId = $company->id;
     }
 
     public function toggleFollow(): void
     {
         $viewer = Auth::user();
         abort_unless($viewer?->fresh()->isActive() && $viewer->hasVerifiedEmail(), 403);
-        abort_unless($this->company->fresh()->verified(), 404);
+        $company = Company::findOrFail($this->companyId);
+        abort_unless($company->verified(), 404);
 
-        $following = DB::table('company_follows')->where('user_id', $viewer->id)->where('company_id', $this->company->id);
+        $following = DB::table('company_follows')->where('user_id', $viewer->id)->where('company_id', $company->id);
         if ($following->exists()) {
             $following->delete();
         } else {
             DB::table('company_follows')->insertOrIgnore([
                 'user_id' => $viewer->id,
-                'company_id' => $this->company->id,
+                'company_id' => $company->id,
                 'created_at' => now(),
             ]);
         }
@@ -43,7 +46,7 @@ class CompanyPage extends Component
     public function render()
     {
         $viewer = Auth::user();
-        $company = $this->company->fresh();
+        $company = Company::findOrFail($this->companyId);
         abort_unless($company->verified() || ($viewer?->isActive() && ($viewer->id === $company->owner_id || $viewer->isSuperAdmin())), 404);
 
         return view('livewire.company-page', [

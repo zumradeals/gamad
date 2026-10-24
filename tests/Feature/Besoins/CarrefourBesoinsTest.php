@@ -277,6 +277,6 @@ it('ajoute Besoins aux accès « Explorer GAMAD » du Fil', function () {
 });
 
 it('lit les choix de Découvrir dans la configuration, dans l’ordre Personnes, Besoins, Projets, Entreprises', function () {
-    expect(collect(config('navigation.discover'))->pluck('label')->all())->toBe(['Personnes', 'Besoins', 'Projets'])
+    expect(collect(config('navigation.discover'))->pluck('label')->all())->toBe(['Personnes', 'Besoins', 'Projets', 'Entreprises'])
         ->and(collect(config('navigation.discover'))->pluck('route')->all())->toBe(['personnes.index', 'besoins.index', 'projets.index', 'entreprises.index']);
 });
