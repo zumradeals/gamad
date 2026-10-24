@@ -86,7 +86,7 @@ it('protège les commentaires des publications réservées et masquées', functi
     expect(fn () => commentaires()->create(User::factory()->unverified()->create(), $hidden, 'Interdit'))->toThrow(AuthorizationException::class);
 
     app(Moderation::class)->hide(User::factory()->moderator()->create(), $this->publication, 'À examiner');
-    expect(fn () => commentaires()->create($this->lecteur, $this->publication, 'Après masquage'))->toThrow(HttpException::class);
+    expect(fn () => commentaires()->create($this->lecteur, $this->publication, 'Après masquage'))->toThrow(AuthorizationException::class);
 });
 
 it('respecte les blocages et ne commente pas les publications collectives', function () {
