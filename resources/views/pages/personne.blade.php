@@ -104,6 +104,9 @@
                 @endif
                 <livewire:profile-gratitudes :profile="$profile" />
             </aside>
+            <div class="min-w-0 lg:col-start-1">
+                @include('pages.partials-person-publications')
+            </div>
         </div>
     </div>
 </x-layouts.app>

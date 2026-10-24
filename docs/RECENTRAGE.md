@@ -210,7 +210,7 @@ académique, autodidacte, artisanal, informel ou bénévole. Le diplôme n’est
 
 **Conception.** Ordre de lecture : identité et intitulé, savoir-faire concret, réalisations sélectionnées,
 parcours déclaré, publications. Ancres de page utilisables sans JavaScript ; colonne secondaire pour contact,
-offre récente et apprentissages, sous le contenu principal sur téléphone. Une seule instance de contact,
+offre récente et apprentissages, sous le parcours et avant les publications sur téléphone. Une seule instance de contact,
 avec les états suivre, demande en attente, relation acceptée et blocage déjà définis en D-186. Aucun
 contact direct nouveau. Les remerciements et les accès antérieurs autorisés restent disponibles.
 

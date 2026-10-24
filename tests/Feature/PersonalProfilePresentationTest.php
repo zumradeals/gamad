@@ -88,7 +88,7 @@ it('présente les savoir-faire et réalisations avant le parcours et les publica
     $post = publication($this->artisan, PublicationType::PersonalWork, ['body' => 'Un chantier concret']);
     $this->artisan->profile->update(['headline' => '<script>alert(1)</script>', 'matching_preferences' => ['note' => 'Disponibilité strictement privée', 'zones' => ['Localité privée']], 'experiences' => [['title' => 'Apprentissage en atelier', 'kind' => 'learning', 'description' => 'Auprès d’un artisan.']]]);
     $response = $this->actingAs($this->visitor)->get(route('personnes.show', $this->artisan->profile))->assertOk()
-        ->assertSeeInOrder(['id="savoir-faire"', 'id="realisations"', 'id="parcours"', 'id="publications"'], false)
+        ->assertSeeInOrder(['id="savoir-faire"', 'id="realisations"', 'id="parcours"', 'id="apprend"', 'id="publications"'], false)
         ->assertSeeText('Apprentissage en atelier')->assertDontSeeText('Disponibilité strictement privée')->assertDontSeeText('Localité privée')
         ->assertDontSee('<script>alert(1)</script>', false)->assertSee('&lt;script&gt;alert(1)&lt;/script&gt;', false);
     expect($response->viewData('showcasePosts')->pluck('id')->all())->toBe([$post->id]);
