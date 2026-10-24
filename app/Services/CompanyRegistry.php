@@ -42,9 +42,6 @@ class CompanyRegistry
         $data['legal_name'] = trim($data['legal_name']);
         $data['sector'] = trim($data['sector']);
 
-        if (Company::where('owner_id', $actor->id)->exists()) {
-            throw ValidationException::withMessages(['name' => 'Votre compte possède déjà une page entreprise.']);
-        }
         if (Company::where('registration_country', $data['registration_country'])->where('registration_number', $data['registration_number'])->exists()) {
             throw ValidationException::withMessages(['registration_number' => 'Cette immatriculation est déjà utilisée sur GAMAD. Vous pouvez signaler une usurpation à la modération.']);
         }

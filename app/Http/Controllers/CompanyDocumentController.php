@@ -5,11 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Company;
 use App\Models\CompanyDocument;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class CompanyDocumentController extends Controller
 {
-    public function __invoke(Company $company, CompanyDocument $document): BinaryFileResponse
+    public function __invoke(Company $company, CompanyDocument $document): StreamedResponse
     {
         abort_unless(auth()->user()?->isActive() && auth()->user()->isSuperAdmin(), 403);
         abort_unless($document->company_id === $company->id, 404);
