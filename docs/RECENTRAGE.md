@@ -202,3 +202,26 @@ restent hors de cette étape. Les propositions de l’ancien chat ne réactivent
 En cours jusqu’à la recette du Président. Recette : deux comptes, capacités communes, zones et conditions
 compatibles puis incompatibles, notifications activées/désactivées, ignorance, clôture, blocage, visibilité et
 expiration ; aucune nouvelle conversation avant acceptation.
+
+## Profil personnel lisible en une minute — D-188
+
+**Vision.** Montrer la valeur d’une personne par ses capacités et son expérience, que son parcours soit
+académique, autodidacte, artisanal, informel ou bénévole. Le diplôme n’est pas un prérequis.
+
+**Conception.** Ordre de lecture : identité et intitulé, savoir-faire concret, réalisations sélectionnées,
+parcours déclaré, publications. Ancres de page utilisables sans JavaScript ; colonne secondaire pour contact,
+offre récente et apprentissages, sous le contenu principal sur téléphone. Une seule instance de contact,
+avec les états suivre, demande en attente, relation acceptée et blocage déjà définis en D-186. Aucun
+contact direct nouveau. Les remerciements et les accès antérieurs autorisés restent disponibles.
+
+**Implémentation.** Deux colonnes facultatives sur profiles : `headline` (100 caractères, texte brut) et
+`cover_publication_id` (UUID nullable, clé étrangère vers publications, SET NULL à la suppression).
+La couverture est choisie explicitement parmi les publications personnelles non masquées de l’auteur
+ayant une image. Aucun téléversement supplémentaire, aucune copie de fichier ; la route média existante
+revérifie chaque accès. Une publication devenue invisible/masquée ne fournit ni image ni extrait ; un fond
+neutre remplace la couverture. Les appels anciens omettant ces champs conservent leurs valeurs.
+Les trois publications à la une restent choisies par l’auteur et gardent leur libellé réel ; sans sélection,
+les trois réalisations personnelles les plus récentes parmi les vingt publications visibles sont proposées.
+Une section vide ne suggère ni compétence ni expérience inventée. Les offres présentées sont visibles,
+non clôturées et non expirées. Les disponibilités/préférences de matching ne sont pas rendues publiques.
+Aucune nouvelle dépendance, aucun nouveau module, aucune référence de travail certifiée. R1 reste En cours.

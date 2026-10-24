@@ -41,10 +41,10 @@ it('affiche un lieu à plusieurs niveaux pour une commune d’Abidjan', function
     $this->get(route('personnes.show', $yao->profile->public_id))->assertSeeText('Abidjan, Cocody, Côte d’Ivoire');
 });
 
-it('conserve l’onglet Apporte · Apprend et propose désormais Suivre sans invitation collective', function () {
+it('relie les quatre sections du profil et propose Suivre sans invitation collective', function () {
     $html = $this->actingAs(User::factory()->create())->get($this->url)->assertOk()->getContent();
 
-    expect(onglets($html))->toBe(['Apporte · Apprend']);
+    expect(onglets($html))->toBe(['Savoir-faire', 'Réalisations', 'Parcours', 'Publications']);
 
     $this->actingAs(User::factory()->create())->get($this->url)
         ->assertSeeText('Suivre')->assertSeeText('Entrer en relation')
