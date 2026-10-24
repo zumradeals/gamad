@@ -75,7 +75,7 @@ it('réserve strictement le téléchargement administratif aux super administrat
     $this->get($url)->assertRedirect(route('login'));
     $this->actingAs($owner)->get($url)->assertForbidden();
     $this->actingAs(User::factory()->superAdmin()->create())->get($url)
-        ->assertOk()->assertHeader('Cache-Control', 'private, no-store');
+        ->assertOk()->assertHeader('Cache-Control', 'no-store, private');
 });
 
 it('exige une vraie décision de modération avant toute publication dans l’annuaire', function () {
@@ -107,7 +107,7 @@ it('permet de suivre volontairement une entreprise vérifiée sans score public'
     $admin = User::factory()->superAdmin()->create();
     $company = pilotCompany($owner);
 
-    Livewire::actingAs($viewer)->test(CompanyPage::class, ['company' => $company])->assertNotFound();
+    $this->actingAs($viewer)->get(route('entreprises.show', $company))->assertNotFound();
     app(CompanyRegistry::class)->review($admin, $company, 1, 'verify');
 
     Livewire::actingAs($viewer)->test(CompanyPage::class, ['company' => $company])

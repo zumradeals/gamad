@@ -238,7 +238,7 @@ it('offre la page Découvrir avec les trois choix, pour un visiteur comme pour u
         $page = ($qui ? $this->actingAs($qui) : $this)->get(route('decouvrir'))->assertOk();
 
         $page->assertSeeText('Que cherchez-vous ?')->assertSeeText('Trouvez une personne, un besoin concret ou un projet à découvrir.')
-            ->assertSeeInOrder(['Personnes', 'Besoins', 'Projets'])
+            ->assertSeeInOrder(['Personnes', 'Besoins', 'Projets', 'Entreprises'])
             ->assertSee('href="'.route('personnes.index').'"', false)->assertSee('href="'.route('besoins.index').'"', false)->assertSee('href="'.route('projets.index').'"', false);
     }
 });
@@ -276,7 +276,7 @@ it('ajoute Besoins aux accès « Explorer GAMAD » du Fil', function () {
     $this->actingAs($this->yao)->get(route('fil'))->assertSee('href="'.route('besoins.index').'"', false)->assertSeeText('Voir ce qui manque');
 });
 
-it('lit les trois choix de Découvrir dans la configuration, dans l’ordre Personnes, Besoins, Projets', function () {
+it('lit les choix de Découvrir dans la configuration, dans l’ordre Personnes, Besoins, Projets, Entreprises', function () {
     expect(collect(config('navigation.discover'))->pluck('label')->all())->toBe(['Personnes', 'Besoins', 'Projets'])
-        ->and(collect(config('navigation.discover'))->pluck('route')->all())->toBe(['personnes.index', 'besoins.index', 'projets.index']);
+        ->and(collect(config('navigation.discover'))->pluck('route')->all())->toBe(['personnes.index', 'besoins.index', 'projets.index', 'entreprises.index']);
 });

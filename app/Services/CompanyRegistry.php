@@ -101,7 +101,7 @@ class CompanyRegistry
             if ($action !== 'verify' && mb_strlen(trim($note)) < 5) {
                 throw ValidationException::withMessages(['note' => 'Précisez le motif (5 caractères minimum).']);
             }
-            $row->update([
+            $row->forceFill([
                 'status' => match ($action) {
                     'verify' => 'verified',
                     'decline' => 'declined',
@@ -111,7 +111,7 @@ class CompanyRegistry
                 'reviewer_id' => $reviewer->id,
                 'verified_at' => $action === 'verify' ? now() : null,
                 'review_note' => $action === 'verify' ? null : trim($note),
-            ]);
+            ])->save();
             AdminJournal::record($reviewer, 'companies.'.$action, $row, $action === 'verify' ? null : trim($note), ['revision' => $row->revision]);
         }, 3);
     }
