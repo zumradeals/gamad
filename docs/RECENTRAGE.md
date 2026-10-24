@@ -425,3 +425,15 @@ Les abonnés d'une entreprise retrouvent ses publications dans « Mes suivis »,
 Une suspension retire immédiatement l'accès à ses publications, y compris par URL directe,
 et la réactivation rétablit les règles de visibilité normales.
 Le contenu de l'entreprise reste distinct du parcours personnel du gestionnaire.
+
+
+## Images et présentation d'une entreprise — D-194, PR 4
+
+Le gestionnaire d'une page entreprise peut ajouter, remplacer ou retirer un logo carré et une
+bannière panoramique, ainsi qu'actualiser ses champs de présentation non administratifs.
+Les images JPEG/PNG/WebP (5 Mo, 25 millions de pixels maximum) sont réencodées en JPEG,
+sans EXIF, puis conservées sur le disque privé. Logo carré (jusqu'à 512px), bannière
+1600×600. Le contrôleur de diffusion revérifie le statut de la page à chaque consultation
+(gestionnaire/modération pour aperçu privé). Les numéros d'immatriculation et le statut
+vérifié ne sont pas modifiables depuis ce formulaire. Une page suspendue perd l'accès
+public à ses visuels. Pas d'images fictives : initiales et formes GAMAD par défaut.

@@ -4,15 +4,26 @@
 
     <article class="overflow-hidden rounded-[22px] border border-line bg-card">
         <div class="relative h-[175px] overflow-hidden bg-ink md:h-[235px]" aria-label="Bannière de l'entreprise">
+            @if ($company->banner_path)
+                <img src="{{ route('entreprises.visual', [$company, 'banner']) }}" alt="Bannière de {{ $company->name }}" class="absolute inset-0 size-full object-cover" fetchpriority="high">
+                <div class="absolute inset-0 bg-gradient-to-t from-ink/40 to-transparent" aria-hidden="true"></div>
+            @else
             <div class="absolute -right-16 -top-28 size-[380px] rounded-full border-[50px] border-accent/30" aria-hidden="true"></div>
             <div class="absolute bottom-0 left-[6%] h-28 w-44 rounded-t-full border-[22px] border-white/10" aria-hidden="true"></div>
             <div class="absolute right-[23%] top-[20%] h-[70px] w-[140px] rotate-[-24deg] rounded-[12px] border-[10px] border-white/10" aria-hidden="true"></div>
+            @endif
             <span class="absolute bottom-5 right-5 rounded-full border border-white/35 bg-white/10 px-3 py-1.5 text-[11px] font-semibold text-white">GAMAD · Entreprises</span>
         </div>
 
         <div class="relative px-4 pb-6 md:px-7">
             <div class="flex min-w-0 flex-col gap-4 md:flex-row md:items-start md:gap-5">
-                <div class="-mt-11 flex size-[92px] shrink-0 items-center justify-center rounded-[22px] border-[5px] border-card bg-soft-blue text-[33px] font-extrabold text-ink shadow-sm md:-mt-14 md:size-[115px]" aria-label="Initiales de l'entreprise">{{ mb_strtoupper(mb_substr($company->name, 0, 2)) }}</div>
+                <div class="-mt-11 flex size-[92px] shrink-0 items-center justify-center rounded-[22px] border-[5px] border-card bg-soft-blue text-[33px] font-extrabold text-ink shadow-sm md:-mt-14 md:size-[115px]" aria-label="Logo de l'entreprise">
+                    @if ($company->logo_path)
+                        <img src="{{ route('entreprises.visual', [$company, 'logo']) }}" alt="Logo de {{ $company->name }}" class="size-full rounded-[16px] bg-white object-contain">
+                    @else
+                        {{ mb_strtoupper(mb_substr($company->name, 0, 2)) }}
+                    @endif
+                </div>
                 <div class="flex min-w-0 flex-1 flex-col gap-2 pt-0 md:pt-4">
                     <h1 class="break-words text-[28px] font-extrabold leading-tight md:text-[36px]">{{ $company->name }}</h1>
                     <p class="text-[15px] font-bold text-muted">{{ $company->sector }} @if ($company->city) · {{ $company->city }} @endif · {{ $company->registration_country }}</p>
@@ -24,6 +35,9 @@
                     @if ($company->summary)<p class="max-w-[680px] whitespace-pre-line break-words text-[15px] leading-relaxed">{{ $company->summary }}</p>@endif
                 </div>
                 <div class="flex flex-wrap items-center gap-2 md:pt-5">
+                    @if ($isOwner)
+                        <x-button :href="route('entreprises.branding.edit', $company)" variant="secondary"><x-icon name="pencil" :size="16" class="mr-1"/> Personnaliser</x-button>
+                    @endif
                     @if ($company->verified())
                         @auth
                             <form method="POST" action="{{ route('entreprises.follow', $company) }}">@csrf
