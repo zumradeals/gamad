@@ -75,8 +75,6 @@
             @else
                 <button type="button" wire:click="followAuthor('{{ $publication->id }}')" wire:loading.attr="disabled" wire:target="followAuthor" class="inline-flex min-h-11 shrink-0 items-center gap-1 text-[12px] font-bold text-link">+ Suivre</button>
             @endif
-        @elseif ($compact && ! $browse && $viewer && ! $isOwner)
-            <a href="{{ route('publications.signaler', $publication) }}" class="inline-flex min-h-11 shrink-0 items-center self-start text-[11px] font-semibold text-muted underline-offset-4 hover:text-ink hover:underline">Signaler</a>
         @endif
     </div>
 
@@ -179,6 +177,9 @@
             <a href="{{ route('publications.show', $publication) }}#discussion" class="inline-flex min-h-11 items-center self-start gap-2 text-[13px] font-bold text-link underline-offset-4 hover:underline"><x-icon name="chat" :size="17" />Commenter</a>
             @if ($compact)
                 @include('partials.publication-social-actions', ['saved' => $saved])
+            @endif
+            @if ($compact && ! $browse && $viewer && ! $isOwner)
+                <a href="{{ route('publications.signaler', $publication) }}" class="inline-flex min-h-11 items-center text-[12px] font-semibold text-muted underline-offset-4 hover:text-ink hover:underline">Signaler</a>
             @endif
         </div>
     @endif
