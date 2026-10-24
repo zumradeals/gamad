@@ -61,6 +61,12 @@ class Publication extends Model
         ];
     }
 
+    /** Organisation vérifiée au nom de laquelle l'auteur habilité publie (D-194). */
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
+
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author_id');
@@ -129,6 +135,10 @@ class Publication extends Model
      */
     public function scopeVisibleTo(Builder $query, ?User $viewer): Builder
     {
+        // Une page suspendue ou dévérifiée disparaît immédiatement de tous les fils.
+        $query->where(fn (Builder $companyScope) => $companyScope->whereNull('company_id')
+            ->orWhereHas('company', fn (Builder $companies) => $companies->publiclyVisible()));
+
         if ($viewer && ! $viewer->can('moderate')) {
             $query->whereNotIn('author_id', People::excludedIds($viewer));
         }
@@ -222,6 +232,14 @@ class Publication extends Model
 
     public function ownTitle(): string
     {
+        if ($this->company_id) {
+            return match ($this->type) {
+                PublicationType::PersonalWork => 'Réalisation de l’entreprise',
+                PublicationType::Need => 'Opportunité de l’entreprise',
+                default => 'Publication de l’entreprise',
+            };
+        }
+
         if ($this->type === PublicationType::Offer && ($this->matching['enabled'] ?? false)) {
             return ($this->matching['activity'] ?? '') === 'training' ? 'Mon offre de formation' : 'Mon offre';
         }
@@ -231,11 +249,23 @@ class Publication extends Model
 
     public function displayLabel(): string
     {
+        if ($this->company_id) {
+            return match ($this->type) {
+                PublicationType::PersonalWork => 'Réalisation d’entreprise',
+                PublicationType::Need => 'Opportunité professionnelle',
+                default => 'Actualité d’entreprise',
+            };
+        }
+
         return MatchingConditions::label($this->type, $this->matching ?? []);
     }
 
     public function gestureLabel(): string
     {
+        if ($this->company_id && $this->type === PublicationType::Need) {
+            return 'Proposer une collaboration';
+        }
+
         return $this->isNeed() && ($this->matching['enabled'] ?? false) && ($this->matching['terms'] ?? null) === 'paid'
             ? 'Proposer mes services' : ($this->type === PublicationType::Offer && ($this->matching['enabled'] ?? false) && ($this->matching['activity'] ?? null) === 'training' ? 'Je veux apprendre' : $this->type->gestureLabel());
     }

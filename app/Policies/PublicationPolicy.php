@@ -22,6 +22,12 @@ class PublicationPolicy
      */
     public function view(?User $viewer, Publication $publication): Response
     {
+        // Le badge d'immatriculation et la visibilité sont retirés dès la suspension de l'entreprise.
+        // Même le compte créateur ne contourne pas cette règle sur la page publique.
+        if ($publication->company_id && ! $publication->company?->verified()) {
+            return Response::denyAsNotFound();
+        }
+
         // Chacun voit les siennes ; celles de niveau ZUMRA ne se lisent que par un membre de la ZUMRA (D-112).
         if ($viewer && $viewer->getKey() === $publication->author_id && $publication->visibility !== Publication::ZUMRA) {
             return Response::allow();
