@@ -437,3 +437,24 @@ sans EXIF, puis conservées sur le disque privé. Logo carré (jusqu'à 512px), 
 (gestionnaire/modération pour aperçu privé). Les numéros d'immatriculation et le statut
 vérifié ne sont pas modifiables depuis ce formulaire. Une page suspendue perd l'accès
 public à ses visuels. Pas d'images fictives : initiales et formes GAMAD par défaut.
+
+
+## Finition de la phase pilote Entreprises — D-194 / PR 50
+
+- Notification en application adressée au compte gestionnaire lorsqu'une expérience lui
+  est soumise, puis à son auteur en cas de confirmation ou de refus ; notifications
+  administratives de dépôt, vérification et signalement avec destinations privées.
+- Après refus d'immatriculation, le compte gestionnaire peut redéposer des justificatifs
+  pour un nouvel examen sans changer l'identité légale ; les pièces remplacées sont
+  conservées de manière privée pendant l'opération, puis nettoyées après succès.
+- Signalement d'usurpation ou d'informations trompeuses accessible aux membres actifs ;
+  examen par super-administrateur, suspension motivée via la décision existante,
+  puis clôture motivée des signalements. L'identité du signalant n'est pas publiée.
+- Bouton « Contacter » : demande de relation au gestionnaire par le mécanisme
+  bilatéral People déjà existant. Aucune conversation ne commence avant acceptation ;
+  le blocage, l'anti-spam et les droits de visibilité personnels restent applicables.
+  Pas de boîte de réception parallèle, pas d'authentification supplémentaire du
+  gestionnaire pendant le pilote.
+- L'ancien dispositif individuel D-189 conserve ses données et son interface, mais
+  est visuellement distingué des confirmations d'expériences par entreprises.
+  Aucune vérification individuelle obligatoire et aucune réactivation ZUMRA/Projets.
