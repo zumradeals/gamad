@@ -8,6 +8,7 @@ use App\Models\Publication;
 use App\Services\Gestures;
 use App\Services\Gratitudes;
 use App\Services\Moderation;
+use App\Services\PublicationBookmarks;
 use App\Services\Publications;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -149,6 +150,7 @@ class PagePublication extends Component
             'gesture' => $viewer && ! $isAuthor ? Gesture::query()->with('conversation')->where('publication_id', $publication->id)->where('user_id', $viewer->getKey())->first() : null,
             // Les gestes reçus : ceux en attente d'abord, puis acceptés, puis déclinés ; les gestes retirés disparaissent.
             'received' => $received,
+            'saved' => $viewer ? in_array($publication->id, app(PublicationBookmarks::class)->savedIds($viewer, [$publication->id]), true) : false,
         ])->title($isAuthor ? $type->ownTitle() : $type->label());
     }
 

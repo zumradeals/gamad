@@ -238,6 +238,7 @@
         <livewire:attester-realisation :publication="$publication" />
     @endif
     @if (! $publication->zumra_id && ! $publication->project_id && ! $publication->isHidden())
+        <div class="rounded-card border border-line bg-card p-4">@include('partials.publication-social-actions', ['saved' => $saved])</div>
         <livewire:publication-discussion :publication="$publication" :key="'discussion-'.$publication->id" />
     @endif
     <livewire:gesture-sheet />

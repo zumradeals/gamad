@@ -141,6 +141,12 @@
             </section>
         </div>
 
+        <section class="space-panel flex flex-col gap-2 p-4 md:p-5">
+            <h2 class="flex items-center gap-2 text-[18px] font-extrabold"><x-icon name="book" :size="22" />Mes enregistrements</h2>
+            <p class="text-[13px] text-muted">Retrouvez les publications que vous avez conservées pour les relire.</p>
+            <x-button :href="route('espace.enregistrements')" variant="secondary" class="self-start">Ouvrir mes enregistrements</x-button>
+        </section>
+
         <section aria-labelledby="echanges" class="space-panel flex min-w-0 flex-col gap-3 p-4 md:p-5">
             <h2 id="echanges" class="flex items-center gap-2.5 text-[18px] font-extrabold"><x-icon name="chat" :size="23" />Mes échanges</h2>
             <p class="text-[14px] text-muted">Vos échanges privés et vos conversations avec les personnes en relation avec vous.</p>

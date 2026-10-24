@@ -3,6 +3,7 @@
 use App\Http\Controllers\GeniusPayWebhookController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PersonController;
+use App\Http\Controllers\PublicationBookmarkController;
 use App\Http\Controllers\PublicationMediaController;
 use App\Http\Controllers\SuspendedController;
 use App\Http\Controllers\TextesController;
@@ -21,6 +22,7 @@ use App\Livewire\FormulaireZumra;
 use App\Livewire\InviterPersonnes;
 use App\Livewire\JournalAdministration;
 use App\Livewire\MesAttestations;
+use App\Livewire\MesEnregistrements;
 use App\Livewire\ModerationCommentaires;
 use App\Livewire\ModerationConfiance;
 use App\Livewire\ModerationPersonnes;
@@ -77,6 +79,8 @@ Route::get('/compte-suspendu', SuspendedController::class)->middleware('auth')->
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/espace/attestations', MesAttestations::class)->name('espace.attestations');
+    Route::get('/espace/enregistrements', MesEnregistrements::class)->name('espace.enregistrements');
+    Route::post('/publications/{publication}/enregistrer', PublicationBookmarkController::class)->whereUuid('publication')->name('publications.bookmark');
     Route::get('/moderation/confiance', ModerationConfiance::class)->middleware('can:super-admin')->name('moderation.confiance');
     Route::get('/personnes/{profile:public_id}/signaler', SignalerProfil::class)->name('personnes.signaler');
     Route::get('/zumra/creer', FormulaireZumra::class)->name('zumras.create');
