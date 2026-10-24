@@ -57,7 +57,7 @@ class CompanyRegistry
                 $company->save();
 
                 foreach (['rccm', 'dfe', 'idu'] as $kind) {
-                    if (! isset($documents[$kind])) {
+                    if (isset($documents[$kind]) === false) {
                         continue;
                     }
                     $file = $documents[$kind];
