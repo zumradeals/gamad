@@ -25,7 +25,7 @@ function formulaire(?User $user = null, string $slug = 'besoin')
 it('propose les quatre types sur l’écran Agir, chacun menant à son formulaire', function () {
     $page = $this->actingAs(User::factory()->create(['name' => 'Yao Kouassi']))->get('/agir')->assertOk()
         ->assertSeeText('Que voulez-vous faire avancer ?')
-        ->assertSeeText('Dites ce qui vous manque.')
+        ->assertSeeText('Faire réaliser quelque chose ou résoudre une difficulté.')
         ->assertSeeText('Vous publiez en tant que vous-même (Yao Kouassi).')->assertDontSeeText('au nom d’une ZUMRA');
 
     foreach (['J’ai besoin' => 'besoin', 'Je partage un savoir' => 'savoir', 'Je veux apprendre' => 'apprendre', 'Je propose mon aide' => 'aide'] as $libelle => $slug) {
