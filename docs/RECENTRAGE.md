@@ -409,3 +409,19 @@ Une entreprise suspendue disparaît des références publiques et les confirmati
 plus présentées comme actives. Les anciennes expériences libres restent intactes :
 elles ne reçoivent jamais le badge de confirmation d'une entreprise vérifiée.
 Les PR suivantes traiteront les publications et opportunités émises directement par la page.
+
+
+## Publications Entreprises — D-194, PR 3
+
+Les actualités et réalisations d'une entreprise vérifiée et ses opportunités sont des
+publications ordinaires du réseau : même fil, même auteur légal (compte créateur de page),
+mêmes médias privés servis avec contrôle des droits, même modération, commentaires,
+enregistrement et partage. Les publications sont publiées au nom de l'entreprise et portent
+son identifiant ; le gestionnaire doit être membre actif et propriétaire d'une page vérifiée.
+Les types sont respectivement partage, réalisation personnelle et besoin. Aucune création
+de nouveaux « j'aime » ni algorithme de popularité, et aucune réactivation de ZUMRA/Projets.
+Les abonnés d'une entreprise retrouvent ses publications dans « Mes suivis », et
+« Découvrir » montre celles d'entreprises encore non suivies.
+Une suspension retire immédiatement l'accès à ses publications, y compris par URL directe,
+et la réactivation rétablit les règles de visibilité normales.
+Le contenu de l'entreprise reste distinct du parcours personnel du gestionnaire.

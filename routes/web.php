@@ -5,6 +5,7 @@ use App\Http\Controllers\CompanyDocumentController;
 use App\Http\Controllers\CompanyExperienceController;
 use App\Http\Controllers\CompanyExperienceReviewController;
 use App\Http\Controllers\CompanyFollowController;
+use App\Http\Controllers\CompanyPostController;
 use App\Http\Controllers\GeniusPayWebhookController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PersonController;
@@ -91,6 +92,10 @@ Route::get('/compte-suspendu', SuspendedController::class)->middleware('auth')->
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/entreprises/creer', CompanyCreate::class)->name('entreprises.create');
+    Route::get('/entreprises/{company}/publier', [CompanyPostController::class, 'create'])
+        ->where('company', '.+-[a-z0-9]{8}')->name('entreprises.posts.create');
+    Route::post('/entreprises/{company}/publier', [CompanyPostController::class, 'store'])
+        ->where('company', '.+-[a-z0-9]{8}')->name('entreprises.posts.store');
     Route::get('/espace/experiences-professionnelles', [CompanyExperienceController::class, 'index'])->name('espace.company-experiences');
     Route::post('/espace/experiences-professionnelles', [CompanyExperienceController::class, 'store'])->name('espace.company-experiences.store');
     Route::post('/espace/experiences-professionnelles/{experience}/retirer', [CompanyExperienceController::class, 'withdraw'])

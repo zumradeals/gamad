@@ -19,6 +19,7 @@
     // Gérée par la personne qui regarde : la sienne, ou celle d'une ZUMRA qu'elle gère (D-116).
     $isOwner = $publication->isManagedBy($viewer, $managed);
     $zumra = $publication->zumra;
+    $company = $publication->company;
     // La règle de visibilité du profil lit son propriétaire : on lui donne celui qu'on a déjà, sans requête de plus.
     $profile?->setRelation('user', $author);
     $canSeeAuthor = $profile && Gate::forUser($viewer)->allows('view', $profile);
@@ -38,7 +39,7 @@
     };
 @endphp
 
-<article {{ $attributes->class(['flex flex-col gap-3 border border-line bg-card p-4 md:p-[18px]', 'feed-publication feed-panel' => $compact, 'rounded-card' => ! $compact]) }} aria-label="{{ $publication->displayLabel() }} de {{ $zumra?->name ?? $author->name }}">
+<article {{ $attributes->class(['flex flex-col gap-3 border border-line bg-card p-4 md:p-[18px]', 'feed-publication feed-panel' => $compact, 'rounded-card' => ! $compact]) }} aria-label="{{ $publication->displayLabel() }} de {{ $company?->name ?? $zumra?->name ?? $author->name }}">
     @unless ($compact)
         <div class="flex items-center justify-between gap-2">
             <span class="self-start rounded-chip px-2.5 py-1 text-[12px] font-bold {{ $type->badgeClasses() }}">{{ $publication->displayLabel() }}</span>
@@ -49,13 +50,18 @@
     @endunless
 
     <div class="feed-post-author flex items-center gap-2.5">
-        @if ($zumra)
+        @if ($company)
+            <span aria-hidden="true" class="flex size-10 shrink-0 items-center justify-center rounded-button bg-type-knowledge-bg text-[14px] font-extrabold text-type-knowledge-fg">{{ mb_strtoupper(mb_substr($company->name, 0, 2)) }}</span>
+        @elseif ($zumra)
             <x-zumra-initials :zumra="$zumra" :size="40" />
         @elseif ($profile)
             <x-avatar :profile="$profile" :size="40" />
         @endif
         <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-            @if ($zumra)
+            @if ($company)
+                <a href="{{ route('entreprises.show', $company) }}" class="inline-flex min-h-11 items-center break-words text-[15px] font-bold text-ink no-underline hover:underline">{{ $company->name }}</a>
+                <span class="inline-flex items-center gap-1 self-start text-[11px] font-semibold text-type-knowledge-fg"><x-icon name="check-circle" :size="13"/> Immatriculation vérifiée</span>
+            @elseif ($zumra)
                 <a href="{{ route('zumras.show', $zumra) }}" class="inline-flex min-h-11 items-center break-words text-[15px] font-bold text-ink no-underline hover:text-ink hover:underline">{{ $zumra->name }}</a>
             @elseif ($canSeeAuthor)
                 <a href="{{ route('personnes.show', $profile->public_id) }}" class="inline-flex min-h-11 items-center break-words text-[15px] font-bold text-ink no-underline hover:text-ink hover:underline">{{ $author->name }}</a>
@@ -69,7 +75,7 @@
                 <span class="feed-post-meta -mt-2 text-[12px] text-muted">{{ $meta }}</span>
             @endif
         </div>
-        @if ($compact && $showFollow && ! $browse && $viewer?->isActive() && ! $isOwner && $canSeeAuthor && ! $zumra && ! $publication->project_id)
+        @if ($compact && $showFollow && ! $browse && $viewer?->isActive() && ! $isOwner && $canSeeAuthor && ! $zumra && ! $company && ! $publication->project_id)
             @if ($followed)
                 <span class="inline-flex min-h-11 items-center text-[12px] font-bold text-type-knowledge-fg">Personne suivie</span>
             @else

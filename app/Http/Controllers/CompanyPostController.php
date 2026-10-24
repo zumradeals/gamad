@@ -53,6 +53,7 @@ class CompanyPostController extends Controller
             'media' => $request->file('media'),
         ], company: $company);
 
-        return redirect()->route('entreprises.show', $company).'#publications';
+        return redirect()->to(route('entreprises.show', $company).'#publications')
+            ->with('status', 'Votre publication est en ligne sur GAMAD.');
     }
 }

@@ -1,5 +1,5 @@
 @php
-    $filters = ['tout' => 'Tout', 'suivis' => 'Mes suivis', 'decouvrir' => 'Découvrir', 'partages' => 'Partages', 'besoins' => 'Besoins', 'savoirs' => 'Savoirs', 'apprendre' => 'Apprendre', 'aides' => 'Aides', 'zumra' => 'ZUMRA', 'projets' => 'Projets'];
+    $filters = ['tout' => 'Tout', 'suivis' => 'Mes suivis', 'decouvrir' => 'Découvrir', 'partages' => 'Partages', 'entreprises' => 'Entreprises', 'besoins' => 'Besoins', 'savoirs' => 'Savoirs', 'apprendre' => 'Apprendre', 'aides' => 'Aides', 'zumra' => 'ZUMRA', 'projets' => 'Projets'];
     if (\App\Support\Experience::initial()) {
         unset($filters['zumra'], $filters['projets']);
     }
@@ -122,7 +122,7 @@
         </nav>
 
         <div class="flex items-center gap-3 px-0.5 text-[12px] text-muted">
-            <span>{{ match ($filter) { 'suivis' => 'Publications récentes des personnes suivies', 'decouvrir' => 'Publications publiques de nouvelles personnes', 'partages' => 'Partages et réalisations récents', default => 'Les publications les plus récentes' } }} · sans classement de popularité</span><span class="h-px flex-1 bg-line" aria-hidden="true"></span>
+            <span>{{ match ($filter) { 'suivis' => 'Publications des personnes et entreprises suivies', 'decouvrir' => 'Publications publiques de nouvelles personnes et entreprises', 'partages' => 'Partages et réalisations récents', 'entreprises' => 'Publications des entreprises vérifiées', default => 'Les publications les plus récentes' } }} · sans classement de popularité</span><span class="h-px flex-1 bg-line" aria-hidden="true"></span>
         </div>
 
         @if (session('status'))
@@ -141,7 +141,7 @@
                         <p class="text-[14px] text-muted">Essayez un autre mot, ou cherchez une personne par ses capacités.</p>
                         <x-button type="button" variant="secondary" wire:click="clearSearch">Effacer la recherche</x-button>
                     @elseif ($filter === 'suivis')
-                        <h2 id="vide" class="text-[18px] font-extrabold">Rien de nouveau chez les personnes suivies.</h2>
+                        <h2 id="vide" class="text-[18px] font-extrabold">Rien de nouveau chez les personnes ou entreprises suivies.</h2>
                         <p class="text-[14px] text-muted">Découvrez d'autres parcours puis choisissez librement qui suivre.</p>
                         <x-button type="button" variant="secondary" wire:click="setFilter('decouvrir')">Découvrir des personnes</x-button>
                     @elseif ($filter === 'decouvrir')
