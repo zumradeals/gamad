@@ -25,7 +25,7 @@
 
                 <form wire:submit="send" class="flex flex-col gap-3.5">
                     <div class="flex flex-col gap-1.5" x-data="{ count: [...$wire.message].length }">
-                        <label for="geste-mot" class="text-[13px] font-bold text-muted">{{ $type->isExchange() ? 'De quoi aimeriez-vous échanger ?' : 'Un mot pour '.$firstName.' (facultatif)' }}</label>
+                        <label for="geste-mot" class="text-[13px] font-bold text-muted">{{ $type->isExchange() ? 'De quoi aimeriez-vous échanger ?' : (in_array($type, [\App\Enums\PublicationType::Need, \App\Enums\PublicationType::LearningWish], true) ? 'Que proposez-vous concrètement ? (facultatif)' : 'Que souhaitez-vous faire ensemble ? (facultatif)') }}</label>
                         <textarea id="geste-mot" wire:model="message" rows="3" maxlength="{{ \App\Models\Gesture::MESSAGE_MAX }}"
                                   x-on:input="count = [...$event.target.value].length"
                                   @class(['min-h-24 w-full resize-none rounded-button border bg-card px-3.5 py-3 text-[15px] leading-normal', $errors->has('message') ? 'border-danger' : 'border-chip-line'])

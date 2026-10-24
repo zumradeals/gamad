@@ -303,3 +303,21 @@ Formulaire progressif, détails facultatifs, relecture et retour Modifier sans p
 Matching facultatif présenté comme « M’aider à trouver les bonnes personnes ». Les validations
 serveur, les droits et la limite de 500 caractères restent applicables à la publication finale.
 Aucune nouvelle dépendance ni réouverture de module. R1 reste En cours.
+
+
+## De la publication au résultat — D-192
+Les cinq priorités approuvées enrichissent R1 sans nouveau menu : réponses adaptées, suite après
+publication, brouillon local, bilan facultatif et une suggestion de profil à la fois.
+Les gestes et leur consentement restent inchangés ; disponibilités facultatives et 280 caractères au total.
+Après publication personnelle : lien partageable avec visibilité explicitée, pistes existantes et conseil
+de profil. Aucune correspondance fictive ni message automatique.
+Brouillon : texte et précisions du besoin seulement, sur cet appareil, séparés par compte et type ;
+reprise explicite, effacement, expiration après sept jours, suppression après publication réussie.
+Fichiers, conditions, audience et autres réglages doivent être revérifiés ; aucun fichier sauvegardé localement.
+Bilan : texte brut de 280 caractères maximum, facultatif, sur un besoin personnel résolu non masqué,
+modifiable/effaçable par son auteur actif uniquement ; même audience que la publication. Déclaration
+de l’auteur, sans tag ni notification ni attestation implicite. Une colonne nullable est autorisée.
+Depuis le bilan, création volontaire d’une réalisation par le formulaire existant, puis demande éventuelle
+de confirmation selon D-189. Aucune publication ou confirmation automatique.
+Conseil de profil : une suggestion déterministe privée, sans score ni diplôme requis ; capacité,
+réalisation ou présentation selon les éléments manquants. R1 reste En cours.

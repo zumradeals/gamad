@@ -17,6 +17,7 @@ D-189 ajoute les attestations personnelles : identité vérifiée par contrôle 
 par des relations identifiées, signalements/recours et retrait tracé. Aucun justificatif d’identité téléversé.
 D-190 renomme le menu Fil en Accueil et refond l’entrée publique sans devise ni référence au Mouvement.
 Les URL internes /fil et les droits restent conservés ; lire le contrat d’entrée publique avant d’intervenir.
+D-192 accompagne la publication jusqu’au résultat : lire le contrat « De la publication au résultat ».
 Lire d'abord `docs/RECENTRAGE.md`, puis les quatre sources d'autorité ci-dessous.
 **Suspendre toute extension des ZUMRA, Projets, contributions et portefeuilles** : leur code et leurs données
 restent conservés, leurs nouvelles utilisations sont gelées selon le contrat de transition. Ne pas les

@@ -26,6 +26,19 @@
         <h1 class="flex-1 text-[17px] font-extrabold">{{ $heading }}</h1>
     </div>
 
+    @if (! $zumra && ! $project)
+        <section x-data="gamadDraft($wire, @js('gamad:draft:'.auth()->id().':'.$slug))" class="rounded-card border border-line bg-card p-3" aria-label="Brouillon local">
+            <div x-show="saved" x-cloak class="flex flex-col gap-2">
+                <p class="text-[14px] font-bold">Reprendre votre publication ?</p>
+                <p class="text-[12px] text-muted">Seuls le texte et les précisions sont conservés. Revérifiez les conditions, l’audience et les autres réglages ; joignez de nouveau votre fichier.</p>
+                <div class="flex flex-wrap gap-2"><x-button type="button" x-on:click="resume()">Reprendre</x-button><x-button type="button" variant="secondary" x-on:click="discard()">Effacer le brouillon</x-button></div>
+            </div>
+            <p class="text-[12px] text-muted" x-text="status" role="status"></p>
+            <p class="text-[12px] text-muted">Brouillon local sur cet appareil. Évitez les informations privées sur un appareil partagé.</p>
+            <button type="button" x-show="!saved" x-on:click="discard()" class="min-h-11 text-[13px] font-bold">Effacer la copie sauvegardée</button>
+        </section>
+    @endif
+
     <form wire:submit="{{ ($previewing || $zumra || $project) ? 'publish' : 'preview' }}" class="flex flex-col gap-3.5">
         <span class="self-start rounded-chip px-2.5 py-1 text-[12px] font-bold {{ $type->badgeClasses() }}">{{ \App\Services\MatchingConditions::label($type, $matching ?? []) }}</span>
         @if ($project)

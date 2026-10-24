@@ -14,6 +14,9 @@
 @endphp
 
 <div class="flex flex-col gap-3.5">
+    @if (session('clear_draft'))
+        <span hidden x-data x-init="try { localStorage.removeItem(@js(session('clear_draft'))) } catch (e) {}"></span>
+    @endif
     <div class="-mx-4 -mt-4 flex min-h-14 items-center gap-1 border-b border-line bg-card px-2 py-1.5 md:mx-0 md:mt-0 md:rounded-card md:border">
         <a href="{{ $viewer ? route('fil') : url('/') }}" aria-label="{{ $viewer ? 'Retour à l’accueil' : 'Retour à l’accueil' }}" class="flex size-11 items-center justify-center text-ink hover:text-ink"><x-icon name="back" /></a>
         <h1 class="flex-1 text-[17px] font-extrabold">{{ $isAuthor ? $publication->ownTitle() : $publication->displayLabel() }}</h1>
@@ -21,6 +24,40 @@
 
     @if (session('status'))
         <x-status>{{ session('status') }}</x-status>
+    @endif
+
+    @if ($isAuthor && ! $publication->zumra_id && ! $publication->isHidden())
+        <section class="flex flex-col gap-3 rounded-card border border-line bg-card p-4" aria-label="Suite de ma publication">
+            <h2 class="text-[18px] font-extrabold">{{ session('published_id') === $publication->id ? 'Votre publication est en ligne' : 'Et maintenant ?' }}</h2>
+            <p class="text-[14px] text-muted">Retrouvez les réponses ici. Après acceptation, convenez ensemble de la prochaine action dans votre échange.</p>
+            <label for="publication-link" class="text-[13px] font-bold">Lien à partager</label>
+            <input id="publication-link" readonly value="{{ route('publications.show', $publication) }}" onclick="this.select()" class="min-h-11 w-full min-w-0 rounded-button border border-line px-3 text-[13px]">
+            <p class="text-[12px] text-muted">{{ $publication->isPublic() ? 'Cette publication peut être lue sans compte.' : 'Ce lien ne change pas l’audience : connexion et droits d’accès restent nécessaires.' }}</p>
+            @if ($publication->matching['enabled'] ?? false)
+                <x-button :href="route('espace').'#suggestions'" variant="secondary">Consulter mes pistes</x-button>
+                <p class="text-[12px] text-muted">Les pistes dépendent de vos préférences et des personnes disponibles. Une réponse n’est pas garantie.</p>
+            @endif
+            <x-profile-next-step :user="$viewer" />
+        </section>
+    @endif
+
+    @if ($publication->outcome && ! $publication->isHidden())
+        <section class="rounded-card border border-line bg-card p-4" aria-label="Bilan du besoin">
+            <h2 class="text-[17px] font-extrabold">Ce qui a été accompli</h2>
+            <p class="mt-2 whitespace-pre-line break-words text-[14px]">{{ $publication->outcome }}</p>
+            <p class="mt-2 text-[12px] text-muted">Bilan déclaré par l’auteur. Ce texte ne constitue pas une confirmation d’expérience.</p>
+        </section>
+    @endif
+    @if ($isAuthor && ! $publication->zumra_id && ! $publication->isHidden() && $state === NeedState::Resolved)
+        <form wire:submit="saveOutcome" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4">
+            <label for="outcome" class="font-bold">Raconter le résultat (facultatif)</label>
+            <textarea id="outcome" wire:model="outcome" maxlength="280" rows="3" class="w-full rounded-button border border-line p-3" placeholder="Ex. La caisse fonctionne et je sais maintenant l’utiliser."></textarea>
+            <p class="text-[12px] text-muted">Même audience que votre besoin. Ne citez une personne qu’avec son accord. Effacez le texte pour retirer le bilan.</p>
+            @error('outcome')<p role="alert" class="text-danger">{{ $message }}</p>@enderror
+            <x-button wire:loading.attr="disabled" wire:target="saveOutcome">Enregistrer le bilan</x-button>
+            <x-button :href="route('agir.publier', 'ma-realisation')" variant="secondary">Montrer une réalisation</x-button>
+            <p class="text-[12px] text-muted">Vous pourrez ensuite demander une confirmation d’expérience depuis votre réalisation. Le témoin reste libre de confirmer.</p>
+        </form>
     @endif
 
     @if ($isAuthor && ($publication->matching['enabled'] ?? false) && ($publication->matching['open'] ?? false))

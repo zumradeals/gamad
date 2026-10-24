@@ -34,6 +34,8 @@ class PagePublication extends Component
     public string $publicationId;
 
     /** Écran 13 : la personne remerciée (identifiant de compte, parmi celles dont le geste est accepté) et le texte du remerciement. */
+    public string $outcome = '';
+
     public string $helperId = '';
 
     public string $gratitudeText = '';
@@ -46,6 +48,7 @@ class PagePublication extends Component
         Gate::authorize('view', $publication);
 
         $this->publicationId = $publication->id;
+        $this->outcome = (string) $publication->outcome;
     }
 
     #[On('gesture-changed')]
@@ -59,6 +62,12 @@ class PagePublication extends Component
     public function decline(string $gestureId, Gestures $gestures): void
     {
         $gestures->decline(Auth::user(), $this->gesture($gestureId));
+    }
+
+    public function saveOutcome(Publications $publications): void
+    {
+        $publications->saveOutcome(Auth::user(), $this->publication(), $this->outcome);
+        session()->flash('status', 'Bilan enregistré.');
     }
 
     public function resolve(Publications $publications): void
