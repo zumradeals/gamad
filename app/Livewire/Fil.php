@@ -6,6 +6,8 @@ use App\Enums\GestureState;
 use App\Enums\PublicationType;
 use App\Models\Gesture;
 use App\Models\Publication;
+use App\Models\User;
+use App\Services\People;
 use App\Services\PublicationBookmarks;
 use App\Services\Supports;
 use App\Support\Experience;
@@ -65,6 +67,11 @@ class Fil extends Component
         'aides' => PublicationType::Offer,
     ];
 
+    /** Filtres sociaux D-193, sans classement ni donnée fictive. */
+    public const DISCOVER_FILTER = 'decouvrir';
+
+    public const SHARES_FILTER = 'partages';
+
     /** Filtre « ZUMRA » (D-098, 3c) : les publications faites au nom d'une ZUMRA, tous types confondus. */
     public const ZUMRA_FILTER = 'zumra';
 
@@ -85,7 +92,25 @@ class Fil extends Component
     /** Un geste envoyé, retiré, accepté ou décliné : la page se redessine. */
     private function knows(string $filter): bool
     {
-        return $filter === 'suivis' || array_key_exists($filter, self::FILTERS) || (! Experience::initial() && in_array($filter, [self::ZUMRA_FILTER, self::PROJECT_FILTER], true));
+        return in_array($filter, ['suivis', self::DISCOVER_FILTER, self::SHARES_FILTER], true) || array_key_exists($filter, self::FILTERS) || (! Experience::initial() && in_array($filter, [self::ZUMRA_FILTER, self::PROJECT_FILTER], true));
+    }
+
+    /**
+     * Suivi social volontaire depuis une publication personnelle visible.
+     * People::follow applique les droits du profil et les blocages, sans créer de relation privée.
+     */
+    public function followAuthor(string $publicationId, People $people): void
+    {
+        abort_unless(Str::isUuid($publicationId), 404);
+        $viewer = Auth::user();
+        abort_unless($viewer?->isActive(), 403);
+
+        $post = Publication::query()->visibleTo($viewer)->whereNull('hidden_at')
+            ->whereNull('zumra_id')->whereNull('project_id')
+            ->with('author.profile')->findOrFail($publicationId);
+
+        $people->follow($viewer, $post->author, true);
+        $this->dispatch('feed-follow-changed');
     }
 
     #[On('gesture-changed')]
@@ -109,7 +134,13 @@ class Fil extends Component
                     ->orWhereHas('author', fn (Builder $author) => $author->where('name_search', 'like', Normalizer::likeContains($key)));
             }))
             ->when(array_key_exists($filter, self::FILTERS), fn ($query) => $query->where('type', self::FILTERS[$filter]->value))
-            ->when($filter === 'suivis', fn ($query) => $query->where('visibility', Publication::PUBLIC)->whereNull('zumra_id')->whereIn('author_id', DB::table('person_follows')->where('user_id', $viewer->id)->select('followed_id')))
+            ->when($filter === 'suivis', fn ($query) => $query->whereNull('zumra_id')->whereNull('project_id')
+                ->whereIn('author_id', DB::table('person_follows')->where('user_id', $viewer->id)->select('followed_id')))
+            ->when($filter === self::DISCOVER_FILTER, fn ($query) => $query->whereNull('zumra_id')->whereNull('project_id')
+                ->where('visibility', Publication::PUBLIC)->where('author_id', '!=', $viewer->id)
+                ->whereNotIn('author_id', DB::table('person_follows')->where('user_id', $viewer->id)->select('followed_id')))
+            ->when($filter === self::SHARES_FILTER, fn ($query) => $query->whereNull('zumra_id')->whereNull('project_id')
+                ->whereIn('type', [PublicationType::Share->value, PublicationType::PersonalWork->value]))
             ->when($filter === self::ZUMRA_FILTER, fn ($query) => $query->whereNotNull('zumra_id'))
             ->when($filter === self::PROJECT_FILTER, fn ($query) => $query->whereNotNull('project_id'))
             ->with(['author.profile', 'domain', 'city', 'skills', 'zumra', 'project'])
@@ -122,6 +153,8 @@ class Fil extends Component
 
         $hasMore = $posts->count() > $this->limit;
         $posts = $posts->take($this->limit);
+        $followedAuthorIds = DB::table('person_follows')->where('user_id', $viewer->id)
+            ->whereIn('followed_id', $posts->pluck('author_id'))->pluck('followed_id')->all();
 
         return view('livewire.fil', [
             'posts' => $posts,
@@ -133,6 +166,7 @@ class Fil extends Component
             'filter' => $filter,
             'supported' => app(Supports::class)->supportedBy($viewer, $posts->pluck('id')),
             'savedIds' => app(PublicationBookmarks::class)->savedIds($viewer, $posts->pluck('id')),
+            'followedAuthorIds' => $followedAuthorIds,
             'managedZumraIds' => $viewer->managedZumraIds(),
             'memberOf' => $viewer->zumraMemberships()->pluck('zumra_id')->all(),
         ]);
