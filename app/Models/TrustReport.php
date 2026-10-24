@@ -18,6 +18,12 @@ class TrustReport extends Model
         return ['closed_at' => 'datetime', 'revision' => 'integer'];
     }
 
+    public function scopeForReview($query, User $viewer)
+    {
+        return $query->where('reporter_id', '!=', $viewer->id)->where('subject_id', '!=', $viewer->id)
+            ->where(fn ($q) => $q->whereNull('work_attestation_id')->orWhereHas('workAttestation', fn ($w) => $w->where('attester_id', '!=', $viewer->id)));
+    }
+
     public function reporter()
     {
         return $this->belongsTo(User::class, 'reporter_id');

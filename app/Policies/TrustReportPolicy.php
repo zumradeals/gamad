@@ -9,7 +9,7 @@ class TrustReportPolicy
 {
     public function view(User $a, TrustReport $r): bool
     {
-        return $a->isActive() && ($a->id === $r->reporter_id || $a->isSuperAdmin());
+        return $a->isActive() && ($a->id === $r->reporter_id || ($a->isSuperAdmin() && ! in_array($a->id, [$r->subject_id, $r->workAttestation?->attester_id], true)));
     }
 
     public function review(User $a, TrustReport $r): bool

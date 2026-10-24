@@ -247,7 +247,7 @@ Confiance dans la modération, réservée au super administrateur. Pas de nouvea
   États pending, verified, declined, revoked, withdrawn ; motif privé et instruction de rendez-vous facultative
   dans le dossier. Demande suivante après sept jours si refus/retrait ; renouvellement à expiration.
 - Une référence porte sur une publication personnelle Ma réalisation non masquée de l’auteur. L’auteur
-  sollicite au plus trois personnes, déjà en relation réciproque et dont l’identité est vérifiée. Il décrit
+  maintient au plus trois sollicitations actives, déjà en relation réciproque et dont l’identité est vérifiée. Il décrit
   son intervention (280 caractères) et sa date passée ; le témoin accepte ce texte explicitement et précise
   son rôle (client, collègue, personne présente). Aucun message privé créé automatiquement. Révision sous
   verrou contre les anciennes réponses, maximum cinq sollicitations par jour, délai de sept jours après
@@ -259,7 +259,7 @@ Confiance dans la modération, réservée au super administrateur. Pas de nouvea
   rétablissement automatique après révocation. Un blocage retire les sollicitations et références des deux
   personnes, sans les réactiver au déblocage. Les coordonnées et preuves privées ne sont jamais exposées.
 - Signalement motivé (500 caractères), cinq par jour et un ouvert par cible/personne. Le nom du signalant
-  n’est pas communiqué à la personne signalée. Les personnes concernées peuvent contester une décision
+  n’est pas communiqué à la personne signalée ; les opérateurs impliqués sont exclus de la file d’examen. Les personnes concernées peuvent contester une décision
   par le même formulaire (catégorie Recours). Un recours ouvert permet de rouvrir le contrôle humain ou de
   redemander au témoin sa confirmation ; aucune mention n’est rétablie automatiquement. La file permet une réponse motivée, une clôture et les actes
   distincts de retrait appropriés, avec contrôle des conflits d’intérêt (jamais ses propres dossiers).

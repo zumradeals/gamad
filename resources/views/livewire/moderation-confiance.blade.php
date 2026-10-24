@@ -43,7 +43,7 @@
                     @endcan
                 @endif
                 @can('review', $row)
-                    <label for="report-response-{{ $row->id }}" class="mt-3 block text-[13px] font-bold">Réponse au signalant ou au recours</label><textarea id="report-response-{{ $row->id }}" wire:model="reasons.{{ $row->id }}" maxlength="500" rows="3" class="mt-2 w-full rounded-button border border-chip-line bg-card p-3"></textarea>
+                    <label for="report-response-{{ $row->id }}" class="mt-3 block text-[13px] font-bold">Réponse au signalant ou au recours (sans divulguer son identité)</label><textarea id="report-response-{{ $row->id }}" wire:model="reasons.{{ $row->id }}" maxlength="500" rows="3" class="mt-2 w-full rounded-button border border-chip-line bg-card p-3"></textarea>
                     <p class="mt-2 text-[12px] text-muted">La clôture communique votre réponse. Un retrait de badge ou de référence se fait par l’action distincte correspondante.</p>
                     <x-button type="button" class="mt-3" wire:click="closeReport('{{ $row->id }}', {{ $row->revision }})" wire:loading.attr="disabled">Répondre et clore</x-button>
                 @endcan

@@ -279,6 +279,10 @@ it('borne les sollicitations à trois témoins par réalisation et cinq demandes
         }
     }
     expect(WorkAttestation::count())->toBe(3);
+    $first = WorkAttestation::oldest()->first();
+    $this->trust->decideWork(User::findOrFail($first->attester_id), $first->id, $first->revision, 'decline');
+    $this->trust->requestWork($this->author, $post, $witness->id, 'Une intervention précise', today()->toDateString());
+    expect(WorkAttestation::whereIn('state', ['pending', 'confirmed'])->count())->toBe(3);
     foreach (range(1, 5) as $i) {
         RateLimiter::hit('trust-work:'.$this->author->id, 86400);
     }
@@ -303,4 +307,13 @@ it('refuse au super administrateur de clore son propre signalement', function ()
     $report = TrustReport::sole();
     expect(fn () => $this->trust->closeReport($this->admin, $report->id, $report->revision, 'Je ferme moi-même'))->toThrow(AuthorizationException::class);
     expect($report->fresh()->state)->toBe('open');
+});
+
+it('cache le signalant même lorsque la personne signalée est super administrateur', function () {
+    $this->trust->report($this->stranger, $this->admin, null, 'identity', 'Texte confidentiel réservé à un opérateur indépendant.');
+    $report = TrustReport::sole();
+    expect($this->admin->can('view', $report))->toBeFalse();
+    Livewire::actingAs($this->admin)->test(ModerationConfiance::class)->assertDontSeeText('Texte confidentiel réservé');
+    $otherAdmin = User::factory()->superAdmin()->create();
+    Livewire::actingAs($otherAdmin)->test(ModerationConfiance::class)->assertSeeText('Texte confidentiel réservé');
 });

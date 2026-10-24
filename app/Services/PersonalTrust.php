@@ -105,7 +105,7 @@ class PersonalTrust
             $this->require((bool) $this->identity($other) && app(People::class)->pair($actor, $other)->where('state', 'accepted')->exists(), 'Choisissez une relation réciproque dont l’identité est vérifiée.');
             $row = WorkAttestation::where('publication_id', $post->id)->where('attester_id', $other->id)->lockForUpdate()->first();
             $this->require(! $row || (! in_array($row->state, ['pending', 'confirmed'], true) && $row->updated_at->lte(now()->subDays(7))), 'Une demande existe déjà ou a été traitée depuis moins de sept jours.');
-            $this->require($row || WorkAttestation::where('publication_id', $post->id)->count() < 3, 'Trois personnes au plus peuvent être sollicitées pour cette réalisation.');
+            $this->require(WorkAttestation::where('publication_id', $post->id)->whereIn('state', ['pending', 'confirmed'])->count() < 3, 'Trois sollicitations actives au plus pour cette réalisation.');
             $this->limit('trust-work:'.$actor->id, 5);
             WorkAttestation::updateOrCreate(['publication_id' => $post->id, 'attester_id' => $other->id], ['author_id' => $actor->id, 'claim' => $claim, 'performed_on' => $date, 'state' => 'pending', 'revision' => ($row?->revision ?? 0) + 1, 'role' => null, 'identity_revision' => null, 'confirmed_at' => null, 'reason' => null]);
             $this->notify($other);
