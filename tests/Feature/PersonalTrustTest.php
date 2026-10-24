@@ -19,6 +19,7 @@ use App\Services\People;
 use App\Services\PersonalTrust;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -258,6 +259,48 @@ it('offre les parcours Livewire de sollicitation confirmation et signalement', f
     $row = confirmedWorkFor($this->author, $this->witness, $this->admin);
     Livewire::actingAs($this->author)->test(AttesterRealisation::class, ['publication' => $row->publication])->assertSeeText('Expériences confirmées')->assertSeeText('Faire confirmer');
     Livewire::actingAs($this->witness)->test(MesAttestations::class)->call('decide', $row->id, $row->revision, 'withdraw')->assertHasNoErrors()->assertSeeText('Consentement retiré');
-    Livewire::actingAs($this->stranger)->test(SignalerProfil::class,['profile' => $this->author->profile])->set('details','Un doute sur ce compte à examiner.')->call('submit')->assertHasNoErrors()->assertSeeText('Votre demande a été enregistrée');
+    Livewire::actingAs($this->stranger)->test(SignalerProfil::class, ['profile' => $this->author->profile])->set('details', 'Un doute sur ce compte à examiner.')->call('submit')->assertHasNoErrors()->assertSeeText('Votre demande a été enregistrée');
     Livewire::actingAs($this->admin)->test(ModerationConfiance::class)->assertSeeText('Un doute sur ce compte à examiner.');
+});
+
+it('borne les sollicitations à trois témoins par réalisation et cinq demandes par jour', function () {
+    $post = publication($this->author, PublicationType::PersonalWork);
+    foreach (range(1, 4) as $i) {
+        $witness = person('Témoin '.$i);
+        verifyIdentityFor($witness, $this->admin);
+        $people = app(People::class);
+        $people->request($this->author, $witness, 'Vous avez constaté mon travail.');
+        $pair = $people->pair($this->author, $witness)->sole();
+        $people->decide($witness, $this->author, 'accept', $pair->revision);
+        if ($i <= 3) {
+            $this->trust->requestWork($this->author, $post, $witness->id, 'Une intervention précise', today()->toDateString());
+        } else {
+            expect(fn () => $this->trust->requestWork($this->author, $post, $witness->id, 'Une intervention précise', today()->toDateString()))->toThrow(ValidationException::class);
+        }
+    }
+    expect(WorkAttestation::count())->toBe(3);
+    foreach (range(1, 5) as $i) {
+        RateLimiter::hit('trust-work:'.$this->author->id, 86400);
+    }
+    $otherPost = publication($this->author, PublicationType::PersonalWork);
+    expect(fn () => $this->trust->requestWork($this->author, $otherPost, $witness->id, 'Une autre intervention', today()->toDateString()))->toThrow(ValidationException::class);
+});
+
+it('borne les signalements quotidiens sans permettre de lire une référence privée devinée', function () {
+    $row = confirmedWorkFor($this->author, $this->witness, $this->admin);
+    $this->witness->profile->update(['visibility' => 'members']);
+    $row->update(['state' => 'pending']);
+    expect(fn () => $this->trust->report($this->stranger, $this->author, $row, 'reference', 'Référence devinée'))->toThrow(HttpException::class);
+    foreach (range(1, 5) as $i) {
+        RateLimiter::hit('trust-report:'.$this->stranger->id, 86400);
+    }
+    expect(fn () => $this->trust->report($this->stranger, $this->author, null, 'abuse', 'Un abus à examiner'))->toThrow(ValidationException::class);
+    expect(TrustReport::count())->toBe(0);
+});
+
+it('refuse au super administrateur de clore son propre signalement', function () {
+    $this->trust->report($this->admin, $this->author, null, 'identity', 'Une identité à examiner par un autre opérateur.');
+    $report = TrustReport::sole();
+    expect(fn () => $this->trust->closeReport($this->admin, $report->id, $report->revision, 'Je ferme moi-même'))->toThrow(AuthorizationException::class);
+    expect($report->fresh()->state)->toBe('open');
 });

@@ -10,7 +10,7 @@
         @forelse ($identities as $row)
             <article wire:key="identity-{{ $row->id }}-{{ $row->revision }}" class="rounded-card border border-line bg-card p-5">
                 <h3 class="break-words text-[18px] font-extrabold">{{ $row->user->name }}</h3><p class="mt-2 text-[14px] font-bold">{{ \App\Models\IdentityVerification::STATES[$row->state] }}</p>
-                <p class="mt-2 break-words text-[13px] text-muted">Nom demandé : {{ $row->checked_name }}. Demande du {{ $row->created_at->format('d/m/Y') }}.</p>
+                <p class="mt-2 break-words text-[13px] text-muted">Nom demandé : {{ $row->checked_name }}. Dossier ouvert le {{ $row->created_at->format('d/m/Y') }}.</p>
                 @if ($row->reason)<p class="mt-2 whitespace-pre-line break-words text-[13px]">{{ $row->reason }}</p>@endif
                 @if ($row->instruction)<p class="mt-2 whitespace-pre-line break-words text-[13px]">{{ $row->instruction }}</p>@endif
                 @can('review', $row)

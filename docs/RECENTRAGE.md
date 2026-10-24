@@ -266,7 +266,8 @@ Confiance dans la modération, réservée au super administrateur. Pas de nouvea
 - Les décisions administratives sont tracées dans le journal en ajout seul, sans pièce ni texte de référence
   copié dans le journal. Les dossiers privés restent liés aux comptes/publications et disparaissent avec
   eux ; les traces administratives existantes restent conservées selon le fonctionnement du journal.
-  Notifications internes génériques regroupées, sans contenu privé ni message extérieur. Aucun service
+  Notifications internes génériques regroupées, sans contenu privé ni message extérieur. Listes privées
+  bornées de 20 à 200 entrées récentes, recherche des dossiers administratifs par nom. Aucun service
   d’identité externe, paiement, stockage sensible ou certification professionnelle ajouté. Les vérifications
   humaines effectives et l’organisation des rendez-vous relèvent de GAMAD, pas d’un contrôle simulé.
 
