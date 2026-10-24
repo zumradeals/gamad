@@ -46,6 +46,6 @@ class NotificationController extends Controller
         };
 
         // Ce que la notification annonçait n'existe plus (publication ou conversation supprimée) : retour à la liste.
-        return redirect($target ?? route('notifications'));
+        return new RedirectResponse($target ?? route('notifications'));
     }
 }

@@ -8,6 +8,7 @@ use App\Models\PersonConnection;
 use App\Models\Publication;
 use App\Models\User;
 use App\Services\Gestures;
+use App\Services\Moderation;
 use App\Services\People;
 use App\Services\ProfileDetails;
 use App\Services\Publications;
@@ -57,7 +58,7 @@ it('conserve la visibilité des preuves et publications à la une même après l
     auth()->logout();
     $this->get(route('personnes.show', $this->a->profile))->assertOk()->assertDontSeeText('Texte réservé preuve')->assertDontSee(route('publications.show', $post), false);
     $this->actingAs($this->b)->get(route('personnes.show', $this->a->profile))->assertOk()->assertSeeText('Texte réservé preuve');
-    $post->update(['hidden_at' => now()]);
+    app(Moderation::class)->hide(User::factory()->superAdmin()->create(), $post, 'Motif de masquage pour cet essai.');
     $this->get(route('personnes.show', $this->a->profile))->assertOk()->assertDontSeeText('Texte réservé preuve');
 });
 
@@ -112,7 +113,7 @@ it('sert les PDF en téléchargement et vérifie la visibilité à chaque demand
     auth()->logout();
     $this->get(route('publications.media', $post))->assertNotFound();
     $this->actingAs($this->b)->get(route('publications.media', $post))->assertOk()->assertHeader('Content-Disposition', 'attachment; filename=Document.pdf');
-    $post->update(['hidden_at' => now()]);
+    app(Moderation::class)->hide(User::factory()->superAdmin()->create(), $post, 'Motif de masquage pour cet essai.');
     $this->get(route('publications.media', $post))->assertNotFound();
 });
 
@@ -135,7 +136,8 @@ it('supprime les fichiers lorsque leur publication ou leur compte est supprimé'
 
 it('sert les vidéos privées avec lecture partielle sans ouvrir l’accès aux visiteurs', function () {
     $bytes = pack('N', 24).'ftypisom'.pack('N', 0).'isommp42'.pack('N', 16).'mdat'.str_repeat("\0", 8);
-    $file = UploadedFile::fake()->createWithContent('atelier.mp4', $bytes);
+    $temporary = UploadedFile::fake()->createWithContent('atelier.mp4', $bytes);
+    $file = new UploadedFile($temporary->getRealPath(), 'atelier.mp4', null, null, true);
     $post = app(Publications::class)->publish($this->a, PublicationType::Share, ['body' => 'Une démonstration', 'visibility' => Publication::MEMBERS, 'media' => $file]);
     expect($post->media_kind)->toBe('video');
     auth()->logout();

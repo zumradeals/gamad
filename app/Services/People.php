@@ -15,16 +15,25 @@ use Illuminate\Validation\ValidationException;
 /** D-186 : suivre n'autorise aucun contact. Seul un consentement réciproque ouvre la conversation. */
 class People
 {
-    public static function blocked(User $a, User $b): bool
+    public static function blocked(User $a, User $b, bool $fresh = false): bool
     {
+        if (! $fresh) {
+            return in_array($b->id, self::excludedIds($a), true);
+        }
+
         return DB::table('person_blocks')->where(fn ($q) => $q->where('user_id', $a->id)->where('blocked_id', $b->id))
             ->orWhere(fn ($q) => $q->where('user_id', $b->id)->where('blocked_id', $a->id))->exists();
     }
 
-    public static function excludedIds(User $user)
+    public static function excludedIds(User $user): array
     {
-        return DB::table('person_blocks')->where('user_id', $user->id)->pluck('blocked_id')
-            ->merge(DB::table('person_blocks')->where('blocked_id', $user->id)->pluck('user_id'))->unique()->all();
+        $key = 'gamad.blocks.'.$user->id;
+        if (! request()->attributes->has($key)) {
+            request()->attributes->set($key, DB::table('person_blocks')->where('user_id', $user->id)->pluck('blocked_id')
+                ->merge(DB::table('person_blocks')->where('blocked_id', $user->id)->pluck('user_id'))->unique()->all());
+        }
+
+        return request()->attributes->get($key);
     }
 
     public function follow(User $actor, User $other, bool $follow): void
@@ -81,7 +90,7 @@ class People
             if ($decision === 'accept') {
                 $this->authorize($actor, $other);
                 $conversation = $pair->conversation_id ? Conversation::find($pair->conversation_id) : null;
-                $conversation ??= Conversation::create(['owner_id' => $actor->id, 'helper_id' => $other->id]);
+                $conversation ??= Conversation::create(['owner_id' => $actor->id, 'helper_id' => $other->id, 'origin' => 'relation']);
                 $pair->update(['state' => 'accepted', 'conversation_id' => $conversation->id]);
                 app(Notifier::class)->push($other, NotificationKind::ConnectionAccepted, $actor, conversation: $conversation);
             } else {
@@ -94,6 +103,8 @@ class People
     {
         $this->locked($actor, $other, function () use ($actor, $other, $block) {
             abort_unless($actor->isActive(), 403);
+            request()->attributes->remove('gamad.blocks.'.$actor->id);
+            request()->attributes->remove('gamad.blocks.'.$other->id);
             if (! $block) {
                 DB::table('person_blocks')->where('user_id', $actor->id)->where('blocked_id', $other->id)->delete();
 
@@ -116,7 +127,7 @@ class People
 
     private function authorize(User $actor, User $other): void
     {
-        abort_unless($actor->isActive() && $other->isActive() && ! self::blocked($actor, $other), 403);
+        abort_unless($actor->isActive() && $other->isActive() && ! self::blocked($actor, $other, fresh: true), 403);
         Gate::forUser($actor)->authorize('view', $other->ensureProfile());
     }
 

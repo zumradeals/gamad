@@ -141,7 +141,7 @@ copier() {
     fi
     exiger_rclone
 
-    local dump env photos
+    local dump env photos medias
     dump="$(dernier_local "$DB_NAME-*.dump")"
     [ -n "$dump" ] || refuser "Aucune sauvegarde locale à copier dans $BACKUP_DIR : la sauvegarde nocturne est en panne."
     if [ -n "$(find "$dump" -mtime +"$LOCALE_MAX_AGE_DAYS" -print 2>/dev/null || true)" ]; then
@@ -149,13 +149,15 @@ copier() {
     fi
     env="$(dernier_local "env-*")"
     photos="$(dernier_local "photos-*.tar.gz")"
+    medias="$(dernier_local "medias-*.tar.gz")"
     [ -n "$env" ] || refuser "Aucune copie du fichier .env dans $BACKUP_DIR : la sauvegarde nocturne est incomplète."
 
     TMP="$(mktemp -d)"
-    mkdir "$TMP/base" "$TMP/env" "$TMP/photos"
+    mkdir "$TMP/base" "$TMP/env" "$TMP/photos" "$TMP/medias"
     cp "$dump" "$TMP/base/"
     cp "$env" "$TMP/env/"
     if [ -n "$photos" ]; then cp "$photos" "$TMP/photos/"; fi
+    if [ -n "$medias" ]; then cp "$medias" "$TMP/medias/"; fi
 
     # Copie chiffrée, puis relecture : la copie n'est « réussie » que si chaque fichier distant redonne le même contenu.
     rc copy "$TMP" "$DISTANT"
@@ -163,13 +165,14 @@ copier() {
 
     # Rien n'est supprimé avant que la nouvelle copie soit vérifiée.
     local sorte
-    for sorte in base env photos; do
+    for sorte in base env photos medias; do
         rc delete "${DISTANT}${sorte}" --min-age "${OFFSITE_KEEP_DAYS}d" 2>/dev/null || true
     done
 
     local noms
     noms="$(basename "$dump"), $(basename "$env")"
     if [ -n "$photos" ]; then noms="$noms, $(basename "$photos")"; fi
+    if [ -n "$medias" ]; then noms="$noms, $(basename "$medias")"; fi
     journal "Copie hors serveur réussie et vérifiée : $noms."
     etat_ecrire derniere_reussite "$(date -Iseconds)"
     dire "Copie hors serveur réussie et vérifiée : $noms."
@@ -188,27 +191,31 @@ telecharger() {
     fi
     mkdir -p "$cible"
 
-    local dump env photos
+    local dump env photos medias
     dump="$(dernier_distant base)"
     env="$(dernier_distant env)"
     photos="$(dernier_distant photos)"
+    medias="$(dernier_distant medias)"
     [ -n "$dump" ] || refuser "Aucune copie de la base lisible sur le stockage distant : lancez d'abord « copier », ou vérifiez que la phrase de secours est bien celle utilisée pour les copies."
     [ -n "$env" ] || refuser "Aucune copie du fichier .env sur le stockage distant."
 
     rc copyto "${DISTANT}base/$dump" "$cible/$dump"
     rc copyto "${DISTANT}env/$env" "$cible/$env"
     if [ -n "$photos" ]; then rc copyto "${DISTANT}photos/$photos" "$cible/$photos"; fi
+    if [ -n "$medias" ]; then rc copyto "${DISTANT}medias/$medias" "$cible/$medias"; fi
 
     # Ce qu'on rapatrie doit être lisible : sinon la copie ne vaut rien.
     pg_restore --list "$cible/$dump" >/dev/null
     grep -q '^APP_KEY=' "$cible/$env"
     if [ -n "$photos" ]; then tar -tzf "$cible/$photos" >/dev/null; fi
+    if [ -n "$medias" ]; then tar -tzf "$cible/$medias" >/dev/null; fi
 
     DUMP_TELECHARGE="$cible/$dump"
     NOM_DUMP="$dump"
     NOM_ENV="$env"
     NOM_PHOTOS="$photos"
-    journal "Copie rapatriée et lisible : $dump, $env${photos:+, $photos}."
+    NOM_MEDIAS="$medias"
+    journal "Copie rapatriée et lisible : $dump, $env${photos:+, $photos}${medias:+, $medias}."
 }
 
 essai_restauration() {
@@ -219,7 +226,7 @@ essai_restauration() {
     [ "$base_essai" != "$DB_NAME" ] || refuser "Le nom de la base d'essai ne peut pas être celui de la base de production."
 
     TMP="$(mktemp -d)"
-    DUMP_TELECHARGE="" NOM_DUMP="" NOM_ENV="" NOM_PHOTOS=""
+    DUMP_TELECHARGE="" NOM_DUMP="" NOM_ENV="" NOM_PHOTOS="" NOM_MEDIAS=""
     telecharger "$TMP/copie"
 
     runuser -u postgres -- dropdb --if-exists "$base_essai"
@@ -239,12 +246,13 @@ essai_restauration() {
         refuser "La base restaurée est vide ($tables tables, $migrations migrations) : la copie ne vaut rien."
     fi
 
-    journal "ESSAI DE RESTAURATION RÉUSSI : $NOM_DUMP restauré dans une base temporaire ($tables tables, $migrations migrations, $personnes personnes), puis supprimée ; $NOM_ENV lisible${NOM_PHOTOS:+ ; $NOM_PHOTOS lisible}."
+    journal "ESSAI DE RESTAURATION RÉUSSI : $NOM_DUMP restauré dans une base temporaire ($tables tables, $migrations migrations, $personnes personnes), puis supprimée ; $NOM_ENV lisible${NOM_PHOTOS:+ ; $NOM_PHOTOS lisible}${NOM_MEDIAS:+ ; $NOM_MEDIAS lisible}."
     etat_ecrire dernier_essai "$(date -Iseconds)"
     dire "ESSAI DE RESTAURATION RÉUSSI : $NOM_DUMP"
     dire "  base restaurée : $tables tables, $migrations migrations, $personnes personnes (base d'essai supprimée)"
     dire "  fichier .env lisible : $NOM_ENV"
     if [ -n "$NOM_PHOTOS" ]; then dire "  photos lisibles : $NOM_PHOTOS"; fi
+    if [ -n "$NOM_MEDIAS" ]; then dire "  médias lisibles : $NOM_MEDIAS"; fi
 }
 
 # ───────────────────────────────────────────── etat

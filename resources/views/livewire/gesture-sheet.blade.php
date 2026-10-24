@@ -19,7 +19,7 @@
                     </button>
                 </div>
 
-                <p class="text-[14px] leading-[1.55]">{{ $firstName }} recevra votre {{ $type->isNeed() ? 'proposition' : 'réponse' }} et pourra <strong>l’accepter</strong>.</p>
+                <p class="text-[14px] leading-[1.55]">{{ $firstName }} recevra votre {{ $type->isExchange() ? 'demande d’échange' : ($type->isNeed() ? 'proposition' : 'réponse') }} et pourra <strong>l’accepter</strong>.</p>
 
                 <form wire:submit="send" class="flex flex-col gap-3.5">
                     <div class="flex flex-col gap-1.5" x-data="{ count: [...$wire.message].length }">
@@ -49,11 +49,11 @@
                     <p class="text-[12px] leading-normal text-muted">Votre profil (nom, ville, capacités) sera visible par {{ $firstName }}. Jamais votre e-mail ni votre téléphone.</p>
 
                     <x-button wire:loading.attr="disabled" wire:target="send" class="min-h-[52px]">
-                        <span wire:loading.remove wire:target="send">{{ $type->isNeed() ? 'Envoyer ma proposition' : 'Envoyer ma réponse' }}</span>
+                        <span wire:loading.remove wire:target="send">{{ $type->isExchange() ? 'Envoyer ma demande d’échange' : ($type->isNeed() ? 'Envoyer ma proposition' : 'Envoyer ma réponse') }}</span>
                         <span wire:loading wire:target="send">Envoi…</span>
                     </x-button>
                     <x-button type="button" variant="secondary" wire:click="close" class="!border-transparent !text-muted">Annuler</x-button>
-                    <p class="text-[12px] leading-normal text-muted">Vous pourrez retirer votre {{ $type->isNeed() ? 'proposition' : 'réponse' }} tant qu’elle n’est pas acceptée.</p>
+                    <p class="text-[12px] leading-normal text-muted">Vous pourrez retirer votre {{ $type->isExchange() ? 'demande d’échange' : ($type->isNeed() ? 'proposition' : 'réponse') }} tant qu’elle n’est pas acceptée.</p>
                 </form>
             </div>
         </div>

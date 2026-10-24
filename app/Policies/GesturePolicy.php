@@ -18,7 +18,7 @@ class GesturePolicy
     public function decide(User $user, Gesture $gesture): Response
     {
         $publication = $gesture->publication;
-        if (People::blocked($user, $gesture->author)) {
+        if (People::blocked($user, $gesture->author, fresh: true)) {
             return Response::deny('Ce contact est bloqué.');
         }
 

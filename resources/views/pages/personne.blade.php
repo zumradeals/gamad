@@ -57,7 +57,7 @@
         @if ($empty)
             <section class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
                 @if ($isOwner)
-                    <h2 class="text-[17px] font-extrabold">Votre profil est encore vide.</h2>
+                    <h2 class="text-[17px] font-extrabold">{{ filled($profile->introduction) || count($profile->experiences ?? []) || $personalPosts->isNotEmpty() ? 'Qu’aimeriez-vous apporter ou apprendre ?' : 'Votre profil est encore vide.' }}</h2>
                     <p class="text-muted">Dites ce que vous pouvez apporter et ce que vous voulez apprendre : d’autres personnes vous trouveront.</p>
                     <x-button :href="route('espace.profil')">Compléter mon profil</x-button>
                 @else

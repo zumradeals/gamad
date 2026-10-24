@@ -139,7 +139,7 @@ it('sauvegarde les photos de profil, avec la même rotation et sans rien toucher
         ->toContain('$APP_DIR/shared/storage/app/private')
         ->toContain('profile-photos')
         ->toContain('photos-$HORODATAGE.tar.gz')
-        ->toContain('for motif in "$DB_NAME-*.dump" "env-*" "photos-*.tar.gz"; do')
+        ->toContain('for motif in "$DB_NAME-*.dump" "env-*" "photos-*.tar.gz" "medias-*.tar.gz"; do')
         ->toContain('tar -tzf')
         // Aucune écriture hors du dossier de sauvegarde, aucun autre service : ni systemctl, ni nginx, ni apt.
         ->not->toMatch('/\b(systemctl|nginx|apt|apt-get|service)\b/');

@@ -95,7 +95,7 @@ it('refuse une décision affichée sur une ancienne version de la demande', func
 });
 
 it('limite le nombre de demandes quotidiennes', function () {
-    RateLimiter::hit('connection:'.$this->a->id, 86400, 20);
+    RateLimiter::increment('connection:'.$this->a->id, 86400, 20);
     expect(fn () => $this->people->request($this->a, $this->b, 'Bonjour'))->toThrow(ValidationException::class);
 });
 

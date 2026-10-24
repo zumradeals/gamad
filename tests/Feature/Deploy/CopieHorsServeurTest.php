@@ -57,6 +57,11 @@ function preparerCopie(array $options = []): array
         file_put_contents("$dossier/photo.jpg", 'PHOTO-SECRETE');
         Process::run(['tar', '-czf', "$dossier/sauvegardes/photos-$horodatage.tar.gz", '-C', $dossier, 'photo.jpg'])->throw();
     }
+    if ($options['medias'] ?? false) {
+        mkdir("$dossier/publication-media");
+        file_put_contents("$dossier/publication-media/document.pdf", 'DOCUMENT-PRIVE');
+        Process::run(['tar', '-czf', "$dossier/sauvegardes/medias-$horodatage.tar.gz", '-C', $dossier, 'publication-media'])->throw();
+    }
     if (isset($options['age_jours'])) {
         foreach (glob("$dossier/sauvegardes/*") as $fichier) {
             touch($fichier, time() - 86400 * $options['age_jours']);
@@ -505,3 +510,14 @@ it('ne met aucun accès ni aucune phrase de secours dans le dépôt', function (
         ->and($script)->not->toMatch('/(secret_access_key|access_key_id)\s*=\s*[A-Za-z0-9]{12,}/')
         ->and($script)->not->toContain('configurer()');
 });
+
+it('copie les médias chiffrés hors serveur et les rapatrie avec la base', function () {
+    $env = preparerCopie(['medias' => true]);
+    $copie = lancerCopie($env);
+    expect($copie['code'])->toBe(0)->and($copie['journal'])->toContain('medias-2026-10-23_033000.tar.gz');
+    $retour = lancerCopie($env, 'telecharger', ["$env[dossier]/retour-medias"]);
+    expect($retour['code'])->toBe(0);
+    $archive = "$env[dossier]/retour-medias/medias-2026-10-23_033000.tar.gz";
+    $extraction = Process::run(['tar', '-xzf', $archive, '-C', "$env[dossier]/retour-medias"]);
+    expect($extraction->exitCode())->toBe(0)->and(file_get_contents("$env[dossier]/retour-medias/publication-media/document.pdf"))->toBe('DOCUMENT-PRIVE');
+})->skip(fn () => ! rcloneDisponible(), 'rclone absent');

@@ -111,7 +111,7 @@ it('ne propose que les filtres Tout, Besoins, Savoirs, Apprendre, Aides, ZUMRA e
     preg_match('/<nav aria-label="Filtrer le Fil".*?<\/nav>/s', $html, $nav);
     $filtres = array_map(fn ($t) => trim(strip_tags($t)), explode('</button>', $nav[0]));
 
-    expect(array_values(array_filter($filtres)))->toBe(['Tout', 'Besoins', 'Savoirs', 'Apprendre', 'Aides', 'ZUMRA', 'Projets']);
+    expect(array_values(array_filter($filtres)))->toBe(['Tout', 'Mes suivis', 'Besoins', 'Savoirs', 'Apprendre', 'Aides', 'ZUMRA', 'Projets']);
 });
 
 it('n’affiche ni Commenter, ni Partager, ni compteur d’approbation, et « Signaler » seulement sur la publication d’un autre', function () {

@@ -44,6 +44,8 @@ return new class extends Migration
         DB::statement("alter table person_connections add constraint person_connections_state check (state in ('pending', 'accepted', 'declined', 'withdrawn', 'removed'))");
         DB::statement('alter table person_follows add constraint person_follows_self check (user_id <> followed_id)');
         DB::statement('alter table person_blocks add constraint person_blocks_self check (user_id <> blocked_id)');
+        Schema::table('conversations', fn (Blueprint $table) => $table->string('origin', 12)->default('publication'));
+        DB::statement("alter table conversations add constraint conversations_origin_check check (origin in ('publication', 'relation'))");
         Schema::table('profiles', function (Blueprint $table) {
             $table->text('introduction')->nullable();
             $table->jsonb('experiences')->nullable();
@@ -71,6 +73,7 @@ return new class extends Migration
         DB::statement('alter table publications drop constraint publications_type_check');
         DB::statement("alter table publications add constraint publications_type_check check (type in ('need', 'knowledge', 'learning_wish', 'offer', 'zumra_call', 'project_update', 'achievement'))");
         Schema::table('publications', fn (Blueprint $table) => $table->dropColumn(['media_path', 'media_kind', 'media_mime', 'media_name']));
+        Schema::table('conversations', fn (Blueprint $table) => $table->dropColumn('origin'));
         Schema::table('profiles', fn (Blueprint $table) => $table->dropColumn(['introduction', 'experiences', 'skill_details', 'featured_publications']));
         DB::table('user_notifications')->whereIn('kind', ['connection_requested', 'connection_accepted'])->delete();
         DB::statement('alter table user_notifications drop constraint user_notifications_kind_check');

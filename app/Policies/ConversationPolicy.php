@@ -27,7 +27,7 @@ class ConversationPolicy
         }
 
         $other = $conversation->otherPerson($user);
-        if ($other && (! $user->isActive() || ! $other->isActive() || People::blocked($user, $other))) {
+        if ($other && (! $user->isActive() || ! $other->isActive() || People::blocked($user, $other, fresh: true))) {
             return Response::deny('Cet échange n’accepte plus de messages.');
         }
 

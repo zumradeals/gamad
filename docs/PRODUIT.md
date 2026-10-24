@@ -201,7 +201,7 @@ Le périmètre R1 comprend désormais ces fonctionnalités, sans rouvrir les mod
   peut lever que son propre blocage. Débloquer ne restaure ni suivi ni relation. Pas de notification du blocage.
 
 Une migration additive crée trois tables privées (`person_follows`, `person_connections`, `person_blocks`),
-quatre colonnes de profil et quatre colonnes de fichier sur les publications ; elle étend les contraintes de types
+quatre colonnes de profil, quatre colonnes de fichier sur les publications et une origine de conversation ; elle étend les contraintes de types
 et notifications. Aucun enregistrement existant n’est réécrit. Un retour de migration refuse de supprimer les
 nouveaux types tant que des publications existent. Aucune nouvelle dépendance.
 
