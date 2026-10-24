@@ -2,10 +2,12 @@
 
 namespace App\Services;
 
+use App\Enums\NotificationKind;
 use App\Models\Company;
 use App\Models\CompanyExperience;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use App\Services\Notifier;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -49,6 +51,7 @@ class CompanyExperienceService
         $experience->company_id = $company->id;
         $experience->status = 'pending';
         $experience->save();
+        app(Notifier::class)->push($company->owner, NotificationKind::CompanyRequest, $user);
 
         return $experience;
     }
@@ -74,6 +77,7 @@ class CompanyExperienceService
                 'decided_by_id' => $actor->id,
                 'decided_at' => now(),
             ])->save();
+            app(Notifier::class)->push($row->user, NotificationKind::CompanyDecision, $actor);
         }, 3);
     }
 

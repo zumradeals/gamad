@@ -24,6 +24,9 @@ class NotificationController extends Controller
 
         $target = match ($notification->kind) {
             NotificationKind::TrustUpdated => route('espace.attestations'),
+            NotificationKind::CompanyRequest => route('entreprises.create'),
+            NotificationKind::CompanyDecision => route('espace.company-experiences'),
+            NotificationKind::CompanyReview => route('entreprises.create'),
             NotificationKind::TrustReview => $user->isSuperAdmin() ? route('moderation.confiance') : route('espace'),
             NotificationKind::MatchFound => route('espace').'#suggestions',
             NotificationKind::ConnectionRequested => route('espace').'#mes-liens',

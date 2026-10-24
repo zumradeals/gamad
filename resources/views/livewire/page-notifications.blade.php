@@ -39,7 +39,7 @@
         @empty
             <section class="rounded-card border border-line bg-card p-5">
                 <p class="text-[16px] font-extrabold">Rien de nouveau.</p>
-                <p class="mt-1 text-muted">Vous serez prévenu ici quand quelqu’un répondra à une publication, vous écrira ou vous remerciera.</p>
+                <p class="mt-1 text-muted">Vous serez prévenu ici quand quelqu’un répondra à une publication, vous écrira, vous remerciera ou répondra à une demande professionnelle.</p>
             </section>
         @endforelse
     </div>

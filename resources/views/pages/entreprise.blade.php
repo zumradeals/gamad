@@ -39,6 +39,9 @@
                         <x-button :href="route('entreprises.branding.edit', $company)" variant="secondary"><x-icon name="pencil" :size="16" class="mr-1"/> Personnaliser</x-button>
                     @endif
                     @if ($company->verified())
+                        @if (auth()->id() !== $company->owner_id)
+                            <a href="{{ route('personnes.show', $company->owner->ensureProfile()->public_id) }}#contact" class="inline-flex min-h-11 items-center gap-2 rounded-button border border-line px-3 text-[13px] font-extrabold"><x-icon name="message-circle" :size="17"/> Contacter</a>
+                        @endif
                         @auth
                             <form method="POST" action="{{ route('entreprises.follow', $company) }}">@csrf
                                 <x-button type="submit" :variant="$following ? 'secondary' : 'accent'"><x-icon :name="$following ? 'check' : 'plus'" :size="17" class="mr-1"/>{{ $following ? 'Abonné à la page' : 'Suivre' }}</x-button>
@@ -80,6 +83,14 @@
             <h2 class="text-[16px] font-extrabold">Aperçu privé de votre entreprise</h2>
             <p class="mt-1 text-[14px] text-muted">Cette page ne figure pas dans la recherche et les autres membres n'y ont pas accès tant que l'immatriculation n'est pas vérifiée.</p>
             @if ($company->review_note)<p class="mt-2 break-words text-[13px] font-semibold">Message de l'examen : {{ $company->review_note }}</p>@endif
+            @if (in_array($company->status, ['declined', 'suspended'], true))
+                <form action="{{ route('entreprises.appeal', $company) }}" method="POST" class="mt-4 space-y-2">
+                    @csrf
+                    <label for="company-appeal" class="block text-[13px] font-bold">Contester cette décision (20 caractères minimum)</label>
+                    <textarea name="reason" id="company-appeal" minlength="20" maxlength="1000" required rows="3" class="w-full rounded-button border border-chip-line p-3 text-[14px]" placeholder="Expliquez les éléments à réexaminer…"></textarea>
+                    <x-button type="submit" variant="secondary">Transmettre mon recours</x-button>
+                </form>
+            @endif
         </section>
     @endif
 

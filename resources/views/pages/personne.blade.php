@@ -58,7 +58,7 @@
                             @unless ($profile->isPublic())<p class="pb-3 text-[12px] text-muted">L’accès reste réservé aux personnes inscrites.</p>@endunless
                         </details>
                         @if (auth()->user()?->isActive() && ! $isOwner)<a href="{{ route('personnes.signaler', $profile->public_id) }}" class="inline-flex min-h-11 items-center gap-2 text-[12px] font-semibold text-muted"><x-icon name="shield" :size="16" />Signaler ce profil</a>@endif
-                        @if ($isOwner)<a href="{{ route('espace.attestations') }}" class="inline-flex min-h-11 items-center text-[13px] font-bold">Mes attestations →</a>@endif
+                        @if ($isOwner)<a href="{{ route('espace.attestations') }}" class="inline-flex min-h-11 items-center text-[13px] font-bold">Mes attestations personnelles →</a>@endif
                         @foreach ($inviteZumras as $inviteZumra)<x-button :href="route('zumras.invite', [$inviteZumra, 'personne' => $profile->public_id])" variant="secondary">{{ $inviteZumras->count() === 1 ? 'Inviter dans ma ZUMRA' : 'Inviter dans '.$inviteZumra->name }}</x-button>@endforeach
                     </div>
                 </div>
