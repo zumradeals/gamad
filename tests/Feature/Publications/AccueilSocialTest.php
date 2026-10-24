@@ -2,7 +2,6 @@
 
 use App\Enums\PublicationType;
 use App\Livewire\Fil;
-use App\Models\Publication;
 use App\Services\People;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
