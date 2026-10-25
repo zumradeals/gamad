@@ -19,7 +19,9 @@ class FilComposer extends Component
     public string $kind = 'share';
     public string $visibility = Publication::PUBLIC;
     public $media = null;
+
     public bool $expanded = false;
+
     public ?string $status = null;
 
     public function mount(): void
