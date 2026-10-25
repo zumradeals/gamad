@@ -1,7 +1,7 @@
-<section aria-label="Publier" class="feed-panel p-4" x-data="{ open: $wire.entangle('expanded'), menu: false }">
+<section aria-label="Publier" class="feed-panel p-4" x-data="{ open: $wire.entangle('expanded') }" x-on:click.outside="open = false" x-on:keydown.escape.window="open = false">
     <form wire:submit="publish" class="space-y-3">
         <label for="fil-compose-body" class="block text-[14px] font-bold">Que souhaitez-vous partager ?</label>
-        <textarea id="fil-compose-body" wire:model="body" x-on:focus="open = true" rows="2" maxlength="{{ \App\Models\Publication::BODY_MAX }}" placeholder="Écrivez votre publication ici…" class="min-h-12 w-full rounded-button border border-chip-line bg-card px-3 py-3 text-[15px]"></textarea>
+        <textarea id="fil-compose-body" wire:model="body" x-on:click="open = !open" rows="2" maxlength="{{ \App\Models\Publication::BODY_MAX }}" placeholder="Écrivez votre publication ici…" class="min-h-12 w-full rounded-button border border-chip-line bg-card px-3 py-3 text-[15px]"></textarea>
         @error('body') <p role="alert" class="text-danger text-[13px]">{{ $message }}</p> @enderror
         <div x-show="open" x-cloak class="space-y-3">
             <fieldset class="flex flex-wrap gap-3 text-[14px]">
@@ -20,12 +20,4 @@
         </div>
         @if ($status) <p role="status" class="text-[13px]">{{ $status }}</p> @endif
     </form>
-    <div class="relative mt-3 border-t border-line-soft pt-3" x-on:keydown.escape.window="menu = false" x-on:click.outside="menu = false">
-        <button type="button" x-on:click="menu = !menu" :aria-expanded="menu.toString()" aria-controls="fil-agir-menu" class="min-h-11 rounded-button border border-chip-line px-4 font-bold">Agir ▾</button>
-        <nav id="fil-agir-menu" x-show="menu" x-cloak aria-label="Choisir une action" class="absolute bottom-full left-0 z-30 mb-2 w-full max-w-sm rounded-card border border-line bg-card p-2 shadow-lg md:bottom-auto md:top-full md:mb-0 md:mt-2">
-            <a class="block min-h-11 rounded-button px-3 py-3 hover:bg-ground" href="{{ route('agir.publier', 'besoin') }}">Trouver de l’aide</a>
-            <a class="block min-h-11 rounded-button px-3 py-3 hover:bg-ground" href="{{ route('agir.publier', 'apprendre') }}">Apprendre quelque chose</a>
-            <a class="block min-h-11 rounded-button px-3 py-3 hover:bg-ground" href="{{ route('agir.publier', 'aide') }}">Proposer quelque chose</a>
-        </nav>
-    </div>
 </section>
