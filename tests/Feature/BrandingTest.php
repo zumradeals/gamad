@@ -21,6 +21,7 @@ it('enregistre sert et retire le logo sans toucher à l’icône', function () {
     expect(app(Settings::class)->get('brand_icon'))->toBeNull();
     $this->get(route('branding.image', 'logo'))->assertOk()->assertHeader('Content-Type', 'image/png')->assertHeader('X-Content-Type-Options', 'nosniff');
     $this->get(route('espace.parametres.identite'))->assertSee(route('branding.image', 'logo'), false);
+    $this->get(route('espace'))->assertSee(route('branding.image', 'logo'), false);
     $this->post(route('espace.parametres.identite.save'), ['kind' => 'logo', 'remove' => '1'])->assertSessionHasNoErrors();
     expect(app(Settings::class)->get('brand_logo'))->toBeNull();
     $this->get(route('branding.image', 'logo'))->assertNotFound();
