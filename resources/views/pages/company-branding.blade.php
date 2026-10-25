@@ -87,6 +87,28 @@
                 </div>
             </section>
 
+            <section id="services" class="scroll-mt-24 rounded-card border border-line bg-card p-5 md:p-6">
+                <h2 class="text-[20px] font-extrabold">3. Nos produits et services</h2>
+                <p class="mt-1 text-[13px] leading-relaxed text-muted">Jusqu’à {{ \App\Models\Company::MAX_SERVICES }} fiches de présentation. C’est une vitrine pour être découvert : GAMAD ne vend rien et n’enregistre aucun paiement. Laissez le nom vide pour retirer une fiche.</p>
+                @php($services = old('services', $company->services ?? []))
+                <div class="mt-4 space-y-4">
+                    @foreach (range(0, \App\Models\Company::MAX_SERVICES - 1) as $i)
+                        <fieldset class="grid gap-3 rounded-button border border-line p-4 sm:grid-cols-2">
+                            <legend class="px-1 text-[12px] font-bold text-muted">Fiche {{ $i + 1 }}</legend>
+                            <label class="flex flex-col gap-1.5 text-[13px] font-bold">Nom
+                                <input name="services[{{ $i }}][name]" maxlength="80" value="{{ $services[$i]['name'] ?? '' }}" class="min-h-12 rounded-button border border-chip-line bg-card px-3 text-[14px]">
+                            </label>
+                            <label class="flex flex-col gap-1.5 text-[13px] font-bold">Catégorie (facultatif)
+                                <input name="services[{{ $i }}][category]" maxlength="40" value="{{ $services[$i]['category'] ?? '' }}" class="min-h-12 rounded-button border border-chip-line bg-card px-3 text-[14px]">
+                            </label>
+                            <label class="flex flex-col gap-1.5 text-[13px] font-bold sm:col-span-2">Description courte (200 caractères)
+                                <textarea name="services[{{ $i }}][description]" maxlength="200" rows="2" class="rounded-button border border-chip-line bg-card p-3 text-[14px]">{{ $services[$i]['description'] ?? '' }}</textarea>
+                            </label>
+                        </fieldset>
+                    @endforeach
+                </div>
+            </section>
+
             <section class="rounded-card border border-line bg-card p-5">
                 <div class="flex items-start gap-3">
                     <span class="flex size-10 shrink-0 items-center justify-center rounded-button bg-type-knowledge-bg text-type-knowledge-fg"><x-icon name="shield" :size="21" /></span>

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Company;
 use App\Models\User;
+use App\Support\Normalizer;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -27,6 +28,10 @@ class CompanyBranding
             'email' => ['nullable', 'email', 'max:255'],
             'logo' => ['nullable', 'file', 'max:5120', 'mimetypes:image/jpeg,image/png,image/webp'],
             'banner' => ['nullable', 'file', 'max:5120', 'mimetypes:image/jpeg,image/png,image/webp'],
+            'services' => ['nullable', 'array', 'max:'.Company::MAX_SERVICES],
+            'services.*.name' => ['nullable', 'string', 'max:80'],
+            'services.*.category' => ['nullable', 'string', 'max:40'],
+            'services.*.description' => ['nullable', 'string', 'max:200'],
             'remove_logo' => ['nullable', 'boolean'],
             'remove_banner' => ['nullable', 'boolean'],
         ])->validate();
@@ -46,6 +51,17 @@ class CompanyBranding
                     if (array_key_exists($field, $data)) {
                         $row->{$field} = trim((string) ($data[$field] ?? '')) ?: null;
                     }
+                }
+
+                // Vitrine : seules les fiches nommées sont conservées ; la clé absente laisse la vitrine inchangée.
+                if (array_key_exists('services', $data)) {
+                    $row->services = collect($data['services'] ?? [])
+                        ->map(fn ($item) => [
+                            'name' => Normalizer::display((string) ($item['name'] ?? '')),
+                            'category' => Normalizer::display((string) ($item['category'] ?? '')),
+                            'description' => Normalizer::display((string) ($item['description'] ?? '')),
+                        ])
+                        ->filter(fn ($item) => $item['name'] !== '')->values()->all() ?: null;
                 }
 
                 foreach (['logo', 'banner'] as $kind) {
