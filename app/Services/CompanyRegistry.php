@@ -169,7 +169,6 @@ class CompanyRegistry
     public function review(User $reviewer, Company $company, int $revision, string $action, string $note = ''): void
     {
         abort_unless($reviewer->fresh()->isActive() && $reviewer->isSuperAdmin(), 403);
-        abort_if($reviewer->id === $company->owner_id, 403);
         abort_unless(in_array($action, ['verify', 'decline', 'suspend'], true), 422);
 
         DB::transaction(function () use ($reviewer, $company, $revision, $action, $note) {
