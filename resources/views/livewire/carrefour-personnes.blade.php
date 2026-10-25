@@ -10,7 +10,7 @@
 @endphp
 <div class="person-directory min-w-0" x-data="{ filters: false }">
     @if (\App\Support\Experience::initial())<a href="{{ auth()->check() ? route('fil') : route('home') }}" class="mb-3 inline-flex min-h-11 items-center gap-2 text-[14px] font-semibold lg:hidden">Retour à l’accueil</a>@endif
-    <div class="grid min-w-0 items-start gap-4 lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[250px_minmax(0,1fr)_300px]">
+    <div class="grid min-w-0 items-start gap-4 lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[255px_minmax(0,1fr)_340px]">
         <aside aria-label="Navigation et filtres des personnes" class="min-w-0 rounded-card border border-line bg-card p-4">
             <div class="flex items-center justify-between gap-2">
                 <h2 class="text-[18px] font-extrabold">Explorer les personnes</h2>
