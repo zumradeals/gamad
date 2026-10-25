@@ -1,63 +1,86 @@
 @php
-    $offered = $mode === 'offered';
     $guest = ! auth()->check();
     $n = $people->total();
-    $summary = $n.' '.($n > 1 ? 'personnes' : 'personne').' '.($this->query !== '' ? ($offered ? ($n > 1 ? 'peuvent apporter' : 'peut apporter') : ($n > 1 ? 'veulent apprendre' : 'veut apprendre')).' « '.\App\Support\Normalizer::display($this->query).' »' : 'à découvrir');
+    $summary = $n.' '.($n > 1 ? 'personnes' : 'personne').' '.($this->query !== '' ? ($mode === 'all' ? 'pour' : ($mode === 'offered' ? ($n > 1 ? 'peuvent apporter' : 'peut apporter') : ($n > 1 ? 'veulent apprendre' : 'veut apprendre'))).' « '.\App\Support\Normalizer::display($this->query).' »' : 'à découvrir');
 @endphp
-<div class="person-directory min-w-0">
-    @if (\App\Support\Experience::initial())<a href="{{ auth()->check() ? route('fil') : route('home') }}" class="mb-3 inline-flex min-h-11 items-center gap-2 text-[14px] font-semibold">Retour à l’accueil</a>@endif
-    <div class="grid min-w-0 items-start gap-4 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[230px_minmax(0,1fr)_260px]">
-        <aside aria-label="Navigation et filtres des personnes" class="min-w-0 space-y-4 rounded-card border border-line bg-card p-4">
-            <h2 class="text-[18px] font-extrabold">Explorer les personnes</h2>
-            <nav aria-label="Explorer">
-                <a href="{{ route('personnes.index') }}" class="flex min-h-11 items-center gap-2 rounded-button bg-soft-blue px-3 text-[14px] font-bold text-link"><x-icon name="group" :size="18"/> Toutes les personnes</a>
-                <a href="{{ auth()->check() ? route('espace.profil') : route('register') }}" class="flex min-h-11 items-center gap-2 px-3 text-[14px] font-semibold"><x-icon name="user" :size="18"/> Mon profil</a>
-            </nav>
-            <div class="border-t border-line pt-4">
-                <h3 class="mb-3 text-[16px] font-extrabold">Filtres</h3>
-                <label for="filtre-ville" class="mb-2 block text-[13px] font-bold">Localité</label>
-                <select id="filtre-ville" wire:model.live="city" class="zumra-filter w-full">
-                    <option value="">Toutes les villes</option>
-                    @foreach ($cities as $ville)<option value="{{ $ville->id }}">{{ $ville->label() }}</option>@endforeach
-                </select>
-                <label for="filtre-domaine" class="mb-2 mt-4 block text-[13px] font-bold">Domaine de compétence</label>
-                <select id="filtre-domaine" wire:model.live="domain" class="zumra-filter w-full">
-                    <option value="">Tous les domaines</option>
-                    @foreach ($domains as $domaine)<option value="{{ $domaine->id }}">{{ $domaine->name }}</option>@endforeach
-                </select>
-                <p class="mb-2 mt-4 text-[13px] font-bold">Je cherche une personne qui…</p>
-                <div class="space-y-2">
-                    <button type="button" wire:click="setMode('offered')" aria-pressed="{{ $offered ? 'true' : 'false' }}" class="flex min-h-11 w-full items-center gap-2 rounded-button px-3 text-left text-[13px] font-semibold {{ $offered ? 'bg-type-knowledge-bg text-type-knowledge-fg' : 'border border-line' }}">Peut apporter</button>
-                    <button type="button" wire:click="setMode('wanted')" aria-pressed="{{ ! $offered ? 'true' : 'false' }}" class="flex min-h-11 w-full items-center gap-2 rounded-button px-3 text-left text-[13px] font-semibold {{ ! $offered ? 'bg-type-learning-bg text-type-learning-fg' : 'border border-line' }}">Veut apprendre</button>
-                </div>
-                @if ($hasFilters)<button type="button" wire:click="clearFilters" class="mt-4 min-h-11 w-full rounded-button border border-line px-3 text-[13px] font-bold">Réinitialiser les filtres</button>@endif
+<div class="person-directory min-w-0" x-data="{ filtersOpen: false }">
+    <h1 class="sr-only">CARREFOUR — Trouvez qui peut vous aider</h1>
+    <div class="mb-3 flex items-center justify-between lg:hidden">
+        <h2 class="text-lg font-extrabold">Explorer les personnes</h2>
+        <button type="button" x-on:click="filtersOpen = true" aria-controls="person-filters" x-bind:aria-expanded="filtersOpen.toString()" class="min-h-11 rounded-button border border-line bg-card px-4 font-bold">Filtres</button>
+    </div>
+    <div class="directory-grid">
+        <div x-show="filtersOpen" x-cloak x-on:click="filtersOpen = false" class="fixed inset-0 z-30 bg-ink/50 lg:hidden" aria-hidden="true"></div>
+        <aside id="person-filters" aria-label="Navigation et filtres des personnes" class="directory-filters directory-panel" x-bind:class="{ 'is-open': filtersOpen }" x-trap.noscroll="filtersOpen" x-on:keydown.escape.window="filtersOpen = false">
+            <div class="flex items-center justify-between gap-2">
+                <h2 class="text-[17px] font-extrabold">Explorer les personnes</h2>
+                <button type="button" x-on:click="filtersOpen = false" aria-label="Fermer les filtres" class="flex size-11 items-center justify-center lg:hidden"><x-icon name="close" :size="20" /></button>
             </div>
+            <nav aria-label="Explorer" class="mt-3 space-y-1">
+                @foreach (['all' => ['Toutes les personnes', 'group'], 'following' => ['Personnes suivies', 'user'], 'contacts' => ['Mes contacts', 'group'], 'suggestions' => ['Suggestions', 'compass'], 'nearby' => ['Autour de moi', 'pin']] as $value => [$label, $icon])
+                    @if ($value === 'all' || ! $guest)
+                        <button type="button" wire:click="setSection('{{ $value }}')" x-on:click="filtersOpen = false" aria-pressed="{{ $section === $value ? 'true' : 'false' }}" class="directory-nav {{ $section === $value ? 'bg-soft-blue text-link font-bold' : '' }}"><x-icon :name="$icon" :size="18" />{{ $label }}</button>
+                    @else
+                        <a href="{{ route('login') }}" class="directory-nav"><x-icon :name="$icon" :size="18" />{{ $label }}</a>
+                    @endif
+                @endforeach
+            </nav>
+            <section class="directory-filter-section">
+                <h3>Filtres par localité</h3>
+                <label for="filtre-pays" class="sr-only">Pays</label>
+                <select id="filtre-pays" wire:model.live="country" class="zumra-filter w-full"><option value="">Tous les pays</option>@foreach ($countries as $pays)<option value="{{ $pays->id }}">{{ $pays->name }}</option>@endforeach</select>
+                <label for="filtre-ville" class="sr-only">Localité</label>
+                <select id="filtre-ville" wire:model.live="city" class="zumra-filter mt-2 w-full"><option value="">Toutes les villes</option>@foreach ($cities as $ville)<option value="{{ $ville->id }}">{{ $ville->label() }}</option>@endforeach</select>
+            </section>
+            <section class="directory-filter-section">
+                <label for="filtre-domaine" class="mb-2 block font-extrabold">Domaines de compétence</label>
+                @foreach ($domains->take(3) as $domaine)
+                    <label class="flex min-h-11 cursor-pointer items-center gap-2 text-[12px]"><input type="radio" name="domain-preview" wire:model.live="domain" value="{{ $domaine->id }}" class="size-4 shrink-0 accent-link">{{ $domaine->name }}</label>
+                @endforeach
+                <details class="mt-1"><summary class="min-h-11 cursor-pointer content-center text-[12px] font-bold text-link">Tous les domaines</summary>
+                <select id="filtre-domaine" wire:model.live="domain" class="zumra-filter w-full"><option value="">Tous les domaines</option>@foreach ($domains as $domaine)<option value="{{ $domaine->id }}">{{ $domaine->name }}</option>@endforeach</select></details>
+            </section>
+            <section class="directory-filter-section">
+                <h3>Disponibilité</h3>
+                <label class="flex min-h-11 cursor-pointer items-start gap-2 py-2 text-[13px]"><input type="checkbox" wire:model.live="recentOffer" class="mt-1 size-4 shrink-0 accent-link">Aide proposée ces 30 derniers jours</label>
+                <p class="text-[11px] leading-relaxed text-muted">D’après les publications visibles. Disponibilité à confirmer avec la personne.</p>
+            </section>
+            <section class="directory-filter-section">
+                <h3>Type de profil</h3>
+                <p class="mb-2 text-[11px] text-muted">Selon les expériences renseignées</p>
+                <label for="profile-type" class="sr-only">Type de profil selon les expériences</label>
+                <select id="profile-type" wire:model.live="profileType" class="zumra-filter w-full">
+                    <option value="">Tous les parcours</option>
+                    <option value="professional">Expérience professionnelle</option>
+                    <option value="volunteer">Expérience bénévole</option>
+                    <option value="learning">Formation ou apprentissage</option>
+                    <option value="personal">Expérience personnelle</option>
+                </select>
+            </section>
+            <button type="button" wire:click="clearFilters" class="mt-4 min-h-11 w-full rounded-button border border-line px-3 text-[13px] font-bold">Réinitialiser les filtres</button>
+            <button type="button" x-on:click="filtersOpen = false" class="mt-2 min-h-11 w-full rounded-button bg-accent px-3 font-bold lg:hidden">Voir les résultats</button>
         </aside>
-        <main class="min-w-0 space-y-4">
-            <h1 class="sr-only">CARREFOUR — Trouvez qui peut vous aider</h1>
-            <div class="rounded-card border border-line bg-card p-4">
-                <div class="flex flex-wrap gap-2">
-                    <button type="button" wire:click="setMode('offered')" class="min-h-10 rounded-full px-4 text-[13px] font-bold {{ $offered ? 'bg-ink text-white' : 'bg-ground' }}">Peut apporter</button>
-                    <button type="button" wire:click="setMode('wanted')" class="min-h-10 rounded-full px-4 text-[13px] font-bold {{ ! $offered ? 'bg-ink text-white' : 'bg-ground' }}">Veut apprendre</button>
-                    @if ($hasFilters)<button type="button" wire:click="clearFilters" class="min-h-10 rounded-full bg-ground px-4 text-[13px] font-semibold">Tous les filtres</button>@endif
-                </div>
-                <form wire:submit="$refresh" aria-label="Rechercher une personne" class="mt-4 flex min-w-0 gap-2">
-                    <label for="recherche" class="sr-only">Rechercher une capacité ou un nom</label>
-                    <input id="recherche" type="search" wire:model.live.debounce.300ms="query" maxlength="100" autocomplete="off" placeholder="Une personne, une capacité…" class="min-h-12 min-w-0 flex-1 rounded-button border border-line bg-card px-4 text-[14px] outline-none focus:border-link">
-                    <x-button type="submit" variant="accent">Rechercher</x-button>
-                </form>
-                <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-[13px] text-muted">
-                    <span role="status" aria-live="polite">{{ $summary }}</span>
-                    <span>Ordre alphabétique</span>
-                </div>
+        <section aria-label="Annuaire des personnes" class="directory-panel min-w-0">
+            <div class="directory-tabs" aria-label="Découvrir les capacités">
+                @foreach (['all' => 'Tous', 'offered' => 'Peut apporter', 'wanted' => 'Veut apprendre'] as $value => $label)
+                    <button type="button" wire:click="setMode('{{ $value }}')" aria-pressed="{{ $mode === $value ? 'true' : 'false' }}" class="{{ $mode === $value ? 'bg-link text-white' : 'bg-ground text-muted' }}">{{ $label }}</button>
+                @endforeach
+                <button type="button" x-on:click="filtersOpen = window.innerWidth < 1024; $nextTick(() => (document.getElementById('filtre-domaine').closest('details').open = true, document.getElementById('filtre-domaine').focus()))" class="bg-ground text-muted">Par domaine</button>
+                <button type="button" x-on:click="filtersOpen = window.innerWidth < 1024; $nextTick(() => document.getElementById('filtre-ville').focus())" class="bg-ground text-muted">Par localité</button>
+            </div>
+            <div class="my-4 flex flex-wrap items-center justify-between gap-2 text-[12px] text-muted">
+                <span role="status" aria-live="polite">{{ $summary }}</span>
+                <label class="flex items-center gap-1">Trier par : <select wire:model.live="sort" class="min-h-11 max-w-full bg-transparent font-semibold text-ink" aria-label="Trier les personnes"><option value="name">Ordre alphabétique</option><option value="recent">Nouveaux profils</option></select></label>
             </div>
             <section aria-label="Résultats des personnes" class="space-y-3">
                 <div wire:loading.delay role="status" class="text-[14px] text-muted">Recherche en cours…</div>
                 @forelse ($people as $profile)
-                    <x-person-discovery-card wire:key="personne-{{ $profile->id }}" :profile="$profile" />
+                    <x-person-discovery-card wire:key="personne-{{ $profile->id }}" :profile="$profile" :conversation-id="$connections->get($profile->user_id)?->conversation_id" :following="in_array($profile->user_id, $following, true)" :directory="true" />
                 @empty
-                    <div class="rounded-card border border-line bg-card p-6">
-                        <h2 class="text-[18px] font-bold">@if ($hasFilters)Personne ne correspond à cette recherche.@else {{ $offered ? "Personne n’a encore indiqué ce qu’elle peut apporter." : "Personne n’a encore indiqué ce qu’elle veut apprendre." }} @endif</h2>
+                    <div class="rounded-card bg-ground p-5">
+                        <h2 class="text-[17px] font-bold">@if ($hasFilters)Personne ne correspond à cette recherche.@else Personne n’a encore indiqué ce qu’elle peut apporter. @endif</h2>
+                        @if ($section === 'suggestions')<p class="mt-2 text-muted">Les suggestions rapprochent vos envies d’apprendre des capacités proposées. Renseignez-les dans votre profil.</p>@endif
+                        @if ($section === 'nearby' && ! $viewerProfile?->city_id)<p class="mt-2 text-muted">Renseignez votre ville dans votre profil pour découvrir les personnes de la même localité.</p>@endif
                         @if ($guest)<p class="mt-2 text-muted">Créez un compte pour partager vos capacités.</p><x-button :href="route('register')" class="mt-3">Créer un compte</x-button>@elseif (! $viewerProfile?->hasSkills())<p class="mt-2 text-muted">Vous n’apparaissez pas encore ici. Complétez votre profil pour être découvert.</p>@endif
                         <p class="mt-2 text-[14px] text-muted">Essayez une autre capacité, une autre localité ou un autre domaine.</p>
                         @if ($hasFilters)<x-button type="button" variant="secondary" wire:click="clearFilters" class="mt-3">Effacer la recherche</x-button>@endif
@@ -65,32 +88,49 @@
                 @endforelse
             </section>
             @if ($people->hasPages())
-                <nav aria-label="Pages de résultats" class="flex items-center justify-between gap-3">
+                <nav aria-label="Pages de résultats" class="mt-4 flex flex-wrap items-center justify-between gap-2">
                     <x-button type="button" variant="secondary" wire:click="previousPage" :disabled="$people->onFirstPage()">Précédent</x-button>
-                    <span class="text-[13px] text-muted">Page {{ $people->currentPage() }} sur {{ $people->lastPage() }}</span>
+                    <span class="text-[12px] text-muted">Page {{ $people->currentPage() }} sur {{ $people->lastPage() }}</span>
                     <x-button type="button" variant="secondary" wire:click="nextPage" :disabled="! $people->hasMorePages()">Suivant</x-button>
                 </nav>
             @endif
-        </main>
-        <aside aria-label="Découvrir le réseau" class="min-w-0 space-y-4 lg:col-start-2 xl:col-start-3">
-            <section class="rounded-card border border-line bg-card p-4">
-                <h2 class="text-[17px] font-extrabold">Recherche rapide</h2>
-                <p class="mt-2 text-[13px] text-muted">Recherchez par nom ou capacité dans la liste centrale.</p>
-                <a href="#recherche" class="mt-3 inline-flex min-h-11 items-center gap-2 text-[14px] font-bold text-link"><x-icon name="search" :size="18"/> Rechercher</a>
+        </section>
+        <aside aria-label="Découvrir le réseau" class="directory-discovery min-w-0 space-y-4">
+            <section class="directory-panel">
+                <h2>Recherche rapide</h2>
+                <form wire:submit="$refresh" aria-label="Rechercher une personne" class="mt-3 space-y-3">
+                    <label for="recherche" class="sr-only">Rechercher une capacité ou un nom</label>
+                    <input id="recherche" type="search" wire:model.live.debounce.300ms="query" maxlength="100" placeholder="Nom, compétence…" class="min-h-11 w-full min-w-0 rounded-button border border-line bg-card px-3 text-[13px]">
+                    <x-button type="submit" variant="accent" class="w-full">Rechercher</x-button>
+                </form>
             </section>
-            <section class="rounded-card border border-line bg-card p-4">
-                <h2 class="text-[17px] font-extrabold">Découvrir autrement</h2>
-                <div class="mt-3 space-y-2">
-                    <button type="button" wire:click="setMode('offered')" class="flex min-h-11 w-full items-center gap-2 text-left text-[13px] font-semibold"><x-icon name="group" :size="18"/> Capacités à partager</button>
-                    <button type="button" wire:click="setMode('wanted')" class="flex min-h-11 w-full items-center gap-2 text-left text-[13px] font-semibold"><x-icon name="book" :size="18"/> Envies d'apprendre</button>
-                </div>
+            <section class="directory-panel">
+                <h2>Suggestions pour vous</h2>
+                <p class="mt-2 text-[12px] text-muted">Des capacités pour ce que vous voulez apprendre.</p>
+                @forelse ($suggestions as $profile)
+                    @include('partials.person-directory-suggestion', ['showFollow' => true])
+                @empty
+                    <p class="mt-4 text-[13px] text-muted">{{ $guest ? 'Connectez-vous pour découvrir des profils selon vos envies d’apprendre.' : 'Renseignez vos envies d’apprendre pour découvrir des profils complémentaires.' }}</p>
+                @endforelse
+                @if ($suggestions->isNotEmpty())<button type="button" wire:click="setSection('suggestions')" class="mt-3 min-h-11 w-full border-t border-line text-[13px] font-bold text-link">Voir toutes les suggestions →</button>@endif
             </section>
-            <section class="rounded-card border border-line bg-card p-4">
-                <h2 class="text-[17px] font-extrabold">Faites partie du réseau</h2>
+            @if ($viewerProfile?->city_id)
+                <section class="directory-panel">
+                    <h2>Personnes près de vous</h2>
+                    <p class="mt-2 text-[12px] text-muted">Même localité : {{ $viewerProfile->city?->label() }}</p>
+                    @forelse ($nearbyPeople as $profile)
+                        @include('partials.person-directory-suggestion', ['showFollow' => false])
+                    @empty
+                        <p class="mt-4 text-[13px] text-muted">Aucun profil visible dans votre localité pour le moment.</p>
+                    @endforelse
+                    @if ($nearbyPeople->isNotEmpty())<button type="button" wire:click="setSection('nearby')" class="mt-3 min-h-11 w-full border-t border-line text-[13px] font-bold text-link">Voir autour de moi →</button>@endif
+                </section>
+            @endif
+            <section class="directory-panel">
+                <h2>Faites partie du réseau</h2>
                 <p class="mt-2 text-[13px] leading-relaxed text-muted">Présentez vos capacités et vos expériences pour être découvert.</p>
                 <x-button :href="$guest ? route('register') : route('espace.profil')" variant="accent" class="mt-4 w-full">{{ $guest ? 'Créer un compte' : ($viewerProfile?->hasSkills() ? 'Mon profil' : 'Compléter mon profil') }}</x-button>
             </section>
         </aside>
     </div>
-    <p class="mt-5 flex items-center justify-center gap-2 text-center text-[13px] text-muted"><x-icon name="lock" :size="16"/> Votre e-mail et votre téléphone restent privés.</p>
 </div>

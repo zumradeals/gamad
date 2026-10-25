@@ -24,7 +24,7 @@
 </head>
 <body class="flex flex-col bg-ground text-ink antialiased">
     <header class="sticky top-0 z-20 border-b border-line bg-card">
-        <div class="mx-auto flex w-full max-w-[1240px] flex-wrap items-center gap-3 px-4 py-3 lg:flex-nowrap lg:gap-5 lg:px-6 lg:py-0">
+        <div class="mx-auto flex w-full max-w-[1680px] flex-wrap items-center gap-3 px-4 py-3 lg:flex-nowrap lg:gap-3 lg:px-6 lg:py-0">
             <a href="{{ auth()->check() ? route('fil') : url('/') }}" class="inline-flex min-h-11 items-center no-underline" aria-label="GAMAD — accueil">
                 <span class="flex flex-col">
                     <x-logo />
@@ -36,7 +36,7 @@
                 @foreach ($desktopItems as $item)
                     <a href="{{ route($item['route']) }}"
                        @if ($isActive($item)) aria-current="page" @endif
-                       class="flex min-h-[72px] min-w-11 items-center justify-center gap-2 border-b-[3px] px-3 text-[13px] no-underline {{ $isActive($item) ? 'border-ink font-extrabold text-ink' : 'border-transparent font-semibold text-muted hover:border-line hover:text-ink' }}">
+                       class="flex min-h-[64px] min-w-11 items-center justify-center gap-1.5 whitespace-nowrap border-b-[3px] px-2 text-[13px] no-underline {{ $isActive($item) ? 'border-ink font-extrabold text-ink' : 'border-transparent font-semibold text-muted hover:border-line hover:text-ink' }}">
                         @if (isset($item['icon']))<x-icon :name="$item['icon']" :size="22" />@endif
                         {{ $item['label'] }}
                     </a>
@@ -54,12 +54,8 @@
             @auth
                 <div class="flex items-center gap-1">
                     <livewire:notification-bell />
-                    <a href="{{ route('notifications') }}" class="hidden min-h-11 items-center text-[12px] font-semibold text-muted no-underline hover:text-ink xl:flex">Notifications</a>
+
                 </div>
-                <a href="{{ route('espace') }}" aria-label="Mon espace" @if (request()->routeIs('espace', 'espace.*')) aria-current="page" @endif class="hidden min-h-11 items-center gap-2 border-l border-line pl-4 text-ink no-underline hover:text-ink lg:flex">
-                    <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-ink text-[12px] font-extrabold text-white">{{ auth()->user()?->initials() }}</span>
-                    <span @class(['hidden border-b-2 px-1 py-2 text-[12px] font-semibold xl:inline', 'border-ink bg-soft-blue' => request()->routeIs('espace', 'espace.*'), 'border-transparent' => ! request()->routeIs('espace', 'espace.*')])>Mon espace</span>
-                </a>
                 @if ($agir)
                     <div x-data="{ agirOpen: false }" class="relative hidden lg:block" x-on:click.outside="agirOpen = false" x-on:keydown.escape.window="agirOpen = false">
                         <button type="button" x-on:click="agirOpen = !agirOpen" x-bind:aria-expanded="agirOpen.toString()" aria-controls="agir-menu-desktop" aria-haspopup="true" class="flex min-h-11 items-center gap-1.5 rounded-button bg-accent px-4 text-[14px] font-extrabold text-ink">
@@ -72,6 +68,17 @@
                         </nav>
                     </div>
                 @endif
+                <div x-data="{ userOpen: false }" x-on:click.outside="userOpen = false" x-on:keydown.escape.window="userOpen = false" class="relative hidden lg:block">
+                    <button type="button" x-on:click="userOpen = !userOpen" x-bind:aria-expanded="userOpen.toString()" aria-controls="user-menu" aria-label="Menu utilisateur" class="flex min-h-11 items-center gap-2">
+                        <x-avatar :profile="auth()->user()->profile" :size="36" />
+                        <span class="hidden max-w-24 truncate text-[12px] font-bold 2xl:inline">{{ auth()->user()->name }}</span><span aria-hidden="true">⌄</span>
+                    </button>
+                    <nav id="user-menu" x-show="userOpen" x-cloak aria-label="Compte" class="absolute right-0 top-full z-40 mt-2 w-56 rounded-card border border-line bg-card p-2 shadow-lg">
+                        <a href="{{ route('espace.profil') }}" class="block min-h-11 px-3 py-3 text-[13px] font-semibold">Mon profil</a>
+                        <a href="{{ route('espace') }}" class="block min-h-11 px-3 py-3 text-[13px] font-semibold">Mon espace</a>
+                        <form method="POST" action="{{ route('logout') }}">@csrf<button type="submit" class="min-h-11 w-full px-3 py-3 text-left text-[13px] font-semibold">Se déconnecter</button></form>
+                    </nav>
+                </div>
             @else
                 {{-- Visiteur sans compte (Carrefour Personnes, Monde d'une personne publics) : seulement entrer ou s'inscrire. --}}
                 <div class="flex items-center gap-2">
@@ -84,7 +91,7 @@
         </div>
     </header>
 
-    <main @class(['mx-auto w-full flex-1 px-4 pt-4 md:px-6 lg:pb-10 lg:pt-6', 'max-w-[920px]' => $narrow, 'max-w-[1240px]' => ! $narrow, 'pb-[104px]' => auth()->check(), 'pb-10' => ! auth()->check()])>
+    <main @class(['mx-auto w-full flex-1 px-4 pt-4 md:px-6 lg:pb-10 lg:pt-6', 'max-w-[920px]' => $narrow, 'max-w-[1240px]' => ! $narrow && ! request()->routeIs('personnes.index'), 'directory-shell' => ! $narrow && request()->routeIs('personnes.index'), 'pb-[104px]' => auth()->check(), 'pb-10' => ! auth()->check()])>
         {{ $slot }}
 
         <div class="mt-6">@include('partials.legal-links')</div>

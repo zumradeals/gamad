@@ -1,10 +1,12 @@
 <?php
 
+use App\Enums\PublicationType;
 use App\Livewire\CarrefourPersonnes;
 use App\Models\City;
 use App\Models\Domain;
 use App\Models\Profile;
 use App\Models\User;
+use App\Services\People;
 use Livewire\Livewire;
 
 function noms($composant): array
@@ -21,7 +23,7 @@ beforeEach(function () {
 
 function visiteur()
 {
-    return Livewire::test(CarrefourPersonnes::class);
+    return Livewire::test(CarrefourPersonnes::class)->call('setMode', 'offered');
 }
 
 it('est ouvert à un visiteur sans compte', function () {
@@ -193,15 +195,15 @@ it('permet à deux comptes de test de se trouver l’un l’autre par capacité 
     $bouake = City::query()->where('name', 'Bouaké')->value('id');
 
     // A cherche quelqu'un qui peut apporter ce qu'il veut apprendre (jardinage) à Bouaké : il trouve B.
-    expect(noms(Livewire::actingAs($a)->test(CarrefourPersonnes::class)->set('query', 'jardinage')->set('city', $bouake)))->toBe(['Compte B']);
+    expect(noms(Livewire::actingAs($a)->test(CarrefourPersonnes::class)->set('mode', 'offered')->set('query', 'jardinage')->set('city', $bouake)))->toBe(['Compte B']);
     // B cherche quelqu'un qui peut apporter la menuiserie : il trouve A.
-    expect(noms(Livewire::actingAs($b)->test(CarrefourPersonnes::class)->set('query', 'menuiserie')->set('city', $bouake)))->toBe(['Compte A']);
+    expect(noms(Livewire::actingAs($b)->test(CarrefourPersonnes::class)->set('mode', 'offered')->set('query', 'menuiserie')->set('city', $bouake)))->toBe(['Compte A']);
     // Dans l'autre sens : A cherche qui veut apprendre la menuiserie : B ; B cherche qui veut apprendre le jardinage : A.
-    expect(noms(Livewire::actingAs($a)->test(CarrefourPersonnes::class)->set('query', 'menuiserie')->set('mode', 'wanted')->set('city', $bouake)))->toBe(['Compte B'])
-        ->and(noms(Livewire::actingAs($b)->test(CarrefourPersonnes::class)->set('query', 'jardinage')->set('mode', 'wanted')->set('city', $bouake)))->toBe(['Compte A']);
+    expect(noms(Livewire::actingAs($a)->test(CarrefourPersonnes::class)->set('mode', 'offered')->set('query', 'menuiserie')->set('mode', 'wanted')->set('city', $bouake)))->toBe(['Compte B'])
+        ->and(noms(Livewire::actingAs($b)->test(CarrefourPersonnes::class)->set('mode', 'offered')->set('query', 'jardinage')->set('mode', 'wanted')->set('city', $bouake)))->toBe(['Compte A']);
     // Et ils ne se trouvent pas dans une autre ville.
     $yamoussoukro = City::query()->where('name', 'Yamoussoukro')->value('id');
-    expect(noms(Livewire::actingAs($a)->test(CarrefourPersonnes::class)->set('query', 'jardinage')->set('city', $yamoussoukro)))->toBe([]);
+    expect(noms(Livewire::actingAs($a)->test(CarrefourPersonnes::class)->set('mode', 'offered')->set('query', 'jardinage')->set('city', $yamoussoukro)))->toBe([]);
 });
 
 it('liste les villes et domaines actifs dans les filtres, pas les désactivés', function () {
@@ -226,4 +228,68 @@ it('porte la recherche dans l’adresse, pour que les liens du profil ouvrent le
 
 it('ne lance pas de requête fautive avec une recherche démesurée', function () {
     expect(noms(visiteur()->set('query', str_repeat('a', 5000))))->toBe([]);
+});
+
+it('ouvre Tous par défaut et réinitialise tous les filtres', function () {
+    person('Apprenante', [], ['Couture']);
+    $page = Livewire::test(CarrefourPersonnes::class)->assertSet('mode', 'all');
+    expect(noms($page))->toContain('Apprenante');
+    $page->set('recentOffer', true)->set('profileType', 'learning')->set('sort', 'recent')
+        ->call('setSection', 'following')->call('setMode', 'wanted')->call('clearFilters')
+        ->assertSet('mode', 'all')->assertSet('section', 'all')->assertSet('recentOffer', false)->assertSet('profileType', '')->assertSet('sort', 'name');
+});
+
+it('limite les suivis et contacts au compte connecté et aux profils visibles', function () {
+    $people = app(People::class);
+    $people->follow($this->awa, $this->yao, true);
+    $people->request($this->awa, $this->fatou, 'Échangeons sur la comptabilité');
+    $pair = $people->pair($this->awa, $this->fatou)->firstOrFail();
+    $people->decide($this->fatou, $this->awa, 'accept', $pair->revision);
+    $page = Livewire::actingAs($this->awa)->test(CarrefourPersonnes::class);
+    expect(noms($page->call('setSection', 'following')))->toBe(['Yao Kouassi']);
+    expect(noms($page->call('setSection', 'contacts')))->toBe(['Fatoumata Diallo']);
+    $page->assertSeeText('Contacter')->assertSee(route('conversations.show', $pair->fresh()->conversation_id), false);
+    $people->block($this->awa, $this->yao, true);
+    request()->attributes->remove('gamad.blocks.'.$this->awa->id);
+    expect(noms($page->call('setSection', 'following')))->toBe([]);
+});
+
+it('suggère des capacités complémentaires et seulement la localité déclarée', function () {
+    $local = person('Anglophone local', ['Anglais'], [], 'Yamoussoukro');
+    person('Anglophone ailleurs', ['Anglais'], [], 'Bouaké');
+    $page = Livewire::actingAs($this->awa)->test(CarrefourPersonnes::class);
+    expect($page->viewData('suggestions')->pluck('user.name')->all())->toBe(['Anglophone ailleurs', 'Anglophone local']);
+    expect($page->viewData('nearbyPeople')->pluck('user_id')->all())->toBe([$local->id]);
+    $page->call('follow', $local->profile->id, true);
+    expect(noms($page->call('setSection', 'following')))->toBe(['Anglophone local']);
+    $local->forceFill(['email_verified_at' => null])->save();
+    $page->call('setSection', 'suggestions');
+    expect(noms($page))->toBe(['Anglophone ailleurs']);
+});
+
+it('ne déduit pas une localisation ou une suggestion pour un visiteur', function () {
+    $page = Livewire::test(CarrefourPersonnes::class);
+    expect($page->viewData('suggestions'))->toHaveCount(0);
+    expect($page->viewData('nearbyPeople'))->toHaveCount(0);
+    $page->assertDontSeeText('Personnes près de vous')->assertDontSeeText('Contacter');
+});
+
+it('filtre les expériences et les offres récentes sans lire les préférences privées', function () {
+    $this->awa->profile->update(['experiences' => [['title' => 'Comptable', 'kind' => 'professional']]]);
+    $this->yao->profile->update(['matching_preferences' => ['available' => true]]);
+    publication($this->awa, PublicationType::Offer);
+    $old = publication($this->yao, PublicationType::Offer);
+    $old->update(['created_at' => now()->subDays(31)]);
+    $hidden = publication($this->fatou, PublicationType::Offer);
+    $hidden->update(['hidden_at' => now(), 'hidden_reason' => 'Test de visibilité']);
+    expect(noms(visiteur()->set('profileType', 'professional')))->toBe(['Awa Traoré']);
+    expect(noms(visiteur()->set('recentOffer', true)))->toBe(['Awa Traoré']);
+});
+
+it('combine pays et ville et remet la pagination à zéro au changement de filtre', function () {
+    $city = City::where('name', 'Cocody')->firstOrFail();
+    $page = Livewire::test(CarrefourPersonnes::class)->set('country', $city->country_id)->set('city', $city->id);
+    expect(noms($page))->toBe(['Yao Kouassi']);
+    $page->call('setPage', 2)->set('profileType', 'professional')->assertSet('paginators.page', 1);
+    $page->set('country', '')->assertSet('city', '');
 });

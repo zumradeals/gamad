@@ -2,8 +2,8 @@
 
 ## Priorité actuelle — Accueil, profils et entraide (D-183, D-184)
 
-Le Président demande une entrée unifiée **Accueil · Agir · Mon espace** (D-184, D-190). Les profils et la recherche
-de personnes restent accessibles depuis le Fil et les publications, sans menu Personnes permanent.
+La mission Personnes du 25 octobre 2026 (D-195) rétablit **Accueil · Personnes · Entreprises · Mon espace**
+dans la navigation, avec recherche et menu Agir conservés. Elle remplace sur ce point D-184 et D-185.
 La priorité est le parcours besoin → proposition précise → conversation → prochaine action confirmée.
 D-186 ajoute les profils enrichis, réalisations et partages personnels (texte, image, vidéo ou PDF),
 le geste Échanger, les suivis et les relations réciproques privées. Lire le contrat détaillé en fin de
