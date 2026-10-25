@@ -212,16 +212,80 @@ it('respecte la visibilité des profils suggérés', function () {
     expect($ferme)->not->toBeNull();
 });
 
-it('garde l’accès à toutes les fonctions existantes de Mon espace', function () {
-    espaceDe($this->awa)
-        ->assertSee('À faire maintenant')->assertSee('Mes échanges')->assertSee('Mes enregistrements')->assertSee('Mes attestations')->assertSee('Mes liens')
-        ->assertSee('Mon compte')->assertSee('Nom affiché')->assertSee('Suppression du compte')->assertSee('Se déconnecter')->assertSee('Mon entreprise sur GAMAD');
+it('garde l’accès à toutes les fonctions existantes de Mon espace, chacune dans sa rubrique', function () {
+    $contenus = [
+        'echanges' => 'Mes échanges', 'enregistrements' => 'Mes enregistrements', 'attestations' => 'Mes attestations', 'entreprise' => 'Mon entreprise sur GAMAD',
+        'pistes' => 'Des pistes pour avancer', 'relations' => 'Mes liens', 'compte' => 'Nom affiché',
+    ];
+
+    foreach ($contenus as $rubrique => $texte) {
+        espaceDe($this->awa)->call('show', $rubrique)->assertSet('section', $rubrique)->assertSee($texte);
+    }
+
+    espaceDe($this->awa)->call('show', 'compte')->assertSee('Suppression du compte')->assertSee('Se déconnecter');
 });
 
-it('réserve la modération et l’administration à ceux qui y ont droit', function () {
-    espaceDe($this->awa)->assertDontSee('Modération')->assertDontSee('Administration');
-    espaceDe(User::factory()->moderator()->create())->assertSee('Modération')->assertDontSee('Administration');
-    espaceDe(User::factory()->superAdmin()->create())->assertSee('Modération')->assertSee('Administration');
+it('garde la vue d’ensemble courte : seulement identité, indicateurs, capacités, réalisations et publications', function () {
+    $page = espaceDe($this->awa)->assertSet('section', 'vue-ensemble')
+        ->assertSee('Mes capacités')->assertSee('Mes réalisations récentes')->assertSee('Mes publications récentes')
+        ->assertDontSee('Suppression du compte')->assertDontSee('Nom affiché')->assertDontSee('Retrouvez les publications que vous avez conservées')
+        ->assertDontSee('Créez votre page entreprise')->assertDontSee('Des pistes pour avancer')->assertDontSee('Faire vérifier mon identité')->assertDontSee('Vos relations et suivis sont privés');
+    expect(substr_count($page->html(), '<section'))->toBeLessThan(12);
+});
+
+it('n’affiche « À faire maintenant » que lorsqu’une action réelle attend la personne', function () {
+    espaceDe($this->awa)->assertDontSee('À faire maintenant');
+
+    $besoin = publication($this->awa, PublicationType::Need, ['body' => 'Un besoin avec une réponse']);
+    geste(person('Aidante', ['Couture']), $besoin);
+
+    espaceDe($this->awa)->assertSee('À faire maintenant')->assertSee('1 réponse à traiter');
+});
+
+it('met en évidence la rubrique active et propose le retour à la vue d’ensemble', function () {
+    espaceDe($this->awa)->assertSeeHtml('aria-current="page"')
+        ->call('show', 'compte')->assertSet('section', 'compte')->assertSee('Vue d’ensemble')->assertSeeHtml('wire:click.prevent="show(\'vue-ensemble\')"')
+        ->call('show', 'vue-ensemble')->assertSet('section', 'vue-ensemble');
+});
+
+it('ouvre une rubrique par son adresse et ignore une rubrique inconnue', function () {
+    $this->actingAs($this->awa)->get(route('espace', ['rubrique' => 'compte']))->assertOk()->assertSee('Nom affiché');
+    $this->actingAs($this->awa)->get(route('espace', ['rubrique' => 'inconnue']))->assertOk()->assertSee('Mes réalisations récentes')->assertDontSee('Nom affiché');
+    espaceDe($this->awa)->call('show', 'inconnue')->assertSet('section', 'vue-ensemble');
+});
+
+it('liste toutes les réalisations et publications dans leur rubrique, au-delà de l’aperçu', function () {
+    foreach (range(1, 5) as $i) {
+        publication($this->awa, PublicationType::PersonalWork, ['body' => 'Réalisation numéro '.$i]);
+    }
+    foreach (range(1, 7) as $i) {
+        publication($this->awa, PublicationType::Need, ['body' => 'Publication numéro '.$i]);
+    }
+
+    $apercu = espaceDe($this->awa);
+    expect(substr_count($apercu->html(), 'Réalisation numéro'))->toBe(3)->and(substr_count($apercu->html(), 'Publication numéro'))->toBe(5);
+    $apercu->assertSee('Voir tout');
+
+    espaceDe($this->awa)->call('show', 'realisations')->assertSee('Réalisation numéro 1')->assertSee('Réalisation numéro 5')->assertSee('Mes réalisations');
+    espaceDe($this->awa)->call('show', 'publications')->assertSee('Publication numéro 1')->assertSee('Publication numéro 7');
+});
+
+it('réserve la modération et l’administration à ceux qui y ont droit, aussi par l’adresse et côté serveur', function () {
+    espaceDe($this->awa)->assertDontSee('Modération')->assertDontSee('Administration')
+        ->call('show', 'moderation')->assertSet('section', 'vue-ensemble')->call('show', 'administration')->assertSet('section', 'vue-ensemble');
+    $this->actingAs($this->awa)->get(route('espace', ['rubrique' => 'administration']))->assertDontSee('Courriel, nom et adresse de la plateforme');
+
+    $moderateur = User::factory()->moderator()->create();
+    espaceDe($moderateur)->assertSee('Modération')->assertDontSee('Administration')
+        ->call('show', 'moderation')->assertSet('section', 'moderation')->assertSee('Ouvrir la file de modération')
+        ->call('show', 'administration')->assertSet('section', 'vue-ensemble');
+
+    espaceDe(User::factory()->superAdmin()->create())->assertSee('Modération')->assertSee('Administration')
+        ->call('show', 'administration')->assertSet('section', 'administration')->assertSee('Paramètres');
+});
+
+it('refuse de forcer une rubrique interdite en modifiant l’état du composant', function () {
+    espaceDe($this->awa)->set('section', 'administration')->assertSet('section', 'vue-ensemble')->assertDontSee('Courriel, nom et adresse de la plateforme');
 });
 
 it('ne montre jamais de chiffre ni de personne de démonstration', function () {

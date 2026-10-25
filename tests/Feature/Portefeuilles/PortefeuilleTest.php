@@ -246,7 +246,7 @@ it('montre les liens quand les portefeuilles sont ouverts : Mon espace pour tous
     $membre = person('Membre Simple');
     ajouteMembre($z, $membre);
 
-    Livewire::actingAs($this->awa)->test(Espace::class)->assertSee('Ouvrir mon portefeuille');
+    Livewire::actingAs($this->awa)->test(Espace::class)->call('show', 'activites')->assertSee('Ouvrir mon portefeuille');
     monde($this->awa, $z)->assertSee('Portefeuille de la ZUMRA');
     monde($membre, $z)->assertDontSee('Portefeuille de la ZUMRA');
 });
@@ -292,7 +292,7 @@ it('refuse la suppression d’un compte dont le portefeuille n’est pas vide', 
     $this->awa->forceFill(['password' => 'motdepasse1'])->save();
     portefeuilles()->post(portefeuilles()->forPerson($this->awa), LedgerKind::Recharge, 300);
 
-    Livewire::actingAs($this->awa)->test(Espace::class)->set('password', 'motdepasse1')->call('deleteAccount')
+    Livewire::actingAs($this->awa)->test(Espace::class)->call('show', 'compte')->set('password', 'motdepasse1')->call('deleteAccount')
         ->assertHasErrors(['password'])->assertSee('dépensez-les');
 
     expect(User::find($this->awa->id))->not->toBeNull();
@@ -316,7 +316,7 @@ it('refuse la suppression de la dernière personne d’une ZUMRA au portefeuille
     $z = zumra($this->awa);
     portefeuilles()->post(portefeuilles()->forZumra($z), LedgerKind::Recharge, 900);
 
-    Livewire::actingAs($this->awa)->test(Espace::class)->set('password', 'motdepasse1')->call('deleteAccount')
+    Livewire::actingAs($this->awa)->test(Espace::class)->call('show', 'compte')->set('password', 'motdepasse1')->call('deleteAccount')
         ->assertHasErrors(['password'])->assertSee('dernière personne');
 
     expect(User::find($this->awa->id))->not->toBeNull()->and($z->fresh())->not->toBeNull();

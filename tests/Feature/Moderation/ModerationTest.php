@@ -377,8 +377,8 @@ it('dit à la modération combien de publications attendent un examen, et pas au
 });
 
 it('annonce la section Modération dans Espace aux seuls modérateurs et super administrateur', function () {
-    Livewire::actingAs($this->mod)->test(Espace::class)->assertSee(route('moderation'), false)->assertSeeText('Ouvrir la file de modération');
-    Livewire::actingAs($this->p1)->test(Espace::class)->assertDontSeeText('Ouvrir la file de modération');
+    Livewire::actingAs($this->mod)->test(Espace::class)->call('show', 'moderation')->assertSee(route('moderation'), false)->assertSeeText('Ouvrir la file de modération');
+    Livewire::actingAs($this->p1)->test(Espace::class)->call('show', 'moderation')->assertDontSeeText('Ouvrir la file de modération');
 });
 
 // ─── Parcours complet ────────────────────────────────────────────────────────

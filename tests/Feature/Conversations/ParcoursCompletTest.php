@@ -47,7 +47,7 @@ it('parcours « J’ai besoin » → « Je peux aider » → acceptation → con
     Livewire::actingAs($awa)->test(Espace::class)->assertSeeText('1 message non lu');
     Livewire::actingAs($awa)->test(PageConversation::class, ['conversation' => $conversation])
         ->assertSeeText('Bonjour Awa')->set('body', 'Avec plaisir. Venez vers 9 h 30 samedi.')->call('send');
-    Livewire::actingAs($awa)->test(Espace::class)->assertSeeText('Rien ne vous attend');
+    Livewire::actingAs($awa)->test(Espace::class)->assertDontSeeText('À faire maintenant');
     Livewire::actingAs($yao)->test(PageConversation::class, ['conversation' => $conversation])->assertSeeText('Avec plaisir');
 
     // 5. Yao marque son besoin résolu et remercie Awa : le remerciement est public sur son profil.

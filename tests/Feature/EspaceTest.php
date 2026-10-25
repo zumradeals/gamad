@@ -11,7 +11,7 @@ it('affiche le nom et l’adresse e-mail de la personne connectée seulement', f
     $user = User::factory()->create(['name' => 'Awa Traoré', 'email' => 'awa@example.com']);
     $autre = User::factory()->create(['name' => 'Moussa Koné', 'email' => 'moussa@example.com']);
 
-    $this->actingAs($user)->get('/espace')
+    $this->actingAs($user)->get(route('espace', ['rubrique' => 'compte']))
         ->assertOk()
         ->assertSeeText('Awa Traoré')
         ->assertSeeText('awa@example.com')
@@ -80,7 +80,7 @@ it('ne permet à personne d’agir sur Espace sans être connecté et vérifié'
 it('affiche la confirmation avec les états d’erreur du mot de passe', function () {
     $user = User::factory()->create(['password' => 'motdepasse1']);
 
-    Livewire::actingAs($user)->test(Espace::class)
+    Livewire::actingAs($user)->test(Espace::class)->call('show', 'compte')
         ->set('password', 'faux')
         ->call('deleteAccount')
         ->assertSee('Le mot de passe est incorrect.');
