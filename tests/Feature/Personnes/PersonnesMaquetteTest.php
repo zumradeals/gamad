@@ -15,7 +15,7 @@ function lesNoms($composant): array
 
 function page(?User $viewer = null)
 {
-    return ($viewer ? Livewire::actingAs($viewer) : Livewire::new(CarrefourPersonnes::class))->test(CarrefourPersonnes::class);
+    return $viewer ? Livewire::actingAs($viewer)->test(CarrefourPersonnes::class) : Livewire::test(CarrefourPersonnes::class);
 }
 
 beforeEach(function () {
