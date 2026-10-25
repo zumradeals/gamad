@@ -314,7 +314,7 @@ Conseil de profil : une suggestion déterministe privée, sans score ni diplôme
 réalisation ou présentation selon les éléments manquants. R1 reste En cours.
 
 
-## Identité visuelle administrable — D-194
+## Identité visuelle administrable — D-195
 Le super administrateur gère le logo et l’icône carrée depuis Paramètres, avec aperçu et retour au défaut.
 PNG/JPEG/WebP limités à 2 Mo et 4096 px, redessinés en PNG sans métadonnées avec transparence conservée.
 Logo proportionnel (1024 px maximum), icône carrée (512 px maximum), favicon et apple-touch-icon.

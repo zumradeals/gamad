@@ -14,7 +14,7 @@ lot en « Terminé ».
 | 4 | Projets | **Terminé** (PR 4a, 4b et 4c fusionnées, marqué terminé le 2026-10-23 sur instruction du Président) |
 | 5 | Ouverture (pilote) | **Terminé** (PR 5a, 5b et 5c fusionnées, marqué terminé le 2026-10-23 sur instruction du Président ; restent à faire par lui : l'essai de restauration sur son stockage réel et le pilote fermé) |
 | 5.1 | Carrefour Besoins et Découvrir | **Terminé** (PR 5.1 fusionnée, marqué terminé le 2026-10-23 sur instruction du Président) |
-| 6 | Contributions mensuelles et portefeuille ZAHAB | **Suspendu** (D-183 : conserver le code et les données, aucune extension) |
+| 6 | Contributions mensuelles et portefeuille ZAHAB | **Terminé** (PR 6a, 6b, 6c fusionnées, marqué terminé le 2026-10-23 sur instruction du Président) ; **gelé dans le parcours initial** depuis D-183 : code et données conservés, aucune extension, mode réel verrouillé |
 | R1 | Entrée par le Fil et entraide accompagnée | **En cours** (D-183, D-184 et D-186, mission confiée à Codex) |
 
 **Priorité actuelle (D-183).** Le Lot R1 remplace le développement du Lot 6. Lire
@@ -463,7 +463,7 @@ Conseil de profil : une suggestion déterministe privée, sans score ni diplôme
 réalisation ou présentation selon les éléments manquants. R1 reste En cours.
 
 
-## Identité visuelle administrable — D-194
+## Identité visuelle administrable — D-195
 Le super administrateur gère le logo et l’icône carrée depuis Paramètres, avec aperçu et retour au défaut.
 PNG/JPEG/WebP limités à 2 Mo et 4096 px, redessinés en PNG sans métadonnées avec transparence conservée.
 Logo proportionnel (1024 px maximum), icône carrée (512 px maximum), favicon et apple-touch-icon.
