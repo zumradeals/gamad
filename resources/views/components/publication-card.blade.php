@@ -25,6 +25,7 @@
     $canSeeAuthor = $profile && Gate::forUser($viewer)->allows('view', $profile);
     $meta = collect([
         $zumra ? 'par '.$author->name : null,
+        $compact && ! $zumra && ! $company ? $profile?->headline : null,
         $publication->domain?->name,
         $publication->city?->label(),
         $publication->created_at->copy()->locale('fr')->timezone('Africa/Abidjan')->diffForHumans(['short' => true]),
@@ -61,7 +62,7 @@
         @elseif ($zumra)
             <x-zumra-initials :zumra="$zumra" :size="40" />
         @elseif ($profile)
-            <x-avatar :profile="$profile" :size="40" />
+            <x-avatar :profile="$profile" :size="$compact ? 48 : 40" />
         @endif
         <div class="flex min-w-0 flex-1 flex-col gap-0.5">
             @if ($company)
@@ -81,17 +82,36 @@
                 <span class="feed-post-meta -mt-2 text-[12px] text-muted">{{ $meta }}</span>
             @endif
         </div>
-        @if ($compact && $showFollow && ! $browse && $viewer?->isActive() && ! $isOwner && $canSeeAuthor && ! $zumra && ! $company && ! $publication->project_id)
-            @if ($followed)
-                <span class="inline-flex min-h-11 items-center text-[12px] font-bold text-type-knowledge-fg">Personne suivie</span>
-            @else
-                <button type="button" wire:click="followAuthor('{{ $publication->id }}')" wire:loading.attr="disabled" wire:target="followAuthor" class="inline-flex min-h-11 shrink-0 items-center gap-1 text-[12px] font-bold text-link">+ Suivre</button>
-            @endif
+        @if ($compact)
+            <div class="flex shrink-0 items-start gap-1">
+                <span class="mt-2 hidden rounded-chip px-3 py-1 text-[12px] font-bold sm:inline-flex {{ $type->badgeClasses() }}">{{ $publication->displayLabel() }}</span>
+                @if ($state && $state !== NeedState::Open)
+                    <span class="mt-2 hidden rounded-chip px-3 py-1 text-[12px] font-extrabold sm:inline-flex {{ $stateClasses }}">{{ $state->label() }}</span>
+                @endif
+                <div x-data="{ menu: false }" class="relative" x-on:click.outside="menu = false" x-on:keydown.escape.window="menu = false">
+                    <button type="button" x-on:click="menu = ! menu" x-bind:aria-expanded="menu" aria-haspopup="menu" aria-label="Autres actions pour cette publication" class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-button text-[18px] font-extrabold">⋯</button>
+                    <div x-show="menu" x-cloak role="menu" class="absolute right-0 z-20 mt-1 w-60 rounded-card border border-line bg-card p-1 shadow-lg">
+                        @if (! $publication->zumra_id && ! $publication->project_id && ! $publication->isHidden())
+                            <a role="menuitem" href="{{ route('publications.show', $publication) }}" class="flex min-h-11 items-center px-3 text-[14px] font-semibold text-ink no-underline">Voir la publication</a>
+                        @endif
+                        @if ($showFollow && ! $browse && $viewer?->isActive() && ! $isOwner && $canSeeAuthor && ! $zumra && ! $company && ! $publication->project_id)
+                            @if ($followed)
+                                <span role="menuitem" class="flex min-h-11 items-center px-3 text-[14px] font-semibold text-type-knowledge-fg">Personne suivie</span>
+                            @else
+                                <button type="button" role="menuitem" wire:click="followAuthor('{{ $publication->id }}')" wire:loading.attr="disabled" wire:target="followAuthor" class="flex min-h-11 w-full items-center px-3 text-left text-[14px] font-semibold text-link">+ Suivre cette personne</button>
+                            @endif
+                        @endif
+                        @if (! $browse && $viewer && ! $isOwner)
+                            <a role="menuitem" href="{{ route('publications.signaler', $publication) }}" class="flex min-h-11 items-center px-3 text-[14px] font-semibold text-ink no-underline">Signaler</a>
+                        @endif
+                    </div>
+                </div>
+            </div>
         @endif
     </div>
 
     @if ($compact)
-        <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center justify-between gap-2 sm:hidden">
             <span class="self-start rounded-chip px-2.5 py-1 text-[12px] font-bold {{ $type->badgeClasses() }}">{{ $publication->displayLabel() }}</span>
             @if ($state && $state !== NeedState::Open)
                 <span class="rounded-chip px-2.5 py-1 text-[12px] font-extrabold {{ $stateClasses }}">{{ $state->label() }}</span>
@@ -128,7 +148,16 @@
         <a href="{{ route('publications.signaler', $publication) }}" class="inline-flex min-h-11 items-center self-start text-[13px] font-semibold text-muted underline hover:text-ink">Signaler</a>
     @endif
 
-    <div @class(['feed-post-actions order-2 flex flex-col items-start gap-2' => $compact, 'contents' => ! $compact])>
+    <div @class(['order-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-line-soft pt-2' => $compact, 'contents' => ! $compact])>
+    @if (! $publication->zumra_id && ! $publication->project_id && ! $publication->isHidden())
+        <div @class(['flex flex-wrap items-center gap-x-5 gap-y-1', 'order-2 border-t border-line-soft pt-2' => ! $compact])>
+            <a href="{{ route('publications.show', $publication) }}#discussion" class="inline-flex min-h-11 items-center self-start gap-2 text-[13px] font-bold text-link underline-offset-4 hover:underline"><x-icon name="chat" :size="17" />Commenter</a>
+            @if ($compact)
+                @include('partials.publication-social-actions', ['saved' => $saved])
+            @endif
+        </div>
+    @endif
+    <div @class(['flex flex-col items-start gap-2' => $compact, 'contents' => ! $compact])>
         @if ($browse)
             <x-button :href="route('publications.show', $publication)" variant="secondary">{{ $isOwner ? 'Voir mon besoin' : 'Voir le besoin' }}</x-button>
         @elseif ($isOwner)
@@ -144,10 +173,10 @@
                         <x-button type="button" variant="secondary" wire:click="$dispatch('unsupport', { id: '{{ $publication->id }}' })">Retirer mon soutien</x-button>
                     </div>
                 @else
-                    <x-button type="button" :variant="$compact ? 'secondary' : 'primary'" wire:click="$dispatch('support', { id: '{{ $publication->id }}' })">Je soutiens</x-button>
+                    <x-button type="button" :variant="$compact ? 'accent' : 'primary'" wire:click="$dispatch('support', { id: '{{ $publication->id }}' })">Je soutiens</x-button>
                 @endif
             @elseif (! $viewer)
-                <x-button :href="route('login')" :variant="$compact ? 'secondary' : 'primary'">Se connecter pour soutenir</x-button>
+                <x-button :href="route('login')" :variant="$compact ? 'accent' : 'primary'">Se connecter pour soutenir</x-button>
             @endif
         @elseif ($type->isProject())
             {{-- Une avancée ou une réalisation n'a pas de geste pour l'instant : rien à répondre, sans bouton sans effet. --}}
@@ -176,23 +205,13 @@
             @elseif (! $publication->acceptsGestures())
                 <span class="inline-flex min-h-11 items-center text-[14px] font-semibold text-muted">{{ $state === NeedState::Resolved ? 'Ce besoin est résolu.' : 'Ce besoin est fermé.' }}</span>
             @else
-                <x-button type="button" :variant="$compact ? 'secondary' : 'primary'" wire:click="$dispatch('open-gesture', { id: '{{ $publication->id }}' })">{{ $publication->gestureLabel() }}</x-button>
+                <x-button type="button" :variant="$compact ? 'accent' : 'primary'" wire:click="$dispatch('open-gesture', { id: '{{ $publication->id }}' })">{{ $publication->gestureLabel() }}</x-button>
             @endif
         @else
             @if ($publication->acceptsGestures())
-                <x-button :href="route('login')" :variant="$compact ? 'secondary' : 'primary'">Se connecter pour répondre</x-button>
+                <x-button :href="route('login')" :variant="$compact ? 'accent' : 'primary'">Se connecter pour répondre</x-button>
             @endif
         @endif
     </div>
-    @if (! $publication->zumra_id && ! $publication->project_id && ! $publication->isHidden())
-        <div @class(['flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-line-soft pt-2', 'order-1' => $compact])>
-            <a href="{{ route('publications.show', $publication) }}#discussion" class="inline-flex min-h-11 items-center self-start gap-2 text-[13px] font-bold text-link underline-offset-4 hover:underline"><x-icon name="chat" :size="17" />Commenter</a>
-            @if ($compact)
-                @include('partials.publication-social-actions', ['saved' => $saved])
-            @endif
-            @if ($compact && ! $browse && $viewer && ! $isOwner)
-                <a href="{{ route('publications.signaler', $publication) }}" class="inline-flex min-h-11 items-center text-[12px] font-semibold text-muted underline-offset-4 hover:text-ink hover:underline">Signaler</a>
-            @endif
-        </div>
-    @endif
+    </div>
 </article>

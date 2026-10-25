@@ -184,10 +184,10 @@ it('affiche la présentation courte réelle de la personne, sans texte inventé'
     page()->assertDontSeeText('Disponible')->assertDontSeeText('En ligne');
 });
 
-it('élargit seulement la page Personnes à 1480 px ; l’en-tête et les autres pages gardent 1240 px', function () {
+it('élargit la page Personnes à 1480 px ; l’en-tête et Mon espace gardent 1240 px', function () {
     $personnes = $this->actingAs($this->moi)->get(route('personnes.index'))->assertOk()->getContent();
-    $fil = $this->actingAs($this->moi)->get(route('fil'))->assertOk()->getContent();
+    $autre = $this->actingAs($this->moi)->get(route('espace'))->assertOk()->getContent();
 
     expect($personnes)->toContain('max-w-[1480px]')->toContain('max-w-[1240px]')
-        ->and($fil)->not->toContain('max-w-[1480px]');
+        ->and($autre)->not->toContain('max-w-[1480px]');
 });

@@ -241,12 +241,12 @@
     }
 
     @media (min-width: 1024px) {
-        .feed-layout { grid-template-columns: 228px minmax(0, 1fr); }
+        .feed-layout { grid-template-columns: 250px minmax(0, 1fr); }
         .feed-profile { display: flex; flex-direction: column; gap: 16px; }
     }
 
     @media (min-width: 1280px) {
-        .feed-layout { grid-template-columns: 228px minmax(0, 1fr) 276px; }
+        .feed-layout { grid-template-columns: 260px minmax(0, 1fr) 340px; }
         .feed-explore { display: flex; flex-direction: column; gap: 16px; }
     }
 }

@@ -4,14 +4,20 @@ namespace App\Livewire;
 
 use App\Enums\GestureState;
 use App\Enums\PublicationType;
+use App\Models\Conversation;
 use App\Models\Gesture;
+use App\Models\PersonConnection;
+use App\Models\Profile;
 use App\Models\Publication;
+use App\Models\User;
 use App\Services\People;
+use App\Services\PersonalTrust;
 use App\Services\PublicationBookmarks;
 use App\Services\Supports;
 use App\Support\Experience;
 use App\Support\Normalizer;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -23,9 +29,9 @@ use Livewire\Component;
 
 /**
  * Fil global (écrans 1 et 4) : les publications visibles pour celui qui regarde, de la plus récente à la plus ancienne, sans
- * aucun algorithme de recommandation (D-087). Filtres : Tout, Besoins, Savoirs, Apprendre, Aides (D-098).
+ * aucun algorithme de recommandation (D-087). Onglets : Tout, Savoirs, Réalisations, Besoins, Personnes, Entreprises ; autres vues (suivis, découvrir, partages, apprendre, aides) dans le sélecteur.
  */
-#[Layout('components.layouts.app')]
+#[Layout('components.layouts.app', ['extraWide' => true])]
 #[Title('Accueil')]
 class Fil extends Component
 {
@@ -62,6 +68,7 @@ class Fil extends Component
     public const FILTERS = [
         'besoins' => PublicationType::Need,
         'savoirs' => PublicationType::Knowledge,
+        'realisations' => PublicationType::PersonalWork,
         'apprendre' => PublicationType::LearningWish,
         'aides' => PublicationType::Offer,
     ];
@@ -91,7 +98,7 @@ class Fil extends Component
     /** Un geste envoyé, retiré, accepté ou décliné : la page se redessine. */
     private function knows(string $filter): bool
     {
-        return in_array($filter, ['suivis', 'entreprises', self::DISCOVER_FILTER, self::SHARES_FILTER], true) || array_key_exists($filter, self::FILTERS) || (! Experience::initial() && in_array($filter, [self::ZUMRA_FILTER, self::PROJECT_FILTER], true));
+        return in_array($filter, ['suivis', 'entreprises', 'personnes', self::DISCOVER_FILTER, self::SHARES_FILTER], true) || array_key_exists($filter, self::FILTERS) || (! Experience::initial() && in_array($filter, [self::ZUMRA_FILTER, self::PROJECT_FILTER], true));
     }
 
     /**
@@ -110,6 +117,18 @@ class Fil extends Component
 
         $people->follow($viewer, $post->author, true);
         $this->dispatch('feed-follow-changed');
+    }
+
+    /** Suivre une personne suggérée : mêmes droits et blocages que « Suivre » depuis une publication (People::follow). */
+    public function followSuggestion(string $profileId, People $people): void
+    {
+        abort_unless(Str::isUuid($profileId), 404);
+        $viewer = Auth::user();
+        abort_unless($viewer?->isActive(), 403);
+
+        $profile = Profile::query()->visibleTo($viewer)->with('user')->findOrFail($profileId);
+        $isFollowed = DB::table('person_follows')->where('user_id', $viewer->id)->where('followed_id', $profile->user_id)->exists();
+        $people->follow($viewer, $profile->user, ! $isFollowed);
     }
 
     #[On('fil-publication-created')]
@@ -151,6 +170,8 @@ class Fil extends Component
                     ->orWhere(fn ($companies) => $companies->whereNotNull('company_id')
                         ->whereNotIn('company_id', DB::table('company_follows')->where('user_id', $viewer->id)->select('company_id')))))
             ->when($filter === 'entreprises', fn ($query) => $query->whereNotNull('company_id'))
+            // « Personnes » : publications faites en leur nom propre, ni au nom d'une entreprise, ni d'une ZUMRA, ni d'un projet.
+            ->when($filter === 'personnes', fn ($query) => $query->whereNull('company_id')->whereNull('zumra_id')->whereNull('project_id'))
             ->when($filter === self::SHARES_FILTER, fn ($query) => $query->whereNull('zumra_id')->whereNull('project_id')
                 ->whereIn('type', [PublicationType::Share->value, PublicationType::PersonalWork->value]))
             ->when($filter === self::ZUMRA_FILTER, fn ($query) => $query->whereNotNull('zumra_id'))
@@ -181,6 +202,65 @@ class Fil extends Component
             'followedAuthorIds' => $followedAuthorIds,
             'managedZumraIds' => $viewer->managedZumraIds(),
             'memberOf' => $viewer->zumraMemberships()->pluck('zumra_id')->all(),
+            'activity' => $this->activity($viewer),
+            'identityVerified' => app(PersonalTrust::class)->identity($viewer) !== null,
+            'suggestions' => $this->suggestions($viewer, $profile = $viewer->ensureProfile()),
+            'suggestionFollowedIds' => DB::table('person_follows')->where('user_id', $viewer->id)->pluck('followed_id')->all(),
         ]);
+    }
+
+    /** Compteurs réels du bloc « Mon activité » : seulement ce que la personne a déjà fait. */
+    private function activity(User $viewer): array
+    {
+        return [
+            'Publications' => $viewer->publications()->whereNull('zumra_id')->whereNull('company_id')->whereNull('hidden_at')->count(),
+            'Enregistrements' => DB::table('publication_bookmarks')->where('user_id', $viewer->id)->count(),
+            'Échanges' => Conversation::query()->where(fn ($q) => $q->where('owner_id', $viewer->id)->orWhere('helper_id', $viewer->id))->count(),
+        ];
+    }
+
+    /**
+     * Quelques personnes dont les capacités complètent les vôtres (elles apportent ce que vous voulez apprendre, ou veulent apprendre
+     * ce que vous apportez), puis, à défaut, des personnes de la même localité déclarée. Profils visibles seulement, hors vous et vos
+     * relations ; ordre alphabétique, jamais un classement.
+     */
+    private function suggestions(User $viewer, Profile $profile): Collection
+    {
+        $profile->loadMissing(['offeredSkills', 'wantedSkills']);
+        $wanted = $profile->wantedSkills->pluck('id');
+        $offered = $profile->offeredSkills->pluck('id');
+        $related = PersonConnection::query()->forPerson($viewer)->whereIn('state', ['accepted', 'pending'])->get()->map(fn (PersonConnection $c) => $c->otherId($viewer));
+        $followed = DB::table('person_follows')->where('user_id', $viewer->id)->pluck('followed_id');
+        $base = fn () => Profile::query()->visibleTo($viewer)->where('profiles.user_id', '!=', $viewer->id)
+            ->whereNotIn('profiles.user_id', array_merge($related->all(), $followed->all()) ?: [Str::uuid()->toString()])
+            ->whereHas('user', fn (Builder $user) => $user->active())
+            ->orderBy(User::query()->select('name_search')->whereColumn('users.id', 'profiles.user_id'))
+            ->with(['user', 'city', 'offeredSkills', 'wantedSkills']);
+
+        $list = collect();
+        if ($wanted->isNotEmpty() || $offered->isNotEmpty()) {
+            $list = $base()->where(fn (Builder $q) => $q
+                ->whereHas('offeredSkills', fn (Builder $s) => $s->whereIn('skills.id', $wanted))
+                ->orWhereHas('wantedSkills', fn (Builder $s) => $s->whereIn('skills.id', $offered)))
+                ->limit(4)->get()->map(function (Profile $person) use ($wanted, $offered) {
+                    $brings = $person->offeredSkills->whereIn('id', $wanted->all())->pluck('name')->first();
+                    $learns = $person->wantedSkills->whereIn('id', $offered->all())->pluck('name')->first();
+                    $person->setAttribute('reason', $brings ? 'Peut vous apporter : '.$brings : 'Veut apprendre : '.$learns);
+
+                    return $person;
+                });
+        }
+
+        if ($list->count() < 4 && $profile->city_id) {
+            $near = $base()->where('profiles.city_id', $profile->city_id)->whereNotIn('profiles.id', $list->pluck('id')->all() ?: [Str::uuid()->toString()])
+                ->limit(4 - $list->count())->get()->map(function (Profile $person) {
+                    $person->setAttribute('reason', 'Même localité déclarée');
+
+                    return $person;
+                });
+            $list = $list->concat($near);
+        }
+
+        return $list;
     }
 }

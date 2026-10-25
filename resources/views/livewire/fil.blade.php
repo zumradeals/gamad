@@ -1,31 +1,24 @@
 @php
-    $filters = ['tout' => 'Tout', 'suivis' => 'Mes suivis', 'decouvrir' => 'Découvrir', 'partages' => 'Partages', 'entreprises' => 'Entreprises', 'besoins' => 'Besoins', 'savoirs' => 'Savoirs', 'apprendre' => 'Apprendre', 'aides' => 'Aides', 'zumra' => 'ZUMRA', 'projets' => 'Projets'];
+    $tabs = ['tout' => 'Tout', 'savoirs' => 'Savoirs', 'realisations' => 'Réalisations', 'besoins' => 'Besoins', 'personnes' => 'Personnes', 'entreprises' => 'Entreprises'];
+    // Autres vues, déjà disponibles : elles restent accessibles sans allonger la barre d'onglets.
+    $views = ['suivis' => 'Mes suivis', 'decouvrir' => 'À découvrir', 'partages' => 'Partages', 'apprendre' => 'Envies d’apprendre', 'aides' => 'Aides proposées', 'zumra' => 'ZUMRA', 'projets' => 'Projets'];
     if (\App\Support\Experience::initial()) {
-        unset($filters['zumra'], $filters['projets']);
+        unset($views['zumra'], $views['projets']);
     }
-    $shortcuts = [
-        [\App\Enums\PublicationType::Share, 'idea', 'text-type-knowledge-fg'],
-        [\App\Enums\PublicationType::PersonalWork, 'document', 'text-type-learning-fg'],
-        [\App\Enums\PublicationType::Need, 'heart', 'text-type-need-fg'],
+    $navigation = [
+        ['Fil d’actualité', route('fil'), 'feed', true],
+        ['Mes publications', route('espace', ['rubrique' => 'publications']), 'document', false],
+        ['Mes enregistrements', route('espace.enregistrements'), 'book', false],
+        ['Mes échanges', route('espace', ['rubrique' => 'echanges']), 'chat', false],
+        ['À faire maintenant', route('espace').'#afaire', 'tasks', false],
+        ['Paramètres', route('espace', ['rubrique' => 'parametres']), 'settings', false],
     ];
     $directories = [
-        ['Personnes', 'Trouver des capacités', 'personnes.index', 'group', 'bg-type-call-bg text-type-call-fg'],
-        ['Entreprises', 'Découvrir des organisations vérifiées', 'entreprises.index', 'project', 'bg-type-knowledge-bg text-type-knowledge-fg'],
-        ['Besoins', 'Voir ce qui manque', 'besoins.index', 'heart', 'bg-type-need-bg text-type-need-fg'],
-        ['ZUMRA', 'Découvrir les communautés', 'zumras.index', 'community', 'bg-type-learning-bg text-type-learning-fg'],
-        ['Projets', 'Voir les actions en cours', 'projets.index', 'project', 'bg-type-knowledge-bg text-type-knowledge-fg'],
+        ['Trouver une personne', 'Rechercher par capacité ou par nom', route('personnes.index'), 'group', 'bg-type-call-bg text-type-call-fg'],
+        ['Entreprises', 'Des organisations à découvrir', route('entreprises.index'), 'project', 'bg-type-knowledge-bg text-type-knowledge-fg'],
+        ['Besoins à découvrir', 'Voir où vous pouvez aider', route('fil', ['filtre' => 'besoins']), 'heart', 'bg-type-need-bg text-type-need-fg'],
+        ['Savoirs à explorer', 'Des connaissances à partager', route('fil', ['filtre' => 'savoirs']), 'idea', 'bg-soft-blue text-link'],
     ];
-    if (\App\Support\Experience::initial()) {
-        $directories = [
-            ['Trouver une personne', 'Rechercher par capacité ou par nom', 'personnes.index', 'group', 'bg-type-call-bg text-type-call-fg'],
-            ['Entreprises', 'Des organisations à découvrir', 'entreprises.index', 'project', 'bg-type-knowledge-bg text-type-knowledge-fg'],
-            ['Besoins à découvrir', 'Voir où vous pouvez aider', 'fil', 'heart', 'bg-type-need-bg text-type-need-fg'],
-        ];
-    }
-    $profileShortcuts = [['Mon profil', route('espace.profil'), 'user'], ['Mes enregistrements', route('espace.enregistrements'), 'book'], ['À faire maintenant', route('espace').'#afaire', 'tasks']];
-    if (! \App\Support\Experience::initial()) {
-        array_splice($profileShortcuts, 1, 0, [['Mes ZUMRA', route('zumras.index').'#mes-zumra', 'community']]);
-    }
 @endphp
 
 <div class="feed-layout">
@@ -35,12 +28,12 @@
         <section class="feed-panel overflow-hidden">
             <div class="feed-cover" aria-hidden="true"></div>
             <div class="px-4 pb-5">
-                <a href="{{ route('personnes.show', $profile->public_id) }}" class="relative -mt-8 mb-3 inline-flex rounded-full border-4 border-card" aria-label="Voir mon profil">
+                <a href="{{ route('personnes.show', $profile->public_id) }}" class="relative -mt-10 mb-3 inline-flex rounded-full border-4 border-card" aria-label="Voir mon profil">
                     <x-avatar :profile="$profile" :size="76" />
                 </a>
-                <h2 class="break-words text-[19px] font-extrabold leading-tight">{{ $viewer->name }}</h2>
+                <h2 class="flex flex-wrap items-center gap-x-2 break-words text-[19px] font-extrabold leading-tight">{{ $viewer->name }}@if ($identityVerified)<span class="inline-flex size-[18px] items-center justify-center rounded-full bg-link text-white" title="Identité vérifiée par GAMAD"><x-icon name="check" :size="12"/><span class="sr-only">Identité vérifiée par GAMAD</span></span>@endif</h2>
                 @if ($profile->city)
-                    <p class="mt-1 text-[13px] text-muted">{{ $profile->city->label() }}</p>
+                    <p class="mt-1 flex items-center gap-1 text-[13px] text-muted"><x-icon name="pin" :size="14" />{{ $profile->city->label() }}</p>
                 @endif
                 @if ($profile->bio)
                     <p class="mt-2 whitespace-pre-line break-words text-[13px] leading-relaxed text-muted">{{ $profile->bio }}</p>
@@ -68,15 +61,26 @@
                         </div>
                     </div>
                 </div>
-                <a href="{{ route('personnes.show', $profile->public_id) }}" class="mt-3 inline-flex min-h-11 items-center gap-2 text-[13px] font-bold text-ink underline underline-offset-4 hover:text-link">Voir mon profil <x-icon name="arrow-right" :size="16" /></a>
+                <a href="{{ route('personnes.show', $profile->public_id) }}" class="mt-3 inline-flex min-h-11 items-center gap-2 text-[13px] font-bold text-link underline underline-offset-4">Voir mon profil public <x-icon name="arrow-right" :size="16" /></a>
             </div>
         </section>
 
-        <nav aria-label="Mes raccourcis" class="feed-panel divide-y divide-line-soft px-4">
-            @foreach ($profileShortcuts as [$label, $url, $icon])
-                <a href="{{ $url }}" class="feed-shortcut"><x-icon :name="$icon" :size="21" /><span class="min-w-0 flex-1">{{ $label }}</span><x-icon name="next" :size="15" /></a>
+        <nav aria-label="Mes raccourcis" class="feed-panel p-2">
+            @foreach ($navigation as [$label, $url, $icon, $current])
+                <a href="{{ $url }}" @if ($current) aria-current="page" @endif @class(['flex min-h-11 items-center gap-3 rounded-button px-3 text-[14px] no-underline', 'bg-soft-blue font-bold text-link' => $current, 'font-semibold text-ink hover:bg-ground' => ! $current])><x-icon :name="$icon" :size="20" /><span class="min-w-0 flex-1">{{ $label }}</span></a>
             @endforeach
         </nav>
+
+        @if (array_sum($activity) > 0)
+            <section aria-labelledby="mon-activite" class="feed-panel p-4">
+                <h2 id="mon-activite" class="text-[15px] font-extrabold">Mon activité sur GAMAD</h2>
+                <dl class="mt-3 grid grid-cols-3 divide-x divide-line-soft text-center">
+                    @foreach ($activity as $label => $total)
+                        <div class="px-1"><dd class="text-[22px] font-extrabold leading-none">{{ $total }}</dd><dt class="mt-1 break-words text-[10px] tracking-tight text-muted">{{ $label }}</dt></div>
+                    @endforeach
+                </dl>
+            </section>
+        @endif
     </aside>
 
     <div class="feed-main">
@@ -93,8 +97,6 @@
         @endunless
         <livewire:fil-composer />
 
-        <p class="px-1 text-[13px] leading-relaxed text-muted">Partagez une expérience, montrez une réalisation ou découvrez des personnes. Aucune action n'est obligatoire pour participer.</p>
-
         @if (\App\Support\Experience::initial() && $searchText !== '')
             <div class="flex flex-wrap items-center justify-between gap-2 px-1 text-[13px]">
                 <p class="min-w-0 text-muted [overflow-wrap:anywhere]" role="status">Recherche dans les publications : « {{ $searchText }} »</p>
@@ -102,15 +104,25 @@
             </div>
         @endif
 
-        <nav aria-label="Filtrer les publications" class="feed-panel flex overflow-x-auto px-2">
-            @foreach ($filters as $key => $label)
-                <button type="button" wire:click="setFilter('{{ $key }}')" aria-pressed="{{ $filter === $key ? 'true' : 'false' }}" @class(['feed-filter', 'is-active' => $filter === $key])>{{ $label }}</button>
-            @endforeach
-        </nav>
-
-        <div class="flex items-center gap-3 px-0.5 text-[12px] text-muted">
-            <span>{{ match ($filter) { 'suivis' => 'Publications des personnes et entreprises suivies', 'decouvrir' => 'Publications publiques de nouvelles personnes et entreprises', 'partages' => 'Partages et réalisations récents', 'entreprises' => 'Publications des entreprises vérifiées', default => 'Les publications les plus récentes' } }} · sans classement de popularité</span><span class="h-px flex-1 bg-line" aria-hidden="true"></span>
-        </div>
+        <section aria-label="Filtrer les publications" class="feed-panel p-4">
+            <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+                <nav aria-label="Catégories" class="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 py-1">
+                    @foreach ($tabs as $key => $label)
+                        <button type="button" wire:click="setFilter('{{ $key }}')" aria-pressed="{{ $filter === $key ? 'true' : 'false' }}" @class(['min-h-11 shrink-0 rounded-full px-4 text-[13px] font-bold', 'bg-link text-white' => $filter === $key, 'bg-ground text-ink' => $filter !== $key])>{{ $label }}</button>
+                    @endforeach
+                </nav>
+                <p class="text-[13px] text-muted">Tri : <span class="font-semibold text-ink">Plus récents</span></p>
+            </div>
+            <div class="mt-2 flex flex-wrap items-center justify-between gap-2 text-[12px] text-muted">
+                <span>{{ match ($filter) { 'suivis' => 'Publications des personnes et entreprises suivies', 'decouvrir' => 'Publications publiques de nouvelles personnes et entreprises', 'partages' => 'Partages et réalisations récents', 'entreprises' => 'Publications des entreprises vérifiées', 'personnes' => 'Publications des personnes', default => 'Les publications les plus récentes' } }}, sans classement de popularité.</span>
+                <label class="flex items-center gap-2">Autres vues
+                    <select wire:change="setFilter($event.target.value)" class="zumra-filter !w-auto">
+                        <option value="" @selected(array_key_exists($filter, $tabs))>—</option>
+                        @foreach ($views as $key => $label)<option value="{{ $key }}" @selected($filter === $key)>{{ $label }}</option>@endforeach
+                    </select>
+                </label>
+            </div>
+        </section>
 
         @if (session('status'))
             <x-status>{{ session('status') }}</x-status>
@@ -159,22 +171,44 @@
     <aside aria-label="Explorer et agir" class="feed-explore">
         <section class="feed-panel p-4">
             <h2 class="mb-2 text-[17px] font-extrabold">Explorer GAMAD</h2>
-            <nav aria-label="Explorer GAMAD" class="flex flex-col">
-                @foreach ($directories as [$label, $description, $route, $icon, $colors])
-                    <a href="{{ route($route, $route === 'fil' ? ['filtre' => 'besoins'] : []) }}" class="group flex min-h-20 items-center gap-3 rounded-button py-3 text-ink no-underline hover:text-ink">
+            <nav aria-label="Explorer GAMAD" class="flex flex-col gap-1">
+                @foreach ($directories as [$label, $description, $url, $icon, $colors])
+                    <a href="{{ $url }}" class="group flex min-h-16 items-center gap-3 rounded-card border border-line-soft px-3 py-2 text-ink no-underline hover:bg-ground hover:text-ink">
                         <span class="flex size-11 shrink-0 items-center justify-center rounded-button {{ $colors }}"><x-icon :name="$icon" :size="24" /></span>
-                        <span class="min-w-0 flex-1"><span class="block text-[14px] font-extrabold group-hover:underline">{{ $label }}</span><span class="mt-0.5 block text-[12px] leading-relaxed text-muted">{{ $description }}</span></span>
+                        <span class="min-w-0 flex-1"><span class="block text-[14px] font-extrabold">{{ $label }}</span><span class="mt-0.5 block text-[12px] leading-snug text-muted">{{ $description }}</span></span>
                         <x-icon name="next" :size="16" />
                     </a>
                 @endforeach
             </nav>
         </section>
-        <section class="feed-panel flex flex-col gap-4 p-5">
-            <span class="h-1 w-10 rounded-full bg-ink" aria-hidden="true"></span>
-            <h2 class="text-[17px] font-extrabold">Votre réseau évolue</h2>
-            <p class="text-[14px] leading-relaxed text-muted">Retrouvez les expériences des personnes suivies, découvrez de nouveaux parcours et partagez librement les vôtres.</p>
-            <x-button :href="route('fil', ['filtre' => 'decouvrir'])" variant="secondary">Découvrir des publications</x-button>
-            <x-button :href="route('fil', ['filtre' => 'suivis'])" variant="secondary">Retrouver mes suivis</x-button>
+
+        @if ($suggestions->isNotEmpty())
+            <section aria-labelledby="suggestions-fil" class="feed-panel p-4">
+                <div class="flex items-start justify-between gap-2">
+                    <h2 id="suggestions-fil" class="text-[17px] font-extrabold">Suggestions pour vous</h2>
+                    <a href="{{ route('personnes.index', ['liste' => 'suggestions']) }}" class="inline-flex min-h-11 items-center text-[13px] font-bold">Voir plus</a>
+                </div>
+                <ul class="mt-2 space-y-1">
+                    @foreach ($suggestions as $person)
+                        @php($isFollowed = in_array($person->user_id, $suggestionFollowedIds, true))
+                        <li class="flex min-w-0 items-center gap-3" wire:key="suggestion-{{ $person->id }}">
+                            <x-avatar :profile="$person" :size="48" />
+                            <div class="min-w-0 flex-1">
+                                <a href="{{ route('personnes.show', $person->public_id) }}" class="inline-flex min-h-11 items-center break-words text-[14px] font-bold text-ink no-underline hover:underline">{{ $person->user->name }}</a>
+                                <p class="-mt-2 break-words text-[12px] text-muted">{{ $person->reason }}@if ($person->city) · {{ $person->city->label() }}@endif</p>
+                            </div>
+                            <button type="button" wire:click="followSuggestion('{{ $person->id }}')" class="min-h-11 shrink-0 rounded-button border border-ink px-3 text-[13px] font-bold">{{ $isFollowed ? 'Suivie' : 'Suivre' }}</button>
+                        </li>
+                    @endforeach
+                </ul>
+            </section>
+        @endif
+
+        <section class="flex flex-col gap-3 rounded-card bg-ink p-5 text-white">
+            <x-icon name="heart" :size="28" class="text-accent" />
+            <h2 class="text-[18px] font-extrabold text-white">Chaque contribution compte</h2>
+            <p class="text-[14px] leading-relaxed text-white/85">Partagez vos expériences, présentez vos réalisations ou exprimez vos besoins. Ensemble, nous faisons grandir le réseau GAMAD.</p>
+            <button type="button" x-data x-on:click="$dispatch('open-composer')" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-button bg-accent px-5 text-[15px] font-bold text-ink">Partager maintenant <x-icon name="arrow-right" :size="16" /></button>
         </section>
     </aside>
 

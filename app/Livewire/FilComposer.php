@@ -58,6 +58,13 @@ class FilComposer extends Component
         $this->dispatch('fil-publication-created');
     }
 
+    /** Annuler : ferme l'éditeur et vide le brouillon. Le navigateur demande confirmation avant d'appeler cette action s'il y a du contenu. */
+    public function cancel(): void
+    {
+        $this->reset('body', 'media', 'expanded', 'status');
+        $this->resetValidation();
+    }
+
     public function render()
     {
         return view('livewire.fil-composer');
