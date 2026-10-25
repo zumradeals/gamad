@@ -14,11 +14,13 @@ class Company extends Model
 
     public const VERIFIED = 'verified';
 
+    public const MAX_SERVICES = 6;
+
     protected $guarded = ['id', 'owner_id', 'status', 'reviewer_id', 'verified_at', 'revision'];
 
     protected function casts(): array
     {
-        return ['verified_at' => 'datetime', 'revision' => 'integer'];
+        return ['verified_at' => 'datetime', 'revision' => 'integer', 'services' => 'array'];
     }
 
     protected static function booted(): void
