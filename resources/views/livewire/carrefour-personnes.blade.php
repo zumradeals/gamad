@@ -122,7 +122,7 @@
                         @foreach ($suggestions as $suggested)
                             <li class="flex min-w-0 items-start gap-3" wire:key="suggestion-{{ $suggested->id }}">
                                 <x-avatar :profile="$suggested" :size="40" />
-                                <div class="min-w-0"><a href="{{ route('personnes.show', $suggested->public_id) }}" class="break-words text-[14px] font-bold">{{ $suggested->user->name }}</a><p class="break-words text-[12px] text-muted">{{ $suggested->reason }}</p></div>
+                                <div class="min-w-0"><a href="{{ route('personnes.show', $suggested->public_id) }}" class="inline-flex min-h-11 items-center break-words text-[14px] font-bold">{{ $suggested->user->name }}</a><p class="break-words text-[12px] text-muted">{{ $suggested->reason }}</p></div>
                             </li>
                         @endforeach
                     </ul>
@@ -137,7 +137,7 @@
                         @foreach ($nearby as $close)
                             <li class="flex min-w-0 items-center gap-3" wire:key="proche-{{ $close->id }}">
                                 <x-avatar :profile="$close" :size="40" />
-                                <a href="{{ route('personnes.show', $close->public_id) }}" class="min-w-0 break-words text-[14px] font-bold">{{ $close->user->name }}</a>
+                                <a href="{{ route('personnes.show', $close->public_id) }}" class="inline-flex min-h-11 min-w-0 items-center break-words text-[14px] font-bold">{{ $close->user->name }}</a>
                             </li>
                         @endforeach
                     </ul>
