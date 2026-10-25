@@ -2,10 +2,10 @@
     $offered = $mode === 'offered';
     $guest = ! auth()->check();
     $n = $people->total();
-    $summary = $n.' '.($n > 1 ? 'personnes' : 'personne').' '.($this->query !== '' ? ($offered ? ($n > 1 ? 'peuvent apporter' : 'peut apporter') : ($n > 1 ? 'veulent apprendre' : 'veut apprendre')).' « '.\\App\\Support\\Normalizer::display($this->query).' »' : 'à découvrir');
+    $summary = $n.' '.($n > 1 ? 'personnes' : 'personne').' '.($this->query !== '' ? ($offered ? ($n > 1 ? 'peuvent apporter' : 'peut apporter') : ($n > 1 ? 'veulent apprendre' : 'veut apprendre')).' « '.\App\Support\Normalizer::display($this->query).' »' : 'à découvrir');
 @endphp
 <div class="person-directory min-w-0">
-    @if (\\App\\Support\\Experience::initial())<a href="{{ auth()->check() ? route('fil') : route('home') }}" class="mb-3 inline-flex min-h-11 items-center gap-2 text-[14px] font-semibold">Retour à l’accueil</a>@endif
+    @if (\App\Support\Experience::initial())<a href="{{ auth()->check() ? route('fil') : route('home') }}" class="mb-3 inline-flex min-h-11 items-center gap-2 text-[14px] font-semibold">Retour à l’accueil</a>@endif
     <div class="grid min-w-0 items-start gap-4 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[230px_minmax(0,1fr)_260px]">
         <aside aria-label="Navigation et filtres des personnes" class="min-w-0 space-y-4 rounded-card border border-line bg-card p-4">
             <h2 class="text-[18px] font-extrabold">Explorer les personnes</h2>
