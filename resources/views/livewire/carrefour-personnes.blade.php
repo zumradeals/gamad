@@ -1,130 +1,96 @@
 @php
     $offered = $mode === 'offered';
-    $n = $people->total();
     $guest = ! auth()->check();
-    $summary = $n.' '.($n > 1 ? 'personnes' : 'personne').' '.($key !== ''
-        ? ($offered ? ($n > 1 ? 'peuvent apporter' : 'peut apporter') : ($n > 1 ? 'veulent apprendre' : 'veut apprendre')).' « '.\App\Support\Normalizer::display($this->query).' »'
-        : 'à découvrir');
+    $n = $people->total();
+    $summary = $n.' '.($n > 1 ? 'personnes' : 'personne').' '.($this->query !== '' ? ($offered ? ($n > 1 ? 'peuvent apporter' : 'peut apporter') : ($n > 1 ? 'veulent apprendre' : 'veut apprendre')).' « '.\App\Support\Normalizer::display($this->query).' »' : 'à découvrir');
 @endphp
-
-<div class="person-directory flex flex-col gap-6">
-    @if (\App\Support\Experience::initial())<a href="{{ auth()->check() ? route('fil') : route('home') }}" class="inline-flex min-h-11 items-center gap-2 self-start text-[14px] font-semibold"><x-icon name="back" :size="18" />{{ auth()->check() ? 'Retour à l’accueil' : 'Accueil GAMAD' }}</a>@endif
-    <header class="person-discovery-hero">
-        <div class="flex min-w-0 flex-col gap-4">
-            <span class="text-[12px] font-extrabold uppercase tracking-[2px]">CARREFOUR PERSONNES</span>
-            <h1 class="zumra-discovery-title">Des personnes à rencontrer. Des savoirs à partager.</h1>
-            <p class="max-w-xl text-[17px] leading-relaxed text-muted">Trouvez qui peut vous aider, ou qui veut apprendre ce que vous savez.</p>
-        </div>
-        <x-people-illustration class="mx-auto block h-auto w-full max-w-[520px]" />
-    </header>
-
-    <div class="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
-    <div class="flex min-w-0 flex-col gap-6">
-    <form wire:submit="$refresh" aria-label="Rechercher une personne" class="person-searchbar">
-        <div class="flex min-w-0 items-center gap-3 px-3">
-            <x-icon name="search" :size="22" class="shrink-0" />
-            <label for="recherche" class="sr-only">Rechercher une capacité ou un nom</label>
-            <input id="recherche" type="search" wire:model.live.debounce.300ms="query" maxlength="100" autocomplete="off" placeholder="Une capacité ou un nom…" class="min-h-12 min-w-0 flex-1 border-0 bg-transparent text-[15px] outline-none placeholder:text-muted">
-        </div>
-        <div>
-            <label for="filtre-ville" class="sr-only">Ville</label>
-            <select id="filtre-ville" wire:model.live="city" class="zumra-filter">
-                <option value="">Toutes les villes</option>
-                @foreach ($cities as $ville)<option value="{{ $ville->id }}">{{ $ville->label() }}</option>@endforeach
-            </select>
-        </div>
-        <div>
-            <label for="filtre-domaine" class="sr-only">Domaine</label>
-            <select id="filtre-domaine" wire:model.live="domain" class="zumra-filter">
-                <option value="">Tous les domaines</option>
-                @foreach ($domains as $domaine)<option value="{{ $domaine->id }}">{{ $domaine->name }}</option>@endforeach
-            </select>
-        </div>
-        <x-button type="submit" variant="accent">Rechercher</x-button>
-    </form>
-
-    <fieldset class="min-w-0 rounded-card border border-line bg-card p-4 md:p-5">
-        <legend class="sr-only">Je cherche quelqu’un qui…</legend>
-        <p aria-hidden="true" class="mb-3 text-[16px] font-extrabold">Je cherche quelqu’un qui…</p>
-        <div class="grid gap-3 md:grid-cols-2">
-            <button type="button" wire:click="setMode('offered')" aria-pressed="{{ $offered ? 'true' : 'false' }}" class="person-mode person-mode-offered">
-                <x-icon name="group" :size="36" class="shrink-0" />
-                <span class="min-w-0"><span class="block text-[18px] font-extrabold">Peut l’apporter</span><span class="mt-1 block text-[14px] leading-relaxed">Une personne qui peut partager cette capacité.</span></span>
-            </button>
-            <button type="button" wire:click="setMode('wanted')" aria-pressed="{{ $offered ? 'false' : 'true' }}" class="person-mode person-mode-wanted">
-                <x-icon name="book" :size="36" class="shrink-0" />
-                <span class="min-w-0"><span class="block text-[18px] font-extrabold">Veut l’apprendre</span><span class="mt-1 block text-[14px] leading-relaxed">Une personne qui souhaite apprendre cette capacité.</span></span>
-            </button>
-        </div>
-    </fieldset>
-
-    <section aria-labelledby="les-personnes" class="flex flex-col gap-4">
-        <div class="flex flex-wrap items-end justify-between gap-3">
-            <div><h2 id="les-personnes" class="text-[28px] font-extrabold leading-tight">Des capacités à découvrir</h2><p class="mt-2 text-[14px] font-semibold text-muted" role="status" aria-live="polite">{{ $summary }}</p></div>
-            <div class="flex flex-wrap items-center gap-4"><span class="text-[13px] font-semibold text-muted">Ordre alphabétique</span>@if ($hasFilters)<button type="button" wire:click="clearFilters" class="min-h-11 text-[14px] font-semibold text-link underline">Réinitialiser</button>@endif</div>
-        </div>
-        <div wire:loading.delay class="text-[14px] font-semibold text-muted" role="status">Recherche en cours…</div>
-        <div class="grid gap-4 md:grid-cols-2" wire:loading.class="opacity-60">
-        @forelse ($people as $profile)
-            <x-person-discovery-card wire:key="personne-{{ $profile->id }}" :profile="$profile" />
-    @empty
-        <section aria-labelledby="vide" class="flex flex-col gap-3 rounded-card border border-line bg-card p-5 md:col-span-full">
-            <h2 id="vide" class="text-[18px] font-extrabold">
-                @if ($hasFilters)
-                    Personne ne correspond à cette recherche.
-                @else
-                    {{ $offered ? 'Personne n’a encore indiqué ce qu’elle peut apporter.' : 'Personne n’a encore indiqué ce qu’elle veut apprendre.' }}
-                @endif
-            </h2>
-
-            @if ($guest)
-                <p class="text-muted">Créez un compte : vous pourrez dire ce que vous savez faire, et trouver qui peut vous aider.</p>
-                <x-button :href="route('register')">Créer un compte</x-button>
-            @elseif (! $viewerProfile?->hasSkills())
-                <p class="text-muted">Vous n’apparaissez pas encore ici. Dites ce que vous pouvez apporter et ce que vous voulez apprendre : d’autres vous trouveront.</p>
-                <x-button :href="route('espace.profil')">Compléter mon profil</x-button>
-            @else
-                <p class="text-muted">Essayez une autre capacité, ou élargissez la recherche.</p>
-            @endif
-
-            @if ($hasFilters)
-                <x-button type="button" variant="secondary" wire:click="clearFilters">Effacer la recherche</x-button>
-            @endif
-        </section>
-    @endforelse
-        </div>
-    @if ($people->hasPages())
-        <nav aria-label="Pages de résultats" class="flex items-center justify-between gap-3">
-            <x-button type="button" variant="secondary" wire:click="previousPage" :disabled="$people->onFirstPage()">Précédent</x-button>
-            <span class="text-[13px] font-semibold text-muted">Page {{ $people->currentPage() }} sur {{ $people->lastPage() }}</span>
-            <x-button type="button" variant="secondary" wire:click="nextPage" :disabled="! $people->hasMorePages()">Suivant</x-button>
-        </nav>
-    @endif
-    </section>
-
-    @if ($people->isNotEmpty())
-        <section aria-labelledby="partager-capacites" class="flex flex-wrap items-center justify-between gap-5 rounded-card bg-ink p-6 text-white">
-            <div class="flex min-w-0 flex-1 basis-80 items-start gap-4"><x-icon name="user" :size="40" class="shrink-0 text-accent" /><div><h2 id="partager-capacites" class="text-[23px] font-extrabold leading-tight">Et vous, que pouvez-vous apporter ?</h2><p class="mt-2 text-[15px] leading-relaxed text-white/90">Indiquez vos capacités et vos envies d’apprendre pour que d’autres vous trouvent.</p></div></div>
-            <x-button :href="$guest ? route('register') : route('espace.profil')" variant="accent" class="gap-2">{{ $guest ? 'Créer un compte' : 'Compléter mon profil' }}<x-icon name="arrow-right" :size="18" /></x-button>
-        </section>
-    @endif
-    <p class="flex items-center justify-center gap-2 text-center text-[13px] text-muted"><x-icon name="lock" :size="16" class="shrink-0" />Votre e-mail et votre téléphone restent privés.</p>
-    </div>
-    <aside aria-label="Explorer les personnes" class="min-w-0 space-y-4">
-        <section class="rounded-card border border-line bg-card p-5">
+<div class="person-directory min-w-0">
+    @if (\App\Support\Experience::initial())<a href="{{ auth()->check() ? route('fil') : route('home') }}" class="mb-3 inline-flex min-h-11 items-center gap-2 text-[14px] font-semibold">Retour à l’accueil</a>@endif
+    <div class="grid min-w-0 items-start gap-4 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[230px_minmax(0,1fr)_260px]">
+        <aside aria-label="Navigation et filtres des personnes" class="min-w-0 space-y-4 rounded-card border border-line bg-card p-4">
             <h2 class="text-[18px] font-extrabold">Explorer les personnes</h2>
-            <p class="mt-2 text-[13px] leading-relaxed text-muted">Trouvez des personnes selon ce qu'elles peuvent apporter ou souhaitent apprendre.</p>
-            <div class="mt-4 space-y-2">
-                <button type="button" wire:click="setMode('offered')" class="flex min-h-11 w-full items-center gap-2 rounded-button px-3 text-left text-[14px] font-semibold hover:bg-ground" aria-pressed="{{ $offered ? 'true' : 'false' }}"><x-icon name="group" :size="18" /> Capacités à partager</button>
-                <button type="button" wire:click="setMode('wanted')" class="flex min-h-11 w-full items-center gap-2 rounded-button px-3 text-left text-[14px] font-semibold hover:bg-ground" aria-pressed="{{ $offered ? 'false' : 'true' }}"><x-icon name="book" :size="18" /> Envies d'apprendre</button>
-                @if ($hasFilters)<button type="button" wire:click="clearFilters" class="min-h-11 w-full rounded-button border border-line px-3 text-left text-[14px] font-semibold">Effacer les filtres</button>@endif
+            <nav aria-label="Explorer">
+                <a href="{{ route('personnes.index') }}" class="flex min-h-11 items-center gap-2 rounded-button bg-soft-blue px-3 text-[14px] font-bold text-link"><x-icon name="group" :size="18"/> Toutes les personnes</a>
+                <a href="{{ auth()->check() ? route('espace.profil') : route('register') }}" class="flex min-h-11 items-center gap-2 px-3 text-[14px] font-semibold"><x-icon name="user" :size="18"/> Mon profil</a>
+            </nav>
+            <div class="border-t border-line pt-4">
+                <h3 class="mb-3 text-[16px] font-extrabold">Filtres</h3>
+                <label for="filtre-ville" class="mb-2 block text-[13px] font-bold">Localité</label>
+                <select id="filtre-ville" wire:model.live="city" class="zumra-filter w-full">
+                    <option value="">Toutes les villes</option>
+                    @foreach ($cities as $ville)<option value="{{ $ville->id }}">{{ $ville->label() }}</option>@endforeach
+                </select>
+                <label for="filtre-domaine" class="mb-2 mt-4 block text-[13px] font-bold">Domaine de compétence</label>
+                <select id="filtre-domaine" wire:model.live="domain" class="zumra-filter w-full">
+                    <option value="">Tous les domaines</option>
+                    @foreach ($domains as $domaine)<option value="{{ $domaine->id }}">{{ $domaine->name }}</option>@endforeach
+                </select>
+                <p class="mb-2 mt-4 text-[13px] font-bold">Je cherche une personne qui…</p>
+                <div class="space-y-2">
+                    <button type="button" wire:click="setMode('offered')" aria-pressed="{{ $offered ? 'true' : 'false' }}" class="flex min-h-11 w-full items-center gap-2 rounded-button px-3 text-left text-[13px] font-semibold {{ $offered ? 'bg-type-knowledge-bg text-type-knowledge-fg' : 'border border-line' }}">Peut apporter</button>
+                    <button type="button" wire:click="setMode('wanted')" aria-pressed="{{ ! $offered ? 'true' : 'false' }}" class="flex min-h-11 w-full items-center gap-2 rounded-button px-3 text-left text-[13px] font-semibold {{ ! $offered ? 'bg-type-learning-bg text-type-learning-fg' : 'border border-line' }}">Veut apprendre</button>
+                </div>
+                @if ($hasFilters)<button type="button" wire:click="clearFilters" class="mt-4 min-h-11 w-full rounded-button border border-line px-3 text-[13px] font-bold">Réinitialiser les filtres</button>@endif
             </div>
-        </section>
-        <section class="rounded-card border border-line bg-card p-5">
-            <h2 class="text-[17px] font-extrabold">Faire partie du réseau</h2>
-            <p class="mt-2 text-[13px] leading-relaxed text-muted">Présentez vos capacités et vos expériences pour permettre aux autres de vous découvrir.</p>
-            <x-button :href="$guest ? route('register') : route('espace.profil')" variant="accent" class="mt-4">{{ $guest ? 'Créer un compte' : 'Mon profil' }}</x-button>
-        </section>
-    </aside>
+        </aside>
+        <main class="min-w-0 space-y-4">
+            <h1 class="sr-only">CARREFOUR — Trouvez qui peut vous aider</h1>
+            <div class="rounded-card border border-line bg-card p-4">
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" wire:click="setMode('offered')" class="min-h-10 rounded-full px-4 text-[13px] font-bold {{ $offered ? 'bg-ink text-white' : 'bg-ground' }}">Peut apporter</button>
+                    <button type="button" wire:click="setMode('wanted')" class="min-h-10 rounded-full px-4 text-[13px] font-bold {{ ! $offered ? 'bg-ink text-white' : 'bg-ground' }}">Veut apprendre</button>
+                    @if ($hasFilters)<button type="button" wire:click="clearFilters" class="min-h-10 rounded-full bg-ground px-4 text-[13px] font-semibold">Tous les filtres</button>@endif
+                </div>
+                <form wire:submit="$refresh" aria-label="Rechercher une personne" class="mt-4 flex min-w-0 gap-2">
+                    <label for="recherche" class="sr-only">Rechercher une capacité ou un nom</label>
+                    <input id="recherche" type="search" wire:model.live.debounce.300ms="query" maxlength="100" autocomplete="off" placeholder="Une personne, une capacité…" class="min-h-12 min-w-0 flex-1 rounded-button border border-line bg-card px-4 text-[14px] outline-none focus:border-link">
+                    <x-button type="submit" variant="accent">Rechercher</x-button>
+                </form>
+                <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-[13px] text-muted">
+                    <span role="status" aria-live="polite">{{ $summary }}</span>
+                    <span>Ordre alphabétique</span>
+                </div>
+            </div>
+            <section aria-label="Résultats des personnes" class="space-y-3">
+                <div wire:loading.delay role="status" class="text-[14px] text-muted">Recherche en cours…</div>
+                @forelse ($people as $profile)
+                    <x-person-discovery-card wire:key="personne-{{ $profile->id }}" :profile="$profile" />
+                @empty
+                    <div class="rounded-card border border-line bg-card p-6">
+                        <h2 class="text-[18px] font-bold">@if ($hasFilters)Personne ne correspond à cette recherche.@else {{ $offered ? "Personne n’a encore indiqué ce qu’elle peut apporter." : "Personne n’a encore indiqué ce qu’elle veut apprendre." }} @endif</h2>
+                        @if ($guest)<p class="mt-2 text-muted">Créez un compte pour partager vos capacités.</p><x-button :href="route('register')" class="mt-3">Créer un compte</x-button>@elseif (! $viewerProfile?->hasSkills())<p class="mt-2 text-muted">Vous n’apparaissez pas encore ici. Complétez votre profil pour être découvert.</p>@endif
+                        <p class="mt-2 text-[14px] text-muted">Essayez une autre capacité, une autre localité ou un autre domaine.</p>
+                        @if ($hasFilters)<x-button type="button" variant="secondary" wire:click="clearFilters" class="mt-3">Effacer la recherche</x-button>@endif
+                    </div>
+                @endforelse
+            </section>
+            @if ($people->hasPages())
+                <nav aria-label="Pages de résultats" class="flex items-center justify-between gap-3">
+                    <x-button type="button" variant="secondary" wire:click="previousPage" :disabled="$people->onFirstPage()">Précédent</x-button>
+                    <span class="text-[13px] text-muted">Page {{ $people->currentPage() }} sur {{ $people->lastPage() }}</span>
+                    <x-button type="button" variant="secondary" wire:click="nextPage" :disabled="! $people->hasMorePages()">Suivant</x-button>
+                </nav>
+            @endif
+        </main>
+        <aside aria-label="Découvrir le réseau" class="min-w-0 space-y-4 lg:col-start-2 xl:col-start-3">
+            <section class="rounded-card border border-line bg-card p-4">
+                <h2 class="text-[17px] font-extrabold">Recherche rapide</h2>
+                <p class="mt-2 text-[13px] text-muted">Recherchez par nom ou capacité dans la liste centrale.</p>
+                <a href="#recherche" class="mt-3 inline-flex min-h-11 items-center gap-2 text-[14px] font-bold text-link"><x-icon name="search" :size="18"/> Rechercher</a>
+            </section>
+            <section class="rounded-card border border-line bg-card p-4">
+                <h2 class="text-[17px] font-extrabold">Découvrir autrement</h2>
+                <div class="mt-3 space-y-2">
+                    <button type="button" wire:click="setMode('offered')" class="flex min-h-11 w-full items-center gap-2 text-left text-[13px] font-semibold"><x-icon name="group" :size="18"/> Capacités à partager</button>
+                    <button type="button" wire:click="setMode('wanted')" class="flex min-h-11 w-full items-center gap-2 text-left text-[13px] font-semibold"><x-icon name="book" :size="18"/> Envies d'apprendre</button>
+                </div>
+            </section>
+            <section class="rounded-card border border-line bg-card p-4">
+                <h2 class="text-[17px] font-extrabold">Faites partie du réseau</h2>
+                <p class="mt-2 text-[13px] leading-relaxed text-muted">Présentez vos capacités et vos expériences pour être découvert.</p>
+                <x-button :href="$guest ? route('register') : route('espace.profil')" variant="accent" class="mt-4 w-full">{{ $guest ? 'Créer un compte' : ($viewerProfile?->hasSkills() ? 'Mon profil' : 'Compléter mon profil') }}</x-button>
+            </section>
+        </aside>
     </div>
+    <p class="mt-5 flex items-center justify-center gap-2 text-center text-[13px] text-muted"><x-icon name="lock" :size="16"/> Votre e-mail et votre téléphone restent privés.</p>
 </div>

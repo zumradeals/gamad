@@ -73,8 +73,8 @@ it('range les cartes des carrefours en colonnes sur ordinateur, et en une seule 
     }
 
     expect($this->actingAs($personne)->get(route('personnes.index'))->assertOk()->getContent())
-        ->toContain('lg:grid-cols-[minmax(0,1fr)_280px]')
-        ->toContain('grid gap-4 md:grid-cols-2');
+        ->toContain('xl:grid-cols-[230px_minmax(0,1fr)_260px]')
+        ->toContain('person-discovery-card');
 });
 
 it('garde un marquage identique sur téléphone : marges de 16 px et bandeau jusqu’au bord', function () {
