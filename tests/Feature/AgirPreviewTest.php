@@ -4,10 +4,10 @@ use App\Livewire\PublierPublication;
 use App\Models\Publication;
 use Livewire\Livewire;
 
-it('présente quatre intentions avec les destinations existantes', function () {
+it('présente cinq actions avec les destinations existantes', function () {
     $this->actingAs(person('Awa'))->get(route('agir'))->assertOk()
-        ->assertSeeText('Trouver de l’aide')->assertSeeText('Apprendre quelque chose')
-        ->assertSeeText('Proposer quelque chose')->assertSeeText('Partager');
+        ->assertSeeText('J’ai besoin d’aide')->assertSeeText('Je veux apprendre')
+        ->assertSeeText('Je peux aider')->assertSeeText('Je partage un savoir')->assertSeeText('Je montre une réalisation');
 });
 
 it('relit sans publier et conserve les précisions après modification', function () {

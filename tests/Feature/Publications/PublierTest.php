@@ -22,13 +22,13 @@ function formulaire(?User $user = null, string $slug = 'besoin')
     return Livewire::actingAs($user ?? User::factory()->create())->test(PublierPublication::class, ['slug' => $slug]);
 }
 
-it('propose les quatre types sur l’écran Agir, chacun menant à son formulaire', function () {
+it('propose les cinq actions sur l’écran Agir, chacune menant directement à son formulaire', function () {
     $page = $this->actingAs(User::factory()->create(['name' => 'Yao Kouassi']))->get('/agir')->assertOk()
-        ->assertSeeText('Que voulez-vous faire avancer ?')
-        ->assertSeeText('Faire réaliser quelque chose ou résoudre une difficulté.')
+        ->assertSeeText('Que voulez-vous faire ?')
+        ->assertSeeText('Obtenir de l’aide pour un projet ou une difficulté')
         ->assertSeeText('Vous publiez en tant que vous-même (Yao Kouassi).')->assertDontSeeText('au nom d’une ZUMRA');
 
-    foreach (['J’ai besoin' => 'besoin', 'Je partage un savoir' => 'savoir', 'Je veux apprendre' => 'apprendre', 'Je propose mon aide' => 'aide'] as $libelle => $slug) {
+    foreach (['J’ai besoin' => 'besoin', 'Je partage un savoir' => 'savoir', 'Je veux apprendre' => 'apprendre', 'Je peux aider' => 'aide', 'Je montre une réalisation' => 'ma-realisation'] as $libelle => $slug) {
         $page->assertSee('href="'.route('agir.publier', $slug).'"', false);
         $this->actingAs(User::factory()->create())->get("/agir/$slug")->assertOk();
     }
@@ -162,7 +162,7 @@ it('accepte trois capacités au plus, de 2 à 60 caractères, partagées sans do
 });
 
 it('refuse d’ajouter une quatrième capacité depuis l’écran et le dit', function () {
-    formulaire()->set('skills', ['Excel', 'Laravel', 'Couture'])->set('skillsInput', 'Cuisine')->call('addSkill', 'skills')
+    formulaire()->set('body', 'Un texte.')->call('next')->set('skills', ['Excel', 'Laravel', 'Couture'])->set('skillsInput', 'Cuisine')->call('addSkill', 'skills')
         ->assertHasErrors(['skillsInput'])->assertCount('skills', 3)->assertSeeText('Trois capacités au plus');
 });
 
@@ -170,7 +170,7 @@ it('propose les capacités déjà utilisées, par un profil ou par une publicati
     person('Awa', ['Couture de fête']);
     publication(User::factory()->create(), data: ['skills' => ['Couture sur mesure']]);
 
-    formulaire()->set('skillsInput', 'coutu')->assertSeeText('Couture de fête')->assertSeeText('Couture sur mesure')->assertSeeText('Ajouter « coutu »');
+    formulaire()->set('body', 'Un texte.')->call('next')->set('skillsInput', 'coutu')->assertSeeText('Couture de fête')->assertSeeText('Couture sur mesure')->assertSeeText('Ajouter « coutu »');
 });
 
 it('ne crée aucune capacité tant qu’on n’a pas publié', function () {
@@ -213,7 +213,7 @@ it('limite le nombre de publications par heure et par jour, par personne, avec u
 });
 
 it('n’affiche aucun compteur d’approbation sur l’écran de publication', function () {
-    formulaire()->assertSeeText('Aucun chiffre d’approbation n’est affiché.')->assertDontSeeText('j’aime');
+    formulaire()->set('body', 'Un texte.')->call('next')->call('preview')->assertSeeText('Aucun chiffre d’approbation n’est affiché.')->assertDontSeeText('j’aime');
 });
 
 it('garde la règle d’autorisation de publier côté serveur', function () {

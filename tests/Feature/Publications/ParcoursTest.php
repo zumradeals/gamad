@@ -48,7 +48,10 @@ it('parcours « J’ai besoin » → « Je peux aider » → acceptation → ré
 
     // 6. Yao marque son besoin comme résolu : il n'accepte plus de réponse.
     Livewire::actingAs($yao)->test(PagePublication::class, ['publication' => $besoin])->call('resolve')->assertSeeText('Besoin marqué comme résolu.');
-    $this->actingAs(User::factory()->create())->get(route('publications.show', $besoin))->assertSeeText('Ce besoin est résolu.')->assertDontSeeText('Je peux aider');
+    $page = $this->actingAs(User::factory()->create())->get(route('publications.show', $besoin))->assertSeeText('Ce besoin est résolu.');
+    // Le menu Agir de la barre propose l'action « Je peux aider » : seul le contenu de la page est examiné.
+    preg_match('/<main.*?<\/main>/s', $page->getContent(), $principal);
+    expect($principal[0])->not->toContain('Je peux aider');
 
     expect($besoin->fresh()->need_state->value)->toBe('resolved');
 });

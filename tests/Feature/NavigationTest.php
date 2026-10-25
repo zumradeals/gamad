@@ -116,6 +116,8 @@ it('active Agir : rond jaune au centre de la barre du bas, bouton jaune dans la 
         ->toContain(route('agir.publier', 'besoin'))
         ->toContain(route('agir.publier', 'apprendre'))
         ->toContain(route('agir.publier', 'aide'))
+        ->toContain(route('agir.publier', 'savoir'))
+        ->toContain(route('agir.publier', 'ma-realisation'))
         ->toContain('bg-accent');
 });
 

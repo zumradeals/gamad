@@ -34,6 +34,22 @@ class PublierPublication extends Component
 
     public $media = null;
 
+    /** Format ou taille refusés : un message simple, sans attendre l'envoi final. */
+    public function updatedMedia(): void
+    {
+        $this->resetErrorBag('media');
+        try {
+            $this->validate(
+                ['media' => ['file', 'max:10240', 'mimetypes:image/jpeg,image/png,image/webp,video/mp4,video/webm,application/pdf']],
+                ['media.*' => 'Ce fichier ne peut pas être ajouté. Choisissez une image JPEG, PNG ou WebP, une vidéo MP4 ou WebM, ou un PDF (10 Mo au plus).'],
+            );
+        } catch (ValidationException $exception) {
+            $this->media = null;
+
+            throw $exception;
+        }
+    }
+
     public function removeMedia(): void
     {
         $this->media = null;
@@ -59,6 +75,9 @@ class PublierPublication extends Component
     }
 
     public bool $previewing = false;
+
+    /** Étape du formulaire personnel : 1 Détails, 2 Compléments ; l'aperçu (étape 3) est `previewing`. */
+    public int $step = 1;
 
     public string $body = '';
 
@@ -162,19 +181,45 @@ class PublierPublication extends Component
         return $this->redirect(route('publications.show', $publication), navigate: false);
     }
 
+    /** Étape 1 → 2 : la question principale est la seule obligatoire. */
+    public function next(): void
+    {
+        $this->checkBody();
+        $this->step = 2;
+    }
+
+    /** Revient à l'étape précédente sans rien perdre de ce qui est saisi. */
+    public function back(): void
+    {
+        if ($this->previewing) {
+            $this->previewing = false;
+            $this->step = 2;
+        } elseif ($this->step > 1) {
+            $this->step = 1;
+        }
+    }
+
     public function preview(): void
     {
-        Gate::authorize('create', Publication::class);
-        $body = $this->composedBody();
-        if ($body === '' || mb_strlen($body) > Publication::BODY_MAX) {
-            throw ValidationException::withMessages(['body' => 'Écrivez votre publication dans la limite de '.Publication::BODY_MAX.' caractères, précisions comprises.']);
-        }
+        $this->checkBody();
         $this->previewing = true;
+        $this->step = 2;
     }
 
     public function edit(): void
     {
         $this->previewing = false;
+        $this->step = 1;
+    }
+
+    private function checkBody(): void
+    {
+        $this->resetErrorBag();
+        Gate::authorize('create', Publication::class);
+        $body = $this->composedBody();
+        if ($body === '' || mb_strlen($body) > Publication::BODY_MAX) {
+            throw ValidationException::withMessages(['body' => 'Écrivez votre publication dans la limite de '.Publication::BODY_MAX.' caractères, précisions comprises.']);
+        }
     }
 
     private function composedBody(): string

@@ -216,8 +216,11 @@ it('mène chaque besoin à sa publication, sans bouton de geste ni « Signaler �
 
     $html = $this->actingAs($this->yao)->get(route('besoins.index'))->assertOk()->getContent();
 
+    // Le menu Agir de la barre (action « Je peux aider ») n'est pas un geste : on ne regarde que le contenu de la page.
+    preg_match('/<main.*?<\/main>/s', $html, $principal);
     expect($html)->toContain('href="'.route('publications.show', $besoin).'"')->toContain('Voir le besoin')
-        ->not->toContain('open-gesture')->not->toContain('Je peux aider')->not->toContain('Signaler')->not->toContain('Se connecter pour répondre');
+        ->and($principal[0])->not->toContain('Je peux aider')
+        ->and($html)->not->toContain('open-gesture')->not->toContain('Signaler')->not->toContain('Se connecter pour répondre');
 
     $this->get(route('besoins.index'))->assertDontSee('Se connecter pour répondre');
 
