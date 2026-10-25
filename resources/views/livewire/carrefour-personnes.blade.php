@@ -34,7 +34,7 @@
             </div>
         </aside>
         <main class="min-w-0 space-y-4">
-            <h1 class="sr-only">Découvrir des personnes sur GAMAD</h1>
+            <h1 class="sr-only">CARREFOUR — Trouvez qui peut vous aider</h1>
             <div class="rounded-card border border-line bg-card p-4">
                 <div class="flex flex-wrap gap-2">
                     <button type="button" wire:click="setMode('offered')" class="min-h-10 rounded-full px-4 text-[13px] font-bold {{ $offered ? 'bg-ink text-white' : 'bg-ground' }}">Peut apporter</button>
@@ -88,7 +88,7 @@
             <section class="rounded-card border border-line bg-card p-4">
                 <h2 class="text-[17px] font-extrabold">Faites partie du réseau</h2>
                 <p class="mt-2 text-[13px] leading-relaxed text-muted">Présentez vos capacités et vos expériences pour être découvert.</p>
-                <x-button :href="$guest ? route('register') : route('espace.profil')" variant="accent" class="mt-4 w-full">{{ $guest ? 'Créer un compte' : 'Compléter mon profil' }}</x-button>
+                <x-button :href="$guest ? route('register') : route('espace.profil')" variant="accent" class="mt-4 w-full">{{ $guest ? 'Créer un compte' : ($viewerProfile?->hasSkills() ? 'Mon profil' : 'Compléter mon profil') }}</x-button>
             </section>
         </aside>
     </div>
