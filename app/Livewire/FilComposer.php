@@ -16,8 +16,11 @@ class FilComposer extends Component
     use WithFileUploads;
 
     public string $body = '';
+
     public string $kind = 'share';
+
     public string $visibility = Publication::PUBLIC;
+
     public $media = null;
 
     public bool $expanded = false;
