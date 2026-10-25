@@ -32,7 +32,7 @@ it('donne aux pages de consultation la largeur du Fil', function () {
         $classes = classes_du_contenu($this->actingAs($this->yao)->get($url)->assertOk()->getContent());
 
         // Décision du Président : seules les pages Personnes, Entreprises (hors liste ci-dessous) et le Fil sont élargies (1480 px), pour leurs trois colonnes.
-        $this->assertStringContainsString(in_array($nom, ['Carrefour Personnes', 'Fil'], true) ? 'max-w-[1480px]' : 'max-w-[1240px]', $classes, $nom);
+        $this->assertStringContainsString(in_array($nom, ['Carrefour Personnes', 'Fil', 'Monde d’une personne'], true) ? 'max-w-[1480px]' : 'max-w-[1240px]', $classes, $nom);
         $this->assertStringNotContainsString('max-w-[920px]', $classes, $nom);
         $this->assertStringNotContainsString('max-w-[760px]', $classes, $nom);
     }
