@@ -18,6 +18,8 @@
         <x-people-illustration class="mx-auto block h-auto w-full max-w-[520px]" />
     </header>
 
+    <div class="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
+    <div class="flex min-w-0 flex-col gap-6">
     <form wire:submit="$refresh" aria-label="Rechercher une personne" class="person-searchbar">
         <div class="flex min-w-0 items-center gap-3 px-3">
             <x-icon name="search" :size="22" class="shrink-0" />
@@ -62,7 +64,7 @@
             <div class="flex flex-wrap items-center gap-4"><span class="text-[13px] font-semibold text-muted">Ordre alphabétique</span>@if ($hasFilters)<button type="button" wire:click="clearFilters" class="min-h-11 text-[14px] font-semibold text-link underline">Réinitialiser</button>@endif</div>
         </div>
         <div wire:loading.delay class="text-[14px] font-semibold text-muted" role="status">Recherche en cours…</div>
-        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3" wire:loading.class="opacity-60">
+        <div class="grid gap-4 md:grid-cols-2" wire:loading.class="opacity-60">
         @forelse ($people as $profile)
             <x-person-discovery-card wire:key="personne-{{ $profile->id }}" :profile="$profile" />
     @empty
@@ -107,4 +109,22 @@
         </section>
     @endif
     <p class="flex items-center justify-center gap-2 text-center text-[13px] text-muted"><x-icon name="lock" :size="16" class="shrink-0" />Votre e-mail et votre téléphone restent privés.</p>
+    </div>
+    <aside aria-label="Explorer les personnes" class="min-w-0 space-y-4">
+        <section class="rounded-card border border-line bg-card p-5">
+            <h2 class="text-[18px] font-extrabold">Explorer les personnes</h2>
+            <p class="mt-2 text-[13px] leading-relaxed text-muted">Trouvez des personnes selon ce qu'elles peuvent apporter ou souhaitent apprendre.</p>
+            <div class="mt-4 space-y-2">
+                <button type="button" wire:click="setMode('offered')" class="flex min-h-11 w-full items-center gap-2 rounded-button px-3 text-left text-[14px] font-semibold hover:bg-ground" aria-pressed="{{ $offered ? 'true' : 'false' }}"><x-icon name="group" :size="18" /> Capacités à partager</button>
+                <button type="button" wire:click="setMode('wanted')" class="flex min-h-11 w-full items-center gap-2 rounded-button px-3 text-left text-[14px] font-semibold hover:bg-ground" aria-pressed="{{ $offered ? 'false' : 'true' }}"><x-icon name="book" :size="18" /> Envies d'apprendre</button>
+                @if ($hasFilters)<button type="button" wire:click="clearFilters" class="min-h-11 w-full rounded-button border border-line px-3 text-left text-[14px] font-semibold">Effacer les filtres</button>@endif
+            </div>
+        </section>
+        <section class="rounded-card border border-line bg-card p-5">
+            <h2 class="text-[17px] font-extrabold">Faire partie du réseau</h2>
+            <p class="mt-2 text-[13px] leading-relaxed text-muted">Présentez vos capacités et vos expériences pour permettre aux autres de vous découvrir.</p>
+            <x-button :href="$guest ? route('register') : route('espace.profil')" variant="accent" class="mt-4">{{ $guest ? 'Créer un compte' : 'Mon profil' }}</x-button>
+        </section>
+    </aside>
+    </div>
 </div>
