@@ -91,21 +91,8 @@
             @if ($searchText !== '')<p class="mt-3 text-[13px] text-muted" role="status">Publications contenant « {{ $searchText }} » dans leur texte, leurs capacités ou le nom de leur auteur.</p>@endif
         </section>
         @endunless
-        <section aria-label="Publier" class="feed-panel p-4">
-            <div class="flex items-center gap-3">
-                <x-avatar :profile="$profile" :size="44" />
-                <a href="{{ route('agir') }}" class="flex min-h-12 min-w-0 flex-1 items-center rounded-button border border-chip-line bg-card px-3.5 text-[14px] text-muted no-underline transition hover:border-ink hover:bg-ground hover:text-ink">Qu'avez-vous envie de partager aujourd'hui ?</a>
-            </div>
-            <div class="mt-3 grid grid-cols-3 divide-x divide-line-soft border-t border-line-soft pt-2">
-                @foreach ($shortcuts as [$shortcut, $icon, $color])
-                    <a href="{{ route('agir.publier', $shortcut->slug()) }}" class="feed-compose-action {{ $color }}">
-                        <x-icon :name="$icon" :size="22" /><span>{{ $shortcut->label() }}</span>
-                    </a>
-                @endforeach
-            </div>
-        </section>
+        <livewire:fil-composer />
 
-        <livewire:match-suggestions />
         <p class="px-1 text-[13px] leading-relaxed text-muted">Partagez une expérience, montrez une réalisation ou découvrez des personnes. Aucune action n'est obligatoire pour participer.</p>
 
         @if (\App\Support\Experience::initial() && $searchText !== '')

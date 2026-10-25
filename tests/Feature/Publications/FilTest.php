@@ -274,11 +274,19 @@ it('montre à gauche, sur ordinateur, mon profil tel que les autres le voient', 
     fil(User::factory()->create())->assertSeeText('Ajouter ce que je peux apporter')->assertSeeText('Ajouter ce que je veux apprendre');
 });
 
-it('propose sur la zone de publication les raccourcis de type, qui mènent au bon formulaire', function () {
+it('propose le compositeur direct et les trois actions dans le menu Agir', function () {
     $html = fil()->html();
 
-    expect($html)->toContain(route('agir'))->toContain(route('agir.publier', 'besoin'))->toContain(route('agir.publier', 'partage'))->toContain(route('agir.publier', 'ma-realisation'))
-        ->and($html)->toContain("Qu'avez-vous envie de partager aujourd'hui ?");
+    expect($html)->toContain('fil-compose-body')
+        ->toContain('wire:submit="publish"')
+        ->toContain('value="share"')
+        ->toContain('value="personal_work"')
+        ->toContain('fil-compose-media')
+        ->toContain('fil-agir-menu')
+        ->toContain(route('agir.publier', 'besoin'))
+        ->toContain(route('agir.publier', 'apprendre'))
+        ->toContain(route('agir.publier', 'aide'))
+        ->not->toContain('Des pistes pour avancer');
 });
 
 it('ouvre le Fil sans erreur à 390 px : aucun ordre ni algorithme caché dans les requêtes', function () {
