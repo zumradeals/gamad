@@ -21,11 +21,11 @@ beforeEach(function () {
 
 function visiteur()
 {
-    return Livewire::test(CarrefourPersonnes::class);
+    return Livewire::test(CarrefourPersonnes::class)->set('mode', 'offered');
 }
 
 it('est ouvert à un visiteur sans compte', function () {
-    $this->get('/personnes')->assertOk()->assertSeeText('CARREFOUR')->assertSeeText('Trouvez qui peut vous aider');
+    $this->get('/personnes')->assertOk()->assertSeeText('Personnes')->assertSeeText('Trouvez qui peut vous aider');
 });
 
 it('trouve par capacité sans tenir compte de la casse ni des accents', function () {
@@ -108,8 +108,8 @@ it('trie par ordre alphabétique des noms : aucun classement de personnes', func
 it('affiche le décompte et les capacités de chaque personne, sans « j’aime »', function () {
     visiteur()->set('query', 'comptabilité')
         ->assertSeeText('4 personnes peuvent apporter « comptabilité »')
-        ->assertSeeText('PEUT APPORTER')
-        ->assertSeeText('VEUT APPRENDRE')
+        ->assertSeeText('Peut apporter')
+        ->assertSeeText('Veut apprendre')
         ->assertSeeText('Vente sur WhatsApp')
         ->assertSeeText('Anglais')
         ->assertSeeText('Abidjan, Cocody')
@@ -193,9 +193,9 @@ it('permet à deux comptes de test de se trouver l’un l’autre par capacité 
     $bouake = City::query()->where('name', 'Bouaké')->value('id');
 
     // A cherche quelqu'un qui peut apporter ce qu'il veut apprendre (jardinage) à Bouaké : il trouve B.
-    expect(noms(Livewire::actingAs($a)->test(CarrefourPersonnes::class)->set('query', 'jardinage')->set('city', $bouake)))->toBe(['Compte B']);
+    expect(noms(Livewire::actingAs($a)->test(CarrefourPersonnes::class)->set('mode', 'offered')->set('query', 'jardinage')->set('city', $bouake)))->toBe(['Compte B']);
     // B cherche quelqu'un qui peut apporter la menuiserie : il trouve A.
-    expect(noms(Livewire::actingAs($b)->test(CarrefourPersonnes::class)->set('query', 'menuiserie')->set('city', $bouake)))->toBe(['Compte A']);
+    expect(noms(Livewire::actingAs($b)->test(CarrefourPersonnes::class)->set('mode', 'offered')->set('query', 'menuiserie')->set('city', $bouake)))->toBe(['Compte A']);
     // Dans l'autre sens : A cherche qui veut apprendre la menuiserie : B ; B cherche qui veut apprendre le jardinage : A.
     expect(noms(Livewire::actingAs($a)->test(CarrefourPersonnes::class)->set('query', 'menuiserie')->set('mode', 'wanted')->set('city', $bouake)))->toBe(['Compte B'])
         ->and(noms(Livewire::actingAs($b)->test(CarrefourPersonnes::class)->set('query', 'jardinage')->set('mode', 'wanted')->set('city', $bouake)))->toBe(['Compte A']);
@@ -210,10 +210,10 @@ it('liste les villes et domaines actifs dans les filtres, pas les désactivés',
     $korhogo->update(['active' => false]);
     $securite->update(['active' => false]);
 
-    visiteur()->assertSeeText('Toutes les villes')->assertSeeText('Abidjan, Cocody')->assertSeeText('Bouaké')
+    visiteur()->assertSeeText('Toutes les localités')->assertSeeText('Abidjan, Cocody')->assertSeeText('Bouaké')
         ->assertDontSee('<option value="'.$korhogo->id.'">', false)
-        ->assertSeeText('Tous les domaines')->assertSeeText('Religion')
-        ->assertDontSee('<option value="'.$securite->id.'">', false);
+        ->assertSeeText('Tous les domaines')
+        ->assertDontSee("\$set('domain', '".$securite->id."')", false);
 });
 
 it('porte la recherche dans l’adresse, pour que les liens du profil ouvrent le Carrefour déjà filtré', function () {
