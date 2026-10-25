@@ -20,13 +20,14 @@
     <title>{{ $title ? $title.' — '.config('app.name') : config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
+    <x-brand-icons />
 </head>
 <body class="flex flex-col bg-ground text-ink antialiased">
     <header class="sticky top-0 z-20 border-b border-line bg-card">
         <div class="mx-auto flex w-full max-w-[1240px] flex-wrap items-center gap-3 px-4 py-3 lg:flex-nowrap lg:gap-5 lg:px-6 lg:py-0">
             <a href="{{ auth()->check() ? route('fil') : url('/') }}" class="inline-flex min-h-11 items-center no-underline" aria-label="GAMAD — accueil">
                 <span class="flex flex-col">
-                    <span class="flex items-center gap-1.5 text-[24px] font-extrabold leading-tight tracking-[-0.7px] text-ink">GAMAD<span class="size-1.5 rounded-[2px] bg-accent" aria-hidden="true"></span></span>
+                    <x-logo />
                 </span>
             </a>
 

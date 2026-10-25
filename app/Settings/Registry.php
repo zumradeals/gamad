@@ -42,6 +42,8 @@ final class Registry
             new Definition('mail_from_address', self::GROUP_MAIL, 'Adresse de l’expéditeur', Definition::STRING, null, ['nullable', 'email:rfc', 'max:255']),
             new Definition('mail_from_name', self::GROUP_MAIL, 'Nom de l’expéditeur', Definition::STRING, null, ['nullable', 'string', 'max:100']),
 
+            new Definition('brand_logo', self::GROUP_PLATFORM, 'Logo du site', Definition::STRING, null),
+            new Definition('brand_icon', self::GROUP_PLATFORM, 'Icône du site', Definition::STRING, null),
             new Definition('app_name', self::GROUP_PLATFORM, 'Nom de la plateforme', Definition::STRING, 'GAMAD', ['required', 'string', 'max:60']),
             new Definition('app_url', self::GROUP_PLATFORM, 'Adresse publique', Definition::STRING, null, ['nullable', 'url:https', 'max:255']),
 

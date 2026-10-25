@@ -458,3 +458,13 @@ public à ses visuels. Pas d'images fictives : initiales et formes GAMAD par dé
 - L'ancien dispositif individuel D-189 conserve ses données et son interface, mais
   est visuellement distingué des confirmations d'expériences par entreprises.
   Aucune vérification individuelle obligatoire et aucune réactivation ZUMRA/Projets.
+
+
+## Identité visuelle administrable — D-194
+Le super administrateur gère le logo et l’icône carrée depuis Paramètres, avec aperçu et retour au défaut.
+PNG/JPEG/WebP limités à 2 Mo et 4096 px, redessinés en PNG sans métadonnées avec transparence conservée.
+Logo proportionnel (1024 px maximum), icône carrée (512 px maximum), favicon et apple-touch-icon.
+Références dans settings, changements journalisés. Images dans publication-media/branding, incluses
+dans la sauvegarde existante des médias. Anciennes versions conservées dans cette sauvegarde ; seules
+les références courantes sont servies par la route publique. Aucun manifeste installable ni PWA ajouté.
+Pas de dépendance ni migration. R1 reste En cours.

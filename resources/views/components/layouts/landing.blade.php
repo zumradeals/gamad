@@ -7,13 +7,14 @@
     <meta name="description" content="Découvrez des personnes, partagez votre savoir-faire et trouvez des occasions d’apprendre, d’aider ou de travailler sur GAMAD.">
     <title>{{ config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <x-brand-icons />
 </head>
 <body id="accueil" class="landing-page bg-ground text-ink antialiased">
     <a href="#contenu" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-button focus:bg-card focus:p-3">Aller au contenu</a>
     <header class="sticky top-0 z-20 border-b border-line-soft bg-card">
         <div class="landing-container relative flex min-h-[76px] items-center justify-between gap-4">
             <a href="{{ route('home') }}" class="inline-flex min-h-11 shrink-0 flex-col justify-center no-underline" aria-label="GAMAD — accueil">
-                <span class="flex items-center gap-1.5"><x-logo :tagline="false" /><span class="size-3 rounded-[2px] bg-accent" aria-hidden="true"></span></span>
+                <span class="flex items-center gap-1.5"><x-logo :tagline="false" /></span>
             </a>
             <nav aria-label="Navigation de l’accueil" class="hidden items-center gap-6 lg:flex">
                 <a href="#accueil" aria-current="page" class="landing-nav-link border-accent font-bold">Accueil</a>
@@ -42,7 +43,7 @@
     <div class="border-t border-line-soft bg-card">
         <div class="landing-container py-6">
             <footer class="flex flex-wrap items-center justify-between gap-3" aria-label="GAMAD">
-                <a href="{{ route('home') }}" class="inline-flex min-h-11 items-center gap-1.5 no-underline" aria-label="GAMAD — accueil"><x-logo :tagline="false" /><span class="size-3 rounded-[2px] bg-accent" aria-hidden="true"></span></a>
+                <a href="{{ route('home') }}" class="inline-flex min-h-11 items-center gap-1.5 no-underline" aria-label="GAMAD — accueil"><x-logo :tagline="false" /></a>
 <a href="{{ route('personnes.index') }}" class="inline-flex min-h-11 items-center text-[13px] font-semibold">Découvrir les personnes</a>
             </footer>
             @include('partials.legal-links')

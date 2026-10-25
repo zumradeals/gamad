@@ -9,6 +9,7 @@
     <title>{{ $title ? $title.' — '.config('app.name') : config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
+    <x-brand-icons />
 </head>
 <body class="bg-ground text-ink antialiased">
     <div @class(['mx-auto flex min-h-screen w-full flex-col gap-6 px-4 py-8', 'max-w-[440px]' => ! $wide, 'max-w-[1100px] md:px-6' => $wide])>
