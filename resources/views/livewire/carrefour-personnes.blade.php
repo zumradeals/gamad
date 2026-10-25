@@ -6,12 +6,14 @@
 @endphp
 <div class="person-directory min-w-0">
     @if (\App\Support\Experience::initial())<a href="{{ auth()->check() ? route('fil') : route('home') }}" class="mb-3 inline-flex min-h-11 items-center gap-2 text-[14px] font-semibold">Retour à l’accueil</a>@endif
-    <div class="grid min-w-0 items-start gap-4 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[230px_minmax(0,1fr)_260px]">
+    <div class="grid min-w-0 items-start gap-4 lg:grid-cols-[210px_minmax(0,1fr)] xl:grid-cols-[225px_minmax(0,1fr)_270px]">
         <aside aria-label="Navigation et filtres des personnes" class="min-w-0 space-y-4 rounded-card border border-line bg-card p-4">
             <h2 class="text-[18px] font-extrabold">Explorer les personnes</h2>
             <nav aria-label="Explorer">
                 <a href="{{ route('personnes.index') }}" class="flex min-h-11 items-center gap-2 rounded-button bg-soft-blue px-3 text-[14px] font-bold text-link"><x-icon name="group" :size="18"/> Toutes les personnes</a>
                 <a href="{{ auth()->check() ? route('espace.profil') : route('register') }}" class="flex min-h-11 items-center gap-2 px-3 text-[14px] font-semibold"><x-icon name="user" :size="18"/> Mon profil</a>
+                <a href="#recherche" class="flex min-h-11 items-center gap-2 px-3 text-[14px] font-semibold"><x-icon name="search" :size="18"/> Rechercher</a>
+                <a href="#resultats-personnes" class="flex min-h-11 items-center gap-2 px-3 text-[14px] font-semibold"><x-icon name="group" :size="18"/> Profils à découvrir</a>
             </nav>
             <div class="border-t border-line pt-4">
                 <h3 class="mb-3 text-[16px] font-extrabold">Filtres</h3>
@@ -37,6 +39,7 @@
             <h1 class="sr-only">CARREFOUR — Trouvez qui peut vous aider</h1>
             <div class="rounded-card border border-line bg-card p-4">
                 <div class="flex flex-wrap gap-2">
+                    <a href="{{ route('personnes.index') }}" class="inline-flex min-h-10 items-center rounded-full bg-soft-blue px-4 text-[13px] font-bold text-link">Tous</a>
                     <button type="button" wire:click="setMode('offered')" class="min-h-10 rounded-full px-4 text-[13px] font-bold {{ $offered ? 'bg-ink text-white' : 'bg-ground' }}">Peut apporter</button>
                     <button type="button" wire:click="setMode('wanted')" class="min-h-10 rounded-full px-4 text-[13px] font-bold {{ ! $offered ? 'bg-ink text-white' : 'bg-ground' }}">Veut apprendre</button>
                     @if ($hasFilters)<button type="button" wire:click="clearFilters" class="min-h-10 rounded-full bg-ground px-4 text-[13px] font-semibold">Tous les filtres</button>@endif
@@ -51,7 +54,7 @@
                     <span>Ordre alphabétique</span>
                 </div>
             </div>
-            <section aria-label="Résultats des personnes" class="space-y-3">
+            <section id="resultats-personnes" aria-label="Résultats des personnes" class="space-y-3">
                 <div wire:loading.delay role="status" class="text-[14px] text-muted">Recherche en cours…</div>
                 @forelse ($people as $profile)
                     <x-person-discovery-card wire:key="personne-{{ $profile->id }}" :profile="$profile" />
@@ -75,14 +78,29 @@
         <aside aria-label="Découvrir le réseau" class="min-w-0 space-y-4 lg:col-start-2 xl:col-start-3">
             <section class="rounded-card border border-line bg-card p-4">
                 <h2 class="text-[17px] font-extrabold">Recherche rapide</h2>
-                <p class="mt-2 text-[13px] text-muted">Recherchez par nom ou capacité dans la liste centrale.</p>
-                <a href="#recherche" class="mt-3 inline-flex min-h-11 items-center gap-2 text-[14px] font-bold text-link"><x-icon name="search" :size="18"/> Rechercher</a>
+                <label for="recherche-rapide" class="sr-only">Rechercher une personne ou une capacité</label>
+                <input id="recherche-rapide" type="search" wire:model.live.debounce.300ms="query" maxlength="100" placeholder="Nom, capacité, mot-clé…" class="mt-3 min-h-11 w-full rounded-button border border-line bg-card px-3 text-[13px] outline-none focus:border-link">
+                <a href="#resultats-personnes" class="mt-3 flex min-h-11 items-center justify-center rounded-button bg-accent px-3 text-[14px] font-extrabold text-ink">Voir les résultats</a>
             </section>
             <section class="rounded-card border border-line bg-card p-4">
                 <h2 class="text-[17px] font-extrabold">Découvrir autrement</h2>
                 <div class="mt-3 space-y-2">
                     <button type="button" wire:click="setMode('offered')" class="flex min-h-11 w-full items-center gap-2 text-left text-[13px] font-semibold"><x-icon name="group" :size="18"/> Capacités à partager</button>
                     <button type="button" wire:click="setMode('wanted')" class="flex min-h-11 w-full items-center gap-2 text-left text-[13px] font-semibold"><x-icon name="book" :size="18"/> Envies d'apprendre</button>
+                </div>
+            </section>
+            <section class="rounded-card border border-line bg-card p-4">
+                <h2 class="text-[17px] font-extrabold">Profils à découvrir</h2>
+                <p class="mt-2 text-[12px] text-muted">Personnes présentes dans les résultats de votre recherche.</p>
+                <div class="mt-3 space-y-3">
+                    @forelse ($people->take(3) as $suggestion)
+                        <a href="{{ route('personnes.show', $suggestion->public_id) }}" class="flex min-h-12 items-center gap-3 rounded-button p-1 hover:bg-ground">
+                            <x-avatar :profile="$suggestion" :size="40" class="shrink-0" />
+                            <span class="min-w-0"><span class="block truncate text-[13px] font-bold">{{ $suggestion->user->name }}</span><span class="block truncate text-[12px] text-muted">{{ $suggestion->city?->label() ?? 'Profil public' }}</span></span>
+                        </a>
+                    @empty
+                        <p class="text-[13px] text-muted">Aucun profil à proposer pour ces filtres.</p>
+                    @endforelse
                 </div>
             </section>
             <section class="rounded-card border border-line bg-card p-4">
