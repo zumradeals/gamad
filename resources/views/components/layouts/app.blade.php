@@ -83,11 +83,9 @@
                         <button type="button" x-on:click="agirOpen = !agirOpen" x-bind:aria-expanded="agirOpen.toString()" aria-controls="agir-menu-desktop" aria-haspopup="true" class="flex min-h-11 items-center gap-1.5 rounded-button bg-accent px-4 text-[14px] font-extrabold text-ink">
                             <x-icon name="plus" :size="18" :stroke="2.5" />{{ $agir['label'] }}
                         </button>
-                        <nav id="agir-menu-desktop" x-show="agirOpen" x-cloak aria-label="Actions" class="absolute right-0 top-full z-40 mt-2 w-64 rounded-card border border-line bg-card p-2 shadow-lg">
-                            <a href="{{ route('agir.publier', 'besoin') }}" class="block rounded-button px-3 py-3 hover:bg-ground">Trouver de l’aide</a>
-                            <a href="{{ route('agir.publier', 'apprendre') }}" class="block rounded-button px-3 py-3 hover:bg-ground">Apprendre quelque chose</a>
-                            <a href="{{ route('agir.publier', 'aide') }}" class="block rounded-button px-3 py-3 hover:bg-ground">Proposer quelque chose</a>
-                        </nav>
+                        <div id="agir-menu-desktop" x-show="agirOpen" x-cloak role="region" aria-label="Actions" class="absolute right-0 top-full z-40 mt-2 w-[360px] rounded-card border border-line bg-card p-2 shadow-lg">
+                            <x-agir-actions />
+                        </div>
                     </div>
                 @endif
             @else
@@ -142,14 +140,10 @@
         <div class="absolute inset-0 bg-ink/55" x-on:click="agirOpen = false" aria-hidden="true"></div>
         <div class="absolute inset-x-0 bottom-0 rounded-t-[28px] bg-card px-5 pt-4 shadow-lg" style="padding-bottom: calc(24px + env(safe-area-inset-bottom))">
             <div class="mb-4 flex items-center justify-between gap-3">
-                <h2 id="agir-titre" class="text-[22px] font-extrabold">Que souhaitez-vous faire ?</h2>
+                <h2 id="agir-titre" class="text-[22px] font-extrabold">Que voulez-vous faire ?</h2>
                 <button type="button" x-on:click="agirOpen = false" aria-label="Fermer" class="flex size-11 items-center justify-center rounded-button border border-line"><x-icon name="close" :size="22" /></button>
             </div>
-            <nav aria-label="Actions" class="space-y-2">
-                <a href="{{ route('agir.publier', 'besoin') }}" class="block rounded-button border border-line px-4 py-4 font-semibold">Trouver de l’aide</a>
-                <a href="{{ route('agir.publier', 'apprendre') }}" class="block rounded-button border border-line px-4 py-4 font-semibold">Apprendre quelque chose</a>
-                <a href="{{ route('agir.publier', 'aide') }}" class="block rounded-button border border-line px-4 py-4 font-semibold">Proposer quelque chose</a>
-            </nav>
+            <x-agir-actions sheet />
         </div>
     </div>
 

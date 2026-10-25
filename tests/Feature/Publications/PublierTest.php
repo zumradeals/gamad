@@ -22,13 +22,13 @@ function formulaire(?User $user = null, string $slug = 'besoin')
     return Livewire::actingAs($user ?? User::factory()->create())->test(PublierPublication::class, ['slug' => $slug]);
 }
 
-it('propose les quatre types sur l’écran Agir, chacun menant à son formulaire', function () {
+it('propose les cinq actions sur l’écran Agir, chacune menant directement à son formulaire', function () {
     $page = $this->actingAs(User::factory()->create(['name' => 'Yao Kouassi']))->get('/agir')->assertOk()
-        ->assertSeeText('Que voulez-vous faire avancer ?')
-        ->assertSeeText('Faire réaliser quelque chose ou résoudre une difficulté.')
+        ->assertSeeText('Que voulez-vous faire ?')
+        ->assertSeeText('Obtenir de l’aide pour un projet ou une difficulté')
         ->assertSeeText('Vous publiez en tant que vous-même (Yao Kouassi).')->assertDontSeeText('au nom d’une ZUMRA');
 
-    foreach (['J’ai besoin' => 'besoin', 'Je partage un savoir' => 'savoir', 'Je veux apprendre' => 'apprendre', 'Je propose mon aide' => 'aide'] as $libelle => $slug) {
+    foreach (['J’ai besoin' => 'besoin', 'Je partage un savoir' => 'savoir', 'Je veux apprendre' => 'apprendre', 'Je peux aider' => 'aide', 'Je montre une réalisation' => 'ma-realisation'] as $libelle => $slug) {
         $page->assertSee('href="'.route('agir.publier', $slug).'"', false);
         $this->actingAs(User::factory()->create())->get("/agir/$slug")->assertOk();
     }
