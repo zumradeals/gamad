@@ -2,8 +2,10 @@
     $offered = $mode === 'offered';
     $guest = ! auth()->check();
     $n = $people->total();
+    $summary = $n.' '.($n > 1 ? 'personnes' : 'personne').' '.($this->query !== '' ? ($offered ? ($n > 1 ? 'peuvent apporter' : 'peut apporter') : ($n > 1 ? 'veulent apprendre' : 'veut apprendre')).' « '.\\App\\Support\\Normalizer::display($this->query).' »' : 'à découvrir');
 @endphp
 <div class="person-directory min-w-0">
+    @if (\\App\\Support\\Experience::initial())<a href="{{ auth()->check() ? route('fil') : route('home') }}" class="mb-3 inline-flex min-h-11 items-center gap-2 text-[14px] font-semibold">Retour à l’accueil</a>@endif
     <div class="grid min-w-0 items-start gap-4 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[230px_minmax(0,1fr)_260px]">
         <aside aria-label="Navigation et filtres des personnes" class="min-w-0 space-y-4 rounded-card border border-line bg-card p-4">
             <h2 class="text-[18px] font-extrabold">Explorer les personnes</h2>
@@ -45,7 +47,7 @@
                     <x-button type="submit" variant="accent">Rechercher</x-button>
                 </form>
                 <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-[13px] text-muted">
-                    <span role="status" aria-live="polite">{{ $n }} {{ $n > 1 ? 'personnes trouvées' : 'personne trouvée' }}</span>
+                    <span role="status" aria-live="polite">{{ $summary }}</span>
                     <span>Ordre alphabétique</span>
                 </div>
             </div>
@@ -55,8 +57,9 @@
                     <x-person-discovery-card wire:key="personne-{{ $profile->id }}" :profile="$profile" />
                 @empty
                     <div class="rounded-card border border-line bg-card p-6">
-                        <h2 class="text-[18px] font-bold">Aucune personne ne correspond à votre recherche.</h2>
-                        <p class="mt-2 text-[14px] text-muted">Essayez un autre domaine, une autre localité ou un autre type de capacité.</p>
+                        <h2 class="text-[18px] font-bold">@if ($hasFilters)Personne ne correspond à cette recherche.@else {{ $offered ? "Personne n’a encore indiqué ce qu’elle peut apporter." : "Personne n’a encore indiqué ce qu’elle veut apprendre." }} @endif</h2>
+                        @if ($guest)<p class="mt-2 text-muted">Créez un compte pour partager vos capacités.</p><x-button :href="route('register')" class="mt-3">Créer un compte</x-button>@elseif (! $viewerProfile?->hasSkills())<p class="mt-2 text-muted">Vous n’apparaissez pas encore ici. Complétez votre profil pour être découvert.</p>@endif
+                        <p class="mt-2 text-[14px] text-muted">Essayez une autre capacité, une autre localité ou un autre domaine.</p>
                         @if ($hasFilters)<x-button type="button" variant="secondary" wire:click="clearFilters" class="mt-3">Effacer la recherche</x-button>@endif
                     </div>
                 @endforelse
