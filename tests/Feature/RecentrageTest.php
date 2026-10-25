@@ -248,11 +248,11 @@ it('ne révèle ni les activités ni les échanges privés d’une autre personn
     expect(Conversation::query()->count())->toBe(1);
 });
 
-it('affiche le menu global de la maquette : Accueil, Personnes, Entreprises, Mon espace, recherche, notifications et Agir', function () {
+it('affiche le menu global de bureau : Accueil, Personnes, Entreprises, recherche, notifications (icône seule) et Agir, Mon espace passant par le menu utilisateur', function () {
     $html = $this->actingAs(User::factory()->create())->get('/fil')->assertOk()->getContent();
     preg_match('/<nav aria-label="Navigation principale" class="hidden.*?<\/nav>/s', $html, $nav);
     $texte = trim(preg_replace('/\s+/', ' ', strip_tags($nav[0])));
 
-    expect($texte)->toBe('Accueil Personnes Entreprises Mon espace')
-        ->and($html)->toContain('href="'.route('entreprises.index').'"')->toContain('href="'.route('notifications').'"')->toContain('role="search"');
+    expect($texte)->toBe('Accueil Personnes Entreprises')
+        ->and($html)->not->toContain('min-[1700px]:flex')->toContain('href="'.route('entreprises.index').'"')->toContain('href="'.route('notifications').'"')->toContain('role="search"');
 });

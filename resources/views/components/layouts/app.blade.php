@@ -54,7 +54,6 @@
             @auth
                 <div class="flex items-center gap-1">
                     <livewire:notification-bell />
-                    <a href="{{ route('notifications') }}" class="hidden min-h-11 items-center text-[12px] font-semibold text-muted no-underline hover:text-ink min-[1700px]:flex">Notifications</a>
                 </div>
                 {{-- Menu utilisateur : visible sur ordinateur, avec le nom de la personne (maquette « Mon espace »). --}}
                 <div x-data="{ userOpen: false }" class="relative hidden lg:block" x-on:click.outside="userOpen = false" x-on:keydown.escape.window="userOpen = false">

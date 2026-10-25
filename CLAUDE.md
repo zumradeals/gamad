@@ -3,7 +3,7 @@
 ## Priorité actuelle — Accueil, profils et entraide (D-183, D-184)
 
 Le Président demande une entrée unifiée **Accueil · Agir · Mon espace** (D-184, D-190). Sur ordinateur, le menu global est
-**Accueil · Personnes · Entreprises · Mon espace**, avec recherche, notifications, Agir et menu utilisateur (D-196, maquette « Mon espace »). Les profils et la recherche
+**Accueil · Personnes · Entreprises**, avec recherche, icône de notifications, Agir et menu utilisateur (Mon espace y est ouvert) (D-196, maquette « Mon espace »). Les profils et la recherche
 de personnes restent accessibles depuis le Fil et les publications, sans menu Personnes permanent.
 La priorité est le parcours besoin → proposition précise → conversation → prochaine action confirmée.
 D-186 ajoute les profils enrichis, réalisations et partages personnels (texte, image, vidéo ou PDF),
