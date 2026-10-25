@@ -8,7 +8,7 @@
                 <a href="{{ route('personnes.show', $profile->public_id) }}" class="person-name text-[17px] font-extrabold">{{ $profile->user->name }}</a>
                 @if ($profile->city)<p class="mt-1 flex items-center gap-1 text-[13px] text-muted"><x-icon name="pin" :size="16" /> {{ $profile->city->label() }}</p>@endif
             </div>
-            @foreach ([['skills' => $profile->offeredSkills, 'label' => 'Peut apporter', 'kind' => 'offered'], ['skills' => $profile->wantedSkills, 'label' => 'Veut apprendre', 'kind' => 'wanted']] as $group)
+            @foreach ([['skills' => $profile->offeredSkills, 'label' => 'PEUT APPORTER', 'kind' => 'offered'], ['skills' => $profile->wantedSkills, 'label' => 'VEUT APPRENDRE', 'kind' => 'wanted']] as $group)
                 @if ($group['skills']->isNotEmpty())
                     <div class="flex min-w-0 flex-wrap items-center gap-1.5">
                         <span class="rounded-chip px-2.5 py-1 text-[12px] font-bold {{ $group['kind'] === 'offered' ? 'bg-type-knowledge-bg text-type-knowledge-fg' : 'bg-type-learning-bg text-type-learning-fg' }}">{{ $group['label'] }}</span>
