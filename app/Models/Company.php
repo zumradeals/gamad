@@ -29,7 +29,7 @@ class Company extends Model
             foreach ($company->documents as $document) {
                 Storage::disk('local')->delete($document->private_path);
             }
-            Storage::disk('local')->delete(array_filter([$company->logo_path, $company->banner_path]));
+            Storage::disk('local')->delete(array_filter([$company->logo_path, $company->banner_path, ...collect($company->services ?? [])->pluck('image_path')->all()]));
         });
     }
 

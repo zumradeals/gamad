@@ -195,10 +195,13 @@
                     @if ($services->isNotEmpty())
                         <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                             @foreach ($services as $service)
-                                <article class="flex min-w-0 flex-col gap-1 rounded-button border border-line p-3">
+                                <article class="flex min-w-0 flex-col gap-1 overflow-hidden rounded-button border border-line">
+                                    @if (filled($service['image_path'] ?? null))<img src="{{ route('entreprises.visual', [$company, 'service-'.$loop->index]) }}" alt="{{ $service['name'] }}" loading="lazy" class="h-32 w-full object-cover">@endif
+                                    <div class="flex min-w-0 flex-col gap-1 p-3">
                                     @if (filled($service['category'] ?? null))<span class="self-start rounded-chip bg-soft-blue px-2.5 py-1 text-[11px] font-semibold text-link">{{ $service['category'] }}</span>@endif
                                     <h3 class="break-words text-[14px] font-extrabold leading-snug">{{ $service['name'] }}</h3>
                                     @if (filled($service['description'] ?? null))<p class="break-words text-[13px] leading-snug text-muted">{{ $service['description'] }}</p>@endif
+                                    </div>
                                 </article>
                             @endforeach
                         </div>

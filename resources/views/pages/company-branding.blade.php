@@ -89,7 +89,7 @@
 
             <section id="services" class="scroll-mt-24 rounded-card border border-line bg-card p-5 md:p-6">
                 <h2 class="text-[20px] font-extrabold">3. Nos produits et services</h2>
-                <p class="mt-1 text-[13px] leading-relaxed text-muted">Jusqu’à {{ \App\Models\Company::MAX_SERVICES }} fiches de présentation. C’est une vitrine pour être découvert : GAMAD ne vend rien et n’enregistre aucun paiement. Laissez le nom vide pour retirer une fiche.</p>
+                <p class="mt-1 text-[13px] leading-relaxed text-muted">Jusqu’à {{ \App\Models\Company::MAX_SERVICES }} fiches de présentation, chacune avec une image facultative. C’est une vitrine pour être découvert : GAMAD ne vend rien et n’enregistre aucun paiement. Laissez le nom vide pour retirer une fiche.</p>
                 @php($services = old('services', $company->services ?? []))
                 <div class="mt-4 space-y-4">
                     @foreach (range(0, \App\Models\Company::MAX_SERVICES - 1) as $i)
@@ -104,6 +104,16 @@
                             <label class="flex flex-col gap-1.5 text-[13px] font-bold sm:col-span-2">Description courte (200 caractères)
                                 <textarea name="services[{{ $i }}][description]" maxlength="200" rows="2" class="rounded-button border border-chip-line bg-card p-3 text-[14px]">{{ $services[$i]['description'] ?? '' }}</textarea>
                             </label>
+                            <div class="sm:col-span-2">
+                                @if (! empty($company->services[$i]['image_path']))
+                                    <img src="{{ route('entreprises.visual', [$company, 'service-'.$i]) }}" alt="Image actuelle de la fiche {{ $i + 1 }}" class="mb-2 h-28 w-40 rounded-button border border-line object-cover">
+                                @endif
+                                <label for="service-image-{{ $i }}" class="block text-[13px] font-bold">Image (facultatif, JPG, PNG ou WebP, 5 Mo au plus)</label>
+                                <input id="service-image-{{ $i }}" type="file" name="services[{{ $i }}][image]" accept="image/jpeg,image/png,image/webp" class="mt-2 w-full rounded-button border border-chip-line bg-card p-3 text-[13px]">
+                                @if (! empty($company->services[$i]['image_path']))
+                                    <label class="mt-2 inline-flex min-h-11 items-center gap-2 text-[13px] font-semibold"><input type="checkbox" name="services[{{ $i }}][remove_image]" value="1" class="size-4 accent-ink"> Retirer l’image actuelle</label>
+                                @endif
+                            </div>
                         </fieldset>
                     @endforeach
                 </div>
