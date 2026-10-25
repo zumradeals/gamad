@@ -5,6 +5,8 @@
         <p class="text-muted">Réservé au super administrateur. Chaque modification est inscrite au journal d’administration.</p>
     </div>
 
+    <x-button :href="route('espace.parametres.identite')" variant="secondary">Identité visuelle — logo et favicon</x-button>
+
     @if ($saved)
         <x-status>{{ $saved }}</x-status>
     @endif

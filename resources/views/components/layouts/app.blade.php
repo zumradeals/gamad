@@ -20,6 +20,7 @@
     <title>{{ $title ? $title.' — '.config('app.name') : config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
+    <x-brand-icons />
 </head>
 <body class="flex flex-col bg-ground text-ink antialiased">
     <header class="sticky top-0 z-20 border-b border-line bg-card">

@@ -7,6 +7,7 @@
     <meta name="description" content="Découvrez des personnes, partagez votre savoir-faire et trouvez des occasions d’apprendre, d’aider ou de travailler sur GAMAD.">
     <title>{{ config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <x-brand-icons />
 </head>
 <body id="accueil" class="landing-page bg-ground text-ink antialiased">
     <a href="#contenu" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-button focus:bg-card focus:p-3">Aller au contenu</a>

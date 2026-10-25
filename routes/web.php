@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BrandingController;
 use App\Http\Controllers\CompanyBrandingController;
 use App\Http\Controllers\CompanyContactController;
 use App\Http\Controllers\CompanyController;
@@ -163,6 +164,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/notifications/{notification}', [NotificationController::class, 'open'])->whereUuid('notification')->name('notifications.open');
     Route::get('/espace', Espace::class)->name('espace');
     Route::get('/espace/profil', ModifierProfil::class)->name('espace.profil');
+    Route::get('/espace/parametres/identite', [BrandingController::class, 'edit'])->middleware('can:super-admin')->name('espace.parametres.identite');
+    Route::post('/espace/parametres/identite', [BrandingController::class, 'save'])->middleware('can:super-admin')->name('espace.parametres.identite.save');
     Route::get('/espace/parametres', Parametres::class)->middleware('can:super-admin')->name('espace.parametres');
     Route::get('/espace/parametres/textes', ParametresTextes::class)->middleware('can:super-admin')->name('espace.parametres.textes');
     Route::get('/espace/parametres/paiement', ParametresPaiement::class)->middleware('can:super-admin')->name('espace.parametres.paiement');
@@ -176,3 +179,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 // Rappel serveur de GeniusPay : public (sans compte), protégé par la signature du corps et limité en débit (D-169).
 Route::post('/webhooks/geniuspay', [GeniusPayWebhookController::class, 'handle'])->middleware('throttle:120,1')->name('webhooks.geniuspay');
+
+Route::get('/identite/{kind}.png', [BrandingController::class, 'image'])->where('kind', 'logo|icon')->name('branding.image');
