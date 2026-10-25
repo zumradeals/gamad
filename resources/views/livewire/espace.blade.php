@@ -1,37 +1,79 @@
 @php
-    $sections = [
-        ['vue-ensemble', 'Vue d’ensemble', 'grid'],
-        ['profil', 'Mon profil', 'user'],
-        ['publications', 'Mes publications', 'document'],
-        ['echanges', 'Mes échanges', 'chat'],
-        ['compte', 'Mon compte', 'settings'],
+    $nav = [
+        ['vue-ensemble', 'Vue d’ensemble', 'grid', '#vue-ensemble'],
+        ['profil', 'Mon profil', 'user', route('espace.profil')],
+        ['capacites', 'Mes capacités', 'idea', '#capacites'],
+        ['realisations', 'Mes réalisations', 'project', '#realisations'],
+        ['publications', 'Mes publications', 'document', '#publications'],
+        ['relations', 'Mes relations', 'community', '#relations'],
+        ['compte', 'Paramètres', 'settings', '#compte'],
     ];
+    $date = fn ($d) => $d->copy()->locale('fr')->timezone('Africa/Abidjan')->translatedFormat('M Y');
+    $place = collect([$profile->city?->label(), $profile->country?->name])->filter()->unique()->implode(', ');
+    $title = fn ($post) => \Illuminate\Support\Str::limit(trim(preg_split('/\R/', trim($post->body))[0] ?? ''), 80);
+    $summary = function ($post) {
+        $rest = trim(implode(' ', array_slice(preg_split('/\R/', trim($post->body)), 1)));
+
+        return \Illuminate\Support\Str::limit($post->outcome ?: $rest, 140);
+    };
+    $card = 'rounded-card border border-line bg-card';
 @endphp
 
-<div id="vue-ensemble" class="space-layout" x-data="{ section: window.location.hash || '#vue-ensemble' }" x-on:hashchange.window="section = window.location.hash || '#vue-ensemble'">
-    <aside aria-label="Mon espace personnel" class="space-sidebar">
-        <div class="space-panel overflow-hidden">
-            <div class="space-cover" aria-hidden="true"></div>
-            <div class="px-4 pb-4">
-                <div class="relative -mt-8 mb-3 inline-flex rounded-full border-4 border-card">
-                    <x-avatar :profile="$profile" :size="64" />
-                </div>
-                <p class="break-words text-[16px] font-extrabold">{{ $user->name }}</p>
-                <p class="mt-0.5 text-[12px] text-muted">Mon espace personnel</p>
-                <nav aria-label="Sections de Mon espace" class="space-menu mt-4 flex flex-col gap-1 border-t border-line-soft pt-3">
-                    @foreach ($sections as [$id, $label, $icon])
-                        <a href="#{{ $id }}" @if ($loop->first) aria-current="location" @endif :aria-current="section === '#{{ $id }}' ? 'location' : null" class="space-menu-link">
-                            <x-icon :name="$icon" :size="20" /><span>{{ $label }}</span>
-                        </a>
+<div id="vue-ensemble" class="space-dashboard" x-data="{ section: window.location.hash || '#vue-ensemble' }" x-on:hashchange.window="section = window.location.hash || '#vue-ensemble'">
+    <h1 class="sr-only">Mon espace</h1>
+
+    {{-- Colonne gauche : navigation personnelle, visibilité, complétude, confidentialité --}}
+    <aside aria-label="Mon espace personnel" class="min-w-0 max-xl:contents">
+        <div class="{{ $card }} p-4 max-xl:order-1 xl:rounded-b-none xl:border-b-0 xl:pb-0">
+            <p class="hidden text-[22px] font-extrabold leading-tight xl:block">Mon espace</p>
+
+            <nav aria-label="Sections de Mon espace" class="space-menu -mx-1 flex gap-1 overflow-x-auto px-1 py-1 xl:mx-0 xl:mt-3 xl:flex-col xl:overflow-visible xl:px-0">
+                @foreach ($nav as [$id, $label, $icon, $href])
+                    <a href="{{ $href }}" @if ($loop->first) aria-current="location" @endif @if (str_starts_with($href, '#')) :aria-current="section === '{{ $href }}' ? 'location' : null" @endif class="space-menu-link shrink-0 whitespace-nowrap !text-[13px] xl:whitespace-normal">
+                        <x-icon :name="$icon" :size="20" /><span>{{ $label }}</span>
+                    </a>
+                @endforeach
+                @can('moderate')
+                    <a href="#moderation" class="space-menu-link shrink-0 whitespace-nowrap !text-[13px]"><x-icon name="shield" :size="20" />Modération</a>
+                @endcan
+                @can('super-admin')
+                    <a href="#administration" class="space-menu-link shrink-0 whitespace-nowrap !text-[13px]"><x-icon name="settings" :size="20" />Administration</a>
+                @endcan
+            </nav>
+        </div>
+
+        <div class="{{ $card }} flex flex-col gap-4 p-4 max-xl:order-4 xl:rounded-t-none xl:border-t-0 xl:pt-0">
+            <div class="flex flex-col gap-4 xl:border-t xl:border-line-soft xl:pt-4">
+                <fieldset>
+                    <legend class="text-[15px] font-extrabold">Visibilité du profil</legend>
+                    @foreach ([\App\Models\Profile::PUBLIC => 'Public', \App\Models\Profile::MEMBERS => 'Inscrits seulement'] as $value => $label)
+                        <label class="flex min-h-11 cursor-pointer items-center gap-3 text-[14px]">
+                            <input type="radio" name="visibility" value="{{ $value }}" class="size-5 accent-[#0e2a3f]" @checked($profile->visibility === $value) wire:click="setVisibility('{{ $value }}')">
+                            <span>{{ $label }}</span>
+                        </label>
                     @endforeach
-                    @can('moderate')
-                        <a href="#moderation" class="space-menu-link"><x-icon name="shield" :size="20" />Modération</a>
-                    @endcan
-                    @can('super-admin')
-                        <a href="#administration" class="space-menu-link"><x-icon name="settings" :size="20" />Administration</a>
-                    @endcan
-                </nav>
-                <form method="POST" action="{{ route('logout') }}" class="mt-4 border-t border-line-soft pt-3">
+                    <p class="mt-1 text-[12px] leading-relaxed text-muted">{{ $profile->isPublic() ? 'Votre profil est visible par tous, avec ou sans compte.' : 'Votre profil n’est visible que des personnes inscrites.' }}</p>
+                </fieldset>
+
+                <div>
+                    <p class="text-[15px] font-extrabold">Complétude du profil</p>
+                    <div class="mt-2 flex items-center gap-3">
+                        <div class="h-2.5 flex-1 overflow-hidden rounded-full bg-line-soft" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $completeness['percent'] }}" aria-label="Complétude du profil"><div class="h-full rounded-full bg-accent" style="width: {{ $completeness['percent'] }}%"></div></div>
+                        <span class="text-[14px] font-extrabold" data-testid="completude">{{ $completeness['percent'] }} %</span>
+                    </div>
+                    <ul class="mt-2 flex flex-col">
+                        @foreach ($completeness['items'] as $item)
+                            <li><a href="{{ $item['url'] }}" class="flex min-h-11 items-center gap-3 text-[14px] text-ink no-underline hover:text-ink"><span @class(['flex size-6 shrink-0 items-center justify-center rounded-full', 'bg-type-knowledge-fg text-white' => $item['done'], 'border border-chip-line' => ! $item['done']])>@if ($item['done'])<x-icon name="check" :size="14" :stroke="3" />@endif</span><span>{{ $item['label'] }}</span><span class="sr-only">{{ $item['done'] ? ' : renseigné' : ' : à renseigner' }}</span></a></li>
+                        @endforeach
+                    </ul>
+                </div>
+
+                <div class="rounded-button bg-soft-blue p-3">
+                    <p class="flex items-center gap-2 text-[13px] font-extrabold"><x-icon name="lock" :size="17" />Votre espace est privé.</p>
+                    <p class="mt-1 text-[12px] leading-relaxed text-muted">Cet espace n’est visible que de vous : vos échanges, vos enregistrements et vos réglages restent privés. Seules les informations de votre profil public sont visibles selon votre visibilité.</p>
+                </div>
+
+                <form method="POST" action="{{ route('logout') }}" class="border-t border-line-soft pt-3">
                     @csrf
                     <button type="submit" class="space-menu-link w-full"><x-icon name="logout" :size="20" />Se déconnecter</button>
                 </form>
@@ -39,25 +81,58 @@
         </div>
     </aside>
 
-    <div class="space-content">
-        <x-profile-next-step :user="$user" />
-        <div class="flex flex-wrap items-start justify-between gap-3">
-            <div>
-                <h1 class="text-[26px] font-extrabold leading-tight tracking-[-0.5px] md:text-[28px]">Mon espace</h1>
-                <p class="mt-1 text-[14px] text-muted">Votre profil, vos actions et votre compte.</p>
-            </div>
-            <x-button :href="route('personnes.show', $profile->public_id)" variant="secondary" class="!px-3.5 !text-[13px]"><x-icon name="external" :size="18" class="mr-2" />Voir mon profil</x-button>
-        </div>
-
-        <nav aria-label="Sections de Mon espace sur mobile" class="space-menu -mx-1 flex gap-1 overflow-x-auto px-1 py-1 lg:hidden">
-            @foreach ($sections as [$id, $label, $icon])
-                <a href="#{{ $id }}" @if ($loop->first) aria-current="location" @endif :aria-current="section === '#{{ $id }}' ? 'location' : null" class="space-menu-link shrink-0 whitespace-nowrap !text-[12px]">{{ $label }}</a>
-            @endforeach
-        </nav>
-
+    {{-- Colonne centrale : tableau de bord personnel --}}
+    <div class="flex min-w-0 flex-col gap-4 max-xl:order-2">
         @if (session('status'))
             <x-status>{{ session('status') }}</x-status>
         @endif
+
+        <section aria-labelledby="identite" class="{{ $card }} p-4 md:p-5">
+            <div class="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start">
+                <x-avatar :profile="$profile" :size="104" class="self-start" />
+                <div class="flex min-w-0 flex-1 flex-col gap-1.5">
+                    <h2 id="identite" class="flex flex-wrap items-center gap-2 break-words text-[24px] font-extrabold leading-tight">{{ $user->name }}@if ($identityVerified)<span class="text-link" title="Identité vérifiée par GAMAD"><x-icon name="check-circle" :size="24" /><span class="sr-only">Identité vérifiée par GAMAD</span></span>@endif</h2>
+                    @if (filled($profile->headline))<p class="break-words text-[15px] text-muted">{{ $profile->headline }}</p>@endif
+                    @if ($place !== '' || $available)
+                        <p class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[14px] text-muted">
+                            @if ($place !== '')<span class="inline-flex items-center gap-1.5"><x-icon name="pin" :size="16" />{{ $place }}</span>@endif
+                            @if ($available)<span class="inline-flex items-center gap-1.5"><span class="size-2.5 rounded-full bg-type-knowledge-fg"></span>Disponible</span>@endif
+                        </p>
+                    @endif
+                    @if (filled($profile->bio))<p class="mt-1 whitespace-pre-line break-words text-[14px] leading-relaxed">{{ $profile->bio }}</p>@endif
+                    @if ($profile->offeredSkills->isNotEmpty())
+                        <ul aria-label="Capacités principales" class="mt-1 flex flex-wrap gap-1.5">
+                            <li class="rounded-chip bg-type-knowledge-bg px-3 py-1 text-[12px] font-bold text-type-knowledge-fg">Peut apporter</li>
+                            @foreach ($profile->offeredSkills->take(3) as $skill)
+                                <li class="max-w-full break-words rounded-chip bg-type-learning-bg px-3 py-1 text-[12px] font-semibold text-type-learning-fg">{{ $skill->name }}</li>
+                            @endforeach
+                            @if ($profile->offeredSkills->count() > 3)<li class="rounded-chip bg-ground px-3 py-1 text-[12px] font-semibold">+{{ $profile->offeredSkills->count() - 3 }}</li>@endif
+                        </ul>
+                    @endif
+                </div>
+                <div class="flex shrink-0 flex-col gap-2 sm:w-52">
+                    <x-button :href="route('personnes.show', $profile->public_id)" variant="secondary" class="!px-3.5 !text-[14px]">Voir mon profil public</x-button>
+                    <x-button :href="route('espace.profil')" variant="accent" class="!px-3.5 !text-[14px]"><x-icon name="edit" :size="18" class="mr-2" />Modifier mon profil</x-button>
+                </div>
+            </div>
+        </section>
+
+        <section aria-label="Mes chiffres" class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            @foreach ([
+                ['Capacités', $counts['skills'], 'idea', 'bg-type-learning-bg text-type-learning-fg', '#capacites', 'Voir mes capacités'],
+                ['Réalisations', $counts['achievements'], 'project', 'bg-type-call-bg text-type-call-fg', '#realisations', 'Voir mes réalisations'],
+                ['Publications', $counts['posts'], 'document', 'bg-type-project-bg text-type-project-fg', '#publications', 'Voir mes publications'],
+                ['Relations', $counts['relations'], 'community', 'bg-type-learning-bg text-type-learning-fg', '#relations', 'Voir mes relations'],
+            ] as [$label, $count, $icon, $tone, $href, $cta])
+                <div class="{{ $card }} flex min-w-0 flex-col gap-1 p-3">
+                    <div class="flex items-center gap-2.5">
+                        <span class="flex size-10 shrink-0 items-center justify-center rounded-full {{ $tone }}"><x-icon :name="$icon" :size="20" /></span>
+                        <div class="min-w-0"><p class="text-[24px] font-extrabold leading-none" data-testid="compteur-{{ \Illuminate\Support\Str::slug($label) }}">{{ $count }}</p><p class="text-[12px] text-muted">{{ $label }}</p></div>
+                    </div>
+                    <a href="{{ $href }}" class="inline-flex min-h-11 items-center gap-1 text-[12px] font-bold">{{ $cta }}<x-icon name="arrow-right" :size="14" /></a>
+                </div>
+            @endforeach
+        </section>
 
         <section aria-labelledby="afaire" wire:poll.30s @class(['space-panel flex flex-col gap-4 border-l-[3px] p-4 md:p-5', 'border-l-type-knowledge-fg' => count($todo) === 0, 'border-l-accent' => count($todo) > 0])>
             <div class="flex items-center gap-2.5">
@@ -76,12 +151,97 @@
                     <x-button :href="$line['url']" variant="secondary" class="shrink-0 !px-4 !text-[13px]">{{ $line['action'] }}</x-button>
                 </div>
             @empty
-                <div class="flex items-center gap-4 py-1 md:px-6">
-                    <span class="flex size-14 shrink-0 items-center justify-center rounded-full bg-type-knowledge-bg text-type-knowledge-fg"><x-icon name="check-circle" :size="28" /></span>
-                    <div><p class="text-[16px] font-extrabold">Vous êtes à jour</p><p class="mt-1 text-[14px] text-muted">Rien ne vous attend pour l’instant.</p></div>
+                <div class="flex items-center gap-3">
+                    <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-type-knowledge-bg text-type-knowledge-fg"><x-icon name="check-circle" :size="22" /></span>
+                    <div><p class="text-[15px] font-extrabold">Vous êtes à jour</p><p class="text-[13px] text-muted">Rien ne vous attend pour l’instant.</p></div>
                 </div>
             @endforelse
             <p class="border-t border-line-soft pt-3 text-[12px] leading-relaxed text-muted">Cette liste ne montre que ce qui attend une action de votre part. Elle se vide quand vous avez tout traité.</p>
+        </section>
+
+
+        <section id="capacites" aria-labelledby="capacites-titre" class="{{ $card }} flex min-w-0 flex-col gap-3 p-4 md:p-5">
+            <div class="flex items-center justify-between gap-3">
+                <h2 id="capacites-titre" class="text-[18px] font-extrabold">Mes capacités</h2>
+                <a href="{{ route('espace.profil') }}#offered-titre" class="inline-flex min-h-11 items-center text-[13px] font-bold">Modifier</a>
+            </div>
+            <div>
+                <h3 class="text-[13px] font-semibold text-muted">Ce que je peux apporter</h3>
+                @if ($profile->offeredSkills->isNotEmpty())
+                    <ul class="mt-2 flex flex-wrap gap-2" aria-label="Ce que je peux apporter">
+                        @foreach ($profile->offeredSkills as $skill)
+                            <li class="max-w-full break-words rounded-chip bg-type-learning-bg px-3.5 py-1.5 text-[13px] font-semibold text-type-learning-fg">{{ $skill->name }}</li>
+                        @endforeach
+                    </ul>
+                @else
+                    <p class="mt-1 text-[14px] text-muted">Ajoutez vos savoir-faire pour que d’autres vous trouvent.</p>
+                @endif
+            </div>
+            <div>
+                <h3 class="text-[13px] font-semibold text-muted">Ce que je souhaite apprendre</h3>
+                <ul class="mt-2 flex flex-wrap gap-2" aria-label="Ce que je souhaite apprendre">
+                    @foreach ($profile->wantedSkills as $skill)
+                        <li class="max-w-full break-words rounded-chip bg-type-knowledge-bg px-3.5 py-1.5 text-[13px] font-semibold text-type-knowledge-fg">{{ $skill->name }}</li>
+                    @endforeach
+                    <li><a href="{{ route('espace.profil') }}#{{ $profile->wantedSkills->isEmpty() ? 'wanted-titre' : 'offered-titre' }}" class="inline-flex min-h-11 items-center gap-1.5 rounded-chip border border-dashed border-chip-line px-3.5 text-[13px] font-semibold text-ink no-underline hover:text-ink"><x-icon name="plus" :size="15" />Ajouter une capacité</a></li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="realisations" aria-labelledby="realisations-titre" class="{{ $card }} flex min-w-0 flex-col gap-3 p-4 md:p-5">
+            <div class="flex items-center justify-between gap-3">
+                <h2 id="realisations-titre" class="text-[18px] font-extrabold">Mes réalisations récentes</h2>
+                @if ($counts['achievements'] > 0)<a href="{{ route('personnes.show', $profile->public_id) }}#realisations" class="inline-flex min-h-11 items-center gap-1.5 text-[13px] font-bold">Voir tout<x-icon name="arrow-right" :size="15" /></a>@endif
+            </div>
+            @forelse ($achievements as $post)
+                <article wire:key="realisation-{{ $post->id }}" class="flex min-w-0 gap-3 border-t border-line-soft pt-3 first:border-t-0 first:pt-0">
+                    @if ($post->media_kind === 'image' && $post->media_path)
+                        <img src="{{ route('publications.media', $post) }}" alt="" loading="lazy" class="size-16 shrink-0 rounded-button object-cover sm:size-20">
+                    @else
+                        <span class="flex size-16 shrink-0 items-center justify-center rounded-button bg-type-learning-bg text-type-learning-fg sm:size-20"><x-icon name="project" :size="30" /></span>
+                    @endif
+                    <div class="flex min-w-0 flex-1 flex-col gap-1">
+                        <a href="{{ route('publications.show', $post) }}" class="inline-flex min-h-11 items-center break-words text-[15px] font-extrabold text-ink no-underline hover:underline">{{ $title($post) }}</a>
+                        @if ($summary($post) !== '')<p class="break-words text-[13px] leading-relaxed text-muted">{{ $summary($post) }}</p>@endif
+                        <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                            <span class="text-[12px] text-muted">{{ $date($post->created_at) }}</span>
+                            @foreach ($post->skills->take(3) as $skill)<span class="rounded-chip bg-type-learning-bg px-2.5 py-0.5 text-[12px] font-semibold text-type-learning-fg">{{ $skill->name }}</span>@endforeach
+                            @if ($post->isHidden())<span class="text-[12px] font-extrabold text-danger">Masquée</span>@endif
+                        </div>
+                    </div>
+                </article>
+            @empty
+                <div class="flex flex-col items-start gap-3 py-1">
+                    <p class="text-[14px] text-muted">Montrez ce que vous avez fait, même un premier travail ou un apprentissage.</p>
+                    <x-button :href="route('agir.publier', 'ma-realisation')" variant="secondary" class="!px-4 !text-[13px]"><x-icon name="plus" :size="16" class="mr-2" />Ajouter une réalisation</x-button>
+                </div>
+            @endforelse
+        </section>
+
+        <section id="publications" aria-labelledby="publications-titre" class="{{ $card }} flex min-w-0 flex-col gap-3 p-4 md:p-5">
+            <h2 id="publications-titre" class="text-[18px] font-extrabold">Mes publications récentes</h2>
+            @forelse ($publications as $publication)
+                <article wire:key="espace-publication-{{ $publication->id }}" class="flex min-w-0 gap-3 border-t border-line-soft pt-3 first:border-t-0 first:pt-0">
+                    <span class="flex size-16 shrink-0 items-center justify-center rounded-button bg-type-project-bg text-type-project-fg sm:size-20"><x-icon name="document" :size="30" /></span>
+                    <div class="flex min-w-0 flex-1 flex-col gap-1">
+                        <a href="{{ route('publications.show', $publication) }}" class="inline-flex min-h-11 items-center break-words text-[15px] font-extrabold text-ink no-underline hover:underline">{{ $title($publication) }}</a>
+                        @if ($summary($publication) !== '')<p class="break-words text-[13px] leading-relaxed text-muted">{{ $summary($publication) }}</p>@endif
+                        <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                            <span class="rounded-chip px-2.5 py-0.5 text-[12px] font-bold {{ $publication->type->badgeClasses() }}">{{ $publication->displayLabel() }}</span>
+                            <span class="text-[12px] text-muted">{{ $date($publication->created_at) }}</span>
+                            @if ($publication->isHidden())<span class="text-[12px] font-extrabold text-danger">Masquée</span>@endif
+                            @if ($publication->need_state && $publication->need_state !== \App\Enums\NeedState::Open)<span class="text-[12px] font-extrabold text-muted">{{ $publication->need_state->label() }}</span>@endif
+                            @if ($publication->live_gestures_count > 0)<span class="text-[12px] font-semibold text-muted">{{ $publication->type->factLabel($publication->live_gestures_count) }}</span>@endif
+                        </div>
+                    </div>
+                </article>
+            @empty
+                <div class="flex flex-col items-start gap-3 py-1">
+                    <h3 class="text-[16px] font-extrabold">Votre première action commence ici</h3>
+                    <p class="-mt-2 text-[14px] text-muted">Un besoin, un savoir ou une aide à proposer : partagez-le dans les publications.</p>
+                    <x-button :href="route('agir')" variant="accent" class="!px-5 !text-[13px]"><x-icon name="plus" :size="18" class="mr-2" />Agir</x-button>
+                </div>
+            @endforelse
         </section>
 
         <section class="space-panel flex flex-wrap items-center justify-between gap-3 border-l-[3px] border-l-type-knowledge-fg p-4 md:p-5">
@@ -96,63 +256,6 @@
                 @endif
             </div>
         </section>
-
-        <div class="grid min-w-0 gap-4 xl:grid-cols-2">
-            <section aria-labelledby="profil" class="space-panel flex min-w-0 flex-col gap-3 p-4 md:p-5">
-                <h2 id="profil" class="flex items-center gap-2.5 text-[18px] font-extrabold"><x-icon name="user" :size="23" />Mon profil</h2>
-                <p class="text-[14px] leading-relaxed text-muted">Faites connaître ce que vous pouvez apporter et ce que vous souhaitez apprendre.</p>
-                <div class="divide-y divide-line-soft">
-                    @foreach ([['Je peux apporter', $profile->offeredSkills, 'Ajoutez vos savoir-faire', 'bg-type-knowledge-bg text-type-knowledge-fg'], ['Je veux apprendre', $profile->wantedSkills, 'Précisez ce qui vous intéresse', 'bg-type-learning-bg text-type-learning-fg']] as [$label, $skills, $empty, $colors])
-                        <div class="py-2.5 first:pt-0">
-                            <h3 class="text-[13px] font-bold">{{ $label }}</h3>
-                            @if ($skills->isNotEmpty())
-                                <ul class="mt-2 flex flex-wrap gap-1.5" aria-label="{{ $label }}">
-                                    @foreach ($skills as $skill)
-                                        <li class="max-w-full break-words rounded-chip px-2.5 py-1 text-[12px] font-semibold {{ $colors }}">{{ $skill->name }}</li>
-                                    @endforeach
-                                </ul>
-                            @else
-                                <p class="mt-0.5 text-[13px] text-muted">{{ $empty }}</p>
-                            @endif
-                        </div>
-                    @endforeach
-                </div>
-                <div class="mt-auto pt-1"><x-button :href="route('espace.profil')" class="!px-4 !text-[13px]"><x-icon name="edit" :size="18" class="mr-2" />Modifier mon profil</x-button></div>
-            </section>
-
-            <section aria-labelledby="publications" class="space-panel flex min-w-0 flex-col gap-3 p-4 md:p-5">
-                <h2 id="publications" class="flex items-center gap-2.5 text-[18px] font-extrabold"><x-icon name="document" :size="23" />Mes publications</h2>
-                @if ($publications->isNotEmpty())
-                    <ul class="flex flex-col divide-y divide-line-soft">
-                        @foreach ($publications as $publication)
-                            <li wire:key="espace-publication-{{ $publication->id }}">
-                                <a href="{{ route('publications.show', $publication) }}" class="flex min-h-11 flex-col gap-1.5 py-3 text-ink no-underline hover:text-ink hover:underline">
-                                    <span class="flex flex-wrap items-center gap-2">
-                                        <span class="rounded-chip px-2.5 py-0.5 text-[12px] font-bold {{ $publication->type->badgeClasses() }}">{{ $publication->displayLabel() }}</span>
-                                        @if ($publication->isHidden())
-                                            <span class="text-[12px] font-extrabold text-danger">Masquée</span>
-                                        @endif
-                                        @if ($publication->need_state && $publication->need_state !== \App\Enums\NeedState::Open)
-                                            <span class="text-[12px] font-extrabold text-muted">{{ $publication->need_state->label() }}</span>
-                                        @endif
-                                    </span>
-                                    <span class="break-words text-[14px] font-semibold">{{ Str::limit($publication->body, 90) }}</span>
-                                    @if ($publication->live_gestures_count > 0)
-                                        <span class="text-[12px] font-semibold text-muted">{{ $publication->type->factLabel($publication->live_gestures_count) }}</span>
-                                    @endif
-                                </a>
-                            </li>
-                        @endforeach
-                    </ul>
-                @else
-                    <div class="flex flex-1 flex-col items-center justify-center gap-3 py-2 text-center">
-                        <span class="flex size-14 items-center justify-center rounded-card bg-type-call-bg text-type-call-fg"><x-icon name="document" :size="30" /></span>
-                        <div><h3 class="text-[16px] font-extrabold">Votre première action commence ici</h3><p class="mt-1 text-[14px] leading-relaxed text-muted">Un besoin, un savoir ou une aide à proposer : partagez-le dans les publications.</p></div>
-                        <x-button :href="route('agir')" variant="accent" class="!px-5 !text-[13px]"><x-icon name="plus" :size="18" class="mr-2" />Agir</x-button>
-                    </div>
-                @endif
-            </section>
-        </div>
 
         <section class="space-panel flex flex-col gap-2 p-4 md:p-5">
             <h2 class="flex items-center gap-2 text-[18px] font-extrabold"><x-icon name="book" :size="22" />Mes enregistrements</h2>
@@ -173,7 +276,7 @@
 
         <livewire:match-suggestions />
         <section class="space-panel p-5"><h2 class="text-[18px] font-extrabold">Mes attestations</h2><p class="mt-2 text-[14px] text-muted">Faire vérifier mon identité, répondre aux confirmations d’expérience et suivre mes recours.</p><a href="{{ route('espace.attestations') }}" class="mt-2 inline-flex min-h-11 items-center text-[14px] font-bold">Ouvrir mes attestations →</a></section>
-        <livewire:my-network />
+        <div id="relations"><livewire:my-network /></div>
 
         @if ($legacyZumras->isNotEmpty() || $legacyWallets->isNotEmpty())
             <details class="space-panel p-4 md:p-5">
@@ -284,4 +387,65 @@
             </div>
         </details>
     </div>
+
+    {{-- Colonne droite : accompagnement --}}
+    <aside aria-label="Accompagnement" class="flex min-w-0 flex-col gap-4 max-xl:order-3 md:grid md:grid-cols-2 md:items-start xl:flex xl:flex-col">
+        <section aria-labelledby="actions-rapides" class="{{ $card }} p-4">
+            <h2 id="actions-rapides" class="text-[17px] font-extrabold">Actions rapides</h2>
+            <ul class="mt-2 flex flex-col gap-2">
+                @foreach ([
+                    ['Ajouter une réalisation', 'plus', 'bg-type-learning-bg text-type-learning-fg', route('agir.publier', 'ma-realisation')],
+                    ['Créer une publication', 'document', 'bg-type-learning-bg text-type-learning-fg', route('agir')],
+                    ['Modifier mes capacités', 'idea', 'bg-type-call-bg text-type-call-fg', route('espace.profil').'#offered-titre'],
+                    ['Voir mon profil public', 'external', 'bg-type-learning-bg text-type-learning-fg', route('personnes.show', $profile->public_id)],
+                ] as [$label, $icon, $tone, $href])
+                    <li><a href="{{ $href }}" class="flex min-h-12 items-center gap-3 rounded-button border border-line px-3 text-[14px] font-semibold text-ink no-underline hover:bg-ground hover:text-ink"><span class="flex size-8 shrink-0 items-center justify-center rounded-full {{ $tone }}"><x-icon :name="$icon" :size="17" /></span><span class="flex-1">{{ $label }}</span><x-icon name="next" :size="16" /></a></li>
+                @endforeach
+            </ul>
+        </section>
+
+        <section aria-labelledby="coup-d-oeil" class="{{ $card }} p-4">
+            <h2 id="coup-d-oeil" class="text-[17px] font-extrabold">Mon profil en un coup d’œil</h2>
+            @if ($completeness['next'])
+                <p class="mt-1 text-[13px] text-muted">Éléments à renseigner</p>
+                <ul class="mt-2 flex flex-col">
+                    @foreach ($completeness['items'] as $item)
+                        <li class="flex min-h-9 items-center gap-3 text-[14px]"><span @class(['flex size-6 shrink-0 items-center justify-center rounded-full', 'bg-type-knowledge-fg text-white' => $item['done'], 'border border-chip-line' => ! $item['done']])>@if ($item['done'])<x-icon name="check" :size="14" :stroke="3" />@endif</span>{{ $item['label'] }}<span class="sr-only">{{ $item['done'] ? ' : renseigné' : ' : à renseigner' }}</span></li>
+                    @endforeach
+                </ul>
+                <x-button :href="$completeness['next']['url']" variant="accent" class="mt-3 w-full !text-[14px]">Compléter mon profil<x-icon name="arrow-right" :size="16" class="ml-2" /></x-button>
+            @else
+                <p class="mt-2 flex items-center gap-2 text-[14px] font-semibold text-type-knowledge-fg"><x-icon name="check-circle" :size="20" />Votre profil est complet.</p>
+                <p class="mt-1 text-[13px] text-muted">Continuez à partager vos réalisations pour rester visible.</p>
+            @endif
+        </section>
+
+        @if ($suggestedPeople->isNotEmpty())
+            <section aria-labelledby="suggestions-titre-droite" class="{{ $card }} p-4">
+                <div class="flex items-center justify-between gap-3">
+                    <h2 id="suggestions-titre-droite" class="text-[17px] font-extrabold">Suggestions pour vous</h2>
+                    <a href="{{ route('personnes.index') }}" class="inline-flex min-h-11 items-center text-[13px] font-bold">Voir plus</a>
+                </div>
+                <ul class="mt-1 flex flex-col">
+                    @foreach ($suggestedPeople as $person)
+                        <li wire:key="suggestion-{{ $person->id }}" class="flex min-w-0 items-center gap-3 border-t border-line-soft py-3 first:border-t-0">
+                            <x-avatar :profile="$person" :size="44" />
+                            <div class="min-w-0 flex-1"><p class="break-words text-[14px] font-extrabold">{{ $person->user->name }}</p><p class="break-words text-[12px] text-muted">{{ $person->headline ?: $person->offeredSkills->take(2)->pluck('name')->implode(' · ') }}@if ($person->city) · {{ $person->city->label() }}@endif</p></div>
+                            <x-button :href="route('personnes.show', $person->public_id)" variant="secondary" class="shrink-0 !px-3 !text-[12px]">Voir le profil</x-button>
+                        </li>
+                    @endforeach
+                </ul>
+            </section>
+        @endif
+
+        <section aria-labelledby="conseils" class="{{ $card }} p-4">
+            <h2 id="conseils" class="text-[17px] font-extrabold">Conseils et ressources</h2>
+            <div class="mt-2 empty:hidden"><x-profile-next-step :user="$user" /></div>
+            <ul class="mt-2 flex flex-col gap-3">
+                @foreach ([['user', 'Indiquez vos capacités pour être mieux trouvé.'], ['project', 'Partagez vos réalisations avec le réseau.'], ['chat', 'Échangez et collaborez facilement.']] as [$icon, $tip])
+                    <li class="flex items-start gap-3 text-[14px] leading-snug"><span class="flex size-8 shrink-0 items-center justify-center rounded-full bg-type-learning-bg text-type-learning-fg"><x-icon :name="$icon" :size="17" /></span><span class="pt-1">{{ $tip }}</span></li>
+                @endforeach
+            </ul>
+        </section>
+    </aside>
 </div>

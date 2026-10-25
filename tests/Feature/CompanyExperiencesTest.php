@@ -101,20 +101,20 @@ it('respecte le consentement explicite et la visibilité du profil sur la page e
     $experience = declareCareer($moussa, $company);
     app(CompanyExperienceService::class)->decide($owner, $experience, 1, 'confirm');
 
-    $this->get(route('entreprises.show', $company))->assertDontSeeText('Prestataire déclaré');
+    expect(contenuPrincipal($this->get(route('entreprises.show', $company))))->not->toContain('Prestataire déclaré');
     $this->actingAs($moussa)->post(route('espace.company-experiences.visibility', $experience), [
         'visible' => 1,
     ])->assertRedirect();
     $this->get(route('entreprises.show', $company))->assertSeeText('Prestataire déclaré');
     $moussa->profile->update(['visibility' => 'members']);
     auth()->logout();
-    $this->get(route('entreprises.show', $company))->assertDontSeeText('Prestataire déclaré');
+    expect(contenuPrincipal($this->get(route('entreprises.show', $company))))->not->toContain('Prestataire déclaré');
     $this->actingAs($owner)->get(route('entreprises.show', $company))->assertSeeText('Prestataire déclaré');
 
     $this->actingAs($moussa)->post(route('espace.company-experiences.visibility', $experience), [
         'visible' => 0,
     ]);
-    $this->get(route('entreprises.show', $company))->assertDontSeeText('Prestataire déclaré');
+    expect(contenuPrincipal($this->get(route('entreprises.show', $company))))->not->toContain('Prestataire déclaré');
 });
 
 it('interdit les actions sur le parcours des autres membres et les décisions sur une autre entreprise', function () {
@@ -157,7 +157,7 @@ it('retire une référence et son autorisation publique sans supprimer le parcou
     $this->actingAs($moussa)->post(route('espace.company-experiences.withdraw', $experience))->assertRedirect();
     expect($experience->fresh()->status)->toBe('withdrawn')
         ->and($experience->fresh()->show_on_company_page)->toBeFalse();
-    $this->get(route('entreprises.show', $company))->assertDontSeeText('Personne retrait');
+    expect(contenuPrincipal($this->get(route('entreprises.show', $company))))->not->toContain('Personne retrait');
     $this->get(route('personnes.show', $moussa->profile))->assertDontSeeText('Entreprise archive');
 });
 

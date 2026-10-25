@@ -54,14 +54,14 @@ it('active le parcours initial par défaut dans la configuration livrée', funct
     expect($defaults['initial_experience'])->toBeTrue()->and(Experience::initial())->toBeTrue();
 });
 
-it('ne propose que Fil Agir et Mon espace sans fenêtre de découverte', function () {
+it('propose Accueil Personnes Entreprises Mon espace et Agir, sans fenêtre de découverte ni modules gelés', function () {
     $user = person('Nouvelle personne', ['Couture']);
 
     foreach (['fil', 'personnes.index', 'agir', 'espace'] as $route) {
         $html = $this->actingAs($user)->get(route($route))->assertOk()->getContent();
         preg_match_all('/<nav aria-label="Navigation principale".*?<\/nav>/s', $html, $navs);
         $text = trim(preg_replace('/\s+/', ' ', strip_tags(implode(' ', $navs[0]))));
-        expect($text)->toContain('Accueil')->not->toContain('Personnes')->toContain('Agir')->toContain('Mon espace')
+        expect($text)->toContain('Accueil')->toContain('Personnes')->toContain('Entreprises')->toContain('Agir')->toContain('Mon espace')
             ->not->toContain('Découvrir')->not->toContain('ZUMRA')->not->toContain('Projets')->not->toContain('Besoins');
         expect($html)->not->toContain('aria-labelledby="decouvrir-titre"')
             ->not->toContain('href="'.route('zumras.index').'"')->not->toContain('href="'.route('projets.index').'"')
@@ -246,4 +246,13 @@ it('ne révèle ni les activités ni les échanges privés d’une autre personn
         ->assertDontSee('href="'.route('conversations.show', $conversation).'"', false);
     expect($page->viewData('conversations')->total())->toBe(0);
     expect(Conversation::query()->count())->toBe(1);
+});
+
+it('affiche le menu global de bureau : Accueil, Personnes, Entreprises, recherche, notifications (icône seule) et Agir, Mon espace passant par le menu utilisateur', function () {
+    $html = $this->actingAs(User::factory()->create())->get('/fil')->assertOk()->getContent();
+    preg_match('/<nav aria-label="Navigation principale" class="hidden.*?<\/nav>/s', $html, $nav);
+    $texte = trim(preg_replace('/\s+/', ' ', strip_tags($nav[0])));
+
+    expect($texte)->toBe('Accueil Personnes Entreprises')
+        ->and($html)->not->toContain('min-[1700px]:flex')->toContain('href="'.route('entreprises.index').'"')->toContain('href="'.route('notifications').'"')->toContain('role="search"');
 });

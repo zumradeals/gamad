@@ -9,6 +9,7 @@ use App\Services\Wallets;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Testing\TestResponse;
 
 // Aides communes aux tests des portefeuilles, des paiements et des contributions (Lot 6).
 
@@ -105,4 +106,12 @@ function webhook(Payment $p, string $event = 'payment.success', array $options =
 function solde(Wallet $w): int
 {
     return app(Wallets::class)->balance($w);
+}
+
+/** Le texte de la zone principale d'une page, sans l'en-tête : le menu utilisateur y affiche le nom de la personne connectée. */
+function contenuPrincipal(TestResponse $reponse): string
+{
+    preg_match('/<main.*?<\/main>/s', $reponse->getContent(), $main);
+
+    return trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags($main[0] ?? ''))));
 }

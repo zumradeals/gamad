@@ -299,6 +299,14 @@
     .space-delete-summary::-webkit-details-marker { display: none; }
     .space-delete-summary:hover { background: var(--color-ground); }
 
+    /* Mon espace, maquette trois colonnes : navigation personnelle, tableau de bord, accompagnement. */
+    .space-dashboard { display: flex; min-width: 0; flex-direction: column; gap: 16px; }
+    .space-dashboard [id], .space-dashboard { scroll-margin-top: 100px; }
+
+    @media (min-width: 1280px) {
+        .space-dashboard { display: grid; grid-template-columns: 224px minmax(0, 1fr) 280px; align-items: start; }
+    }
+
     @media (min-width: 1024px) {
         .space-layout { grid-template-columns: 228px minmax(0, 1fr); }
         .space-sidebar { position: sticky; top: 96px; display: block; }

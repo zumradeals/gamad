@@ -21,11 +21,11 @@ beforeEach(function () {
     $this->helper = person('Idrissa Koné', ['Comptabilité']);
 });
 
-it('garde seulement Fil Agir Mon espace dans la navigation, avec les personnes accessibles depuis le Fil', function () {
+it('garde le menu global Accueil Personnes Entreprises Mon espace et Agir, avec les personnes aussi accessibles depuis le Fil', function () {
     $html = $this->actingAs($this->author)->get(route('fil'))->assertOk()->assertSeeText('Trouver une personne')->getContent();
     preg_match_all('/<nav aria-label="Navigation principale".*?<\/nav>/s', $html, $navs);
     $text = trim(preg_replace('/\s+/', ' ', strip_tags(implode(' ', $navs[0]))));
-    expect($text)->toContain('Accueil')->toContain('Agir')->toContain('Mon espace')->not->toContain('Personnes')->not->toContain('Découvrir');
+    expect($text)->toContain('Accueil')->toContain('Agir')->toContain('Mon espace')->toContain('Personnes')->toContain('Entreprises')->not->toContain('Découvrir');
     $this->get(route('personnes.index'))->assertOk()->assertSeeText('Retour à l’accueil');
     $this->get(route('fil', ['q' => 'terme introuvable']))->assertOk()->assertSeeText('Aucune publication ne correspond')->assertSee('name="q"', false);
 });
