@@ -47,12 +47,13 @@ it('pilote la navigation par la configuration', function () {
     pageDuFil()->assertSeeText('Découvrir');
 });
 
-it('affiche l’initiale de la personne dans la barre d’ordinateur, qui mène à Espace', function () {
+it('affiche le menu utilisateur dans la barre d’ordinateur, avec le nom, Mon espace, le profil public et la déconnexion', function () {
     $user = User::factory()->create(['name' => 'zakaria']);
 
     $this->actingAs($user)->get('/fil')
-        ->assertSee('aria-label="Mon espace"', false)
-        ->assertSee('href="'.route('espace').'"', false);
+        ->assertSee('aria-label="Menu de zakaria"', false)
+        ->assertSee('href="'.route('espace').'"', false)
+        ->assertSeeText('Mon profil public')->assertSeeText('Gérer mon profil')->assertSeeText('Se déconnecter');
 });
 
 it('active Découvrir sur téléphone et Personnes sur ordinateur sur le Carrefour Personnes, Découvrir menant à la page des trois choix', function () {

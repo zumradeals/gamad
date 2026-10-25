@@ -19,8 +19,12 @@ return [
             ['key' => 'agir', 'label' => 'Agir', 'route' => 'agir', 'icon' => 'plus', 'enabled' => true, 'prominent' => true],
             ['key' => 'espace', 'label' => 'Mon espace', 'route' => 'espace', 'active' => ['espace', 'espace.*', 'conversations.*'], 'icon' => 'user', 'enabled' => true],
         ],
+        // Menu global de la maquette « Mon espace » : Accueil, Personnes, Entreprises, Mon espace (D-196).
         'desktop' => [
-            ['key' => 'fil', 'label' => 'Accueil', 'route' => 'fil', 'active' => ['fil', 'personnes.*'], 'icon' => 'home', 'enabled' => true],
+            ['key' => 'fil', 'label' => 'Accueil', 'route' => 'fil', 'active' => ['fil'], 'icon' => 'home', 'enabled' => true],
+            ['key' => 'personnes', 'label' => 'Personnes', 'route' => 'personnes.index', 'active' => ['personnes.*'], 'icon' => 'group', 'enabled' => true],
+            ['key' => 'entreprises', 'label' => 'Entreprises', 'route' => 'entreprises.index', 'active' => ['entreprises.*'], 'icon' => 'project', 'enabled' => true],
+            ['key' => 'espace', 'label' => 'Mon espace', 'route' => 'espace', 'active' => ['espace', 'espace.*', 'conversations.*'], 'icon' => 'user', 'enabled' => true],
         ],
     ],
 

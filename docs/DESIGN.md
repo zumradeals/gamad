@@ -331,3 +331,10 @@ Références dans settings, changements journalisés. Images dans publication-me
 dans la sauvegarde existante des médias. Anciennes versions conservées dans cette sauvegarde ; seules
 les références courantes sont servies par la route publique. Aucun manifeste installable ni PWA ajouté.
 Pas de dépendance ni migration. R1 reste En cours.
+
+## Mon espace — maquette trois colonnes (D-196)
+
+- Ordinateur : navigation personnelle à gauche (Vue d'ensemble, Mon profil, Mes capacités, Mes réalisations, Mes publications, Mes relations, Paramètres), visibilité du profil (Public / Inscrits seulement, les deux règles réelles), complétude calculée sur cinq critères réels, encadré « Votre espace est privé » ; au centre carte d'identité, quatre indicateurs, capacités, réalisations récentes, publications récentes, puis les rubriques existantes (échanges, enregistrements, attestations, liens, compte) ; à droite actions rapides, profil en un coup d'œil, suggestions de personnes (seulement si de vrais profils complémentaires existent) et conseils.
+- Tablette et téléphone : une colonne ; la navigation personnelle devient une rangée défilante en haut, les blocs de visibilité et de complétude passent après le contenu.
+- Menu global de bureau : Accueil, Personnes, Entreprises, Mon espace, recherche, notifications, Agir jaune et menu utilisateur (nom, Mon espace, profil public, gérer mon profil, déconnexion).
+- Aucune donnée de la maquette n'est écrite dans l'application ; capacités en bleu (apporter) et en vert (apprendre) comme sur la maquette.
