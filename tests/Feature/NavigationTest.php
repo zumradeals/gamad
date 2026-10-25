@@ -109,9 +109,13 @@ it('mène les entrées de navigation à des pages qui répondent, pour un visite
 it('active Agir : rond jaune au centre de la barre du bas, bouton jaune dans la barre du haut', function () {
     $html = $this->actingAs(User::factory()->create())->get('/fil')->assertOk()->getContent();
 
-    expect($html)->toContain('href="'.route('agir').'"')
-        ->and(substr_count($html, 'href="'.route('agir').'"'))->toBeGreaterThanOrEqual(2)
-        ->and($html)->toContain('bg-accent');
+    expect($html)->toContain('id="agir-menu-desktop"')
+        ->toContain('id="agir-menu-mobile"')
+        ->toContain('x-on:click="agirOpen = true"')
+        ->toContain(route('agir.publier', 'besoin'))
+        ->toContain(route('agir.publier', 'apprendre'))
+        ->toContain(route('agir.publier', 'aide'))
+        ->toContain('bg-accent');
 });
 
 it('n’offre pas Agir à un visiteur sans compte', function () {
