@@ -13,6 +13,13 @@
     ][$type->value] ?? null;
     abort_unless($words, 404);
     [$heading, $subtitle, $question, $placeholder, $button] = $words;
+    if ($type === \App\Enums\PublicationType::Offer && ($matching['enabled'] ?? false)) {
+        if ($matching['activity'] === 'training') {
+            [$heading, $subtitle, $question, $placeholder, $button] = ['Proposer une formation', 'Dites ce que vous transmettez, à qui et comment.', 'Que voulez-vous transmettre ?', 'Ce que vous transmettez, à qui, où et dans quelles conditions.', 'Publier mon offre de formation'];
+        } elseif ($matching['terms'] === 'paid') {
+            [$heading, $subtitle, $question, $placeholder, $button] = ['Proposer mes services', 'Dites ce que vous pouvez réaliser et vos conditions.', 'Quel service proposez-vous ?', 'Ce que vous pouvez réaliser, vos disponibilités et les conditions proposées.', 'Publier mon offre de services'];
+        }
+    }
     $timings = ['Dès que possible', 'Cette semaine', 'Ce mois-ci', 'Dans plus d’un mois'];
     $visibilityLabels = [\App\Models\Publication::PUBLIC => 'Tout le monde', \App\Models\Publication::MEMBERS => 'Seulement les membres GAMAD'];
     $cityLabel = $city_id !== '' ? $cities->firstWhere('id', $city_id)?->label() : null;
