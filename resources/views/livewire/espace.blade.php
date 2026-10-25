@@ -1,13 +1,29 @@
 @php
     $nav = [
-        ['vue-ensemble', 'Vue d’ensemble', 'grid', '#vue-ensemble'],
-        ['profil', 'Mon profil', 'user', route('espace.profil')],
-        ['capacites', 'Mes capacités', 'idea', '#capacites'],
-        ['realisations', 'Mes réalisations', 'project', '#realisations'],
-        ['publications', 'Mes publications', 'document', '#publications'],
-        ['relations', 'Mes relations', 'community', '#relations'],
-        ['compte', 'Paramètres', 'settings', '#compte'],
+        '' => [
+            ['vue-ensemble', 'Vue d’ensemble', 'grid'],
+            ['profil', 'Mon profil', 'user'],
+            ['capacites', 'Mes capacités', 'idea'],
+            ['realisations', 'Mes réalisations', 'project'],
+            ['publications', 'Mes publications', 'document'],
+            ['relations', 'Mes relations', 'community'],
+            ['compte', 'Paramètres', 'settings'],
+        ],
+        'Gestion' => array_values(array_filter([
+            ['echanges', 'Mes échanges', 'chat'],
+            ['enregistrements', 'Mes enregistrements', 'book'],
+            ['attestations', 'Mes attestations', 'shield'],
+            ['entreprise', 'Mon entreprise', 'home'],
+            ['pistes', 'Mes pistes', 'compass'],
+            ($hasLegacy || $walletsEnabled) ? ['activites', 'Activités antérieures', 'tasks'] : null,
+        ])),
     ];
+    if (auth()->user()?->can('moderate') || auth()->user()?->can('super-admin')) {
+        $nav['Plateforme'] = array_values(array_filter([
+            auth()->user()->can('moderate') ? ['moderation', 'Modération', 'shield'] : null,
+            auth()->user()->can('super-admin') ? ['administration', 'Administration', 'settings'] : null,
+        ]));
+    }
     $date = fn ($d) => $d->copy()->locale('fr')->timezone('Africa/Abidjan')->translatedFormat('M Y');
     $place = collect([$profile->city?->label(), $profile->country?->name])->filter()->unique()->implode(', ');
     $title = fn ($post) => \Illuminate\Support\Str::limit(trim(preg_split('/\R/', trim($post->body))[0] ?? ''), 80);
@@ -19,7 +35,7 @@
     $card = 'rounded-card border border-line bg-card';
 @endphp
 
-<div id="vue-ensemble" class="space-dashboard" x-data="{ section: window.location.hash || '#vue-ensemble' }" x-on:hashchange.window="section = window.location.hash || '#vue-ensemble'">
+<div id="vue-ensemble" class="space-dashboard">
     <h1 class="sr-only">Mon espace</h1>
 
     {{-- Colonne gauche : navigation personnelle, visibilité, complétude, confidentialité --}}
@@ -27,18 +43,19 @@
         <div class="{{ $card }} p-4 max-xl:order-1 xl:rounded-b-none xl:border-b-0 xl:pb-0">
             <p class="hidden text-[22px] font-extrabold leading-tight xl:block">Mon espace</p>
 
-            <nav aria-label="Sections de Mon espace" class="space-menu -mx-1 flex gap-1 overflow-x-auto px-1 py-1 xl:mx-0 xl:mt-3 xl:flex-col xl:overflow-visible xl:px-0">
-                @foreach ($nav as [$id, $label, $icon, $href])
-                    <a href="{{ $href }}" @if ($loop->first) aria-current="location" @endif @if (str_starts_with($href, '#')) :aria-current="section === '{{ $href }}' ? 'location' : null" @endif class="space-menu-link shrink-0 whitespace-nowrap !text-[13px] xl:whitespace-normal">
-                        <x-icon :name="$icon" :size="20" /><span>{{ $label }}</span>
-                    </a>
+            <nav aria-label="Rubriques de Mon espace" class="space-menu -mx-1 flex gap-1 overflow-x-auto px-1 py-1 xl:mx-0 xl:mt-3 xl:flex-col xl:overflow-visible xl:px-0">
+                @foreach ($nav as $group => $items)
+                    @if ($group !== '')
+                        <p class="hidden px-2.5 pb-1 pt-3 text-[11px] font-extrabold uppercase tracking-wide text-muted xl:block">{{ $group }}</p>
+                    @endif
+                    @foreach ($items as [$id, $label, $icon])
+                        @if ($id === 'profil')
+                            <a href="{{ route('espace.profil') }}" class="space-menu-link shrink-0 whitespace-nowrap !text-[13px] xl:whitespace-normal"><x-icon :name="$icon" :size="20" /><span>{{ $label }}</span></a>
+                        @else
+                            <a href="{{ $id === 'vue-ensemble' ? route('espace') : route('espace', ['rubrique' => $id]) }}" wire:click.prevent="show('{{ $id }}')" @if ($section === $id) aria-current="page" @endif class="space-menu-link shrink-0 whitespace-nowrap !text-[13px] xl:whitespace-normal"><x-icon :name="$icon" :size="20" /><span>{{ $label }}</span></a>
+                        @endif
+                    @endforeach
                 @endforeach
-                @can('moderate')
-                    <a href="#moderation" class="space-menu-link shrink-0 whitespace-nowrap !text-[13px]"><x-icon name="shield" :size="20" />Modération</a>
-                @endcan
-                @can('super-admin')
-                    <a href="#administration" class="space-menu-link shrink-0 whitespace-nowrap !text-[13px]"><x-icon name="settings" :size="20" />Administration</a>
-                @endcan
             </nav>
         </div>
 
@@ -87,6 +104,7 @@
             <x-status>{{ session('status') }}</x-status>
         @endif
 
+        @if ($section === 'vue-ensemble')
         <section aria-labelledby="identite" class="{{ $card }} p-4 md:p-5">
             <div class="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start">
                 <x-avatar :profile="$profile" :size="104" class="self-start" />
@@ -119,22 +137,24 @@
 
         <section aria-label="Mes chiffres" class="grid grid-cols-2 gap-3 lg:grid-cols-4">
             @foreach ([
-                ['Capacités', $counts['skills'], 'idea', 'bg-type-learning-bg text-type-learning-fg', '#capacites', 'Voir mes capacités'],
-                ['Réalisations', $counts['achievements'], 'project', 'bg-type-call-bg text-type-call-fg', '#realisations', 'Voir mes réalisations'],
-                ['Publications', $counts['posts'], 'document', 'bg-type-project-bg text-type-project-fg', '#publications', 'Voir mes publications'],
-                ['Relations', $counts['relations'], 'community', 'bg-type-learning-bg text-type-learning-fg', '#relations', 'Voir mes relations'],
+                ['Capacités', $counts['skills'], 'idea', 'bg-type-learning-bg text-type-learning-fg', 'capacites', 'Voir mes capacités'],
+                ['Réalisations', $counts['achievements'], 'project', 'bg-type-call-bg text-type-call-fg', 'realisations', 'Voir mes réalisations'],
+                ['Publications', $counts['posts'], 'document', 'bg-type-project-bg text-type-project-fg', 'publications', 'Voir mes publications'],
+                ['Relations', $counts['relations'], 'community', 'bg-type-learning-bg text-type-learning-fg', 'relations', 'Voir mes relations'],
             ] as [$label, $count, $icon, $tone, $href, $cta])
                 <div class="{{ $card }} flex min-w-0 flex-col gap-1 p-3">
                     <div class="flex items-center gap-2.5">
                         <span class="flex size-10 shrink-0 items-center justify-center rounded-full {{ $tone }}"><x-icon :name="$icon" :size="20" /></span>
                         <div class="min-w-0"><p class="text-[24px] font-extrabold leading-none" data-testid="compteur-{{ \Illuminate\Support\Str::slug($label) }}">{{ $count }}</p><p class="text-[12px] text-muted">{{ $label }}</p></div>
                     </div>
-                    <a href="{{ $href }}" class="inline-flex min-h-11 items-center gap-1 text-[12px] font-bold">{{ $cta }}<x-icon name="arrow-right" :size="14" /></a>
+                    <a href="{{ route('espace', ['rubrique' => $href]) }}" wire:click.prevent="show('{{ $href }}')" class="inline-flex min-h-11 items-center gap-1 text-[12px] font-bold">{{ $cta }}<x-icon name="arrow-right" :size="14" /></a>
                 </div>
             @endforeach
         </section>
 
-        <section aria-labelledby="afaire" wire:poll.30s @class(['space-panel flex flex-col gap-4 border-l-[3px] p-4 md:p-5', 'border-l-type-knowledge-fg' => count($todo) === 0, 'border-l-accent' => count($todo) > 0])>
+        @if (count($todo) > 0)
+        <div wire:poll.30s>
+            <section aria-labelledby="afaire" @class(['space-panel flex flex-col gap-4 border-l-[3px] p-4 md:p-5', 'border-l-accent' => true])>
             <div class="flex items-center gap-2.5">
                 <x-icon name="tasks" :size="23" />
                 <h2 id="afaire" class="text-[18px] font-extrabold">À faire maintenant</h2>
@@ -142,7 +162,7 @@
                     <span class="ml-auto min-w-6 rounded-full bg-accent px-2 text-center text-[13px] font-extrabold leading-6 text-ink" aria-label="{{ count($todo) }} à faire">{{ count($todo) }}</span>
                 @endif
             </div>
-            @forelse ($todo as $line)
+            @foreach ($todo as $line)
                 <div wire:key="{{ $line['key'] }}" class="flex flex-wrap items-center gap-3 border-t border-line-soft pt-3">
                     <div class="flex min-w-0 flex-1 basis-44 flex-col">
                         <span class="break-words text-[15px] font-extrabold">{{ $line['title'] }}</span>
@@ -150,16 +170,15 @@
                     </div>
                     <x-button :href="$line['url']" variant="secondary" class="shrink-0 !px-4 !text-[13px]">{{ $line['action'] }}</x-button>
                 </div>
-            @empty
-                <div class="flex items-center gap-3">
-                    <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-type-knowledge-bg text-type-knowledge-fg"><x-icon name="check-circle" :size="22" /></span>
-                    <div><p class="text-[15px] font-extrabold">Vous êtes à jour</p><p class="text-[13px] text-muted">Rien ne vous attend pour l’instant.</p></div>
-                </div>
-            @endforelse
-            <p class="border-t border-line-soft pt-3 text-[12px] leading-relaxed text-muted">Cette liste ne montre que ce qui attend une action de votre part. Elle se vide quand vous avez tout traité.</p>
+            @endforeach
+            <p class="border-t border-line-soft pt-3 text-[12px] leading-relaxed text-muted">Cette liste ne montre que ce qui attend une action de votre part.</p>
         </section>
 
 
+        </div>
+        @else
+        <div wire:poll.30s></div>
+        @endif
         <section id="capacites" aria-labelledby="capacites-titre" class="{{ $card }} flex min-w-0 flex-col gap-3 p-4 md:p-5">
             <div class="flex items-center justify-between gap-3">
                 <h2 id="capacites-titre" class="text-[18px] font-extrabold">Mes capacités</h2>
@@ -190,8 +209,8 @@
 
         <section id="realisations" aria-labelledby="realisations-titre" class="{{ $card }} flex min-w-0 flex-col gap-3 p-4 md:p-5">
             <div class="flex items-center justify-between gap-3">
-                <h2 id="realisations-titre" class="text-[18px] font-extrabold">Mes réalisations récentes</h2>
-                @if ($counts['achievements'] > 0)<a href="{{ route('personnes.show', $profile->public_id) }}#realisations" class="inline-flex min-h-11 items-center gap-1.5 text-[13px] font-bold">Voir tout<x-icon name="arrow-right" :size="15" /></a>@endif
+                <h2 id="realisations-titre" class="text-[18px] font-extrabold">{{ $section === 'vue-ensemble' ? 'Mes réalisations récentes' : 'Mes réalisations' }}</h2>
+                @if ($counts['achievements'] > 3 && $section === 'vue-ensemble')<a href="{{ route('espace', ['rubrique' => 'realisations']) }}" wire:click.prevent="show('realisations')" class="inline-flex min-h-11 items-center gap-1.5 text-[13px] font-bold">Voir tout<x-icon name="arrow-right" :size="15" /></a>@elseif ($counts['achievements'] > 0)<a href="{{ route('personnes.show', $profile->public_id) }}#realisations" class="inline-flex min-h-11 items-center gap-1.5 text-[13px] font-bold">Sur mon profil public<x-icon name="arrow-right" :size="15" /></a>@endif
             </div>
             @forelse ($achievements as $post)
                 <article wire:key="realisation-{{ $post->id }}" class="flex min-w-0 gap-3 border-t border-line-soft pt-3 first:border-t-0 first:pt-0">
@@ -219,7 +238,7 @@
         </section>
 
         <section id="publications" aria-labelledby="publications-titre" class="{{ $card }} flex min-w-0 flex-col gap-3 p-4 md:p-5">
-            <h2 id="publications-titre" class="text-[18px] font-extrabold">Mes publications récentes</h2>
+            <div class="flex items-center justify-between gap-3"><h2 id="publications-titre" class="text-[18px] font-extrabold">{{ $section === 'vue-ensemble' ? 'Mes publications récentes' : 'Mes publications' }}</h2>@if ($counts['posts'] > 5 && $section === 'vue-ensemble')<a href="{{ route('espace', ['rubrique' => 'publications']) }}" wire:click.prevent="show('publications')" class="inline-flex min-h-11 items-center gap-1.5 text-[13px] font-bold">Voir tout<x-icon name="arrow-right" :size="15" /></a>@endif</div>
             @forelse ($publications as $publication)
                 <article wire:key="espace-publication-{{ $publication->id }}" class="flex min-w-0 gap-3 border-t border-line-soft pt-3 first:border-t-0 first:pt-0">
                     <span class="flex size-16 shrink-0 items-center justify-center rounded-button bg-type-project-bg text-type-project-fg sm:size-20"><x-icon name="document" :size="30" /></span>
@@ -244,6 +263,119 @@
             @endforelse
         </section>
 
+        @else
+        <a href="{{ route('espace') }}" wire:click.prevent="show('vue-ensemble')" class="inline-flex min-h-11 items-center gap-1.5 self-start text-[13px] font-bold"><x-icon name="back" :size="16" />Vue d’ensemble</a>
+        @if ($section === 'capacites')
+        <section id="capacites" aria-labelledby="capacites-titre" class="{{ $card }} flex min-w-0 flex-col gap-3 p-4 md:p-5">
+            <div class="flex items-center justify-between gap-3">
+                <h2 id="capacites-titre" class="text-[18px] font-extrabold">Mes capacités</h2>
+                <a href="{{ route('espace.profil') }}#offered-titre" class="inline-flex min-h-11 items-center text-[13px] font-bold">Modifier</a>
+            </div>
+            <div>
+                <h3 class="text-[13px] font-semibold text-muted">Ce que je peux apporter</h3>
+                @if ($profile->offeredSkills->isNotEmpty())
+                    <ul class="mt-2 flex flex-wrap gap-2" aria-label="Ce que je peux apporter">
+                        @foreach ($profile->offeredSkills as $skill)
+                            <li class="max-w-full break-words rounded-chip bg-type-learning-bg px-3.5 py-1.5 text-[13px] font-semibold text-type-learning-fg">{{ $skill->name }}</li>
+                        @endforeach
+                    </ul>
+                @else
+                    <p class="mt-1 text-[14px] text-muted">Ajoutez vos savoir-faire pour que d’autres vous trouvent.</p>
+                @endif
+            </div>
+            <div>
+                <h3 class="text-[13px] font-semibold text-muted">Ce que je souhaite apprendre</h3>
+                <ul class="mt-2 flex flex-wrap gap-2" aria-label="Ce que je souhaite apprendre">
+                    @foreach ($profile->wantedSkills as $skill)
+                        <li class="max-w-full break-words rounded-chip bg-type-knowledge-bg px-3.5 py-1.5 text-[13px] font-semibold text-type-knowledge-fg">{{ $skill->name }}</li>
+                    @endforeach
+                    <li><a href="{{ route('espace.profil') }}#{{ $profile->wantedSkills->isEmpty() ? 'wanted-titre' : 'offered-titre' }}" class="inline-flex min-h-11 items-center gap-1.5 rounded-chip border border-dashed border-chip-line px-3.5 text-[13px] font-semibold text-ink no-underline hover:text-ink"><x-icon name="plus" :size="15" />Ajouter une capacité</a></li>
+                </ul>
+            </div>
+        </section>
+
+        @elseif ($section === 'realisations')
+        <section id="realisations" aria-labelledby="realisations-titre" class="{{ $card }} flex min-w-0 flex-col gap-3 p-4 md:p-5">
+            <div class="flex items-center justify-between gap-3">
+                <h2 id="realisations-titre" class="text-[18px] font-extrabold">{{ $section === 'vue-ensemble' ? 'Mes réalisations récentes' : 'Mes réalisations' }}</h2>
+                @if ($counts['achievements'] > 3 && $section === 'vue-ensemble')<a href="{{ route('espace', ['rubrique' => 'realisations']) }}" wire:click.prevent="show('realisations')" class="inline-flex min-h-11 items-center gap-1.5 text-[13px] font-bold">Voir tout<x-icon name="arrow-right" :size="15" /></a>@elseif ($counts['achievements'] > 0)<a href="{{ route('personnes.show', $profile->public_id) }}#realisations" class="inline-flex min-h-11 items-center gap-1.5 text-[13px] font-bold">Sur mon profil public<x-icon name="arrow-right" :size="15" /></a>@endif
+            </div>
+            @forelse ($achievements as $post)
+                <article wire:key="realisation-{{ $post->id }}" class="flex min-w-0 gap-3 border-t border-line-soft pt-3 first:border-t-0 first:pt-0">
+                    @if ($post->media_kind === 'image' && $post->media_path)
+                        <img src="{{ route('publications.media', $post) }}" alt="" loading="lazy" class="size-16 shrink-0 rounded-button object-cover sm:size-20">
+                    @else
+                        <span class="flex size-16 shrink-0 items-center justify-center rounded-button bg-type-learning-bg text-type-learning-fg sm:size-20"><x-icon name="project" :size="30" /></span>
+                    @endif
+                    <div class="flex min-w-0 flex-1 flex-col gap-1">
+                        <a href="{{ route('publications.show', $post) }}" class="inline-flex min-h-11 items-center break-words text-[15px] font-extrabold text-ink no-underline hover:underline">{{ $title($post) }}</a>
+                        @if ($summary($post) !== '')<p class="break-words text-[13px] leading-relaxed text-muted">{{ $summary($post) }}</p>@endif
+                        <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                            <span class="text-[12px] text-muted">{{ $date($post->created_at) }}</span>
+                            @foreach ($post->skills->take(3) as $skill)<span class="rounded-chip bg-type-learning-bg px-2.5 py-0.5 text-[12px] font-semibold text-type-learning-fg">{{ $skill->name }}</span>@endforeach
+                            @if ($post->isHidden())<span class="text-[12px] font-extrabold text-danger">Masquée</span>@endif
+                        </div>
+                    </div>
+                </article>
+            @empty
+                <div class="flex flex-col items-start gap-3 py-1">
+                    <p class="text-[14px] text-muted">Montrez ce que vous avez fait, même un premier travail ou un apprentissage.</p>
+                    <x-button :href="route('agir.publier', 'ma-realisation')" variant="secondary" class="!px-4 !text-[13px]"><x-icon name="plus" :size="16" class="mr-2" />Ajouter une réalisation</x-button>
+                </div>
+            @endforelse
+        </section>
+
+        @elseif ($section === 'publications')
+        <section id="publications" aria-labelledby="publications-titre" class="{{ $card }} flex min-w-0 flex-col gap-3 p-4 md:p-5">
+            <div class="flex items-center justify-between gap-3"><h2 id="publications-titre" class="text-[18px] font-extrabold">{{ $section === 'vue-ensemble' ? 'Mes publications récentes' : 'Mes publications' }}</h2>@if ($counts['posts'] > 5 && $section === 'vue-ensemble')<a href="{{ route('espace', ['rubrique' => 'publications']) }}" wire:click.prevent="show('publications')" class="inline-flex min-h-11 items-center gap-1.5 text-[13px] font-bold">Voir tout<x-icon name="arrow-right" :size="15" /></a>@endif</div>
+            @forelse ($publications as $publication)
+                <article wire:key="espace-publication-{{ $publication->id }}" class="flex min-w-0 gap-3 border-t border-line-soft pt-3 first:border-t-0 first:pt-0">
+                    <span class="flex size-16 shrink-0 items-center justify-center rounded-button bg-type-project-bg text-type-project-fg sm:size-20"><x-icon name="document" :size="30" /></span>
+                    <div class="flex min-w-0 flex-1 flex-col gap-1">
+                        <a href="{{ route('publications.show', $publication) }}" class="inline-flex min-h-11 items-center break-words text-[15px] font-extrabold text-ink no-underline hover:underline">{{ $title($publication) }}</a>
+                        @if ($summary($publication) !== '')<p class="break-words text-[13px] leading-relaxed text-muted">{{ $summary($publication) }}</p>@endif
+                        <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                            <span class="rounded-chip px-2.5 py-0.5 text-[12px] font-bold {{ $publication->type->badgeClasses() }}">{{ $publication->displayLabel() }}</span>
+                            <span class="text-[12px] text-muted">{{ $date($publication->created_at) }}</span>
+                            @if ($publication->isHidden())<span class="text-[12px] font-extrabold text-danger">Masquée</span>@endif
+                            @if ($publication->need_state && $publication->need_state !== \App\Enums\NeedState::Open)<span class="text-[12px] font-extrabold text-muted">{{ $publication->need_state->label() }}</span>@endif
+                            @if ($publication->live_gestures_count > 0)<span class="text-[12px] font-semibold text-muted">{{ $publication->type->factLabel($publication->live_gestures_count) }}</span>@endif
+                        </div>
+                    </div>
+                </article>
+            @empty
+                <div class="flex flex-col items-start gap-3 py-1">
+                    <h3 class="text-[16px] font-extrabold">Votre première action commence ici</h3>
+                    <p class="-mt-2 text-[14px] text-muted">Un besoin, un savoir ou une aide à proposer : partagez-le dans les publications.</p>
+                    <x-button :href="route('agir')" variant="accent" class="!px-5 !text-[13px]"><x-icon name="plus" :size="18" class="mr-2" />Agir</x-button>
+                </div>
+            @endforelse
+        </section>
+
+        @elseif ($section === 'relations')
+        <div id="relations"><livewire:my-network /></div>
+        @elseif ($section === 'echanges')
+        <section aria-labelledby="echanges" class="space-panel flex min-w-0 flex-col gap-3 p-4 md:p-5">
+            <h2 id="echanges" class="flex items-center gap-2.5 text-[18px] font-extrabold"><x-icon name="chat" :size="23" />Mes échanges</h2>
+            <p class="text-[14px] text-muted">Vos échanges privés et vos conversations avec les personnes en relation avec vous.</p>
+            @forelse ($conversations as $conversation)
+                <a wire:key="espace-conversation-{{ $conversation->id }}" href="{{ route('conversations.show', $conversation) }}" class="flex min-h-11 items-center justify-between gap-3 border-t border-line-soft py-2 text-[14px] font-semibold"><span class="min-w-0 [overflow-wrap:anywhere]">{{ $conversation->otherPerson($user)?->name ?? 'Personne supprimée' }}</span><x-icon name="arrow-right" :size="18" class="shrink-0" /></a>
+            @empty
+                <p class="text-[14px] text-muted">Vos premiers échanges commenceront par un geste dans les publications.</p>
+            @endforelse
+            {{ $conversations->links() }}
+        </section>
+
+        @elseif ($section === 'enregistrements')
+        <section class="space-panel flex flex-col gap-2 p-4 md:p-5">
+            <h2 class="flex items-center gap-2 text-[18px] font-extrabold"><x-icon name="book" :size="22" />Mes enregistrements</h2>
+            <p class="text-[13px] text-muted">Retrouvez les publications que vous avez conservées pour les relire.</p>
+            <x-button :href="route('espace.enregistrements')" variant="secondary" class="self-start">Ouvrir mes enregistrements</x-button>
+        </section>
+
+        @elseif ($section === 'attestations')
+        <section class="space-panel p-5"><h2 class="text-[18px] font-extrabold">Mes attestations</h2><p class="mt-2 text-[14px] text-muted">Faire vérifier mon identité, répondre aux confirmations d’expérience et suivre mes recours.</p><a href="{{ route('espace.attestations') }}" class="mt-2 inline-flex min-h-11 items-center text-[14px] font-bold">Ouvrir mes attestations →</a></section>
+        @elseif ($section === 'entreprise')
         <section class="space-panel flex flex-wrap items-center justify-between gap-3 border-l-[3px] border-l-type-knowledge-fg p-4 md:p-5">
             <div class="min-w-0">
                 <h2 class="text-[17px] font-extrabold">Mon entreprise sur GAMAD</h2>
@@ -257,27 +389,10 @@
             </div>
         </section>
 
-        <section class="space-panel flex flex-col gap-2 p-4 md:p-5">
-            <h2 class="flex items-center gap-2 text-[18px] font-extrabold"><x-icon name="book" :size="22" />Mes enregistrements</h2>
-            <p class="text-[13px] text-muted">Retrouvez les publications que vous avez conservées pour les relire.</p>
-            <x-button :href="route('espace.enregistrements')" variant="secondary" class="self-start">Ouvrir mes enregistrements</x-button>
-        </section>
-
-        <section aria-labelledby="echanges" class="space-panel flex min-w-0 flex-col gap-3 p-4 md:p-5">
-            <h2 id="echanges" class="flex items-center gap-2.5 text-[18px] font-extrabold"><x-icon name="chat" :size="23" />Mes échanges</h2>
-            <p class="text-[14px] text-muted">Vos échanges privés et vos conversations avec les personnes en relation avec vous.</p>
-            @forelse ($conversations as $conversation)
-                <a wire:key="espace-conversation-{{ $conversation->id }}" href="{{ route('conversations.show', $conversation) }}" class="flex min-h-11 items-center justify-between gap-3 border-t border-line-soft py-2 text-[14px] font-semibold"><span class="min-w-0 [overflow-wrap:anywhere]">{{ $conversation->otherPerson($user)?->name ?? 'Personne supprimée' }}</span><x-icon name="arrow-right" :size="18" class="shrink-0" /></a>
-            @empty
-                <p class="text-[14px] text-muted">Vos premiers échanges commenceront par un geste dans les publications.</p>
-            @endforelse
-            {{ $conversations->links() }}
-        </section>
-
+        @elseif ($section === 'pistes')
         <livewire:match-suggestions />
-        <section class="space-panel p-5"><h2 class="text-[18px] font-extrabold">Mes attestations</h2><p class="mt-2 text-[14px] text-muted">Faire vérifier mon identité, répondre aux confirmations d’expérience et suivre mes recours.</p><a href="{{ route('espace.attestations') }}" class="mt-2 inline-flex min-h-11 items-center text-[14px] font-bold">Ouvrir mes attestations →</a></section>
-        <div id="relations"><livewire:my-network /></div>
-
+        @elseif ($section === 'activites')
+        @if ($hasLegacy || $walletsEnabled)
         @if ($legacyZumras->isNotEmpty() || $legacyWallets->isNotEmpty())
             <details class="space-panel p-4 md:p-5">
                 <summary class="min-h-11 cursor-pointer content-center text-[16px] font-extrabold">Mes activités antérieures</summary>
@@ -308,6 +423,10 @@
             </section>
         @endif
 
+        @else
+        <p class="rounded-card border border-line bg-card p-5 text-[14px] text-muted">Aucune activité antérieure à afficher.</p>
+        @endif
+        @elseif ($section === 'compte')
         <section aria-labelledby="compte" class="space-panel flex flex-col gap-4 p-4 md:p-5">
             <div class="flex flex-wrap items-center justify-between gap-2 border-b border-line-soft pb-3">
                 <h2 id="compte" class="flex items-center gap-2.5 text-[18px] font-extrabold"><x-icon name="settings" :size="23" />Mon compte</h2>
@@ -338,25 +457,6 @@
                 <x-button variant="secondary" class="!text-[13px]"><x-icon name="logout" :size="18" class="mr-2" />Se déconnecter</x-button>
             </form>
         </section>
-    @can('moderate')
-        <section aria-labelledby="moderation" class="space-panel flex flex-col gap-3 p-4 md:p-5">
-            <h2 id="moderation" class="text-[18px] font-extrabold">Modération</h2>
-            <p class="text-muted">Les publications signalées, celles que vous avez masquées et l’explication de leur auteur ; les avis et suspensions de personnes ; le journal des actes.</p>
-            <x-button :href="route('moderation')">Ouvrir la file de modération</x-button>
-            <x-button variant="secondary" :href="route('moderation.personnes')">Modération des personnes</x-button>
-            <x-button variant="secondary" :href="route('moderation.journal')">Journal d’administration</x-button>
-        </section>
-    @endcan
-
-    @can('super-admin')
-        <section aria-labelledby="administration" class="space-panel flex flex-col gap-3 p-4 md:p-5">
-            <h2 id="administration" class="text-[18px] font-extrabold">Administration</h2>
-            <p class="text-muted">Courriel, nom et adresse de la plateforme, limites de sécurité, domaines, territoires, charte et mentions légales.</p>
-            <x-button :href="route('espace.parametres')">Paramètres</x-button>
-        </section>
-    @endcan
-
-
         <details wire:ignore.self class="space-panel group" @if ($errors->has('password')) open @endif x-data="{ confirming: {{ $errors->has('password') ? 'true' : 'false' }} }">
             <summary class="space-delete-summary">
                 <x-icon name="warning" :size="24" class="shrink-0 text-danger" />
@@ -386,6 +486,25 @@
         </form>
             </div>
         </details>
+        @elseif ($section === 'moderation')
+        <section aria-labelledby="moderation" class="space-panel flex flex-col gap-3 p-4 md:p-5">
+            <h2 id="moderation" class="text-[18px] font-extrabold">Modération</h2>
+            <p class="text-muted">Les publications signalées, celles que vous avez masquées et l’explication de leur auteur ; les avis et suspensions de personnes ; le journal des actes.</p>
+            <x-button :href="route('moderation')">Ouvrir la file de modération</x-button>
+            <x-button variant="secondary" :href="route('moderation.personnes')">Modération des personnes</x-button>
+            <x-button variant="secondary" :href="route('moderation.journal')">Journal d’administration</x-button>
+        </section>
+
+        @elseif ($section === 'administration')
+        <section aria-labelledby="administration" class="space-panel flex flex-col gap-3 p-4 md:p-5">
+            <h2 id="administration" class="text-[18px] font-extrabold">Administration</h2>
+            <p class="text-muted">Courriel, nom et adresse de la plateforme, limites de sécurité, domaines, territoires, charte et mentions légales.</p>
+            <x-button :href="route('espace.parametres')">Paramètres</x-button>
+        </section>
+
+
+        @endif
+        @endif
     </div>
 
     {{-- Colonne droite : accompagnement --}}

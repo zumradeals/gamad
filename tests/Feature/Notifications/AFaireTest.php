@@ -20,7 +20,8 @@ function espace(User $qui)
 }
 
 it('dit simplement qu’il n’y a rien à faire quand il n’y a rien', function () {
-    espace($this->auteur)->assertSeeText('À faire maintenant')->assertSeeText('Rien ne vous attend pour l’instant.')->assertDontSeeText('réponse à traiter')->assertDontSeeText('non lu');
+    // Rien à faire : le bloc n'est pas affiché du tout (seules les actions réelles apparaissent).
+    espace($this->auteur)->assertDontSeeText('À faire maintenant')->assertDontSeeText('Rien ne vous attend')->assertDontSeeText('réponse à traiter')->assertDontSeeText('non lu');
 });
 
 it('montre les réponses à traiter, une ligne par publication, et la retire une fois traitées', function () {
@@ -34,7 +35,7 @@ it('montre les réponses à traiter, une ligne par publication, et la retire une
         app(Gestures::class)->decline($this->auteur, $geste);
     }
 
-    espace($this->auteur)->assertDontSeeText('réponses à traiter')->assertSeeText('Rien ne vous attend');
+    espace($this->auteur)->assertDontSeeText('réponses à traiter')->assertDontSeeText('À faire maintenant');
 });
 
 it('ne montre pas les réponses en attente d’un besoin clos', function () {

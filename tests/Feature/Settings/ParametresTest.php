@@ -58,10 +58,10 @@ it('affiche la page au super administrateur, avec ses trois sections', function 
 });
 
 it('propose le lien Paramètres dans Espace au super administrateur seulement', function () {
-    $this->actingAs(User::factory()->superAdmin()->create())->get('/espace')
+    $this->actingAs(User::factory()->superAdmin()->create())->get(route('espace', ['rubrique' => 'administration']))
         ->assertSee('href="'.route('espace.parametres').'"', false);
 
-    $this->actingAs(User::factory()->moderator()->create())->get('/espace')
+    $this->actingAs(User::factory()->moderator()->create())->get(route('espace', ['rubrique' => 'administration']))
         ->assertDontSee('espace/parametres', false)
         ->assertDontSeeText('Administration');
 

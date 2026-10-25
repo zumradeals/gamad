@@ -9,7 +9,7 @@ use Livewire\Livewire;
 it('affiche le nom actuel dans le formulaire de modification', function () {
     $user = User::factory()->create(['name' => 'Awa Traoré']);
 
-    Livewire::actingAs($user)->test(Espace::class)
+    Livewire::actingAs($user)->test(Espace::class)->call('show', 'compte')
         ->assertSet('name', 'Awa Traoré')
         ->assertSee('Enregistrer le nom');
 });
@@ -21,7 +21,7 @@ it('permet à chaque personne de modifier son nom affiché, sans espaces superfl
         ->set('name', '  Awa Traoré  ')
         ->call('updateName')
         ->assertHasNoErrors()
-        ->assertRedirect(route('espace'));
+        ->assertRedirect(route('espace', ['rubrique' => 'compte']));
 
     expect($user->fresh()->name)->toBe('Awa Traoré');
 });
@@ -72,7 +72,7 @@ it('accepte un nom de 255 caractères', function () {
 it('dit « Aucune modification » quand le nom est inchangé, sans rien inscrire au journal', function () {
     $moderator = User::factory()->moderator()->create(['name' => 'Modératrice']);
 
-    Livewire::actingAs($moderator)->test(Espace::class)->call('updateName')->assertRedirect(route('espace'));
+    Livewire::actingAs($moderator)->test(Espace::class)->call('updateName')->assertRedirect(route('espace', ['rubrique' => 'compte']));
 
     expect(session('status'))->toBe('Aucune modification.')
         ->and(AdminAction::count())->toBe(0);

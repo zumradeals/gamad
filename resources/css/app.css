@@ -283,7 +283,7 @@
     }
 
     .space-menu-link:hover { background: var(--color-ground); color: var(--color-ink); }
-    .space-menu-link[aria-current="location"] { background: var(--color-soft-blue); font-weight: 800; }
+    .space-menu-link[aria-current="location"], .space-menu-link[aria-current="page"] { background: var(--color-soft-blue); font-weight: 800; }
 
     .space-delete-summary {
         display: flex;

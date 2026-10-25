@@ -713,7 +713,7 @@ it('relie les pages : portefeuille, Espace, Monde de la ZUMRA', function () {
     $z = zumra($this->awa);
 
     Livewire::actingAs($this->awa)->test(PagePortefeuille::class)->assertSee('Contribuer');
-    Livewire::actingAs($this->awa)->test(Espace::class)->assertSee('Ma contribution');
+    Livewire::actingAs($this->awa)->test(Espace::class)->call('show', 'activites')->assertSee('Ma contribution');
     monde($this->awa, $z)->assertSee('Contribution de la ZUMRA');
     $membre = person('Membre Simple');
     ajouteMembre($z, $membre);

@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -32,13 +33,44 @@ class Espace extends Component
 {
     use WithPagination;
 
+    /** Rubriques de la navigation de gauche, dans l'ordre : clé => droit requis (null = tout le monde). */
+    public const SECTIONS = [
+        'vue-ensemble' => null, 'capacites' => null, 'realisations' => null, 'publications' => null, 'relations' => null, 'compte' => null,
+        'echanges' => null, 'enregistrements' => null, 'attestations' => null, 'entreprise' => null, 'pistes' => null, 'activites' => null,
+        'moderation' => 'moderate', 'administration' => 'super-admin',
+    ];
+
     public string $password = '';
 
     public string $name = '';
 
+    /** La rubrique affichée au centre ; reprise dans l'adresse (?rubrique=…) pour le retour arrière et les liens directs. */
+    #[Url(as: 'rubrique', history: true)]
+    public string $section = 'vue-ensemble';
+
     public function mount(): void
     {
         $this->name = Auth::user()->name;
+        $this->section = $this->allowed($this->section);
+    }
+
+    /** Affiche une rubrique au centre, sans recharger la page. Une rubrique interdite ramène à la vue d'ensemble. */
+    public function show(string $section): void
+    {
+        $this->section = $this->allowed($section);
+        $this->resetPage('echanges');
+    }
+
+    /** Côté serveur : une rubrique inconnue ou réservée à d'autres droits n'est jamais affichée. */
+    private function allowed(string $section): string
+    {
+        if (! array_key_exists($section, self::SECTIONS)) {
+            return 'vue-ensemble';
+        }
+
+        $right = self::SECTIONS[$section];
+
+        return $right === null || Auth::user()?->can($right) ? $section : 'vue-ensemble';
     }
 
     /**
@@ -55,13 +87,13 @@ class Espace extends Component
 
         if (! DisplayName::change($user, $this->name)) {
             session()->flash('status', 'Aucune modification.');
-            $this->redirect(route('espace'), navigate: false);
+            $this->redirect(route('espace', ['rubrique' => 'compte']), navigate: false);
 
             return;
         }
 
         session()->flash('status', 'Nom affiché enregistré.');
-        $this->redirect(route('espace'), navigate: false);
+        $this->redirect(route('espace', ['rubrique' => 'compte']), navigate: false);
     }
 
     /**
@@ -115,6 +147,8 @@ class Espace extends Component
     public function render()
     {
         $user = Auth::user();
+        $this->section = $this->allowed($this->section);
+        $section = $this->section;
 
         $initial = Experience::initial();
         $legacyZumras = $initial ? Zumra::query()->whereHas('memberships', fn ($q) => $q->where('user_id', $user->getKey()))->orderBy('name_key')->get() : collect();
@@ -130,9 +164,13 @@ class Espace extends Component
         $posts = $user->publications()->where('type', '!=', PublicationType::PersonalWork)->with('skills');
 
         return view('livewire.espace', [
-            'conversations' => Conversation::query()
-                ->where(fn ($q) => $q->where('owner_id', $user->getKey())->orWhere('helper_id', $user->getKey()))
-                ->with(['owner', 'helper'])->orderByDesc('updated_at')->orderByDesc('id')->paginate(10, ['*'], 'echanges'),
+            'conversations' => $section === 'echanges'
+                ? Conversation::query()
+                    ->where(fn ($q) => $q->where('owner_id', $user->getKey())->orWhere('helper_id', $user->getKey()))
+                    ->with(['owner', 'helper'])->orderByDesc('updated_at')->orderByDesc('id')->paginate(10, ['*'], 'echanges')
+                : null,
+            'section' => $section,
+            'hasLegacy' => $legacyZumras->isNotEmpty() || $legacyWallets->isNotEmpty(),
             'legacyZumras' => $legacyZumras,
             'legacyWallets' => $legacyWallets,
             'user' => $user,
@@ -140,7 +178,7 @@ class Espace extends Component
             'completeness' => ProfileCompleteness::for($user, $profile),
             'identityVerified' => app(PersonalTrust::class)->identity($user) !== null,
             'available' => $this->isAvailable($profile),
-            'achievements' => (clone $achievements)->orderByDesc('created_at')->orderByDesc('id')->limit(3)->get(),
+            'achievements' => (clone $achievements)->orderByDesc('created_at')->orderByDesc('id')->limit($section === 'realisations' ? 30 : 3)->get(),
             'counts' => [
                 'skills' => $profile->offeredSkills->count(),
                 'achievements' => (clone $achievements)->count(),
@@ -153,7 +191,7 @@ class Espace extends Component
             // Mes publications : le chemin vers « Mon besoin » et les réponses reçues.
             'publications' => (clone $posts)
                 ->withCount(['gestures as live_gestures_count' => fn ($query) => $query->whereIn('state', ['sent', 'accepted'])])
-                ->orderByDesc('created_at')->orderByDesc('id')->limit(10)->get(),
+                ->orderByDesc('created_at')->orderByDesc('id')->limit($section === 'publications' ? 30 : 5)->get(),
         ]);
     }
 

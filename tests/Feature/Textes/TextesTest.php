@@ -156,8 +156,8 @@ it('ferme l’écran des textes à toute personne autre que le super administrat
 
 it('relie l’écran des textes depuis Paramètres et Espace', function () {
     $this->actingAs($this->president)->get(route('espace.parametres'))->assertOk()->assertSee(route('espace.parametres.textes'), false);
-    $this->actingAs($this->president)->get(route('espace'))->assertOk()->assertSeeText('charte et mentions légales');
-    $this->actingAs($this->personne)->get(route('espace'))->assertOk()->assertDontSeeText('charte et mentions légales');
+    $this->actingAs($this->president)->get(route('espace', ['rubrique' => 'administration']))->assertOk()->assertSeeText('charte et mentions légales');
+    $this->actingAs($this->personne)->get(route('espace', ['rubrique' => 'administration']))->assertOk()->assertDontSeeText('charte et mentions légales');
 });
 
 it('adopte et retire la charte depuis l’écran', function () {

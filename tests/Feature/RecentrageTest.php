@@ -107,7 +107,7 @@ it('garde les besoins dans le Fil avec leurs réponses et une conversation retro
     ecrire($helper, $conversation, 'Nous pouvons avancer ensemble.');
     pageConversation($author, $conversation)->assertSeeText('Nous pouvons avancer ensemble.');
 
-    $this->actingAs($author)->get(route('espace'))->assertOk()
+    $this->actingAs($author)->get(route('espace', ['rubrique' => 'echanges']))->assertOk()
         ->assertSee('href="'.route('conversations.show', $conversation).'"', false)->assertSeeText('Personne aidante');
     $this->actingAs(User::factory()->create())->get(route('conversations.show', $conversation))->assertNotFound();
 });
@@ -155,7 +155,7 @@ it('bloque les nouvelles créations et publications collectives tout en gardant 
     $this->get(route('zumras.show', $zumra))->assertOk()->assertDontSeeText('Partager un savoir')->assertDontSeeText('Inviter des personnes selon leurs capacités');
     $this->get(route('projets.show', $project))->assertOk();
     $this->get(route('publications.show', $post))->assertOk()->assertSeeText($post->body);
-    $this->get(route('espace'))->assertSeeText('Mes activités antérieures')->assertSee('href="'.route('zumras.show', $zumra).'"', false);
+    $this->get(route('espace', ['rubrique' => 'activites']))->assertSeeText('Mes activités antérieures')->assertSee('href="'.route('zumras.show', $zumra).'"', false);
     expect($zumra->fresh())->not->toBeNull()->and($project->fresh())->not->toBeNull()->and($post->fresh()->zumra_id)->toBe($zumra->id);
 });
 
@@ -209,7 +209,7 @@ it('conserve les relevés privés sans proposer ni autoriser de nouvelles opéra
     expect(fn () => app(Contributions::class)->fromWallet($user, $wallet, 500))->toThrow(ContributionException::class);
     Livewire::actingAs($user)->test(PagePortefeuille::class)->assertSeeText('2 000 ZAHAB')->assertDontSee('wire:submit="recharge"', false);
     Livewire::actingAs($user)->test(PageContribution::class)->assertDontSee('wire:submit="contribute"', false)->assertSeeText('Historique');
-    $this->actingAs($user)->get(route('espace'))->assertSeeText('Mon historique de portefeuille');
+    $this->actingAs($user)->get(route('espace', ['rubrique' => 'activites']))->assertSeeText('Mon historique de portefeuille');
     expect(collect(app(Todo::class)->for($user))->pluck('key')->filter(fn ($key) => str_starts_with($key, 'contribution-')))->toBeEmpty();
     expect(solde($wallet))->toBe(2000)->and(Payment::query()->count())->toBe(0);
     Http::assertNothingSent();
@@ -242,7 +242,7 @@ it('ne révèle ni les activités ni les échanges privés d’une autre personn
     $conversation = conversationDe($owner, $helper);
     avantRecentrage(fn () => zumra($owner, 'Activité privée du titulaire'));
     $other = person('Autre compte', ['Menuiserie']);
-    $page = Livewire::actingAs($other)->test(Espace::class)->assertDontSeeText('Activité privée du titulaire')
+    $page = Livewire::actingAs($other)->test(Espace::class)->call('show', 'echanges')->assertDontSeeText('Activité privée du titulaire')
         ->assertDontSee('href="'.route('conversations.show', $conversation).'"', false);
     expect($page->viewData('conversations')->total())->toBe(0);
     expect(Conversation::query()->count())->toBe(1);
