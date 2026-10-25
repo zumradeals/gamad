@@ -61,9 +61,16 @@
                     <span @class(['hidden border-b-2 px-1 py-2 text-[12px] font-semibold xl:inline', 'border-ink bg-soft-blue' => request()->routeIs('espace', 'espace.*'), 'border-transparent' => ! request()->routeIs('espace', 'espace.*')])>Mon espace</span>
                 </a>
                 @if ($agir)
-                    <a href="{{ route($agir['route']) }}" class="hidden min-h-11 items-center gap-1.5 rounded-button bg-accent px-4 text-[14px] font-extrabold text-ink no-underline hover:text-ink lg:flex">
-                        <x-icon name="plus" :size="18" :stroke="2.5" />{{ $agir['label'] }}
-                    </a>
+                    <div x-data="{ agirOpen: false }" class="relative hidden lg:block" x-on:click.outside="agirOpen = false" x-on:keydown.escape.window="agirOpen = false">
+                        <button type="button" x-on:click="agirOpen = !agirOpen" x-bind:aria-expanded="agirOpen.toString()" aria-controls="agir-menu-desktop" aria-haspopup="true" class="flex min-h-11 items-center gap-1.5 rounded-button bg-accent px-4 text-[14px] font-extrabold text-ink">
+                            <x-icon name="plus" :size="18" :stroke="2.5" />{{ $agir['label'] }}
+                        </button>
+                        <nav id="agir-menu-desktop" x-show="agirOpen" x-cloak aria-label="Actions" class="absolute right-0 top-full z-40 mt-2 w-64 rounded-card border border-line bg-card p-2 shadow-lg">
+                            <a href="{{ route('agir.publier', 'besoin') }}" class="block rounded-button px-3 py-3 hover:bg-ground">Trouver de l’aide</a>
+                            <a href="{{ route('agir.publier', 'apprendre') }}" class="block rounded-button px-3 py-3 hover:bg-ground">Apprendre quelque chose</a>
+                            <a href="{{ route('agir.publier', 'aide') }}" class="block rounded-button px-3 py-3 hover:bg-ground">Proposer quelque chose</a>
+                        </nav>
+                    </div>
                 @endif
             @else
                 {{-- Visiteur sans compte (Carrefour Personnes, Monde d'une personne publics) : seulement entrer ou s'inscrire. --}}
@@ -85,20 +92,20 @@
 
     @auth
     {{-- « Découvrir » (D-160) : un lien vers /decouvrir que le JavaScript transforme en fenêtre à trois choix. --}}
-    <div x-data="{ discover: false }">
+    <div x-data="{ discover: false, agirOpen: false }">
     <nav aria-label="Navigation principale"
          class="fixed inset-x-0 bottom-0 z-10 border-t border-line bg-card lg:hidden"
          style="padding-bottom: env(safe-area-inset-bottom)">
         <div class="mx-auto flex h-[76px] max-w-md items-center justify-around px-2">
             @foreach ($phoneItems as $item)
                 @if ($item['prominent'] ?? false)
-                    <a href="{{ route($item['route']) }}"
-                       class="flex min-w-0 flex-1 flex-col items-center gap-[3px] text-[11px] font-bold text-ink no-underline hover:text-ink">
+                    <button type="button" x-on:click="agirOpen = true" aria-haspopup="dialog" x-bind:aria-expanded="agirOpen.toString()" aria-controls="agir-menu-mobile"
+                       class="flex min-w-0 flex-1 flex-col items-center gap-[3px] text-[11px] font-bold text-ink">
                         <span class="-mt-[18px] flex size-12 items-center justify-center rounded-full border-[3px] border-white bg-accent">
                             <x-icon :name="$item['icon']" :size="24" :stroke="2.5" />
                         </span>
                         {{ $item['label'] }}
-                    </a>
+                    </button>
                 @else
                     <a href="{{ route($item['route']) }}"
                        @if ($isActive($item)) aria-current="page" @endif
@@ -111,6 +118,22 @@
             @endforeach
         </div>
     </nav>
+
+    <div x-show="agirOpen" x-cloak x-trap.noscroll="agirOpen" x-on:keydown.escape.window="agirOpen = false"
+         id="agir-menu-mobile" class="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true" aria-labelledby="agir-titre">
+        <div class="absolute inset-0 bg-ink/55" x-on:click="agirOpen = false" aria-hidden="true"></div>
+        <div class="absolute inset-x-0 bottom-0 rounded-t-[28px] bg-card px-5 pt-4 shadow-lg" style="padding-bottom: calc(24px + env(safe-area-inset-bottom))">
+            <div class="mb-4 flex items-center justify-between gap-3">
+                <h2 id="agir-titre" class="text-[22px] font-extrabold">Que souhaitez-vous faire ?</h2>
+                <button type="button" x-on:click="agirOpen = false" aria-label="Fermer" class="flex size-11 items-center justify-center rounded-button border border-line"><x-icon name="close" :size="22" /></button>
+            </div>
+            <nav aria-label="Actions" class="space-y-2">
+                <a href="{{ route('agir.publier', 'besoin') }}" class="block rounded-button border border-line px-4 py-4 font-semibold">Trouver de l’aide</a>
+                <a href="{{ route('agir.publier', 'apprendre') }}" class="block rounded-button border border-line px-4 py-4 font-semibold">Apprendre quelque chose</a>
+                <a href="{{ route('agir.publier', 'aide') }}" class="block rounded-button border border-line px-4 py-4 font-semibold">Proposer quelque chose</a>
+            </nav>
+        </div>
+    </div>
 
     @unless (\App\Support\Experience::initial())
     <div x-show="discover" x-cloak x-trap.noscroll="discover" x-on:keydown.escape.window="discover = false"

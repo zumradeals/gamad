@@ -143,17 +143,16 @@ it('ne confond pas une entreprise suspendue avec une entreprise vérifiée', fun
     $this->get(route('entreprises.index'))->assertDontSeeText($company->name);
 });
 
-it('refuse les anciennes décisions et la validation de sa propre entreprise', function () {
+it('autorise le super administrateur à vérifier sa propre entreprise et refuse les décisions périmées', function () {
     Storage::fake('local');
     $admin = User::factory()->superAdmin()->create();
     $company = pilotCompany($admin);
-    expect(fn () => app(CompanyRegistry::class)->review($admin, $company, 1, 'verify'))
-        ->toThrow(HttpException::class);
+    app(CompanyRegistry::class)->review($admin, $company, 1, 'verify');
 
-    $reviewer = User::factory()->superAdmin()->create();
-    app(CompanyRegistry::class)->review($reviewer, $company, 1, 'verify');
+    expect($company->fresh()->verified())->toBeTrue()
+        ->and(AdminAction::where('action', 'companies.verify')->count())->toBe(1);
 
-    expect(fn () => app(CompanyRegistry::class)->review($reviewer, $company->fresh(), 1, 'suspend', 'Suspension justifiée'))
+    expect(fn () => app(CompanyRegistry::class)->review($admin, $company->fresh(), 1, 'suspend', 'Suspension justifiée'))
         ->toThrow(ValidationException::class);
 });
 

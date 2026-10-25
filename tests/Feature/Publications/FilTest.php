@@ -274,7 +274,7 @@ it('montre à gauche, sur ordinateur, mon profil tel que les autres le voient', 
     fil(User::factory()->create())->assertSeeText('Ajouter ce que je peux apporter')->assertSeeText('Ajouter ce que je veux apprendre');
 });
 
-it('propose le compositeur direct et les trois actions dans le menu Agir', function () {
+it('propose le compositeur direct sans menu Agir secondaire', function () {
     $html = fil()->html();
 
     expect($html)->toContain('fil-compose-body')
@@ -282,10 +282,9 @@ it('propose le compositeur direct et les trois actions dans le menu Agir', funct
         ->toContain('value="share"')
         ->toContain('value="personal_work"')
         ->toContain('fil-compose-media')
-        ->toContain('fil-agir-menu')
-        ->toContain(route('agir.publier', 'besoin'))
-        ->toContain(route('agir.publier', 'apprendre'))
-        ->toContain(route('agir.publier', 'aide'))
+        ->toContain('x-on:click="open = !open"')
+        ->toContain('x-on:click.outside="open = false"')
+        ->not->toContain('fil-agir-menu')
         ->not->toContain('Des pistes pour avancer');
 });
 
