@@ -62,7 +62,13 @@
             @if ($companies->hasPages())<div>{{ $companies->links() }}</div>@endif
         </div>
 
-        <aside class="space-y-4">
+        <aside aria-label="Explorer les entreprises" class="min-w-0 space-y-4">
+            <section class="rounded-card border border-line bg-card p-5">
+                <h2 class="text-[18px] font-extrabold">Explorer les entreprises</h2>
+                <p class="mt-2 text-[13px] leading-relaxed text-muted">Recherchez une organisation par nom, activité ou ville dans le champ de recherche.</p>
+                <a href="#company-search" class="mt-3 inline-flex min-h-11 items-center gap-2 text-[14px] font-bold text-link"><x-icon name="search" :size="18"/> Rechercher une entreprise</a>
+                <p class="mt-2 text-[12px] text-muted">Les résultats sont présentés par ordre alphabétique.</p>
+            </section>
             <section class="rounded-card border border-line bg-card p-5">
                 <span class="flex size-12 items-center justify-center rounded-button bg-type-knowledge-bg text-type-knowledge-fg"><x-icon name="shield" :size="25"/></span>
                 <h2 class="mt-3 text-[18px] font-extrabold">Une identité administrative plus claire</h2>
