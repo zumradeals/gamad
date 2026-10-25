@@ -108,10 +108,14 @@ it('filtre : Tout, Besoins, Savoirs, Apprendre, Aides', function () {
 
 it('propose les filtres sociaux et métiers sans classement de popularité (D-193)', function () {
     $html = fil()->html();
-    preg_match('/<nav aria-label="Filtrer les publications".*?<\/nav>/s', $html, $nav);
-    $filtres = array_map(fn ($t) => trim(strip_tags($t)), explode('</button>', $nav[0]));
+    preg_match('/<nav aria-label="Catégories".*?<\/nav>/s', $html, $nav);
+    $onglets = array_map(fn ($t) => trim(strip_tags($t)), explode('</button>', $nav[0]));
+    preg_match('/<select wire:change="setFilter.*?<\/select>/s', $html, $select);
+    $autres = array_map(fn ($t) => trim(strip_tags($t)), explode('</option>', $select[0]));
 
-    expect(array_values(array_filter($filtres)))->toBe(['Tout', 'Mes suivis', 'Découvrir', 'Partages', 'Entreprises', 'Besoins', 'Savoirs', 'Apprendre', 'Aides', 'ZUMRA', 'Projets']);
+    // Barre compacte : six onglets ; les autres vues (suivis, découvrir…) restent accessibles dans le sélecteur.
+    expect(array_values(array_filter($onglets)))->toBe(['Tout', 'Savoirs', 'Réalisations', 'Besoins', 'Personnes', 'Entreprises'])
+        ->and(array_values(array_filter($autres)))->toBe(['—', 'Mes suivis', 'À découvrir', 'Partages', 'Envies d’apprendre', 'Aides proposées', 'ZUMRA', 'Projets']);
 });
 
 it('affiche Commenter sans compteur d’approbation, et « Signaler » seulement sur la publication d’un autre', function () {
@@ -282,8 +286,9 @@ it('propose le compositeur direct sans menu Agir secondaire', function () {
         ->toContain('value="share"')
         ->toContain('value="personal_work"')
         ->toContain('fil-compose-media')
-        ->toContain('x-on:click="open = !open"')
-        ->toContain('x-on:click.outside="open = false"')
+        ->toContain('x-on:click.outside="close()"')
+        ->toContain('x-on:open-composer.window')
+        ->toContain('Annuler')
         ->not->toContain('fil-agir-menu')
         ->not->toContain('Des pistes pour avancer');
 });
