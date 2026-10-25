@@ -2,7 +2,6 @@
     @include('livewire.partials.publier-legacy')
 @else
 @php
-    use App\Enums\PublicationType as T;
     // Une intention, une question principale, quelques précisions facultatives, un aperçu (D-184).
     $words = [
         'need' => ['J’ai besoin d’aide', 'Expliquez simplement ce que vous cherchez. Pas besoin de termes techniques.', 'De quoi avez-vous besoin ?', 'Je cherche quelqu’un pour installer une caméra dans ma boutique à Abidjan.', 'Publier ma demande'],
@@ -149,7 +148,7 @@
                             </select>
                             @error('domain_id')<p role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>@enderror
                         </div>
-                        @if (in_array($type, [T::Need, T::Offer, T::Knowledge, T::LearningWish], true))
+                        @if (in_array($type, [\App\Enums\PublicationType::Need, \App\Enums\PublicationType::Offer, \App\Enums\PublicationType::Knowledge, \App\Enums\PublicationType::LearningWish], true))
                             @include('livewire.partials.matching-publication-editor')
                         @endif
                     </div>
@@ -182,7 +181,7 @@
                     @if ($cityLabel)<li class="flex items-center gap-1.5"><x-icon name="pin" :size="16" />{{ $cityLabel }}</li>@endif
                     <li>Visible par : {{ $visibilityLabels[$visibility] ?? 'Tout le monde' }}</li>
                 </ul>
-                @if (in_array($type, [T::Need, T::LearningWish, T::Offer, T::Knowledge], true) && ($matching['enabled'] ?? false))
+                @if (in_array($type, [\App\Enums\PublicationType::Need, \App\Enums\PublicationType::LearningWish, \App\Enums\PublicationType::Offer, \App\Enums\PublicationType::Knowledge], true) && ($matching['enabled'] ?? false))
                     <p class="text-[13px] font-bold">Conditions : {{ \App\Services\MatchingConditions::TERMS[$matching['terms'] ?? 'discuss'] ?? 'À convenir explicitement' }}</p>
                     @if (! empty($matching['budget']))<p class="text-[13px]">{{ $matching['budget'] }}</p>@endif
                     <p class="text-[12px] text-muted">Les conditions doivent être convenues ensemble avant de commencer. GAMAD ne crée aucun contrat ni paiement.</p>

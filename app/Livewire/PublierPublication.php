@@ -214,6 +214,7 @@ class PublierPublication extends Component
 
     private function checkBody(): void
     {
+        $this->resetErrorBag();
         Gate::authorize('create', Publication::class);
         $body = $this->composedBody();
         if ($body === '' || mb_strlen($body) > Publication::BODY_MAX) {

@@ -162,7 +162,7 @@ it('accepte trois capacités au plus, de 2 à 60 caractères, partagées sans do
 });
 
 it('refuse d’ajouter une quatrième capacité depuis l’écran et le dit', function () {
-    formulaire()->set('skills', ['Excel', 'Laravel', 'Couture'])->set('skillsInput', 'Cuisine')->call('addSkill', 'skills')
+    formulaire()->set('body', 'Un texte.')->call('next')->set('skills', ['Excel', 'Laravel', 'Couture'])->set('skillsInput', 'Cuisine')->call('addSkill', 'skills')
         ->assertHasErrors(['skillsInput'])->assertCount('skills', 3)->assertSeeText('Trois capacités au plus');
 });
 
@@ -170,7 +170,7 @@ it('propose les capacités déjà utilisées, par un profil ou par une publicati
     person('Awa', ['Couture de fête']);
     publication(User::factory()->create(), data: ['skills' => ['Couture sur mesure']]);
 
-    formulaire()->set('skillsInput', 'coutu')->assertSeeText('Couture de fête')->assertSeeText('Couture sur mesure')->assertSeeText('Ajouter « coutu »');
+    formulaire()->set('body', 'Un texte.')->call('next')->set('skillsInput', 'coutu')->assertSeeText('Couture de fête')->assertSeeText('Couture sur mesure')->assertSeeText('Ajouter « coutu »');
 });
 
 it('ne crée aucune capacité tant qu’on n’a pas publié', function () {
@@ -213,7 +213,7 @@ it('limite le nombre de publications par heure et par jour, par personne, avec u
 });
 
 it('n’affiche aucun compteur d’approbation sur l’écran de publication', function () {
-    formulaire()->assertSeeText('Aucun chiffre d’approbation n’est affiché.')->assertDontSeeText('j’aime');
+    formulaire()->set('body', 'Un texte.')->call('next')->call('preview')->assertSeeText('Aucun chiffre d’approbation n’est affiché.')->assertDontSeeText('j’aime');
 });
 
 it('garde la règle d’autorisation de publier côté serveur', function () {
