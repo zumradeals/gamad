@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\NeedState;
+use App\Enums\PublicationType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
@@ -42,6 +44,17 @@ class Company extends Model
     public function documents()
     {
         return $this->hasMany(CompanyDocument::class);
+    }
+
+    /** Opportunités publiques en cours : besoins publiés au nom de l'entreprise, ni résolus, ni fermés, ni masqués. */
+    public function opportunities()
+    {
+        return $this->hasMany(Publication::class)
+            ->where('type', PublicationType::Need->value)
+            ->whereIn('need_state', [NeedState::Open->value, NeedState::InProgress->value])
+            ->where('visibility', Publication::PUBLIC)
+            ->whereNull('hidden_at')
+            ->whereHas('author', fn ($author) => $author->active());
     }
 
     public function verified(): bool
