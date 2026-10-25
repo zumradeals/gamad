@@ -21,7 +21,7 @@ class BrandingController extends Controller
     public function save(Request $request, Settings $settings)
     {
         Gate::authorize('super-admin');
-        $request->validate(['kind' => ['required', 'in:logo,icon'], 'image' => ['required_without:remove', 'nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048', 'dimensions:max_width=4096,max_height=4096'], 'remove' => ['nullable', 'accepted']]);
+        $request->validate(['kind' => ['required', 'in:logo,icon'], 'image' => ['required_without:remove', 'nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048', 'dimensions:max_width=4096,max_height=4096'], 'remove' => ['sometimes', 'accepted']]);
         $key = 'brand_'.$request->input('kind');
         if ($request->boolean('remove')) {
             $settings->update([$key => null], $request->user());
