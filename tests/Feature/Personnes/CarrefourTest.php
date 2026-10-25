@@ -212,7 +212,7 @@ it('liste les villes et domaines actifs dans les filtres, pas les désactivés',
 
     visiteur()->assertSeeText('Toutes les localités')->assertSeeText('Abidjan, Cocody')->assertSeeText('Bouaké')
         ->assertDontSee('<option value="'.$korhogo->id.'">', false)
-        ->assertSeeText('Tous les domaines')
+        ->assertSeeText('Domaines de compétence')
         ->assertDontSee("\$set('domain', '".$securite->id."')", false);
 });
 

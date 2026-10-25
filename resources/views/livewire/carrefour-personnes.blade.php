@@ -9,8 +9,8 @@
     $citiesWithCount = $cities->filter(fn ($c) => ($cityCounts[$c->id] ?? 0) > 0 || $c->id === $cityId);
 @endphp
 <div class="person-directory min-w-0" x-data="{ filters: false }">
-    @if (\App\Support\Experience::initial())<a href="{{ auth()->check() ? route('fil') : route('home') }}" class="mb-3 inline-flex min-h-11 items-center gap-2 text-[14px] font-semibold">Retour à l’accueil</a>@endif
-    <div class="grid min-w-0 items-start gap-4 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[230px_minmax(0,1fr)_260px]">
+    @if (\App\Support\Experience::initial())<a href="{{ auth()->check() ? route('fil') : route('home') }}" class="mb-3 inline-flex min-h-11 items-center gap-2 text-[14px] font-semibold lg:hidden">Retour à l’accueil</a>@endif
+    <div class="grid min-w-0 items-start gap-4 lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[250px_minmax(0,1fr)_300px]">
         <aside aria-label="Navigation et filtres des personnes" class="min-w-0 rounded-card border border-line bg-card p-4">
             <div class="flex items-center justify-between gap-2">
                 <h2 class="text-[18px] font-extrabold">Explorer les personnes</h2>
@@ -29,24 +29,27 @@
                     <option value="">Toutes les localités</option>
                     @foreach ($citiesWithCount as $ville)<option value="{{ $ville->id }}">{{ $ville->label() }} ({{ $cityCounts[$ville->id] ?? 0 }})</option>@endforeach
                 </select>
-                <fieldset class="mt-4">
+                <fieldset class="mt-4" x-data="{ more: {{ $domainId !== '' ? 'true' : 'false' }} }">
                     <legend class="mb-2 text-[13px] font-bold">Domaines de compétence</legend>
-                    <div class="space-y-1">
-                        <button type="button" wire:click="$set('domain', '')" aria-pressed="{{ $domainId === '' ? 'true' : 'false' }}" class="flex min-h-11 w-full items-center justify-between gap-2 rounded-button px-3 text-left text-[13px] {{ $domainId === '' ? 'bg-soft-blue font-bold text-link' : 'font-semibold' }}">Tous les domaines</button>
+                    <div class="space-y-0.5">
                         @foreach ($domainsWithCount as $domaine)
-                            <button type="button" wire:click="$set('domain', '{{ $domaine->id }}')" aria-pressed="{{ $domainId === $domaine->id ? 'true' : 'false' }}" class="flex min-h-11 w-full items-center justify-between gap-2 rounded-button px-3 text-left text-[13px] {{ $domainId === $domaine->id ? 'bg-soft-blue font-bold text-link' : 'font-semibold' }}"><span class="min-w-0 break-words">{{ $domaine->name }}</span><span class="shrink-0 text-muted">{{ $domainCounts[$domaine->id] ?? 0 }}</span></button>
+                            <button type="button" @if ($loop->index >= 5) x-show="more" x-cloak @endif wire:click="$set('domain', '{{ $domainId === $domaine->id ? '' : $domaine->id }}')" aria-pressed="{{ $domainId === $domaine->id ? 'true' : 'false' }}" class="flex min-h-11 w-full items-center gap-3 rounded-button px-1 text-left text-[14px] font-medium">
+                                <span class="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[4px] border {{ $domainId === $domaine->id ? 'border-ink bg-ink text-white' : 'border-line' }}">@if ($domainId === $domaine->id)<x-icon name="check" :size="12"/>@endif</span>
+                                <span class="min-w-0 flex-1 break-words">{{ $domaine->name }}</span><span class="shrink-0 text-muted">{{ $domainCounts[$domaine->id] ?? 0 }}</span>
+                            </button>
                         @endforeach
                     </div>
+                    @if ($domainsWithCount->count() > 5)<button type="button" x-on:click="more = ! more" class="mt-1 inline-flex min-h-11 items-center text-[14px] font-bold text-link"><span x-text="more ? 'Voir moins' : 'Voir plus'">Voir plus</span></button>@endif
                 </fieldset>
-                @if ($hasFilters)<button type="button" wire:click="clearFilters" class="mt-4 min-h-11 w-full rounded-button border border-line px-3 text-[13px] font-bold">Réinitialiser</button>@endif
+                <button type="button" wire:click="clearFilters" class="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-button border border-ink px-3 text-[14px] font-bold">Réinitialiser les filtres</button>
             </div>
         </aside>
         <main class="min-w-0 space-y-4">
             <h1 class="sr-only">Personnes — Trouvez qui peut vous aider</h1>
             <div class="rounded-card border border-line bg-card p-4">
-                <div role="tablist" aria-label="Type de capacité" class="-mx-1 flex gap-1 overflow-x-auto px-1">
+                <div role="tablist" aria-label="Type de capacité" class="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 py-1">
                     @foreach ($labels as $slug => $label)
-                        <button type="button" role="tab" aria-selected="{{ $mode === $slug ? 'true' : 'false' }}" wire:click="setMode('{{ $slug }}')" class="min-h-11 shrink-0 border-b-[3px] px-3 text-[14px] font-bold {{ $mode === $slug ? 'border-accent text-ink' : 'border-transparent text-muted' }}">{{ $label }}</button>
+                        <button type="button" role="tab" aria-selected="{{ $mode === $slug ? 'true' : 'false' }}" wire:click="setMode('{{ $slug }}')" class="min-h-11 shrink-0 rounded-full px-4 text-[13px] font-bold {{ $mode === $slug ? 'bg-link text-white' : 'border border-line bg-card' }}">{{ $label }}</button>
                     @endforeach
                 </div>
                 <div class="mt-4 xl:hidden">
@@ -67,9 +70,9 @@
                     </div>
                 @endif
                 <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
-                    <span role="status" aria-live="polite" class="text-[14px] font-bold">{{ $summary }}</span>
-                    <label class="flex items-center gap-2 text-[13px] text-muted">Trier par
-                        <select wire:model.live="sort" class="zumra-filter !w-auto">
+                    <p role="status" aria-live="polite" class="text-[14px] text-muted">{{ $summary }}</p>
+                    <label class="flex items-center gap-2 text-[13px] text-muted">Ordre :
+                        <select wire:model.live="sort" class="zumra-filter !w-auto font-semibold">
                             @foreach ($sorts as $slug => $label)<option value="{{ $slug }}">{{ $label }}</option>@endforeach
                         </select>
                     </label>
@@ -111,43 +114,44 @@
         <aside aria-label="Découvrir le réseau" class="min-w-0 space-y-4 lg:col-start-2 xl:col-start-3">
             <section class="hidden rounded-card border border-line bg-card p-4 xl:block">
                 <h2 class="text-[17px] font-extrabold">Recherche rapide</h2>
-                <label for="recherche-rapide" class="mt-3 block text-[13px] text-muted">Un nom ou une capacité</label>
-                <input id="recherche-rapide" type="search" wire:model.live.debounce.300ms="query" maxlength="100" autocomplete="off" placeholder="Une personne, une capacité…" class="mt-1 min-h-11 w-full min-w-0 rounded-button border border-line bg-card px-3 text-[14px] outline-none focus:border-link">
+                <form wire:submit="$refresh" class="mt-3 space-y-3">
+                    <label for="recherche-rapide" class="sr-only">Un nom ou une capacité</label>
+                    <div class="flex items-center gap-2 rounded-button border border-line bg-card px-3 focus-within:border-link"><x-icon name="search" :size="18"/><input id="recherche-rapide" type="search" wire:model.live.debounce.300ms="query" maxlength="100" autocomplete="off" placeholder="Nom, compétence…" class="min-h-11 min-w-0 flex-1 border-0 bg-transparent px-0 text-[14px] outline-none focus:ring-0"></div>
+                    <x-button type="submit" variant="accent" class="w-full">Rechercher</x-button>
+                </form>
             </section>
-            @if ($suggestions->isNotEmpty())
-                <section aria-labelledby="suggestions-titre" class="rounded-card border border-line bg-card p-4">
-                    <h2 id="suggestions-titre" class="text-[17px] font-extrabold">Suggestions pour vous</h2>
-                    <p class="mt-1 text-[12px] text-muted">D’après vos capacités et envies d’apprendre, par ordre alphabétique.</p>
+            @foreach ([['suggestions', 'Suggestions pour vous', $suggestions, 'sugg', 'Voir plus de suggestions →', 'suggestions'], ['nearby', 'Personnes près de vous', $nearby, 'proche', 'Voir tout', 'autour']] as [$id, $title, $items, $prefix, $more, $target])
+                @continue($items->isEmpty())
+                <section aria-labelledby="{{ $id }}-titre" class="rounded-card border border-line bg-card p-4">
+                    <div class="flex items-start justify-between gap-2">
+                        <h2 id="{{ $id }}-titre" class="text-[17px] font-extrabold">{{ $title }}</h2>
+                        @if ($id === 'nearby')<button type="button" wire:click="setList('{{ $target }}')" class="inline-flex min-h-11 items-center text-[13px] font-bold text-link">{{ $more }}</button>@endif
+                    </div>
+                    <p class="text-[12px] text-muted">{{ $id === 'nearby' ? 'Même localité déclarée : '.$viewerProfile->city->label().'.' : 'D’après vos capacités et envies d’apprendre, par ordre alphabétique.' }}</p>
                     <ul class="mt-3 space-y-3">
-                        @foreach ($suggestions as $suggested)
-                            <li class="flex min-w-0 items-start gap-3" wire:key="suggestion-{{ $suggested->id }}">
-                                <x-avatar :profile="$suggested" :size="40" />
-                                <div class="min-w-0"><a href="{{ route('personnes.show', $suggested->public_id) }}" class="inline-flex min-h-11 items-center break-words text-[14px] font-bold">{{ $suggested->user->name }}</a><p class="break-words text-[12px] text-muted">{{ $suggested->reason }}</p></div>
+                        @foreach ($items as $item)
+                            @php($isFollowed = in_array($item->user_id, $followedIds, true))
+                            <li class="flex min-w-0 items-center gap-3" wire:key="{{ $prefix }}-{{ $item->id }}">
+                                <x-avatar :profile="$item" :size="44" />
+                                <div class="min-w-0 flex-1">
+                                    <a href="{{ route('personnes.show', $item->public_id) }}" class="inline-flex min-h-11 items-center break-words text-[14px] font-bold">{{ $item->user->name }}</a>
+                                    <p class="-mt-2 break-words text-[12px] text-muted">{{ $id === 'suggestions' ? $item->reason : ($item->headline ?: $item->domains->pluck('name')->take(2)->join(' · ')) }}</p>
+                                </div>
+                                <button type="button" wire:click="follow('{{ $item->id }}', {{ $isFollowed ? 'false' : 'true' }})" class="min-h-11 shrink-0 rounded-button border border-ink px-3 text-[13px] font-bold">{{ $isFollowed ? 'Suivie' : 'Suivre' }}</button>
                             </li>
                         @endforeach
                     </ul>
-                    <button type="button" wire:click="setList('suggestions')" class="mt-2 inline-flex min-h-11 items-center text-[13px] font-bold text-link">Voir toutes les suggestions</button>
+                    @if ($id === 'suggestions')<button type="button" wire:click="setList('suggestions')" class="mt-2 inline-flex min-h-11 items-center text-[14px] font-bold text-link">{{ $more }}</button>@endif
                 </section>
-            @endif
-            @if ($nearby->isNotEmpty())
-                <section aria-labelledby="proches-titre" class="rounded-card border border-line bg-card p-4">
-                    <h2 id="proches-titre" class="text-[17px] font-extrabold">Personnes près de vous</h2>
-                    <p class="mt-1 text-[12px] text-muted">Même localité déclarée : {{ $viewerProfile->city->label() }}.</p>
-                    <ul class="mt-3 space-y-3">
-                        @foreach ($nearby as $close)
-                            <li class="flex min-w-0 items-center gap-3" wire:key="proche-{{ $close->id }}">
-                                <x-avatar :profile="$close" :size="40" />
-                                <a href="{{ route('personnes.show', $close->public_id) }}" class="inline-flex min-h-11 min-w-0 items-center break-words text-[14px] font-bold">{{ $close->user->name }}</a>
-                            </li>
-                        @endforeach
-                    </ul>
-                    <button type="button" wire:click="setList('autour')" class="mt-2 inline-flex min-h-11 items-center text-[13px] font-bold text-link">Voir toutes les personnes autour de moi</button>
-                </section>
-            @endif
+            @endforeach
             <section class="rounded-card border border-line bg-card p-4">
                 <h2 class="text-[17px] font-extrabold">Faites partie du réseau</h2>
-                <p class="mt-2 text-[13px] leading-relaxed text-muted">Présentez vos capacités et vos expériences pour être découvert.</p>
-                <x-button :href="$guest ? route('register') : route('espace.profil')" variant="accent" class="mt-4 w-full">{{ $guest ? 'Créer un compte' : ($viewerProfile?->hasSkills() ? 'Gérer mon profil' : 'Compléter mon profil') }}</x-button>
+                <ul class="mt-3 space-y-2 text-[14px]">
+                    <li class="flex items-start gap-2"><x-icon name="user" :size="18"/> Indiquez vos capacités pour être trouvé</li>
+                    <li class="flex items-start gap-2"><x-icon name="search" :size="18"/> Trouvez des personnes selon vos besoins</li>
+                    <li class="flex items-start gap-2"><x-icon name="chat" :size="18"/> Échangez et collaborez facilement</li>
+                </ul>
+                <x-button :href="$guest ? route('register') : route('espace.profil')" variant="accent" class="mt-4 w-full">{{ $guest ? 'Créer un compte' : ($viewerProfile?->hasSkills() ? 'Gérer mon profil' : 'Compléter mon profil') }} <x-icon name="arrow-right" :size="16" class="ml-1.5"/></x-button>
             </section>
         </aside>
     </div>

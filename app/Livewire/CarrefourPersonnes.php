@@ -264,7 +264,7 @@ class CarrefourPersonnes extends Component
         $offered = $mine->offeredSkills->pluck('name', 'id');
 
         return $query->orderBy(User::query()->select('name_search')->whereColumn('users.id', 'profiles.user_id'))
-            ->with(['user', 'offeredSkills', 'wantedSkills'])->limit(3)->get()
+            ->with(['user', 'city', 'domains', 'offeredSkills', 'wantedSkills'])->limit(3)->get()
             ->map(function (Profile $profile) use ($wanted, $offered) {
                 $brings = $profile->offeredSkills->whereIn('id', $wanted->keys())->pluck('name')->first();
                 $learns = $profile->wantedSkills->whereIn('id', $offered->keys())->pluck('name')->first();
@@ -280,6 +280,6 @@ class CarrefourPersonnes extends Component
         return Profile::query()->visibleTo($viewer)->where('profiles.user_id', '<>', $viewer->id)->where('profiles.city_id', $mine->city_id)
             ->where(fn (Builder $q) => $q->whereHas('offeredSkills')->orWhereHas('wantedSkills'))
             ->orderBy(User::query()->select('name_search')->whereColumn('users.id', 'profiles.user_id'))
-            ->with(['user', 'city', 'offeredSkills'])->limit(3)->get();
+            ->with(['user', 'city', 'domains'])->limit(3)->get();
     }
 }

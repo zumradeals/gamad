@@ -73,7 +73,7 @@ it('range les cartes des carrefours en colonnes sur ordinateur, et en une seule 
     }
 
     expect($this->actingAs($personne)->get(route('personnes.index'))->assertOk()->getContent())
-        ->toContain('xl:grid-cols-[230px_minmax(0,1fr)_260px]')
+        ->toContain('xl:grid-cols-[250px_minmax(0,1fr)_300px]')
         ->toContain('person-discovery-card');
 });
 
