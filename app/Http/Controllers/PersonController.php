@@ -36,7 +36,13 @@ class PersonController extends Controller
                 ->orderBy('name_key')->get()
             : collect();
 
-        $personalPosts = Publication::query()->visibleTo($viewer)->whereNull('hidden_at')->whereNull('zumra_id')->whereNull('company_id')->where('author_id', $profile->user_id)->latest()->limit(20)->get();
+        $ownPosts = fn () => Publication::query()->visibleTo($viewer)->whereNull('hidden_at')->whereNull('zumra_id')->whereNull('company_id')->where('author_id', $profile->user_id);
+        $personalPosts = $ownPosts()->with('skills')->latest()->limit(20)->get();
+        // Compteurs publics : seulement ce que la personne qui regarde a le droit de voir ; les relations restent privées (D-186).
+        $counts = array_filter([
+            'Publications' => $ownPosts()->count(),
+            'Réalisations' => $ownPosts()->where('type', PublicationType::PersonalWork->value)->count(),
+        ]);
         $references = collect($profile->featured_publications ?? [])->merge(collect($profile->skill_details ?? [])->pluck('publication_id'))->push($profile->cover_publication_id)->filter()->unique();
         $visibleReferences = Publication::query()->visibleTo($viewer)->whereNull('hidden_at')->whereNull('zumra_id')->where('author_id', $profile->user_id)->whereNull('company_id')->whereIn('id', $references)->get()->keyBy('id');
 
@@ -45,9 +51,12 @@ class PersonController extends Controller
             $cover = null;
         }
         $showcasePosts = collect($profile->featured_publications ?? [])->map(fn ($id) => $visibleReferences->get($id))->filter()->values();
+        $moreWorks = collect();
         if ($showcasePosts->isEmpty()) {
             $showcasePosts = $personalPosts->where('type', PublicationType::PersonalWork)->take(3)->values();
         }
+        // « Voir toutes les réalisations » : les autres réalisations visibles, au-delà de celles mises en avant.
+        $moreWorks = $personalPosts->where('type', PublicationType::PersonalWork)->reject(fn (Publication $post) => $showcasePosts->contains('id', $post->id))->values();
         $currentOffer = $personalPosts->first(fn (Publication $post) => $post->type === PublicationType::Offer
             && (! ($post->matching['enabled'] ?? false) || ($post->matching['open'] ?? true))
             && (empty($post->matching['until']) || $post->matching['until'] >= today()->toDateString()));
@@ -57,7 +66,19 @@ class PersonController extends Controller
             ->whereHas('company', fn ($query) => $query->publiclyVisible())
             ->latest()->limit(10)->get();
 
-        return view('pages.personne', ['companyExperiences' => $companyExperiences, 'verifiedIdentity' => app(PersonalTrust::class)->identity($profile->user), 'confirmedWorks' => WorkAttestation::visibleTo($viewer)->where('author_id', $profile->user_id)->with(['attester.profile', 'author.profile'])->latest('confirmed_at')->limit(10)->get(), 'personalPosts' => $personalPosts, 'visibleReferences' => $visibleReferences, 'cover' => $cover, 'showcasePosts' => $showcasePosts, 'currentOffer' => $currentOffer, 'profile' => $profile, 'isOwner' => $isOwner, 'inviteZumras' => $inviteZumras, 'contributorBadge' => app(Contributions::class)->showsBadge($profile->user)]);
+        // Capacités communes : calculées seulement à partir des capacités déclarées des deux profils.
+        $common = null;
+        if ($viewer && ! $isOwner) {
+            $mine = $viewer->ensureProfile()->load(['offeredSkills', 'wantedSkills']);
+            $common = [
+                'shared' => $mine->offeredSkills->pluck('name', 'id')->intersectByKeys($profile->offeredSkills->pluck('name', 'id'))->values()->all(),
+                'theyBring' => $profile->offeredSkills->pluck('name', 'id')->intersectByKeys($mine->wantedSkills->pluck('name', 'id'))->values()->all(),
+                'youBring' => $mine->offeredSkills->pluck('name', 'id')->intersectByKeys($profile->wantedSkills->pluck('name', 'id'))->values()->all(),
+            ];
+            $common = array_filter($common) ?: null;
+        }
+
+        return view('pages.personne', ['counts' => $counts, 'moreWorks' => $moreWorks, 'common' => $common, 'companyExperiences' => $companyExperiences, 'verifiedIdentity' => app(PersonalTrust::class)->identity($profile->user), 'confirmedWorks' => WorkAttestation::visibleTo($viewer)->where('author_id', $profile->user_id)->with(['attester.profile', 'author.profile'])->latest('confirmed_at')->limit(10)->get(), 'personalPosts' => $personalPosts, 'visibleReferences' => $visibleReferences, 'cover' => $cover, 'showcasePosts' => $showcasePosts, 'currentOffer' => $currentOffer, 'profile' => $profile, 'isOwner' => $isOwner, 'inviteZumras' => $inviteZumras, 'contributorBadge' => app(Contributions::class)->showsBadge($profile->user)]);
     }
 
     /**

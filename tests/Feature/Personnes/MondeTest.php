@@ -21,7 +21,7 @@ it('affiche le Monde d’une personne : nom, lieu, ancienneté, présentation, c
     $this->get($this->url)->assertOk()
         ->assertSeeText('Awa Traoré')
         ->assertSeeText('Yamoussoukro, Côte d’Ivoire')
-        ->assertSeeText('Sur GAMAD depuis octobre 2026')
+        ->assertSeeText('Membre depuis octobre 2026')
         ->assertSeeText('Comptable de formation.')
         ->assertSeeText('Je peux apporter')
         ->assertSeeText('Comptabilité')
@@ -29,7 +29,7 @@ it('affiche le Monde d’une personne : nom, lieu, ancienneté, présentation, c
         ->assertSeeText('Je veux apprendre')
         ->assertSeeText('Vente sur WhatsApp')
         ->assertSeeText('Anglais')
-        ->assertSeeText('Domaines qui l’intéressent')
+        ->assertSeeText('Domaines qui m’intéressent')
         ->assertSeeText('Économie et Finances')
         ->assertSeeText('Affaires commerciales')
         ->assertSeeText('Touchez une capacité pour trouver d’autres personnes qui l’apportent.');
@@ -47,7 +47,7 @@ it('relie les quatre sections du profil et propose Suivre sans invitation collec
     expect(onglets($html))->toBe(['Savoir-faire', 'Réalisations', 'Parcours', 'Publications']);
 
     $this->actingAs(User::factory()->create())->get($this->url)
-        ->assertSeeText('Suivre')->assertSeeText('Entrer en relation')
+        ->assertSeeText('Suivre')->assertSeeText('Contacter')
         ->assertDontSeeText('Inviter')
         ->assertDontSeeText('Remerciements')
         ->assertDontSeeText('Lot 2')
@@ -87,7 +87,7 @@ it('n’affiche ni domaines ni lieu ni présentation quand ils manquent', functi
     $simple = person('Simple', ['Couture']);
     $page = $this->get(route('personnes.show', $simple->profile->public_id))->assertOk();
 
-    $page->assertDontSeeText('Domaines qui l’intéressent');
+    $page->assertDontSeeText('Domaines qui m’intéressent');
     expect($page->getContent())->not->toContain('Côte d’Ivoire');
 });
 
@@ -125,5 +125,5 @@ it('répond 404 pour un identifiant inconnu', function () {
 });
 
 it('ramène au Carrefour par le lien de retour', function () {
-    $this->get($this->url)->assertSee('href="'.route('personnes.index').'"', false)->assertSeeText('Carrefour Personnes');
+    $this->get($this->url)->assertSee('href="'.route('personnes.index').'"', false)->assertSeeText('Retour aux personnes');
 });

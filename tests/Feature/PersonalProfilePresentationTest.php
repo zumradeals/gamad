@@ -120,7 +120,7 @@ it('ne met plus en avant une offre clôturée ou expirée et conserve son histor
 });
 
 it('ne transforme pas le profil en accès direct à une conversation et conserve le blocage', function () {
-    $this->actingAs($this->visitor)->get(route('personnes.show', $this->artisan->profile))->assertOk()->assertSeeText('Entrer en relation')->assertDontSeeText('Écrire');
+    $this->actingAs($this->visitor)->get(route('personnes.show', $this->artisan->profile))->assertOk()->assertSeeText('Contacter')->assertDontSeeText('Écrire');
     expect(Conversation::count())->toBe(0);
     app(People::class)->block($this->artisan, $this->visitor, true);
     $this->get(route('personnes.show', $this->artisan->profile))->assertNotFound();
