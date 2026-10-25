@@ -32,6 +32,8 @@ class CompanyBranding
             'services.*.name' => ['nullable', 'string', 'max:80'],
             'services.*.category' => ['nullable', 'string', 'max:40'],
             'services.*.description' => ['nullable', 'string', 'max:200'],
+            'services.*.image' => ['nullable', 'file', 'max:5120', 'mimetypes:image/jpeg,image/png,image/webp'],
+            'services.*.remove_image' => ['nullable', 'boolean'],
             'remove_logo' => ['nullable', 'boolean'],
             'remove_banner' => ['nullable', 'boolean'],
         ])->validate();
@@ -54,14 +56,34 @@ class CompanyBranding
                 }
 
                 // Vitrine : seules les fiches nommées sont conservées ; la clé absente laisse la vitrine inchangée.
+                // Chaque fiche garde l'image de la fiche de même rang, sauf remplacement ou retrait demandé.
                 if (array_key_exists('services', $data)) {
-                    $row->services = collect($data['services'] ?? [])
-                        ->map(fn ($item) => [
-                            'name' => Normalizer::display((string) ($item['name'] ?? '')),
+                    $before = collect($row->services ?? [])->values();
+                    $kept = [];
+                    foreach (array_values($data['services'] ?? []) as $rank => $item) {
+                        $name = Normalizer::display((string) ($item['name'] ?? ''));
+                        $image = $before[$rank]['image_path'] ?? null;
+                        if ($name === '') {
+                            continue;
+                        }
+                        if (! empty($item['image'])) {
+                            $path = 'company-branding/'.Str::uuid().'.jpg';
+                            if (! Storage::disk('local')->put($path, $this->encode($item['image'], 'service'))) {
+                                throw ValidationException::withMessages(['services' => 'Une image n’a pas pu être enregistrée.']);
+                            }
+                            $created[] = $path;
+                            $image = $path;
+                        } elseif (! empty($item['remove_image'])) {
+                            $image = null;
+                        }
+                        $kept[] = array_filter([
+                            'name' => $name,
                             'category' => Normalizer::display((string) ($item['category'] ?? '')),
                             'description' => Normalizer::display((string) ($item['description'] ?? '')),
-                        ])
-                        ->filter(fn ($item) => $item['name'] !== '')->values()->all() ?: null;
+                            'image_path' => $image,
+                        ], fn ($value) => $value !== null);
+                    }
+                    $row->services = $kept ?: null;
                 }
 
                 foreach (['logo', 'banner'] as $kind) {
@@ -93,6 +115,8 @@ class CompanyBranding
                 Storage::disk('local')->delete($company->{$field});
             }
         }
+        $current = collect($updated->services ?? [])->pluck('image_path')->filter()->all();
+        Storage::disk('local')->delete(collect($company->services ?? [])->pluck('image_path')->filter()->reject(fn ($path) => in_array($path, $current, true))->all());
 
         return $updated;
     }
@@ -114,17 +138,17 @@ class CompanyBranding
         if ($kind === 'logo') {
             return $sanitized; // Cadrage carré centré, JPEG 512 px au maximum.
         }
+        $errorKey = $kind === 'banner' ? 'banner' : 'services';
 
         $source = @imagecreatefromstring($sanitized);
         if (! $source) {
-            throw ValidationException::withMessages(['banner' => 'La bannière n’a pas pu être traitée.']);
+            throw ValidationException::withMessages([$errorKey => 'L’image n’a pas pu être traitée.']);
         }
 
         $w = imagesx($source);
         $h = imagesy($source);
         // Format 8:3 ; sur mobile, l'image sera rognée visuellement via object-cover.
-        $targetW = 1600;
-        $targetH = 600;
+        [$targetW, $targetH] = $kind === 'banner' ? [1600, 600] : [800, 600];
         if ($w * $targetH > $h * $targetW) {
             $cropH = $h;
             $cropW = max(1, (int) floor($h * $targetW / $targetH));
@@ -144,7 +168,7 @@ class CompanyBranding
         imagedestroy($canvas);
 
         if ($bytes === '') {
-            throw ValidationException::withMessages(['banner' => 'La bannière n’a pas pu être enregistrée.']);
+            throw ValidationException::withMessages([$errorKey => 'L’image n’a pas pu être enregistrée.']);
         }
 
         return $bytes;

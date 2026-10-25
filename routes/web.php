@@ -81,7 +81,7 @@ Route::get('/personnes/{profile:public_id}/photo', [PersonController::class, 'ph
 Route::get('/entreprises', CompanyDirectory::class)->name('entreprises.index');
 Route::get('/entreprises/{company}', [CompanyController::class, 'show'])->where('company', '.+-[a-z0-9]{8}')->name('entreprises.show');
 Route::get('/entreprises/{company}/visuel/{kind}', CompanyVisualController::class)
-    ->where('company', '.+-[a-z0-9]{8}')->where('kind', 'logo|banner')->name('entreprises.visual');
+    ->where('company', '.+-[a-z0-9]{8}')->where('kind', 'logo|banner|service-[0-9]')->name('entreprises.visual');
 
 // Le Carrefour ZUMRA et l'en-tête d'une ZUMRA sont publics ; les membres demandent un compte vérifié (D-112).
 Route::get('/zumra', CarrefourZumras::class)->name('zumras.index');
