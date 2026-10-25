@@ -29,7 +29,7 @@ use Livewire\WithPagination;
  * « suivies », « contacts », « suggestions » et « autour de moi » ne reposent que sur des données déclarées par la
  * personne et ses relations ; aucune préférence privée de matching n'est lue ici.
  */
-#[Layout('components.layouts.app')]
+#[Layout('components.layouts.app', ['extraWide' => true])]
 #[Title('Personnes')]
 class CarrefourPersonnes extends Component
 {

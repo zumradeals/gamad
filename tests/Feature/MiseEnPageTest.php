@@ -31,7 +31,8 @@ it('donne aux pages de consultation la largeur du Fil', function () {
     foreach ($pages as $nom => $url) {
         $classes = classes_du_contenu($this->actingAs($this->yao)->get($url)->assertOk()->getContent());
 
-        $this->assertStringContainsString('max-w-[1240px]', $classes, $nom);
+        // Décision du Président : seule la page Personnes est élargie (1480 px), pour ses trois colonnes.
+        $this->assertStringContainsString($nom === 'Carrefour Personnes' ? 'max-w-[1480px]' : 'max-w-[1240px]', $classes, $nom);
         $this->assertStringNotContainsString('max-w-[920px]', $classes, $nom);
         $this->assertStringNotContainsString('max-w-[760px]', $classes, $nom);
     }
@@ -73,7 +74,7 @@ it('range les cartes des carrefours en colonnes sur ordinateur, et en une seule 
     }
 
     expect($this->actingAs($personne)->get(route('personnes.index'))->assertOk()->getContent())
-        ->toContain('xl:grid-cols-[250px_minmax(0,1fr)_300px]')
+        ->toContain('xl:grid-cols-[255px_minmax(0,1fr)_340px]')
         ->toContain('person-discovery-card');
 });
 

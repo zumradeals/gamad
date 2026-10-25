@@ -1,4 +1,4 @@
-@props(['title' => null, 'wide' => true, 'narrow' => false])
+@props(['title' => null, 'wide' => true, 'narrow' => false, 'extraWide' => false])
 
 @php
     $enabled = fn (array $items) => array_values(array_filter($items, fn ($item) => $item['enabled'] ?? false));
@@ -102,7 +102,7 @@
         </div>
     </header>
 
-    <main @class(['mx-auto w-full flex-1 px-4 pt-4 md:px-6 lg:pb-10 lg:pt-6', 'max-w-[920px]' => $narrow, 'max-w-[1240px]' => ! $narrow, 'pb-[104px]' => auth()->check(), 'pb-10' => ! auth()->check()])>
+    <main @class(['mx-auto w-full flex-1 px-4 pt-4 md:px-6 lg:pb-10 lg:pt-6', 'max-w-[920px]' => $narrow, 'max-w-[1240px]' => ! $narrow && ! $extraWide, 'max-w-[1480px]' => $extraWide, 'pb-[104px]' => auth()->check(), 'pb-10' => ! auth()->check()])>
         {{ $slot }}
 
         <div class="mt-6">@include('partials.legal-links')</div>

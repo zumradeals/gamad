@@ -183,3 +183,11 @@ it('affiche la présentation courte réelle de la personne, sans texte inventé'
     page()->assertSeeText('Comptable et formatrice');
     page()->assertDontSeeText('Disponible')->assertDontSeeText('En ligne');
 });
+
+it('élargit seulement la page Personnes à 1480 px ; l’en-tête et les autres pages gardent 1240 px', function () {
+    $personnes = $this->actingAs($this->moi)->get(route('personnes.index'))->assertOk()->getContent();
+    $fil = $this->actingAs($this->moi)->get(route('fil'))->assertOk()->getContent();
+
+    expect($personnes)->toContain('max-w-[1480px]')->toContain('max-w-[1240px]')
+        ->and($fil)->not->toContain('max-w-[1480px]');
+});
