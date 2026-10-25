@@ -112,6 +112,9 @@ class Fil extends Component
         $this->dispatch('feed-follow-changed');
     }
 
+    #[On('fil-publication-created')]
+    public function publicationCreated(): void {}
+
     #[On('gesture-changed')]
     public function refresh(): void {}
 
