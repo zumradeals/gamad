@@ -29,6 +29,7 @@ class JournalReader
         'confiance' => ['Attestations', ['trust.']],
         'entreprises' => ['Entreprises', ['companies.']],
         'commentaires' => ['Commentaires', ['comment.']],
+        'messages' => ['Messages de contact', ['contact.']],
     ];
 
     /** Familles que lit un modérateur. */
@@ -69,6 +70,9 @@ class JournalReader
         'wallet.sandbox_cleared' => 'a terminé les essais des portefeuilles (soldes d’essai remis à zéro)',
         'settings.test_email_sent' => 'a envoyé un e-mail de test',
         'settings.test_email_failed' => 'a tenté un e-mail de test, sans succès',
+        'contact.read' => 'a lu un message de contact',
+        'contact.handled' => 'a marqué un message de contact comme traité',
+        'contact.deleted' => 'a supprimé un message de contact',
         'account.renamed_by_owner' => 'a changé son nom affiché',
         'account.deleted_by_owner' => 'a supprimé son compte',
     ];

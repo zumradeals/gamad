@@ -52,6 +52,8 @@
                 <nav aria-label="Pied de page" class="flex flex-wrap gap-x-5">
                     <a href="{{ route('home') }}#confiance" class="inline-flex min-h-11 items-center text-[13px] font-semibold text-muted underline hover:text-ink">À propos</a>
                     <a href="{{ route('personnes.index') }}" class="inline-flex min-h-11 items-center text-[13px] font-semibold text-muted underline hover:text-ink">Découvrir les personnes</a>
+                    <a href="{{ route('aide') }}" class="inline-flex min-h-11 items-center text-[13px] font-semibold text-muted underline hover:text-ink">Aide</a>
+                    <a href="{{ route('contact') }}" class="inline-flex min-h-11 items-center text-[13px] font-semibold text-muted underline hover:text-ink">Contact</a>
                     @php $textes = app(\App\Services\LegalTexts::class); @endphp
                     @if ($textes->charterAdopted())<a href="{{ route('charte') }}" class="inline-flex min-h-11 items-center text-[13px] font-semibold text-muted underline hover:text-ink">Charte de conduite</a>@endif
                     @if ($textes->legalAdopted())<a href="{{ route('mentions') }}" class="inline-flex min-h-11 items-center text-[13px] font-semibold text-muted underline hover:text-ink">Mentions légales</a>@endif
