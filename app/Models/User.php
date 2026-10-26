@@ -49,6 +49,8 @@ class User extends Authenticatable implements MustVerifyEmail
             app(Wallets::class)->assertAccountCanBeDeleted($user);
 
             $user->profile?->deletePhotoFile();
+            // Les CV joints à ses candidatures disparaissent avec elle (les lignes partent par cascade, sans événement).
+            OpportunityResponse::deleteAttachmentsOf(OpportunityResponse::query()->where('user_id', $user->id));
             Company::where('owner_id', $user->id)->with('documents')->get()->each(fn (Company $company) => $company->delete());
             Publication::query()->where('author_id', $user->id)->whereNotNull('media_path')->each(fn (Publication $post) => $post->deleteMediaFile());
 

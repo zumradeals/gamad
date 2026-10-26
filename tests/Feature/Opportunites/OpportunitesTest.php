@@ -416,7 +416,7 @@ it('laisse retirer sa réponse, efface la pièce jointe et autorise une nouvelle
     expect(OpportunityResponse::count())->toBe(1)->and($r->fresh()->state)->toBe('sent')->and($r->fresh()->message)->toBe('Seconde.');
 });
 
-it('efface les pièces jointes avec l’opportunité et avec le compte du candidat', function () {
+it('efface les pièces jointes avec l’opportunité', function () {
     $o = opportunite($this->company);
     $candidat = User::factory()->create();
     $this->actingAs($candidat)->post(route('opportunites.respond.store', $o), ['attachment' => pdfOpp()]);
@@ -425,6 +425,86 @@ it('efface les pièces jointes avec l’opportunité et avec le compte du candid
     $o->delete();
     Storage::disk('local')->assertMissing($path);
     expect(OpportunityResponse::count())->toBe(0);
+});
+
+it('efface le CV d’un candidat quand son compte est supprimé, et seulement le sien', function () {
+    $o = opportunite($this->company);
+    $candidat = User::factory()->create();
+    $autre = User::factory()->create();
+    $this->actingAs($candidat)->post(route('opportunites.respond.store', $o), ['attachment' => pdfOpp()]);
+    $this->actingAs($autre)->post(route('opportunites.respond.store', $o), ['attachment' => pdfOpp()]);
+    $sien = OpportunityResponse::where('user_id', $candidat->id)->value('attachment_path');
+    $autrui = OpportunityResponse::where('user_id', $autre->id)->value('attachment_path');
+
+    $candidat->delete();
+
+    Storage::disk('local')->assertMissing($sien);
+    Storage::disk('local')->assertExists($autrui);
+    expect(OpportunityResponse::count())->toBe(1);
+});
+
+it('efface les CV reçus quand l’entreprise est supprimée', function () {
+    $o = opportunite($this->company);
+    $brouillon = opportunite($this->company, ['status' => Opportunity::DRAFT, 'title' => 'Brouillon']);
+    $candidat = User::factory()->create();
+    $this->actingAs($candidat)->post(route('opportunites.respond.store', $o), ['attachment' => pdfOpp()]);
+    $path = OpportunityResponse::sole()->attachment_path;
+    $autreEntreprise = entrepriseOpp('Autre Société');
+    $autreOffre = opportunite($autreEntreprise);
+    $this->actingAs(User::factory()->create())->post(route('opportunites.respond.store', $autreOffre), ['attachment' => pdfOpp()]);
+    $autrePath = OpportunityResponse::where('opportunity_id', $autreOffre->id)->value('attachment_path');
+
+    DB::table('user_notifications')->update(['opportunity_id' => null]);
+    $this->company->delete();
+
+    Storage::disk('local')->assertMissing($path);
+    Storage::disk('local')->assertExists($autrePath);
+});
+
+it('efface les CV reçus quand le propriétaire de l’entreprise supprime son compte', function () {
+    $o = opportunite($this->company);
+    $this->actingAs(User::factory()->create())->post(route('opportunites.respond.store', $o), ['attachment' => pdfOpp()]);
+    $path = OpportunityResponse::sole()->attachment_path;
+
+    DB::table('user_notifications')->update(['opportunity_id' => null]);
+    $this->owner->delete();
+
+    Storage::disk('local')->assertMissing($path);
+});
+
+// ─── Purge des fichiers orphelins (gamad:purger-cv-orphelins) ───────────────
+
+it('liste les PDF orphelins sans rien effacer par défaut, et épargne les fichiers référencés ou récents', function () {
+    $o = opportunite($this->company);
+    $this->actingAs(User::factory()->create())->post(route('opportunites.respond.store', $o), ['attachment' => pdfOpp()]);
+    $reference = OpportunityResponse::sole()->attachment_path;
+    $disk = Storage::disk('local');
+    $disk->put('opportunity-responses/orphelin.pdf', '%PDF-1.4 orphelin');
+    $disk->put('opportunity-responses/recent.pdf', '%PDF-1.4 recent');
+    touch($disk->path('opportunity-responses/orphelin.pdf'), now()->subDay()->getTimestamp());
+
+    $this->artisan('gamad:purger-cv-orphelins')->expectsOutputToContain('opportunity-responses/orphelin.pdf')->assertSuccessful();
+
+    $disk->assertExists('opportunity-responses/orphelin.pdf');
+    $disk->assertExists('opportunity-responses/recent.pdf');
+    $disk->assertExists($reference);
+});
+
+it('efface seulement les orphelins anciens avec --purger', function () {
+    $o = opportunite($this->company);
+    $this->actingAs(User::factory()->create())->post(route('opportunites.respond.store', $o), ['attachment' => pdfOpp()]);
+    $reference = OpportunityResponse::sole()->attachment_path;
+    $disk = Storage::disk('local');
+    $disk->put('opportunity-responses/orphelin.pdf', '%PDF-1.4 orphelin');
+    $disk->put('opportunity-responses/recent.pdf', '%PDF-1.4 recent');
+    touch($disk->path('opportunity-responses/orphelin.pdf'), now()->subDay()->getTimestamp());
+    touch($disk->path($reference), now()->subDay()->getTimestamp());
+
+    $this->artisan('gamad:purger-cv-orphelins', ['--purger' => true])->assertSuccessful();
+
+    $disk->assertMissing('opportunity-responses/orphelin.pdf');
+    $disk->assertExists('opportunity-responses/recent.pdf');
+    $disk->assertExists($reference);
 });
 
 it('liste mes réponses avec leur état dans Mon espace', function () {
