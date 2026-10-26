@@ -172,7 +172,7 @@ it('produit une alerte interne générique une seule fois et regroupe les corres
     (clone $alerts)->update(['read_at' => now()]);
     $this->engine->suggestions($this->helper);
     expect((clone $alerts)->count())->toBe(1);
-    $this->actingAs($this->helper)->get(route('notifications.open', (clone $alerts)->sole()))->assertRedirect(route('espace').'#suggestions');
+    $this->actingAs($this->helper)->get(route('notifications.open', (clone $alerts)->sole()))->assertRedirect(route('espace', ['rubrique' => 'pistes']).'#suggestions');
 });
 
 it('permet de désactiver les alertes et limite les nouvelles alertes à cinq par jour', function () {

@@ -37,9 +37,9 @@ class NotificationController extends Controller
             NotificationKind::OpportunityResponseContacted => $notification->opportunity?->visibleTo($user)
                 ? route('opportunites.show', $notification->opportunity) : route('notifications'),
             NotificationKind::TrustReview => $user->isSuperAdmin() ? route('moderation.confiance') : route('espace'),
-            NotificationKind::MatchFound => route('espace').'#suggestions',
-            NotificationKind::ConnectionRequested => route('espace').'#mes-liens',
-            NotificationKind::ConnectionAccepted => $conversation && Gate::forUser($user)->allows('view', $conversation) ? route('conversations.show', $conversation) : route('espace').'#mes-liens',
+            NotificationKind::MatchFound => route('espace', ['rubrique' => 'pistes']).'#suggestions',
+            NotificationKind::ConnectionRequested => route('espace', ['rubrique' => 'relations']).'#mes-liens',
+            NotificationKind::ConnectionAccepted => $conversation && Gate::forUser($user)->allows('view', $conversation) ? route('conversations.show', $conversation) : route('espace', ['rubrique' => 'relations']).'#mes-liens',
             NotificationKind::MessageReceived, NotificationKind::GestureAccepted => $conversation && Gate::forUser($user)->allows('view', $conversation)
                 ? route('conversations.show', $conversation)
                 : ($publication && Gate::forUser($user)->allows('view', $publication) ? route('publications.show', $publication) : null),

@@ -44,7 +44,7 @@
                 <button type="button" wire:click="clearFilters" class="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-button border border-ink px-3 text-[14px] font-bold">Réinitialiser les filtres</button>
             </div>
         </aside>
-        <main class="min-w-0 space-y-4">
+        <div class="min-w-0 space-y-4">
             <h1 class="sr-only">Personnes — Trouvez qui peut vous aider</h1>
             <div class="rounded-card border border-line bg-card p-4">
                 <div role="tablist" aria-label="Type de capacité" class="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 py-1">
@@ -110,7 +110,7 @@
                     <x-button type="button" variant="secondary" wire:click="nextPage" :disabled="! $people->hasMorePages()">Suivant</x-button>
                 </nav>
             @endif
-        </main>
+        </div>
         <aside aria-label="Découvrir le réseau" class="min-w-0 space-y-4 lg:col-start-2 xl:col-start-3">
             <section class="hidden rounded-card border border-line bg-card p-4 xl:block">
                 <h2 class="text-[17px] font-extrabold">Recherche rapide</h2>
