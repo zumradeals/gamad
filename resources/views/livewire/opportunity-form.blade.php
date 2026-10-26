@@ -88,7 +88,7 @@
                     <input id="deadline" type="date" wire:model="deadline" class="{{ $field('deadline') }}">
                     @error('deadline')<p role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>@enderror</div>
 
-                <details class="rounded-button border border-line p-3" @if ($errors->hasAny(['skills', 'external_url', 'missions', 'profile'])) open @endif>
+                <details class="rounded-button border border-line p-3" @if ($skills !== [] || $skillsInput !== '' || $errors->hasAny(['skills', 'skillsInput', 'external_url', 'missions', 'profile'])) open @endif>
                     <summary class="min-h-11 cursor-pointer content-center text-[14px] font-bold">Ajouter des précisions <span class="font-semibold text-muted">(facultatif)</span></summary>
                     <div class="mt-3 flex flex-col gap-4">
                         <div class="grid gap-4 sm:grid-cols-2">
@@ -104,10 +104,11 @@
                             @error('missions')<p role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>@enderror</div>
                         <div class="flex flex-col gap-1.5"><label for="profile" class="{{ $labelClass }}">Profil recherché</label>
                             <textarea id="profile" wire:model="profile" rows="3" maxlength="2000" placeholder="Un point par ligne." class="{{ $area('profile') }}"></textarea></div>
-                        <div class="flex flex-col gap-1.5"><label for="skillsText" class="{{ $labelClass }}">Compétences recherchées</label>
-                            <input id="skillsText" type="text" wire:model="skillsText" placeholder="Ex. Réseaux, Électricité, Comptabilité" class="{{ $field('skills') }}">
-                            <p class="text-[12px] text-muted">Séparez-les par des virgules ({{ \App\Models\Opportunity::MAX_SKILLS }} au plus).</p>
-                            @error('skills')<p role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>@enderror</div>
+                        @include('livewire.partials.skill-picker', [
+                            'list' => 'skills', 'items' => $skills, 'input' => $skillsInput, 'suggestions' => $suggestions, 'tone' => 'neutral', 'plain' => true,
+                            'max' => \App\Models\Opportunity::MAX_SKILLS, 'title' => 'Compétences recherchées',
+                            'help' => 'Touchez une suggestion ou écrivez la vôtre.', 'placeholder' => 'Ex. Réseaux, Électricité…',
+                        ])
                         @if (in_array($kind, ['job', 'internship'], true))
                             <div class="flex flex-col gap-1.5"><label for="experience" class="{{ $labelClass }}">Expérience souhaitée</label>
                                 <input id="experience" type="text" wire:model="experience" maxlength="160" placeholder="Ex. Une première expérience est un plus" class="{{ $field('experience') }}"></div>

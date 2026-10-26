@@ -181,7 +181,7 @@ function ligne(Zumra $zumra, User $personne): ZumraMembership
 /** Une opportunité publiée (par défaut) au nom d'une entreprise ; `$attributes` remplace n'importe quel champ. */
 function opportunite(Company $company, array $attributes = []): Opportunity
 {
-    $opportunity = new Opportunity(array_diff_key($attributes, array_flip(['status', 'published_at'])) + [
+    $opportunity = new Opportunity(array_diff_key($attributes, array_flip(['status', 'published_at', 'skills'])) + [
         'kind' => 'job', 'title' => 'Ingénieur réseau', 'description' => 'Rejoignez nos équipes pour contribuer au déploiement des infrastructures réseau.',
     ]);
     $opportunity->company()->associate($company);
@@ -190,6 +190,7 @@ function opportunite(Company $company, array $attributes = []): Opportunity
         'status' => $attributes['status'] ?? Opportunity::PUBLISHED,
         'published_at' => $attributes['published_at'] ?? now(),
     ])->save();
+    $opportunity->syncSkills($attributes['skills'] ?? []);
 
     return $opportunity->fresh();
 }

@@ -76,7 +76,7 @@ trait PicksSkills
     }
 
     /**
-     * Capacités déjà utilisées (par un profil ou une publication) qui contiennent la saisie, celles qui commencent par la saisie
+     * Capacités déjà utilisées (par un profil, une publication ou une opportunité) qui contiennent la saisie, celles qui commencent par la saisie
      * d'abord. Une capacité que plus personne n'utilise n'est plus proposée.
      *
      * @return Collection<int, Skill>
@@ -94,7 +94,8 @@ trait PicksSkills
         return Skill::query()
             ->where(fn ($query) => $query
                 ->whereExists(fn ($used) => $used->select(DB::raw(1))->from('profile_skill')->whereColumn('profile_skill.skill_id', 'skills.id'))
-                ->orWhereExists(fn ($used) => $used->select(DB::raw(1))->from('publication_skill')->whereColumn('publication_skill.skill_id', 'skills.id')))
+                ->orWhereExists(fn ($used) => $used->select(DB::raw(1))->from('publication_skill')->whereColumn('publication_skill.skill_id', 'skills.id'))
+                ->orWhereExists(fn ($used) => $used->select(DB::raw(1))->from('opportunity_skill')->whereColumn('opportunity_skill.skill_id', 'skills.id')))
             ->where('normalized', 'like', Normalizer::likeContains($key))
             ->whereNotIn('normalized', $selected)
             ->orderByRaw('case when normalized like ? then 0 else 1 end', [addcslashes($key, '\\%_').'%'])

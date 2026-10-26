@@ -20,7 +20,7 @@ class OpportunityController extends Controller
         $viewer = Auth::user();
         // Une opportunité qu'on n'a pas le droit de voir n'existe pas pour soi : 404.
         abort_unless(Gate::forUser($viewer)->allows('view', $opportunity), 404);
-        $opportunity->load(['company', 'city', 'domain']);
+        $opportunity->load(['company', 'city', 'domain', 'requiredSkills']);
 
         return view('pages.opportunity-show', [
             'opportunity' => $opportunity,

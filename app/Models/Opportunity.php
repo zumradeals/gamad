@@ -4,12 +4,15 @@ namespace App\Models;
 
 use App\Enums\OpportunityKind;
 use App\Support\Normalizer;
+use App\Support\SkillList;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
@@ -69,7 +72,7 @@ class Opportunity extends Model
 
         return Normalizer::key(implode(' ', array_filter([
             $this->title, $this->description, $this->missions, $this->profile, $this->experience, $this->qualifications,
-            implode(' ', $this->skills ?? []), $company?->name, $company?->sector,
+            implode(' ', $this->requiredSkills->pluck('name')->all()), $company?->name, $company?->sector,
         ])));
     }
 
@@ -102,6 +105,50 @@ class Opportunity extends Model
     public function domain(): BelongsTo
     {
         return $this->belongsTo(Domain::class);
+    }
+
+    /**
+     * Compétences recherchées : le référentiel commun des capacités (D1), comme les profils et les publications. La colonne
+     * `skills` (texte libre d'avant D1) n'est plus lue ; elle est conservée telle quelle.
+     */
+    public function requiredSkills(): BelongsToMany
+    {
+        return $this->belongsToMany(Skill::class, 'opportunity_skill')->withPivot('position')->orderByPivot('position');
+    }
+
+    /**
+     * Remplace les compétences recherchées par ces noms (déjà nettoyés par SkillList) : une capacité qui existe est réutilisée, une
+     * nouvelle est créée. Le texte de recherche est remis à jour.
+     *
+     * @param  array<int, string>  $names
+     */
+    public function syncSkills(array $names): void
+    {
+        DB::transaction(function () use ($names) {
+            $this->requiredSkills()->sync(collect($names)->mapWithKeys(
+                fn (string $name, int $position) => [Skill::findOrCreateByName($name)->id => ['position' => $position]]
+            )->all());
+            $this->unsetRelation('requiredSkills');
+            $this->forceFill(['search_text' => $this->buildSearchText()])->saveQuietly();
+        });
+    }
+
+    /** Reprise des compétences saisies en texte libre avant D1 : seulement les opportunités qui n'ont encore aucun lien. */
+    public static function linkLegacySkills(): int
+    {
+        $linked = 0;
+
+        static::query()->whereNotNull('skills')->whereDoesntHave('requiredSkills')->each(function (Opportunity $opportunity) use (&$linked) {
+            $names = collect($opportunity->skills ?? [])->map(fn ($name) => Normalizer::display((string) $name))
+                ->filter(fn (string $name) => SkillList::isValid($name))->unique(fn (string $name) => Normalizer::key($name))->take(self::MAX_SKILLS)->values()->all();
+
+            if ($names !== []) {
+                $opportunity->syncSkills($names);
+                $linked++;
+            }
+        });
+
+        return $linked;
     }
 
     public function responses(): HasMany

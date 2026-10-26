@@ -488,6 +488,11 @@ haut ; sur téléphone, la barre du bas reste Accueil · Agir · Mon espace et l
 - Sauvegarder : toute personne connectée. Répondre : une personne active (e-mail vérifié, non suspendue), autre que le propriétaire de
   l'entreprise, sur une opportunité ouverte dont le mode de candidature est GAMAD (une offre à lien externe renvoie vers ce lien).
 
+**Compétences recherchées (D-202).** Ce sont des capacités du référentiel commun `skills` (comme les profils et les publications), choisies avec
+le sélecteur de capacités existant, huit au plus, facultatives ; une capacité qui existe est réutilisée, une nouvelle est créée.
+La recherche, la page de l'opportunité, « Selon vos capacités » et l'annuaire des entreprises les lisent. Aucun score, aucune
+recommandation automatique ni notification n'en découle.
+
 **Catégories.** Emploi, stage et apprentissage, mission, collaboration. Un lien externe de candidature est en https seulement.
 
 **Catalogue `/opportunites`.** Recherche insensible à la casse et aux accents, filtres type, localité, domaine, date de

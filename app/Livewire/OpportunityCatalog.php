@@ -168,15 +168,20 @@ class OpportunityCatalog extends Component
             return collect();
         }
 
-        return Opportunity::query()->open()->with(['company', 'city'])
-            ->where(function (Builder $q) use ($names) {
+        $skillIds = $profile->offeredSkills()->pluck('skills.id')->all();
+
+        return Opportunity::query()->open()->with(['company', 'city', 'requiredSkills'])
+            ->where(function (Builder $q) use ($names, $skillIds) {
+                // Le référentiel commun d'abord : une compétence recherchée est une capacité que je propose ; puis le texte de l'offre.
+                $q->orWhereHas('requiredSkills', fn (Builder $skills) => $skills->whereIn('skills.id', $skillIds));
                 foreach ($names as $name) {
                     $q->orWhere('opportunities.search_text', 'like', Normalizer::likeContains(Normalizer::key($name)));
                 }
             })
             ->latest('published_at')->limit(3)->get()
-            ->map(function (Opportunity $o) use ($names) {
-                $hit = collect($names)->first(fn ($n) => str_contains(Normalizer::key($o->title.' '.implode(' ', $o->skills ?? [])), Normalizer::key($n)));
+            ->map(function (Opportunity $o) use ($names, $skillIds) {
+                $linked = $o->requiredSkills->first(fn ($skill) => in_array($skill->id, $skillIds, true))?->name;
+                $hit = $linked ?? collect($names)->first(fn ($n) => str_contains(Normalizer::key($o->title.' '.implode(' ', $o->requiredSkills->pluck('name')->all())), Normalizer::key($n)));
                 $o->setAttribute('reason', $hit ? 'Correspond à votre capacité « '.$hit.' »' : null);
 
                 return $o;

@@ -193,7 +193,7 @@ it('publie en trois étapes avec aperçu, puis apparaît sur la page entreprise 
         ->call('next')->assertHasErrors(['kind', 'title', 'description'])->assertSet('step', 1)
         ->call('chooseKind', 'job')->set('title', 'Technicien de maintenance')->set('description', 'Assurer la maintenance préventive des équipements.')
         ->call('next')->assertHasNoErrors()->assertSet('step', 2)
-        ->set('city_id', $city->id)->set('skillsText', 'Électricité, Maintenance, Électricité')->set('missions', "Visiter les sites\nRédiger les rapports")
+        ->set('city_id', $city->id)->call('addSkill', 'skills', 'Électricité')->call('addSkill', 'skills', 'Maintenance')->call('addSkill', 'skills', 'électricité')->set('missions', "Visiter les sites\nRédiger les rapports")
         ->call('back')->assertSet('step', 1)->assertSet('title', 'Technicien de maintenance')
         ->call('next')->assertSet('city_id', $city->id)
         ->call('preview')->assertSet('step', 3)->assertSeeText('Aperçu de votre opportunité')->assertSeeText('Technicien de maintenance')->assertSeeText('Visiter les sites')->assertSeeText('Publier l’opportunité');
@@ -201,7 +201,7 @@ it('publie en trois étapes avec aperçu, puis apparaît sur la page entreprise 
 
     $test->call('publish')->assertHasNoErrors()->assertRedirect();
     $o = Opportunity::sole();
-    expect($o->status)->toBe('published')->and($o->published_at)->not->toBeNull()->and($o->skills)->toBe(['Électricité', 'Maintenance'])
+    expect($o->status)->toBe('published')->and($o->published_at)->not->toBeNull()->and($o->requiredSkills->pluck('name')->all())->toBe(['Électricité', 'Maintenance'])
         ->and($o->company_id)->toBe($this->company->id)->and($o->author_id)->toBe($this->owner->id)->and($o->reference)->toStartWith('OPP-');
 
     $this->get(route('entreprises.show', $this->company))->assertSeeText('Nos opportunités')->assertSeeText('Technicien de maintenance')->assertSee(route('opportunites.show', $o), false);

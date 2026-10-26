@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Enums\OpportunityKind;
+use App\Livewire\Concerns\PicksSkills;
 use App\Models\City;
 use App\Models\Company;
 use App\Models\Domain;
@@ -25,6 +26,8 @@ use Livewire\Component;
 #[Title('Publier une opportunité')]
 class OpportunityForm extends Component
 {
+    use PicksSkills;
+
     #[Locked]
     public string $companyId = '';
 
@@ -46,7 +49,10 @@ class OpportunityForm extends Component
 
     public string $profile = '';
 
-    public string $skillsText = '';
+    /** @var array<int, string> Compétences recherchées : noms du référentiel commun des capacités. */
+    public array $skills = [];
+
+    public string $skillsInput = '';
 
     public string $experience = '';
 
@@ -78,7 +84,7 @@ class OpportunityForm extends Component
             foreach (['title', 'description', 'missions', 'profile', 'experience', 'qualifications', 'conditions', 'work_mode', 'workload', 'city_id', 'domain_id', 'apply_mode', 'external_url'] as $field) {
                 $this->{$field} = (string) $opportunity->{$field};
             }
-            $this->skillsText = implode(', ', $opportunity->skills ?? []);
+            $this->skills = $opportunity->requiredSkills->pluck('name')->all();
             $this->deadline = $opportunity->deadline?->format('Y-m-d') ?? '';
             $this->step = 2;
         } else {
@@ -116,11 +122,17 @@ class OpportunityForm extends Component
         }
     }
 
+    /** @return array<string, int> */
+    protected function skillLists(): array
+    {
+        return ['skills' => Opportunity::MAX_SKILLS];
+    }
+
     private function payload(): array
     {
         return [
             'kind' => $this->kind, 'title' => $this->title, 'description' => $this->description, 'missions' => $this->missions,
-            'profile' => $this->profile, 'skills' => preg_split('/[,;\n]+/', $this->skillsText) ?: [], 'experience' => $this->experience,
+            'profile' => $this->profile, 'skills' => $this->skills, 'experience' => $this->experience,
             'qualifications' => $this->qualifications, 'conditions' => $this->conditions, 'work_mode' => $this->work_mode,
             'workload' => $this->workload, 'city_id' => $this->city_id, 'domain_id' => $this->domain_id, 'deadline' => $this->deadline,
             'apply_mode' => $this->apply_mode, 'external_url' => $this->external_url,
@@ -212,7 +224,8 @@ class OpportunityForm extends Component
             'cities' => City::query()->active()->get()->sortBy(fn (City $c) => Normalizer::key($c->label()))->values(),
             'domains' => Domain::query()->active()->ordered()->get(),
             'editing' => $this->opportunityId !== null,
-            'skillList' => collect(preg_split('/[,;\n]+/', $this->skillsText) ?: [])->map(fn ($s) => Normalizer::display($s))->filter()->unique()->take(Opportunity::MAX_SKILLS)->values()->all(),
+            'skillList' => $this->skills,
+            'suggestions' => $this->skillSuggestions('skills'),
         ]);
     }
 }
