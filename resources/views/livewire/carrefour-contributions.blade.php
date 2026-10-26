@@ -50,7 +50,7 @@
     <div class="grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)_280px]">
         <aside class="flex min-w-0 flex-col gap-3" aria-label="Filtres">
             <button type="button" x-on:click="filters = ! filters" x-bind:aria-expanded="filters.toString()" aria-controls="filtres-contributions" class="inline-flex min-h-11 items-center justify-between gap-2 rounded-button border border-line bg-card px-4 text-[14px] font-extrabold lg:hidden"><span class="inline-flex items-center gap-2"><x-icon name="filter" :size="18" />Filtres</span><x-icon name="chevron-down" :size="18" /></button>
-            <div id="filtres-contributions" x-show="filters" x-cloak class="max-lg:hidden flex flex-col gap-4 rounded-card border border-line bg-card p-4" x-bind:class="filters && 'max-lg:!flex'">
+            <div id="filtres-contributions" class="hidden flex-col gap-4 rounded-card border border-line bg-card p-4 lg:flex" x-bind:class="filters && 'max-lg:!flex'">
                 <h2 class="hidden text-[16px] font-extrabold lg:block">Filtres</h2>
                 <div class="flex items-center gap-2 rounded-button border border-line px-3">
                     <x-icon name="search" :size="18" class="shrink-0" />
