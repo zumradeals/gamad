@@ -5,7 +5,7 @@ use App\Models\User;
 /** Refonte de la page de connexion : visuel et ergonomie seulement, mécanismes d'authentification inchangés. */
 it('présente la page de connexion à un visiteur, avec les champs, libellés et liens réels', function () {
     $html = $this->get(route('login'))->assertOk()
-        ->assertSeeText('Heureux de')->assertSeeText('vous retrouver.')->assertSeeText('Se connecter')
+        ->assertSeeText('Retrouvez votre espace')->assertSeeText('GAMAD.')->assertSeeText('Les mêmes personnes.')->assertSeeText('Se connecter')
         ->assertSeeText('Adresse e-mail')->assertSeeText('Mot de passe')->assertSeeText('Rester connecté')
         ->assertSeeText('Mot de passe oublié ?')->assertSeeText('Créer un compte')->assertSeeText('Découvrir GAMAD sans compte')
         ->getContent();

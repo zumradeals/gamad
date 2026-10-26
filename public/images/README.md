@@ -14,3 +14,9 @@ convert maquette.png -crop 510x280+520+107 +repage -define webp:lossless=true ga
 ```
 
 ImageMagick n’est pas une dépendance de l’application ; l’asset final suffit au déploiement.
+
+# Portrait de la page de connexion
+
+`gamad-connexion-portrait.webp` est la zone photographique de la maquette de connexion approuvée le 26 octobre 2026, isolée comme la photo du héros ci-dessus : origine (392, 70), dimensions 388 × 532 px, encodage WebP (qualité 92). Le texte, la légende et le formulaire de la maquette sont recréés en HTML. La photo ne représente pas un membre identifié du réseau.
+
+Source : maquette de 1536 × 1024 px (`15.webp`), SHA-256 `e847866394ccd564afce6694669d5ef0ae14c5cce3d02f586411d3f604dfd537`.

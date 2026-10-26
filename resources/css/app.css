@@ -392,6 +392,14 @@
     }
 }
 
+/* Page de connexion : portrait fondu dans le décor, au-dessus d'un fond chaud. */
+@layer components {
+    .login-stage { background: linear-gradient(100deg, #fbf4e6, #fff 70%); }
+    @media (min-width: 1024px) {
+        .login-photo { -webkit-mask-image: linear-gradient(to right, transparent, #000 45%); mask-image: linear-gradient(to right, transparent, #000 45%); }
+    }
+}
+
 /* Page Contributions (C1) : bandeau d'en-tête. */
 @layer components {
     .contrib-hero { background: linear-gradient(120deg, #0a2d68, #0b4aa6); }
