@@ -44,6 +44,9 @@ return [
         'join_requests_per_day' => 10,
         'invitations_per_day' => 30,
         'reports_per_hour' => 10,
+        // Publicité (D-212) : campagnes créées et envoyées à la modération, par personne.
+        'ad_campaigns_per_day' => 10,
+        'ad_submissions_per_day' => 10,
         // Messages de contact (D-208), par adresse IP et par adresse e-mail.
         'contact_per_hour' => 3,
         'contact_per_day' => 10,

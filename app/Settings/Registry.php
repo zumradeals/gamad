@@ -119,6 +119,11 @@ final class Registry
                 'test' => 'Test privé : administrateurs et testeurs autorisés seulement',
                 'public' => 'Public : ouvert aux membres connectés',
             ]),
+            new Definition('publicite_diffusion', self::GROUP_PUBLICITE, 'Diffusion payante des annonces', Definition::ENUM, 'closed', ['required', 'in:closed,open'], [
+                'closed' => 'Fermée : aucune annonce n’est affichée',
+                'open' => 'Ouverte : les campagnes acceptées sont diffusées (dispositif d’encaissement validé)',
+            ]),
+            new Definition('publicite_min_audience', self::GROUP_PUBLICITE, 'Audience minimale d’une campagne personnalisée (profils consentants)', Definition::INTEGER, 100, ['required', 'integer', 'between:20,100000']),
             new Definition('publicite_testers', self::GROUP_PUBLICITE, 'Comptes testeurs de GAMAD Publicité (adresses e-mail)', Definition::STRING, null, ['nullable', 'string', 'max:2000']),
         ])->keyBy(fn (Definition $definition) => $definition->key)->all();
     }
