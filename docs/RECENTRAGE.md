@@ -493,6 +493,11 @@ le sélecteur de capacités existant, huit au plus, facultatives ; une capacité
 La recherche, la page de l'opportunité, « Selon vos capacités » et l'annuaire des entreprises les lisent. Aucun score, aucune
 recommandation automatique ni notification n'en découle.
 
+**Découverte (D-203).** Les opportunités correspondantes apparaissent dans « Mes pistes » (Mon espace), pour la personne qui a activé ses préférences
+de découverte avec l'intention « Proposer mes compétences » : une compétence recherchée au moins parmi ses capacités proposées, un lieu choisi ou la distance,
+une période compatible avec la date limite. Raisons explicables, « Ne m'intéresse pas », aucune notification, aucun score ni classement ; les entreprises ne voient
+aucune liste de personnes correspondantes.
+
 **Catégories.** Emploi, stage et apprentissage, mission, collaboration. Un lien externe de candidature est en https seulement.
 
 **Catalogue `/opportunites`.** Recherche insensible à la casse et aux accents, filtres type, localité, domaine, date de

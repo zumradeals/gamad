@@ -5,12 +5,14 @@ namespace App\Services;
 use App\Enums\NotificationKind;
 use App\Enums\PublicationType;
 use App\Models\MatchSuggestion;
+use App\Models\Opportunity;
 use App\Models\Profile;
 use App\Models\Publication;
 use App\Models\User;
 use App\Models\UserNotification;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -22,6 +24,9 @@ class Matching
     private const POST_RELATIONS = ['author.profile', 'skills', 'city'];
 
     private const PROFILE_RELATIONS = ['user', 'offeredSkills', 'wantedSkills'];
+
+    /** Lot D2 : nombre maximal d'opportunités examinées à chaque calcul, les plus récentes d'abord. */
+    private const OPPORTUNITY_SCAN = 100;
 
     public function preferences(Profile $profile): array
     {
@@ -98,7 +103,7 @@ class Matching
     {
         $this->discover($user, min(101, max(1, $limit + 1)));
         $items = collect();
-        foreach (MatchSuggestion::where('user_id', $user->id)->whereNull('ignored_at')->with(['publication.author.profile', 'publication.skills', 'publication.city', 'profile.user', 'profile.offeredSkills', 'profile.wantedSkills', 'offer.author.profile', 'offer.skills', 'offer.city'])->orderByDesc(Publication::select('created_at')->whereColumn('publications.id', 'match_suggestions.publication_id'))->orderByDesc('id')->lazy(100) as $row) {
+        foreach (MatchSuggestion::where('user_id', $user->id)->whereNull('ignored_at')->with(['publication.author.profile', 'publication.skills', 'publication.city', 'profile.user', 'profile.offeredSkills', 'profile.wantedSkills', 'offer.author.profile', 'offer.skills', 'offer.city', 'opportunity.company', 'opportunity.city', 'opportunity.requiredSkills'])->orderByRaw('coalesce((select p.created_at from publications p where p.id = match_suggestions.publication_id), (select o.published_at from opportunities o where o.id = match_suggestions.opportunity_id), match_suggestions.created_at) desc')->orderByDesc('id')->lazy(100) as $row) {
             $detail = $this->detail($user, $row);
             if ($detail) {
                 $items->push(['suggestion' => $row, ...$detail]);
@@ -164,6 +169,87 @@ class Matching
                 break;
             }
         }
+        $this->discoverOpportunities($user, $profile, $limit);
+    }
+
+    /**
+     * Lot D2 : les opportunités ouvertes dont une compétence recherchée est l'une de mes capacités proposées. Lecture bornée, aucune
+     * notification : la piste n'apparaît que dans « Mes pistes », avec ses raisons, et peut être ignorée.
+     */
+    private function discoverOpportunities(User $user, Profile $profile, int $limit): void
+    {
+        $skills = $profile->offeredSkills->modelKeys();
+        if ($skills === [] || ! in_array('offer', $this->preferences($profile)['intentions'], true)) {
+            return;
+        }
+        $count = 0;
+        $candidates = Opportunity::query()->open()
+            ->whereHas('requiredSkills', fn (Builder $q) => $q->whereIn('skills.id', $skills))
+            ->whereHas('company', fn (Builder $q) => $q->where('owner_id', '!=', $user->id))
+            ->with(['company', 'city', 'requiredSkills'])->latest('published_at')->orderByDesc('id')->limit(self::OPPORTUNITY_SCAN)->get();
+        foreach ($candidates as $opportunity) {
+            if ($this->rememberOpportunity($opportunity, $profile)) {
+                $count++;
+            }
+            if ($count >= $limit) {
+                break;
+            }
+        }
+    }
+
+    /** Un reçu privé de découverte, jamais d'alerte : `alerted_at` reste vide et aucune notification n'est créée. */
+    private function rememberOpportunity(Opportunity $opportunity, Profile $profile): bool
+    {
+        if (! $this->opportunityReasons($opportunity, $profile)) {
+            return false;
+        }
+        $keys = ['user_id' => $profile->user_id, 'signature' => hash('sha256', 'opportunity|'.$opportunity->id)];
+        try {
+            $row = MatchSuggestion::firstOrCreate($keys, ['opportunity_id' => $opportunity->id]);
+        } catch (UniqueConstraintViolationException) {
+            $row = MatchSuggestion::where($keys)->first();
+        }
+
+        return $row !== null && ! $row->ignored_at;
+    }
+
+    /**
+     * Raisons explicables d'une opportunité pour une personne, ou null : intention « Proposer mes compétences » (les quatre catégories),
+     * opportunité ouverte d'une entreprise vérifiée visible de la personne, une compétence recherchée au moins parmi mes capacités
+     * proposées, lieu choisi ou distance, période compatible avec la date limite. Le blocage avec le propriétaire n'écarte pas
+     * l'entreprise (D-199, D-200). Aucun score.
+     *
+     * @return array<int, string>|null
+     */
+    public function opportunityReasons(Opportunity $opportunity, Profile $profile): ?array
+    {
+        $profile->loadMissing(self::PROFILE_RELATIONS);
+        $opportunity->loadMissing(['company', 'city', 'requiredSkills']);
+        $prefs = $this->preferences($profile);
+        $company = $opportunity->company;
+        if (! $profile->user->isActive() || ! $this->ready($profile) || ! in_array('offer', $prefs['intentions'], true)) {
+            return null;
+        }
+        if (! $company || $company->owner_id === $profile->user_id || ! $opportunity->isOpen() || ! $company->verified() || $company->status === 'suspended'
+            || ! Gate::forUser($profile->user)->allows('view', $opportunity)) {
+            return null;
+        }
+        $skills = $opportunity->requiredSkills->whereIn('id', $profile->offeredSkills->modelKeys())->pluck('name')->all();
+        if ($skills === []) {
+            return null;
+        }
+        $place = $opportunity->city?->active && in_array($opportunity->city_id, $prefs['zones'], true) ? 'Localité choisie : '.$opportunity->city->label()
+            : ($opportunity->work_mode === 'remote' && $prefs['remote'] ? 'À distance possible des deux côtés' : null);
+        if (! $place || ($opportunity->deadline && $prefs['from'] && $prefs['from'] > $opportunity->deadline->toDateString())) {
+            return null;
+        }
+
+        return array_values(array_filter([
+            'Capacité commune : '.implode(', ', $skills),
+            $place,
+            $opportunity->kind->label().' proposé par '.$company->name.', entreprise vérifiée par GAMAD',
+            $opportunity->deadline ? 'Date limite : '.$opportunity->deadline->format('d/m/Y') : null,
+        ]));
     }
 
     private function rememberPerson(Publication $post, Profile $profile, ?string $countFor = null): bool
@@ -230,6 +316,12 @@ class Matching
     {
         if (! Gate::forUser($user)->allows('view', $row) || ! $this->ready($user->ensureProfile())) {
             return null;
+        }
+        if ($row->opportunity_id) {
+            $opportunity = $row->opportunity;
+            $reasons = $opportunity ? $this->opportunityReasons($opportunity, $user->ensureProfile()) : null;
+
+            return $reasons ? ['title' => $opportunity->title, 'body' => $opportunity->firstLine(280), 'url' => route('opportunites.show', $opportunity), 'reasons' => $reasons, 'context' => null, 'person' => null, 'company' => $opportunity->company] : null;
         }
         $post = $row->publication;
         if (! $post || ! $this->active($post) || ! Gate::forUser($user)->allows('view', $post)) {
