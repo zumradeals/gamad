@@ -6,13 +6,13 @@
     $domainLabel = $domain_id !== '' ? $domains->firstWhere('id', $domain_id)?->name : null;
 @endphp
 <div class="flex flex-col gap-3.5" data-opportunity-form>
-    <div class="-mx-4 -mt-4 flex min-h-14 items-center gap-1 border-b border-line bg-card px-2 py-1.5 md:mx-0 md:mt-0 md:rounded-card md:border">
+    <div class="-mx-4 -mt-4 flex min-h-14 items-center gap-1 border-b border-line bg-card px-2 py-1.5 md:mx-0 md:mt-0 md:min-h-0 md:border-0 md:bg-transparent md:px-0 md:py-0">
         @if ($step > 1)
             <button type="button" wire:click="back" aria-label="Revenir à l’étape précédente" class="flex size-11 items-center justify-center text-ink"><x-icon name="back" /></button>
         @else
             <a href="{{ route('entreprises.opportunities', $company) }}" aria-label="Retour à mes opportunités" class="flex size-11 items-center justify-center text-ink hover:text-ink"><x-icon name="back" /></a>
         @endif
-        <h1 class="flex-1 text-[17px] font-extrabold">{{ $editing ? 'Modifier l’opportunité' : 'Publier une opportunité' }}</h1>
+        <h1 class="flex-1 text-[17px] font-extrabold md:sr-only">{{ $editing ? 'Modifier l’opportunité' : 'Publier une opportunité' }}</h1>
     </div>
 
     <header class="flex min-w-0 items-center gap-4 rounded-card border border-line bg-card p-4 max-md:hidden md:p-5">
