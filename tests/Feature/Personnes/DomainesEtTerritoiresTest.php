@@ -164,7 +164,7 @@ it('ajoute un pays et une ville, renomme et désactive, avec un journal complet'
 
     expect($ville->fresh()->name)->toBe('Bobo')->and($ville->fresh()->active)->toBeFalse()->and($pays->fresh()->active)->toBeFalse();
 
-    expect(AdminAction::query()->orderBy('created_at')->pluck('action')->all())->toBe(['country.created', 'city.created', 'city.renamed', 'city.deactivated', 'country.deactivated']);
+    expect(AdminAction::query()->orderBy('created_at')->orderBy('id')->pluck('action')->all())->toBe(['country.created', 'city.created', 'city.renamed', 'city.deactivated', 'country.deactivated']);
     expect(AdminAction::query()->where('action', 'city.renamed')->firstOrFail()->payload)->toBe(['ancien' => 'Bobo-Dioulasso', 'nouveau' => 'Bobo']);
 });
 
