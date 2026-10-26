@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Zumra;
 use App\Models\ZumraMembership;
 use App\Support\Normalizer;
+use App\Support\ZumraModule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
@@ -62,7 +63,7 @@ class JoinRequests
         DB::transaction(function () use ($user, $request) {
             $fresh = JoinRequest::query()->whereKey($request->getKey())->lockForUpdate()->firstOrFail();
 
-            abort_unless($fresh->user_id === $user->getKey(), 404);
+            abort_unless($fresh->user_id === $user->getKey() && ZumraModule::accessibleTo($user), 404);
 
             if (! $fresh->isPending()) {
                 throw ValidationException::withMessages(['joinWord' => 'Cette demande ne peut plus être retirée.']);

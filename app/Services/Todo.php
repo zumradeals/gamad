@@ -15,7 +15,9 @@ use App\Models\Report;
 use App\Models\User;
 use App\Models\Wallet;
 use App\Models\Zumra;
+use App\Models\ZumraMembership;
 use App\Support\Experience;
+use App\Support\ZumraModule;
 use Illuminate\Support\Str;
 
 /**
@@ -39,6 +41,7 @@ class Todo
             ...$this->hiddenPublications($user),
             ...$this->reportsToReview($user),
             ...$this->zumraInvitations($user),
+            ...$this->dutyProposals($user),
             ...$this->joinRequestsToDecide($user),
             ...$this->participationRequestsToDecide($user),
             ...$this->proposals($user),
@@ -137,6 +140,10 @@ class Todo
     /** Une invitation à rejoindre une ZUMRA attend la réponse de la personne invitée. */
     private function zumraInvitations(User $user): array
     {
+        if (! ZumraModule::accessibleTo($user)) {
+            return [];
+        }
+
         return Invitation::query()->open()->where('user_id', $user->getKey())->with(['zumra', 'inviter'])
             ->orderByDesc('created_at')->limit(self::MAX_LINES)->get()
             ->map(fn (Invitation $invitation) => [
@@ -148,9 +155,30 @@ class Todo
             ])->all();
     }
 
+    /** Un poste de gouvernance proposé attend la réponse de la personne désignée. */
+    private function dutyProposals(User $user): array
+    {
+        if (! ZumraModule::accessibleTo($user)) {
+            return [];
+        }
+
+        return $user->zumraMemberships()->where('duty_state', ZumraMembership::DUTY_PENDING)->whereNotNull('duty')->with('zumra')->whereHas('zumra')->limit(self::MAX_LINES)->get()
+            ->map(fn (ZumraMembership $membership) => [
+                'key' => 'poste-'.$membership->getKey(),
+                'title' => 'Responsabilité proposée : '.$membership->duty->label(),
+                'detail' => 'Dans la ZUMRA « '.Str::limit($membership->zumra->name, 40).' »',
+                'action' => 'Répondre',
+                'url' => route('espace.zumras'),
+            ])->all();
+    }
+
     /** Pour le fondateur et les responsables : des demandes d'adhésion attendent une décision (une ligne par ZUMRA). */
     private function joinRequestsToDecide(User $user): array
     {
+        if (! ZumraModule::accessibleTo($user)) {
+            return [];
+        }
+
         return Zumra::query()
             ->whereHas('memberships', fn ($query) => $query->where('user_id', $user->getKey())->whereIn('role', ['founder', 'manager']))
             ->whereHas('joinRequests', fn ($query) => $query->where('state', JoinRequestState::Pending->value)->whereHas('user', fn ($person) => $person->active()))

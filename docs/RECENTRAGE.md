@@ -531,3 +531,26 @@ la relation professionnelle avec l'entreprise : le blocage entre la personne et 
 pas l'accès aux candidatures antérieures (personne comme entreprise). Les relations et conversations personnelles directes entre
 personnes bloquées restent interdites : l'entreprise ne peut pas proposer d'échange à une personne bloquée, un message clair l'explique, et
 le lien vers le profil public n'est pas proposé.
+
+## Module ZUMRA — ouverture contrôlée (Z1, D-205)
+
+**État du module.** `zumra_module` : `off` (défaut), `test`, `public`, plus la liste `zumra_testers` (adresses e-mail). Seul le super
+administrateur les modifie, depuis Paramètres → Module ZUMRA ; chaque changement est inscrit au journal. `App\Support\ZumraModule` décide
+de l'accès : hors du parcours actif (ancien mode des tests), le module est ouvert comme avant. Un compte testeur doit avoir une adresse
+vérifiée. Le contrôle est côté serveur : redirection du Carrefour, 404 des pages, refus des politiques (`create`, `join`, `invite`, `view`) et
+404 de toute action Livewire du Carrefour et de « Mes ZUMRA ».
+
+**Fermeture totale (D-205).** Module fermé, aucune personne ordinaire, membre d'une ZUMRA existante comprise, ne lit ni n'utilise une ZUMRA :
+`ZumraPolicy::before` refuse tout (404), ainsi que les composants Livewire, l'acceptation d'une invitation, le retrait d'une demande et les
+rubriques « À faire maintenant ». Les données sont conservées ; les liens vers une ZUMRA deviennent du texte. Les Projets, contributions et
+portefeuilles ne dépendent pas de ce réglage.
+
+**Responsabilités.** Le fondateur propose un poste à un responsable (`duty_state = pending`) ; la personne l'accepte ou le refuse depuis « Mes
+ZUMRA » ; le fondateur en est informé. Un poste en attente n'est pas occupé. Un état vide avec un poste désigne un poste déjà tenu avant
+l'acceptation : il reste effectif. Le poste ne donne aucun pouvoir.
+
+**Données.** `zumras.sphere` (professional, social, religious) et `zumra_memberships.duty` et `duty_state` (premier adjoint, deuxième adjoint, responsable
+financier, affaires sociales et religieuses ; un poste, une personne par ZUMRA) : colonnes nulles par défaut.
+
+**Interdits.** Aucun faux compte de membres ni statistique ; aucun classement de popularité ; les noms des responsables ne sont montrés
+qu'aux personnes autorisées à voir les membres ; les projets d'une ZUMRA ne sont pas affichés dans ce parcours.

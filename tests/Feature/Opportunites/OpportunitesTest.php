@@ -624,9 +624,9 @@ it('ouvre sur téléphone un menu Accueil, Personnes, Entreprises, Opportunités
     // Accessibilité : un bouton nommé qui annonce son état, relié au menu, fermé après chaque choix et par Échap.
     expect($html)->toContain('aria-controls="menu-mobile"')->toContain('aria-label="Menu"')->toContain('x-bind:aria-expanded="menuOpen.toString()"')
         ->and($menu)->toContain('x-on:click="menuOpen = false"')->and($html)->toContain('x-on:keydown.escape.window');
-    // La barre du bas garde ses trois entrées, dans cet ordre.
+    // La barre du bas a quatre entrées (Z1) : Accueil, Découvrir, Agir, Mon espace.
     preg_match_all('/<nav aria-label="Navigation principale"\s+class="fixed.*?<\/nav>/s', $html, $bas);
-    expect(trim(preg_replace('/\s+/', ' ', strip_tags($bas[0][0]))))->toBe('Accueil Agir Mon espace');
+    expect(trim(preg_replace('/\s+/', ' ', strip_tags($bas[0][0]))))->toBe('Accueil Découvrir Agir Mon espace');
 });
 
 it('ne rouvre aucun module gelé dans le menu du téléphone et retire l’ancienne icône Opportunités de l’en-tête', function () {

@@ -37,8 +37,10 @@
         <div class="min-w-0 flex-1 basis-36">
             @if ($project)
                 <a href="{{ route('projets.show', $project) }}" class="need-emitter-link">{{ $project->name }}</a>
-            @elseif ($zumra)
+            @elseif ($zumra && \App\Support\ZumraModule::accessibleTo(auth()->user()))
                 <a href="{{ route('zumras.show', $zumra) }}" class="need-emitter-link">{{ $zumra->name }}</a>
+            @elseif ($zumra)
+                <span class="need-emitter-link">{{ $zumra->name }}</span>
             @elseif ($canSeeAuthor)
                 <a href="{{ route('personnes.show', $profile->public_id) }}" class="need-emitter-link">{{ $author->name }}</a>
             @else

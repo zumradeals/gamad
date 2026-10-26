@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\ZumraDuty;
 use App\Enums\ZumraFormat;
 use App\Enums\ZumraRole;
+use App\Enums\ZumraSphere;
 use App\Support\Normalizer;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -28,7 +30,7 @@ class Zumra extends Model
 
     protected function casts(): array
     {
-        return ['format' => ZumraFormat::class, 'recognized_at' => 'datetime'];
+        return ['format' => ZumraFormat::class, 'sphere' => ZumraSphere::class, 'recognized_at' => 'datetime'];
     }
 
     protected static function booted(): void
@@ -88,6 +90,32 @@ class Zumra extends Model
     public function invitations(): HasMany
     {
         return $this->hasMany(Invitation::class);
+    }
+
+    /**
+     * Les cinq postes de gouvernance recommandés. `state` : `occupied` (accepté par la personne), `pending` (proposé, pas encore accepté)
+     * ou `free` (à pourvoir). Le responsable principal est le fondateur. Simple lecture : aucun score ni privilège n'en découle.
+     *
+     * @return array<int, array{label: string, holder: ?User, duty: ?ZumraDuty, state: string}>
+     */
+    public function governance(): array
+    {
+        $memberships = $this->memberships()->with('user')->whereHas('user', fn ($user) => $user->active())->whereIn('role', [ZumraRole::Founder->value, ZumraRole::Manager->value])->get();
+
+        $founder = $memberships->firstWhere('role', ZumraRole::Founder)?->user;
+        $posts = [['label' => 'Responsable principal', 'holder' => $founder, 'duty' => null, 'state' => $founder ? 'occupied' : 'free']];
+
+        foreach (ZumraDuty::cases() as $duty) {
+            $membership = $memberships->first(fn ($m) => $m->role === ZumraRole::Manager && $m->duty === $duty);
+            $posts[] = [
+                'label' => $duty->label(),
+                'holder' => $membership?->user,
+                'duty' => $duty,
+                'state' => $membership === null ? 'free' : ($membership->dutyPending() ? 'pending' : 'occupied'),
+            ];
+        }
+
+        return $posts;
     }
 
     /** Rôle de `$user` dans cette ZUMRA, ou null s'il n'en fait pas partie. */

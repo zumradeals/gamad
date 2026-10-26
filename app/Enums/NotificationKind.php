@@ -29,6 +29,9 @@ enum NotificationKind: string
     case ZumraInvitationReceived = 'zumra_invitation_received';
     case ZumraInvitationAccepted = 'zumra_invitation_accepted';
     case ZumraRoleGranted = 'zumra_role_granted';
+    case ZumraDutyProposed = 'zumra_duty_proposed';
+    case ZumraDutyAccepted = 'zumra_duty_accepted';
+    case ZumraDutyDeclined = 'zumra_duty_declined';
     case ZumraMemberRemoved = 'zumra_member_removed';
     case ZumraFounderTransferred = 'zumra_founder_transferred';
     case ZumraRecognized = 'zumra_recognized';
@@ -97,6 +100,9 @@ enum NotificationKind: string
             self::ZumraInvitationReceived => "vous invite à rejoindre{$about}.",
             self::ZumraInvitationAccepted => "a accepté votre invitation à rejoindre{$about}.",
             self::ZumraRoleGranted => "vous a confié un rôle de responsable dans{$about}.",
+            self::ZumraDutyProposed => "vous propose un poste de responsabilité dans{$about} : à accepter ou refuser.",
+            self::ZumraDutyAccepted => "a accepté le poste proposé dans{$about}.",
+            self::ZumraDutyDeclined => "a refusé le poste proposé dans{$about}.",
             self::ZumraMemberRemoved => "vous a retiré de{$about}.",
             self::ZumraFounderTransferred => "La fondation de{$about} vous a été confiée : son fondateur a supprimé son compte.",
             self::ZumraRecognized => "a reconnu officiellement{$about} : elle porte le badge « Reconnue par GAMAD ».",

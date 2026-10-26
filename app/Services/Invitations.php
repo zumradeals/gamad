@@ -10,6 +10,7 @@ use App\Models\JoinRequest;
 use App\Models\User;
 use App\Models\Zumra;
 use App\Support\Normalizer;
+use App\Support\ZumraModule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
@@ -121,7 +122,7 @@ class Invitations
     {
         $fresh = Invitation::query()->whereKey($invitation->getKey())->lockForUpdate()->firstOrFail();
 
-        abort_unless($fresh->user_id === $user->getKey(), 404);
+        abort_unless($fresh->user_id === $user->getKey() && ZumraModule::accessibleTo($user), 404);
         Gate::forUser($user)->authorize('respond', $fresh);
 
         if (! $fresh->isOpen()) {

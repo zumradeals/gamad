@@ -6,7 +6,7 @@
 
     <form wire:submit="save" class="flex flex-col gap-3.5">
         @unless ($editing)
-            <p class="text-[14px] leading-normal text-muted">Une ZUMRA est une communauté qui apprend, travaille et agit ensemble autour d’<strong>un seul domaine</strong>. Vous en serez le fondateur. Le nom et le domaine ne pourront plus changer.</p>
+            <p class="text-[14px] leading-normal text-muted">Une ZUMRA est une communauté qui apprend, travaille et agit ensemble autour d’<strong>un seul domaine</strong>. Vous en serez le responsable principal ; vous pouvez la lancer seul et former l’équipe ensuite. Le nom et le domaine ne pourront plus changer.</p>
         @endunless
 
         @if ($editing)
@@ -26,8 +26,21 @@
                 @enderror
             </div>
 
+            <fieldset class="flex flex-col gap-2">
+                <legend class="mb-1 text-[13px] font-bold text-muted">Nature de la ZUMRA</legend>
+                @foreach ($spheres as $option)
+                    <label for="sphere-{{ $option->value }}" class="flex min-h-12 cursor-pointer items-center gap-3 rounded-button border border-chip-line px-3 has-[:checked]:border-ink has-[:checked]:bg-soft-blue">
+                        <input id="sphere-{{ $option->value }}" type="radio" wire:model="sphere" value="{{ $option->value }}" class="size-5 accent-ink">
+                        <span class="text-[15px] font-semibold">{{ $option->label() }}</span>
+                    </label>
+                @endforeach
+                @error('sphere')
+                    <p role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>
+                @enderror
+            </fieldset>
+
             <div class="flex flex-col gap-1.5">
-                <label for="domain_id" class="text-[13px] font-bold text-muted">Domaine (un seul)</label>
+                <label for="domain_id" class="text-[13px] font-bold text-muted">Domaine d’activité (un seul)</label>
                 <select id="domain_id" wire:model="domain_id"
                         @class(['min-h-12 w-full rounded-button border bg-card px-3.5 text-[15px]', $errors->has('domain_id') ? 'border-danger' : 'border-chip-line'])
                         @if ($errors->has('domain_id')) aria-invalid="true" aria-describedby="domain-error" @endif>
@@ -70,7 +83,7 @@
         </fieldset>
 
         <div class="flex flex-col gap-1.5" x-data="{ count: [...$wire.mission].length }">
-            <label for="mission" class="text-[13px] font-bold text-muted">Mission</label>
+            <label for="mission" class="text-[13px] font-bold text-muted">Description courte</label>
             <textarea id="mission" wire:model="mission" rows="5" maxlength="{{ $missionMax }}" x-on:input="count = [...$event.target.value].length"
                       placeholder="Ex. Former des couturières et couturiers, et produire des uniformes scolaires à prix juste."
                       @class(['min-h-[120px] w-full resize-y rounded-button border bg-card px-3.5 py-3 text-[15px] leading-normal', $errors->has('mission') ? 'border-danger' : 'border-chip-line'])

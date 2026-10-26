@@ -51,9 +51,10 @@ class NotificationController extends Controller
             NotificationKind::ModerationNoticeIssued => route('avis'),
             NotificationKind::ModerationNoticeClosed => route('espace'),
             NotificationKind::PersonReinstated => route('fil'),
+            NotificationKind::ZumraDutyProposed => route('espace.zumras'),
             // Toutes les notifications d'une ZUMRA mènent à son Monde (la ZUMRA est publique : elle existe pour tous).
             NotificationKind::ZumraRequestReceived, NotificationKind::ZumraRequestAccepted, NotificationKind::ZumraInvitationReceived,
-            NotificationKind::ZumraInvitationAccepted, NotificationKind::ZumraRoleGranted, NotificationKind::ZumraMemberRemoved,
+            NotificationKind::ZumraInvitationAccepted, NotificationKind::ZumraRoleGranted, NotificationKind::ZumraMemberRemoved, NotificationKind::ZumraDutyAccepted, NotificationKind::ZumraDutyDeclined,
             NotificationKind::ZumraFounderTransferred, NotificationKind::ZumraRecognized, NotificationKind::ZumraRecognitionWithdrawn => $notification->zumra ? route('zumras.show', $notification->zumra) : null,
             // Les notifications d'un projet mènent à son Monde, onglet Équipe (le projet est public).
             NotificationKind::ProjectParticipationRequested, NotificationKind::ProjectParticipationAccepted,

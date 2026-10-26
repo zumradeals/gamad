@@ -4,6 +4,8 @@ namespace App\Livewire;
 
 use App\Enums\JoinRequestState;
 use App\Enums\PublicationType;
+use App\Enums\ZumraDuty;
+use App\Livewire\Concerns\GuardsZumraModule;
 use App\Models\Gesture;
 use App\Models\Invitation;
 use App\Models\JoinRequest;
@@ -22,6 +24,7 @@ use App\Services\Supports;
 use App\Services\Wallets;
 use App\Services\ZumraPosts;
 use App\Services\Zumras;
+use App\Support\Experience;
 use App\Support\Normalizer;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -42,6 +45,8 @@ use Livewire\Component;
 #[Layout('components.layouts.app')]
 class MondeZumra extends Component
 {
+    use GuardsZumraModule;
+
     public const MEMBERS_SHOWN = 100;
 
     public const PAGE_SIZE = 10;
@@ -190,6 +195,16 @@ class MondeZumra extends Component
         $memberships->demote(Auth::user(), $this->zumra(), $this->membership($id));
     }
 
+    /** Le fondateur propose un poste à un responsable (il reste « en attente » jusqu'à son acceptation), ou retire la proposition. */
+    public function assignDuty(string $id, string $duty, Memberships $memberships): void
+    {
+        $duty = ZumraDuty::tryFrom($duty);
+
+        $duty === null
+            ? $memberships->clearDuty(Auth::user(), $this->zumra(), $this->membership($id))
+            : $memberships->proposeDuty(Auth::user(), $this->zumra(), $this->membership($id), $duty);
+    }
+
     public function render()
     {
         $viewer = Auth::user();
@@ -204,6 +219,9 @@ class MondeZumra extends Component
 
         // La Discussion n'existe pas pour qui n'est pas membre : « page introuvable » (D-112).
         $tab = in_array($this->tab, self::TABS, true) ? $this->tab : 'formation';
+        // Les Projets restent gelés (D-183) : leur onglet n'existe pas dans le parcours actif.
+        $tab = $tab === 'projets' && Experience::initial() ? 'formation' : $tab;
+        $this->tab = $tab;
         abort_if($tab === 'discussion' && ! $canDiscuss, 404);
 
         // Les personnes dont l'adresse n'est pas vérifiée n'existent pas pour les autres : elles ne figurent ni dans la liste ni dans le compte.
@@ -250,6 +268,7 @@ class MondeZumra extends Component
 
         return view('livewire.monde-zumra', [
             'zumra' => $zumra,
+            'governance' => $zumra->governance(),
             'viewer' => $viewer,
             'canSeeMembers' => $canSeeMembers,
             'members' => $members,

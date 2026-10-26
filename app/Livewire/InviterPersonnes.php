@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Enums\JoinRequestState;
+use App\Livewire\Concerns\GuardsZumraModule;
 use App\Models\Invitation;
 use App\Models\JoinRequest;
 use App\Models\Profile;
@@ -30,6 +31,7 @@ use Livewire\WithPagination;
 #[Title('Inviter des personnes')]
 class InviterPersonnes extends Component
 {
+    use GuardsZumraModule;
     use WithPagination;
 
     public const PER_PAGE = 10;

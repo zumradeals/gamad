@@ -46,7 +46,7 @@ it('laisse un membre ou un responsable quitter la ZUMRA, puis redemander à la r
     lignes()->leave($this->resp, $this->zumra);
 
     expect($this->zumra->roleOf($this->awa))->toBeNull()->and($this->zumra->roleOf($this->resp))->toBeNull();
-    monde($this->awa, $this->zumra)->assertSeeText('Je veux rejoindre');
+    monde($this->awa, $this->zumra)->assertSeeText('Demander à rejoindre');
 });
 
 it('ne laisse pas le fondateur quitter sa ZUMRA, et ne propose pas le bouton', function () {

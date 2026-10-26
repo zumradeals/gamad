@@ -15,7 +15,9 @@
 return [
     'initial' => [
         'phone' => [
-            ['key' => 'fil', 'label' => 'Accueil', 'route' => 'fil', 'active' => ['fil', 'personnes.*'], 'icon' => 'feed', 'enabled' => true],
+            ['key' => 'fil', 'label' => 'Accueil', 'route' => 'fil', 'active' => ['fil'], 'icon' => 'feed', 'enabled' => true],
+            // « Découvrir » (Z1) : fenêtre à deux choix, Personnes et ZUMRA (si le module est accessible) ; un seul choix mène directement aux Personnes.
+            ['key' => 'decouvrir', 'label' => 'Découvrir', 'route' => 'decouvrir', 'active' => ['decouvrir', 'personnes.*', 'zumras.*'], 'icon' => 'compass', 'enabled' => true, 'sheet' => true],
             ['key' => 'agir', 'label' => 'Agir', 'route' => 'agir', 'icon' => 'plus', 'enabled' => true, 'prominent' => true],
             ['key' => 'espace', 'label' => 'Mon espace', 'route' => 'espace', 'active' => ['espace', 'espace.*', 'conversations.*'], 'icon' => 'user', 'enabled' => true],
         ],
@@ -25,6 +27,12 @@ return [
             ['key' => 'personnes', 'label' => 'Personnes', 'route' => 'personnes.index', 'active' => ['personnes.*'], 'icon' => 'group', 'enabled' => true],
             ['key' => 'entreprises', 'label' => 'Entreprises', 'route' => 'entreprises.index', 'active' => ['entreprises.*'], 'icon' => 'project', 'enabled' => true],
             ['key' => 'opportunites', 'label' => 'Opportunités', 'route' => 'opportunites.index', 'active' => ['opportunites.*'], 'icon' => 'tasks', 'enabled' => true],
+            // Menu ZUMRA (Z1) : seulement si le module est ouvert à la personne (désactivé, test privé ou public).
+            ['key' => 'zumra', 'label' => 'ZUMRA', 'route' => 'zumras.index', 'active' => ['zumras.*'], 'icon' => 'community', 'enabled' => true, 'module' => 'zumra'],
+        ],
+        'discover' => [
+            ['key' => 'personnes', 'label' => 'Personnes', 'description' => 'Découvrir des personnes et leurs compétences.', 'route' => 'personnes.index', 'icon' => 'group'],
+            ['key' => 'zumra', 'label' => 'ZUMRA', 'description' => 'Découvrir les communautés.', 'route' => 'zumras.index', 'icon' => 'community', 'module' => 'zumra'],
         ],
     ],
 

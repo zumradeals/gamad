@@ -25,7 +25,7 @@ it('garde le menu global Accueil Personnes Entreprises Mon espace et Agir, avec 
     $html = $this->actingAs($this->author)->get(route('fil'))->assertOk()->assertSeeText('Trouver une personne')->getContent();
     preg_match_all('/<nav aria-label="Navigation principale".*?<\/nav>/s', $html, $navs);
     $text = trim(preg_replace('/\s+/', ' ', strip_tags(implode(' ', $navs[0]))));
-    expect($text)->toContain('Accueil')->toContain('Agir')->toContain('Mon espace')->toContain('Personnes')->toContain('Entreprises')->not->toContain('Découvrir');
+    expect($text)->toContain('Accueil')->toContain('Agir')->toContain('Mon espace')->toContain('Personnes')->toContain('Entreprises')->toContain('Découvrir');
     $this->get(route('personnes.index'))->assertOk()->assertSeeText('Retour à l’accueil');
     $this->get(route('fil', ['q' => 'terme introuvable']))->assertOk()->assertSeeText('Aucune publication ne correspond')->assertSee('name="q"', false);
 });

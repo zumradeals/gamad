@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\NotificationKind;
 use App\Enums\ZumraFormat;
 use App\Enums\ZumraRole;
+use App\Enums\ZumraSphere;
 use App\Models\City;
 use App\Models\Domain;
 use App\Models\User;
@@ -35,23 +36,24 @@ class Zumras
         Gate::forUser($founder)->authorize('create', Zumra::class);
 
         // Toutes les erreurs remontent ensemble, chacune sous son champ.
-        [$name, $domainId, $cityId, $format, $mission] = $this->all(
+        [$name, $domainId, $cityId, $format, $mission, $sphere] = $this->all(
             fn () => $this->name($data['name'] ?? null),
             fn () => $this->activeId(Domain::class, $data['domain_id'] ?? null, 'domain_id', 'Choisissez un domaine dans la liste.', required: true),
             fn () => $this->activeId(City::class, $data['city_id'] ?? null, 'city_id', 'Choisissez une ville dans la liste.'),
             fn () => $this->format($data['format'] ?? null),
             fn () => $this->mission($data['mission'] ?? null),
+            fn () => $this->sphere($data['sphere'] ?? null),
         );
 
         $this->throttle($founder);
 
         try {
-            return DB::transaction(function () use ($founder, $name, $domainId, $cityId, $format, $mission) {
+            return DB::transaction(function () use ($founder, $name, $domainId, $cityId, $format, $mission, $sphere) {
                 if (Zumra::query()->where('name_key', Normalizer::key($name))->exists()) {
                     throw $this->nameTaken();
                 }
 
-                $zumra = Zumra::query()->create(['name' => $name, 'domain_id' => $domainId, 'city_id' => $cityId, 'format' => $format, 'mission' => $mission]);
+                $zumra = Zumra::query()->create(['name' => $name, 'domain_id' => $domainId, 'city_id' => $cityId, 'format' => $format, 'mission' => $mission, 'sphere' => $sphere]);
 
                 $membership = new ZumraMembership(['role' => ZumraRole::Founder]);
                 $membership->zumra()->associate($zumra);
@@ -112,6 +114,12 @@ class Zumras
         }
 
         return $values;
+    }
+
+    /** La nature d'une nouvelle ZUMRA est obligatoire (Z1) ; les ZUMRA d'avant Z1 n'en ont pas. */
+    private function sphere(?string $sphere): string
+    {
+        return ZumraSphere::tryFrom((string) $sphere)?->value ?? throw ValidationException::withMessages(['sphere' => 'Choisissez la nature de la ZUMRA.']);
     }
 
     private function name(?string $name): string

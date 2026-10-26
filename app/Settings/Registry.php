@@ -21,6 +21,8 @@ final class Registry
 
     public const GROUP_PAYMENT = 'paiement';
 
+    public const GROUP_ZUMRA = 'zumra';
+
     /** @var array<string, Definition>|null */
     private static ?array $definitions = null;
 
@@ -90,6 +92,14 @@ final class Registry
             new Definition('geniuspay_webhook_secret', self::GROUP_PAYMENT, 'Secret du webhook', Definition::SECRET, null, ['nullable', 'regex:/^whsec_[A-Za-z0-9_]+$/', 'max:255']),
             new Definition('wallet_recharge_min', self::GROUP_PAYMENT, 'Recharge minimum (ZAHAB)', Definition::INTEGER, 500, ['required', 'integer', 'between:200,1000000']),
             new Definition('wallet_recharge_max', self::GROUP_PAYMENT, 'Recharge maximum (ZAHAB)', Definition::INTEGER, 200000, ['required', 'integer', 'between:200,100000000']),
+
+            // Module ZUMRA (Z1, D-205) : fermé tant que le Président ne l'ouvre pas ; jamais activé par une migration ou un déploiement.
+            new Definition('zumra_module', self::GROUP_ZUMRA, 'État du module ZUMRA', Definition::ENUM, 'off', ['required', 'in:off,test,public'], [
+                'off' => 'Désactivé : invisible et inaccessible',
+                'test' => 'Test privé : administrateurs et testeurs autorisés seulement',
+                'public' => 'Public : visible selon les règles de visibilité de GAMAD',
+            ]),
+            new Definition('zumra_testers', self::GROUP_ZUMRA, 'Comptes testeurs (adresses e-mail)', Definition::STRING, null, ['nullable', 'string', 'max:2000']),
         ])->keyBy(fn (Definition $definition) => $definition->key)->all();
     }
 
