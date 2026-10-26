@@ -27,7 +27,7 @@
                 <li class="flex min-w-0 items-center gap-3 py-3"><x-company-logo :company="$item->company" :size="44" />
                     <div class="min-w-0 flex-1"><a href="{{ route('opportunites.show', $item) }}" class="inline-flex min-h-11 items-center break-words text-[14px] font-bold">{{ $item->title }}</a><p class="-mt-2 text-[12px] text-muted">{{ $item->company->name }} · {{ $item->statusLabel() }}</p></div></li>
             @empty
-                <li class="py-3 text-[14px] text-muted">Aucune opportunité sauvegardée. <a href="{{ route('opportunites.index') }}" class="font-bold">Parcourir les opportunités</a></li>
+                <li class="py-3 text-[14px] text-muted">Aucune opportunité sauvegardée. <a href="{{ route('opportunites.index') }}" class="inline-flex min-h-11 items-center font-bold">Parcourir les opportunités</a></li>
             @endforelse
         </ul></section>
 </div>

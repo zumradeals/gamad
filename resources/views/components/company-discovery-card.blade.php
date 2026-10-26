@@ -23,7 +23,7 @@
                 @if ($company->summary)<p class="line-clamp-2 break-words text-[14px] leading-snug text-muted">{{ $company->summary }}</p>@endif
                 @if ($company->opportunities->isNotEmpty())
                     <div class="flex min-w-0 flex-wrap items-center gap-1.5 pt-1">
-                        <span class="rounded-chip bg-type-learning-bg px-3 py-1 text-[12px] font-bold text-type-learning-fg">Recherche des compétences</span>
+                        <span class="rounded-chip bg-type-learning-bg px-3 py-1 text-[12px] font-bold text-type-learning-fg">Propose des opportunités</span>
                         <span class="max-w-full rounded-chip bg-soft-blue px-3 py-1 text-[12px] font-semibold text-link [overflow-wrap:anywhere]">{{ $company->sector }}</span>
                     </div>
                 @endif

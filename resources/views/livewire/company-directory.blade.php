@@ -1,7 +1,7 @@
 @php
     $guest = ! auth()->check();
     $n = $companies->total();
-    $labels = ['all' => 'Toutes', 'opportunities' => 'Recherche des compétences', 'sectors' => 'Par secteur', 'cities' => 'Par localité'];
+    $labels = ['all' => 'Toutes', 'opportunities' => 'Opportunités', 'sectors' => 'Par secteur', 'cities' => 'Par localité'];
     $lists = ['toutes' => ['Toutes les entreprises', 'project'], 'suivies' => ['Entreprises suivies', 'heart'], 'suggestions' => ['Suggestions', 'idea'], 'autour' => ['Autour de moi', 'pin']];
     $sorts = ['nom' => 'Nom (A → Z)', 'nom-desc' => 'Nom (Z → A)', 'recents' => 'Vérifiées récemment'];
     $summary = $n.' '.($n > 1 ? 'entreprises trouvées' : 'entreprise trouvée');

@@ -25,6 +25,23 @@
 <body class="flex flex-col bg-ground text-ink antialiased">
     <header class="sticky top-0 z-20 border-b border-line bg-card">
         <div class="mx-auto flex w-full max-w-[1240px] flex-wrap items-center gap-3 px-4 py-3 lg:flex-nowrap lg:gap-5 lg:px-6 lg:py-0">
+            @if (auth()->check() && \App\Support\Experience::initial())
+                {{-- Menu du téléphone (AM-1) : les entrées du menu global de bureau, sans toucher à la barre du bas. --}}
+                <div x-data="{ menuOpen: false }" class="lg:hidden" x-on:click.outside="menuOpen = false" x-on:keydown.escape.window="if (menuOpen) { menuOpen = false; $refs.menuButton.focus() }">
+                    <button type="button" x-ref="menuButton" x-on:click="menuOpen = !menuOpen; if (menuOpen) $nextTick(() => $refs.menuPanel.querySelector('a').focus())" x-bind:aria-expanded="menuOpen.toString()" aria-controls="menu-mobile" aria-label="Menu" class="flex size-11 items-center justify-center rounded-button text-ink hover:bg-soft-blue">
+                        <x-icon name="menu" :size="24" />
+                    </button>
+                    <nav id="menu-mobile" x-ref="menuPanel" x-show="menuOpen" x-cloak aria-label="Menu" class="absolute left-4 top-full z-40 mt-2 w-60 rounded-card border border-line bg-card p-2 shadow-lg">
+                        @foreach ($desktopItems as $item)
+                            <a href="{{ route($item['route']) }}" x-on:click="menuOpen = false" @if ($isActive($item)) aria-current="page" @endif
+                               class="flex min-h-11 items-center gap-3 rounded-button px-3 text-[14px] no-underline hover:bg-ground hover:text-ink {{ $isActive($item) ? 'bg-ground font-extrabold text-ink' : 'font-semibold text-ink' }}">
+                                <x-icon :name="$item['icon']" :size="20" />{{ $item['label'] }}
+                            </a>
+                        @endforeach
+                    </nav>
+                </div>
+            @endif
+
             <a href="{{ auth()->check() ? route('fil') : url('/') }}" class="inline-flex min-h-11 items-center no-underline" aria-label="GAMAD — accueil">
                 <span class="flex flex-col">
                     <x-logo />
@@ -53,7 +70,6 @@
 
             @auth
                 <div class="flex items-center gap-1">
-                    <a href="{{ route('opportunites.index') }}" @if (request()->routeIs('opportunites.*')) aria-current="page" @endif aria-label="Opportunités" class="flex size-11 items-center justify-center rounded-button text-ink hover:bg-soft-blue hover:text-ink lg:hidden"><x-icon name="tasks" :size="24" /></a>
                     <livewire:notification-bell />
                 </div>
                 {{-- Menu utilisateur : visible sur ordinateur, avec le nom de la personne (maquette « Mon espace »). --}}

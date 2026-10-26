@@ -517,12 +517,55 @@ it('liste mes réponses avec leur état dans Mon espace', function () {
 
 // ─── Navigation et intégration ──────────────────────────────────────────────
 
-it('ajoute Opportunités au menu global sans retirer les entrées existantes, et un accès mobile', function () {
+it('ajoute Opportunités au menu global sans retirer les entrées existantes', function () {
     config(['gamad.initial_experience' => true]);
     $html = $this->actingAs(User::factory()->create())->get(route('fil'))->assertOk()->getContent();
     preg_match('/<nav aria-label="Navigation principale" class="hidden.*?<\/nav>/s', $html, $barre);
     expect(trim(preg_replace('/\s+/', ' ', strip_tags($barre[0]))))->toBe('Accueil Personnes Entreprises Opportunités');
-    expect($html)->toContain('href="'.route('opportunites.index').'"')->toContain('aria-label="Opportunités"');
+});
+
+// ─── Menu hamburger du téléphone (AM-1) ─────────────────────────────────────
+
+function menuMobile(string $html): string
+{
+    preg_match('/<nav id="menu-mobile".*?<\/nav>/s', $html, $menu);
+
+    return $menu[0] ?? '';
+}
+
+it('ouvre sur téléphone un menu Accueil, Personnes, Entreprises, Opportunités, sans toucher à la barre du bas', function () {
+    config(['gamad.initial_experience' => true]);
+    $html = $this->actingAs(User::factory()->create())->get(route('fil'))->assertOk()->getContent();
+    $menu = menuMobile($html);
+
+    expect(trim(preg_replace('/\s+/', ' ', strip_tags($menu))))->toBe('Accueil Personnes Entreprises Opportunités');
+    foreach (['fil', 'personnes.index', 'entreprises.index', 'opportunites.index'] as $route) {
+        expect($menu)->toContain('href="'.route($route).'"');
+    }
+    // Accessibilité : un bouton nommé qui annonce son état, relié au menu, fermé après chaque choix et par Échap.
+    expect($html)->toContain('aria-controls="menu-mobile"')->toContain('aria-label="Menu"')->toContain('x-bind:aria-expanded="menuOpen.toString()"')
+        ->and($menu)->toContain('x-on:click="menuOpen = false"')->and($html)->toContain('x-on:keydown.escape.window');
+    // La barre du bas garde ses trois entrées, dans cet ordre.
+    preg_match_all('/<nav aria-label="Navigation principale"\s+class="fixed.*?<\/nav>/s', $html, $bas);
+    expect(trim(preg_replace('/\s+/', ' ', strip_tags($bas[0][0]))))->toBe('Accueil Agir Mon espace');
+});
+
+it('ne rouvre aucun module gelé dans le menu du téléphone et retire l’ancienne icône Opportunités de l’en-tête', function () {
+    config(['gamad.initial_experience' => true]);
+    $html = $this->actingAs(User::factory()->create())->get(route('fil'))->assertOk()->getContent();
+    $menu = menuMobile($html);
+
+    foreach (['ZUMRA', 'Projets', 'Finances', 'Portefeuille', 'Besoins'] as $mot) {
+        expect($menu)->not->toContain($mot);
+    }
+    expect($html)->not->toContain('aria-label="Opportunités"');
+});
+
+it('n’affiche le menu du téléphone ni aux visiteurs ni dans l’expérience historique', function () {
+    config(['gamad.initial_experience' => true]);
+    $this->get(route('entreprises.index'))->assertOk()->assertDontSee('id="menu-mobile"', false);
+    config(['gamad.initial_experience' => false]);
+    $this->actingAs(User::factory()->create())->get(route('fil'))->assertOk()->assertDontSee('id="menu-mobile"', false);
 });
 
 it('retire les opportunités du formulaire de publication ordinaire de l’entreprise : une seule source', function () {
