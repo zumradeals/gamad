@@ -253,6 +253,6 @@ it('affiche le menu global de bureau : Accueil, Personnes, Entreprises, recherch
     preg_match('/<nav aria-label="Navigation principale" class="hidden.*?<\/nav>/s', $html, $nav);
     $texte = trim(preg_replace('/\s+/', ' ', strip_tags($nav[0])));
 
-    expect($texte)->toBe('Accueil Personnes Entreprises')
+    expect($texte)->toBe('Accueil Personnes Entreprises Opportunités')
         ->and($html)->not->toContain('min-[1700px]:flex')->toContain('href="'.route('entreprises.index').'"')->toContain('href="'.route('notifications').'"')->toContain('role="search"');
 });

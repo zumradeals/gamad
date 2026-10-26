@@ -9,10 +9,10 @@
         <x-company-logo :company="$company" :size="64" />
         <div class="min-w-0 flex-1 space-y-1.5">
             <div class="flex min-w-0 flex-wrap items-start justify-between gap-x-3 gap-y-1">
-                <h3 class="min-w-0 break-words text-[18px] font-extrabold leading-tight"><a href="{{ route('opportunites.show', $opportunity) }}" class="text-ink no-underline hover:underline">{{ $opportunity->title }}</a></h3>
+                <h3 class="min-w-0 break-words text-[18px] font-extrabold leading-tight"><a href="{{ route('opportunites.show', $opportunity) }}" class="-my-2 inline-flex min-h-11 items-center text-ink no-underline hover:underline">{{ $opportunity->title }}</a></h3>
                 <span class="shrink-0 rounded-chip px-3 py-1 text-[12px] font-bold {{ $opportunity->kind->badgeClasses() }}">{{ $opportunity->kind->label() }}</span>
             </div>
-            <p class="flex min-w-0 flex-wrap items-center gap-x-1.5 text-[14px] font-semibold"><a href="{{ route('entreprises.show', $company) }}" class="break-words text-ink no-underline hover:underline">{{ $company->name }}</a>
+            <p class="flex min-w-0 flex-wrap items-center gap-x-1.5 text-[14px] font-semibold"><a href="{{ route('entreprises.show', $company) }}" class="-my-2 inline-flex min-h-11 items-center break-words text-ink no-underline hover:underline">{{ $company->name }}</a>
                 @if ($company->verified())<span class="inline-flex size-[16px] items-center justify-center rounded-full bg-link text-white" title="Immatriculation vérifiée par GAMAD"><x-icon name="check" :size="11" /><span class="sr-only">Immatriculation vérifiée par GAMAD</span></span>@endif</p>
             <p class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[13px] text-muted">
                 @if ($opportunity->city)<span class="inline-flex items-center gap-1"><x-icon name="pin" :size="15" />{{ $opportunity->city->label() }}</span>@endif

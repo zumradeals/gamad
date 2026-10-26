@@ -28,7 +28,7 @@
                     <div class="absolute bottom-0 right-24 h-2 w-32 rounded-t-button bg-accent"></div>
                 @endif
             </div>
-            <div class="min-w-0 px-5 pb-6 md:px-8">
+            <div class="relative min-w-0 px-5 pb-6 md:px-8">
                 <div class="-mt-10 flex min-w-0 flex-wrap items-end gap-4">
                     <x-company-logo :company="$company" :size="84" class="border-4 border-card bg-card shadow-sm" />
                     <div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1 pb-1">

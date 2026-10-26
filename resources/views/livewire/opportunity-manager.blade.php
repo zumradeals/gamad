@@ -21,7 +21,7 @@
         @forelse ($items as $item)
             <article wire:key="mine-{{ $item->id }}" class="rounded-card border border-line bg-card p-4">
                 <div class="flex min-w-0 flex-wrap items-start justify-between gap-2">
-                    <div class="min-w-0"><h2 class="break-words text-[17px] font-extrabold"><a href="{{ route('opportunites.show', $item) }}" class="text-ink no-underline hover:underline">{{ $item->title }}</a></h2>
+                    <div class="min-w-0"><h2 class="break-words text-[17px] font-extrabold"><a href="{{ route('opportunites.show', $item) }}" class="-my-2 inline-flex min-h-11 items-center text-ink no-underline hover:underline">{{ $item->title }}</a></h2>
                         <p class="text-[13px] text-muted">{{ $item->kind->label() }} · {{ $item->statusLabel() }}@if ($item->deadline) · avant le {{ $item->deadline->locale('fr')->translatedFormat('j M Y') }}@endif · Réf. {{ $item->reference }}</p></div>
                     <span class="rounded-chip px-3 py-1 text-[12px] font-bold {{ $item->kind->badgeClasses() }}">{{ $item->kind->label() }}</span>
                 </div>
