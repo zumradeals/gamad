@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AideController;
 use App\Http\Controllers\BrandingController;
 use App\Http\Controllers\CompanyBrandingController;
 use App\Http\Controllers\CompanyContactController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\CompanyPostController;
 use App\Http\Controllers\CompanyReportController;
 use App\Http\Controllers\CompanyResubmitController;
 use App\Http\Controllers\CompanyVisualController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\GeniusPayWebhookController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OpportunityController;
@@ -42,6 +44,7 @@ use App\Livewire\MesAttestations;
 use App\Livewire\MesContributions;
 use App\Livewire\MesEnregistrements;
 use App\Livewire\MesProjets;
+use App\Livewire\MessagesContact;
 use App\Livewire\MesZumras;
 use App\Livewire\ModerationCommentaires;
 use App\Livewire\ModerationConfiance;
@@ -82,6 +85,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', WelcomeController::class)->name('home');
 
 // La charte et les mentions légales n'existent pour le public qu'une fois adoptées par le Président (D-146).
+Route::get('/aide', AideController::class)->name('aide');
+Route::get('/contact', [ContactController::class, 'show'])->name('contact');
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 Route::get('/charte', [TextesController::class, 'charte'])->name('charte');
 Route::get('/mentions-legales', [TextesController::class, 'mentions'])->name('mentions');
 
@@ -218,6 +224,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/espace/parametres/zumra', ParametresZumra::class)->middleware('can:super-admin')->name('espace.parametres.zumra');
     Route::get('/espace/parametres/contributions', ParametresContributions::class)->middleware('can:super-admin')->name('espace.parametres.contributions');
     Route::get('/espace/parametres/paiement', ParametresPaiement::class)->middleware('can:super-admin')->name('espace.parametres.paiement');
+    Route::get('/espace/messages', MessagesContact::class)->middleware('can:super-admin')->name('espace.messages');
     Route::get('/espace/contributions', ContributionsAdministration::class)->middleware('can:super-admin')->name('espace.contributions');
     Route::get('/espace/paiements', PaiementsAdministration::class)->middleware('can:super-admin')->name('espace.paiements');
     Route::get('/espace/parametres/portefeuille', ParametresPortefeuille::class)->middleware('can:super-admin')->name('espace.parametres.portefeuille');

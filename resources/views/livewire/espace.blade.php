@@ -528,6 +528,13 @@
             <x-button :href="route('espace.parametres')">Paramètres</x-button>
         </section>
 
+        <section aria-labelledby="messages-contact" class="space-panel flex flex-col gap-3 p-4 md:p-5">
+            @php $nouveaux = app(\App\Services\ContactMessages::class)->unreadCount(); @endphp
+            <h2 id="messages-contact" class="text-[18px] font-extrabold">Messages de contact @if ($nouveaux > 0)<span class="ml-1 rounded-chip bg-soft-blue px-2.5 py-1 align-middle text-[12px] font-bold text-link">{{ $nouveaux }} nouveau{{ $nouveaux > 1 ? 'x' : '' }}</span>@endif</h2>
+            <p class="text-muted">Les messages envoyés depuis la page Contact. Vous seul les lisez.</p>
+            <x-button variant="secondary" :href="route('espace.messages')">Lire les messages</x-button>
+        </section>
+
 
         @endif
         @endif

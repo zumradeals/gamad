@@ -593,3 +593,10 @@ attente. Proposition : proposée → acceptée ou refusée ; retirée tant qu'el
 **Interdits.** Aucun paiement, reçu, solde, portefeuille, Mobile Money ou passerelle ; aucune somme dite « collectée » ; aucun classement ni note ; aucune
 coordonnée affichée ; aucune donnée de la maquette dans l'application.
 
+
+## Pages Aide et Contact (D-208)
+
+Deux pages publiques, sans compte : **Aide** (`/aide`) et **Contact** (`/contact`), dans le pied de page de l'accueil, de la connexion et de
+l'inscription. Le formulaire de contact enregistre le message ; seul le super administrateur le lit, dans Espace → Administration → Messages de
+contact (`/espace/messages`). États : Nouveau, Lu (à l'ouverture), Traité. Chaque lecture et chaque changement sont au journal, sans le contenu.
+Conservation de 12 mois, effacement à l'envoi et par `gamad:purger-contacts`. Aucune réponse depuis la plateforme, aucune coordonnée affichée.
