@@ -20,7 +20,7 @@
 
     <div class="grid min-w-0 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_330px]">
         <article class="min-w-0 overflow-hidden rounded-card border border-line bg-card">
-            <div class="relative h-40 overflow-hidden bg-ink sm:h-56" aria-hidden="true">
+            <div class="relative h-40 overflow-hidden bg-ink sm:h-52" aria-hidden="true">
                 @if ($company->banner_path && $verified)
                     <img src="{{ route('entreprises.visual', [$company, 'banner']) }}" alt="" class="absolute inset-0 size-full object-cover" fetchpriority="high">
                 @else
@@ -32,7 +32,7 @@
                 <div class="-mt-10 flex min-w-0 flex-wrap items-end gap-x-4 gap-y-3">
                     <x-company-logo :company="$company" :size="84" class="border-4 border-card bg-card shadow-sm" />
                     <div class="min-w-0 flex-1 basis-48 pb-1">
-                        <p class="flex flex-wrap items-center gap-x-2.5"><a href="{{ route('entreprises.show', $company) }}" class="inline-flex min-h-11 items-center break-words text-[17px] font-extrabold text-ink no-underline hover:underline">{{ $company->name }}</a>
+                        <p class="flex flex-wrap items-center gap-x-3"><a href="{{ route('entreprises.show', $company) }}" class="inline-flex min-h-11 items-center break-words text-[17px] font-extrabold text-ink no-underline hover:underline">{{ $company->name }}</a>
                             @if ($verified)<span class="inline-flex size-5 items-center justify-center rounded-full bg-link text-white" title="Immatriculation vérifiée par GAMAD"><x-icon name="check" :size="13" :stroke="3" /><span class="sr-only">Immatriculation vérifiée par GAMAD</span></span>@endif</p>
                         <a href="{{ route('entreprises.show', $company) }}" class="-mt-2 inline-flex min-h-11 items-center text-[13px] font-bold text-link">Voir le profil de l’entreprise <x-icon name="next" :size="14" class="ml-1" /></a>
                     </div>
@@ -70,7 +70,7 @@
 
                 <h1 class="mt-5 break-words text-[28px] font-extrabold leading-tight">{{ $opportunity->title }}</h1>
                 <div class="mt-3 flex flex-wrap items-center gap-2">
-                    <span class="inline-flex items-center gap-1.5 rounded-chip border border-link/30 bg-soft-blue px-3 py-1 text-[13px] font-bold text-link"><x-icon :name="$opportunity->kind->icon()" :size="15" />{{ $opportunity->kind->label() }}</span>
+                    <span class="inline-flex items-center gap-1.5 rounded-chip border border-chip-line bg-soft-blue px-3 py-1 text-[13px] font-bold text-link"><x-icon :name="$opportunity->kind->icon()" :size="15" />{{ $opportunity->kind->label() }}</span>
                     @foreach ($chips as $chip)<span class="rounded-chip border border-line bg-card px-3 py-1 text-[13px] font-semibold">{{ $chip }}</span>@endforeach
                 </div>
                 <p class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[14px] text-muted">

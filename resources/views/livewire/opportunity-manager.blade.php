@@ -13,7 +13,7 @@
 
     <div role="tablist" aria-label="État des opportunités" class="-mx-1 flex gap-2 overflow-x-auto px-1 py-1">
         @foreach ($tabs as $slug => $label)
-            <button type="button" role="tab" aria-selected="{{ $tab === $slug ? 'true' : 'false' }}" wire:click="setTab('{{ $slug }}')" class="min-h-11 shrink-0 rounded-full px-4 text-[13px] font-bold {{ $tab === $slug ? 'bg-link text-white' : 'border border-line bg-card' }}">{{ $label }} <span class="ml-1 opacity-80">{{ $slug === 'toutes' ? $total : ($counts[$slug] ?? 0) }}</span></button>
+            <button type="button" role="tab" aria-selected="{{ $tab === $slug ? 'true' : 'false' }}" wire:click="setTab('{{ $slug }}')" class="min-h-11 shrink-0 rounded-full px-4 text-[13px] font-bold {{ $tab === $slug ? 'bg-link text-white' : 'border border-line bg-card' }}">{{ $label }} <span class="ml-1">{{ $slug === 'toutes' ? $total : ($counts[$slug] ?? 0) }}</span></button>
         @endforeach
     </div>
 

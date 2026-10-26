@@ -6,28 +6,23 @@
     $domainLabel = $domain_id !== '' ? $domains->firstWhere('id', $domain_id)?->name : null;
 @endphp
 <div class="flex flex-col gap-3.5" data-opportunity-form>
-    <div class="-mx-4 -mt-4 flex min-h-14 items-center gap-1 border-b border-line bg-card px-2 py-1.5 md:mx-0 md:mt-0 md:min-h-0 md:border-0 md:bg-transparent md:px-0 md:py-0">
+    <div class="-mx-4 -mt-4 flex min-h-14 items-center gap-1 border-b border-line bg-card px-2 py-1.5 md:mx-0 md:mt-0 md:rounded-card md:border">
         @if ($step > 1)
             <button type="button" wire:click="back" aria-label="Revenir à l’étape précédente" class="flex size-11 items-center justify-center text-ink"><x-icon name="back" /></button>
         @else
             <a href="{{ route('entreprises.opportunities', $company) }}" aria-label="Retour à mes opportunités" class="flex size-11 items-center justify-center text-ink hover:text-ink"><x-icon name="back" /></a>
         @endif
-        <h1 class="flex-1 text-[17px] font-extrabold md:sr-only">{{ $editing ? 'Modifier l’opportunité' : 'Publier une opportunité' }}</h1>
+        <h1 class="flex-1 text-[17px] font-extrabold">{{ $editing ? 'Modifier l’opportunité' : 'Publier une opportunité' }}</h1>
     </div>
 
-    <header class="flex min-w-0 items-center gap-4 rounded-card border border-line bg-card p-4 max-md:hidden md:p-5">
-        <span class="flex size-16 shrink-0 items-center justify-center rounded-card bg-type-call-bg text-type-call-fg"><x-icon name="project" :size="32" /></span>
-        <div class="min-w-0"><h2 class="text-[22px] font-extrabold leading-tight">Publier une opportunité</h2>
-            <p class="mt-1 text-[13px] leading-normal text-muted">Présentez simplement le poste, la mission ou la collaboration que vous proposez. Votre annonce sera visible sur GAMAD et sur votre page entreprise.</p></div>
-    </header>
     <p class="rounded-button bg-soft-blue px-3 py-2.5 text-[13px] font-semibold">Au nom de <strong>{{ $company->name }}</strong>.@unless ($verified) Votre entreprise n’est pas encore vérifiée par GAMAD : vous pouvez préparer un brouillon, mais pas publier.@endunless</p>
 
-    <ol class="m-0 mx-auto flex w-full max-w-[460px] list-none items-start p-0" aria-label="Étapes du formulaire">
+    <ol class="m-0 mx-auto flex w-full max-w-md list-none items-start p-0" aria-label="Étapes du formulaire">
         @foreach (['Type et description', 'Détails', 'Aperçu'] as $i => $label)
             @php $n = $i + 1; @endphp
             <li @if ($step === $n) aria-current="step" @endif class="relative flex min-w-0 flex-1 flex-col items-center gap-1 text-center {{ $step === $n ? 'font-extrabold text-ink' : 'font-semibold text-muted' }}">
-                @if ($n > 1)<span aria-hidden="true" class="absolute right-1/2 top-[14px] h-0.5 w-full {{ $step >= $n ? 'bg-link' : 'bg-line' }}"></span>@endif
-                <span @class(['relative z-[1] flex size-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold', 'bg-link text-white' => $step >= $n, 'border border-chip-line bg-card text-muted' => $step < $n])>@if ($step > $n)<x-icon name="check" :size="14" :stroke="3" />@else{{ $n }}@endif</span>
+                @if ($n > 1)<span aria-hidden="true" style="position:absolute;right:50%;top:13px;width:100%;height:2px" class="{{ $step >= $n ? 'bg-link' : 'bg-line' }}"></span>@endif
+                <span @class(['relative z-10 flex size-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold', 'bg-link text-white' => $step >= $n, 'border border-chip-line bg-card text-muted' => $step < $n])>@if ($step > $n)<x-icon name="check" :size="14" :stroke="3" />@else{{ $n }}@endif</span>
                 <span class="px-1 text-[12px] leading-tight">{{ $label }}</span>
             </li>
         @endforeach
@@ -37,19 +32,19 @@
         @if ($step === 1)
             <section class="flex flex-col gap-5 rounded-card border border-line bg-card p-4 md:p-5">
                 <fieldset>
-                    <legend class="{{ $labelClass }} mb-2.5 text-[17px] md:text-[16px]"><span class="md:hidden">Que propose votre entreprise ?</span><span class="max-md:hidden">1. Que proposez-vous ?</span></legend>
+                    <legend class="{{ $labelClass }} mb-3 text-[17px]"><span class="md:hidden">Que propose votre entreprise ?</span><span class="hidden md:block">1. Que proposez-vous ?</span></legend>
                     <div class="grid gap-2 md:grid-cols-4">
                         @foreach ($kinds as $k)
-                            <button type="button" wire:click="chooseKind('{{ $k->value }}')" aria-pressed="{{ $kind === $k->value ? 'true' : 'false' }}" @class(['relative flex min-h-[60px] items-center gap-3 rounded-button bg-card px-3 py-2 text-left md:min-h-[150px] md:flex-col md:justify-start md:gap-2 md:px-3 md:py-4 md:text-center', 'border-2 border-link bg-soft-blue' => $kind === $k->value, 'border border-chip-line' => $kind !== $k->value])>
+                            <button type="button" wire:click="chooseKind('{{ $k->value }}')" aria-pressed="{{ $kind === $k->value ? 'true' : 'false' }}" @class(['relative flex min-h-14 items-center gap-3 rounded-button bg-card px-3 py-2 text-left md:flex-col md:py-4 md:text-center', 'border-2 border-link bg-soft-blue' => $kind === $k->value, 'border border-chip-line' => $kind !== $k->value])>
                                 <span class="flex size-10 shrink-0 items-center justify-center rounded-button {{ $k->badgeClasses() }}"><x-icon :name="$k->icon()" :size="22" /></span>
-                                <span class="min-w-0 flex-1 md:flex-none"><span class="block text-[15px] font-extrabold">{{ $k->chooseLabel() }}</span><span class="block text-[12px] leading-snug text-muted max-md:hidden">{{ $k->chooseHint() }}</span></span>
-                                @if ($kind === $k->value)<span class="flex size-5 shrink-0 items-center justify-center rounded-full bg-link text-white md:absolute md:right-2 md:top-2"><x-icon name="check" :size="12" :stroke="3" /></span>@else<x-icon name="next" :size="18" class="shrink-0 text-muted md:hidden" />@endif
+                                <span class="min-w-0 flex-1"><span class="block text-[15px] font-extrabold">{{ $k->chooseLabel() }}</span><span class="hidden text-[12px] leading-snug text-muted md:block">{{ $k->chooseHint() }}</span></span>
+                                @if ($kind === $k->value)<span class="flex size-5 shrink-0 items-center justify-center rounded-full bg-link text-white"><x-icon name="check" :size="12" :stroke="3" /></span>@else<x-icon name="next" :size="18" class="shrink-0 text-muted md:hidden" />@endif
                             </button>
                         @endforeach
                     </div>
                     @error('kind')<p role="alert" class="mt-2 text-[13px] font-semibold text-danger">{{ $message }}</p>@enderror
                 </fieldset>
-                <div class="flex flex-col gap-5 max-md:hidden">
+                <div class="hidden flex-col gap-5 md:flex">
                     <div class="flex flex-col gap-1.5">
                         <label for="title" class="{{ $labelClass }}">2. {{ $kindEnum?->titleQuestion() ?? 'Quel est le poste ?' }}</label>
                         <input id="title" type="text" wire:model="title" maxlength="160" placeholder="{{ $kindEnum?->titlePlaceholder() ?? 'Ex. : Ingénieur réseau' }}" class="{{ $field('title') }}" @if ($errors->has('title')) aria-invalid="true" @endif>
@@ -57,13 +52,13 @@
                     </div>
                     <div class="flex flex-col gap-1.5" x-data="{ count: [...$wire.description].length }">
                         <label for="description" class="{{ $labelClass }}">3. Expliquez ce que vous recherchez</label>
-                        <textarea id="description" wire:model="description" rows="5" maxlength="1000" x-on:input="count = [...$event.target.value].length" placeholder="Décrivez le poste, les missions et le contexte." class="min-h-[130px] {{ $area('description') }}" @if ($errors->has('description')) aria-invalid="true" @endif></textarea>
+                        <textarea id="description" wire:model="description" rows="5" maxlength="1000" x-on:input="count = [...$event.target.value].length" placeholder="Décrivez le poste, les missions et le contexte." class="min-h-[140px] {{ $area('description') }}" @if ($errors->has('description')) aria-invalid="true" @endif></textarea>
                         <span class="self-end text-[12px] text-muted"><span x-text="count">{{ mb_strlen($description) }}</span> / 1000</span>
                         @error('description')<p role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>@enderror
                     </div>
                 </div>
-                <x-button type="button" variant="accent" class="min-h-[52px] w-full max-md:hidden" wire:click="next" wire:loading.attr="disabled" wire:target="next">Continuer <x-icon name="next" :size="18" class="ml-1.5" /></x-button>
-                <x-button type="button" variant="accent" class="min-h-[52px] w-full md:hidden" wire:click="nextCompact" wire:loading.attr="disabled" wire:target="nextCompact">Continuer <x-icon name="next" :size="18" class="ml-1.5" /></x-button>
+                <div class="hidden md:block"><x-button type="button" variant="accent" class="min-h-[52px] w-full" wire:click="next" wire:loading.attr="disabled" wire:target="next">Continuer <x-icon name="next" :size="18" class="ml-1.5" /></x-button></div>
+                <div class="md:hidden"><x-button type="button" variant="accent" class="min-h-[52px] w-full" wire:click="nextCompact" wire:loading.attr="disabled" wire:target="nextCompact">Continuer <x-icon name="next" :size="18" class="ml-1.5" /></x-button></div>
             </section>
         @endif
 
@@ -78,7 +73,7 @@
                     </div>
                     <div class="flex flex-col gap-1.5" x-data="{ count: [...$wire.description].length }">
                         <label for="description" class="{{ $labelClass }}">Expliquez ce que vous recherchez</label>
-                        <textarea id="description" wire:model="description" rows="5" maxlength="1000" x-on:input="count = [...$event.target.value].length" placeholder="Décrivez le poste, les missions…" class="min-h-[130px] {{ $area('description') }}" @if ($errors->has('description')) aria-invalid="true" @endif></textarea>
+                        <textarea id="description" wire:model="description" rows="5" maxlength="1000" x-on:input="count = [...$event.target.value].length" placeholder="Décrivez le poste, les missions…" class="min-h-[140px] {{ $area('description') }}" @if ($errors->has('description')) aria-invalid="true" @endif></textarea>
                         <span class="self-end text-[12px] text-muted"><span x-text="count">{{ mb_strlen($description) }}</span> / 1000</span>
                         @error('description')<p role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>@enderror
                     </div>

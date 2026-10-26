@@ -16,7 +16,7 @@
         <p class="rounded-button bg-soft-blue px-3 py-2.5 text-[13px] leading-normal">L’entreprise verra votre nom et pourra ouvrir votre profil public GAMAD. Votre téléphone et votre e-mail ne lui sont jamais montrés. Votre message et votre document restent privés.</p>
         <div class="flex flex-col gap-1.5">
             <label for="message" class="text-[15px] font-extrabold">Un mot de présentation <span class="text-[13px] font-semibold text-muted">(facultatif)</span></label>
-            <textarea id="message" name="message" rows="5" maxlength="1000" x-on:input="count = [...$event.target.value].length" placeholder="Ex. Bonjour, je suis électricien depuis 5 ans à Abidjan et je serais heureux de vous aider." @class(['min-h-[130px] w-full resize-y rounded-button border bg-card px-3.5 py-3 text-[16px] leading-normal', $errors->has('message') ? 'border-danger' : 'border-chip-line'])>{{ old('message') }}</textarea>
+            <textarea id="message" name="message" rows="5" maxlength="1000" x-on:input="count = [...$event.target.value].length" placeholder="Ex. Bonjour, je suis électricien depuis 5 ans à Abidjan et je serais heureux de vous aider." @class(['min-h-[140px] w-full resize-y rounded-button border bg-card px-3.5 py-3 text-[16px] leading-normal', $errors->has('message') ? 'border-danger' : 'border-chip-line'])>{{ old('message') }}</textarea>
             <span class="self-end text-[12px] text-muted"><span x-text="count">0</span> / 1000</span>
             @error('message')<p role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>@enderror
         </div>
