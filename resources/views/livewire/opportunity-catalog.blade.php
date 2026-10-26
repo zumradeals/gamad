@@ -63,7 +63,7 @@
             </div>
         </aside>
 
-        <main class="min-w-0 space-y-4">
+        <div class="min-w-0 space-y-4">
             <div class="rounded-card border border-line bg-card p-4">
                 <div role="tablist" aria-label="Type d’opportunité" class="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 py-1">
                     <button type="button" role="tab" aria-selected="{{ $kind === '' ? 'true' : 'false' }}" wire:click="setKind('')" class="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-button px-4 text-[13px] font-bold {{ $kind === '' ? 'bg-link text-white' : 'border border-line bg-card' }}">Toutes <span class="rounded-chip px-2 text-[12px] {{ $kind === '' ? 'bg-card text-link' : 'bg-soft-blue text-link' }}">{{ $totalCount }}</span></button>
@@ -97,7 +97,7 @@
                 </nav>
             @endif
             <p class="flex items-start justify-center gap-2 text-center text-[13px] text-muted"><x-icon name="shield" :size="16" class="mt-0.5 shrink-0" /> Seules les entreprises vérifiées par GAMAD publient des opportunités. Cette vérification ne garantit ni le recrutement ni les conditions proposées.</p>
-        </main>
+        </div>
 
         <aside aria-label="Découvrir" class="min-w-0 space-y-4 lg:col-start-2 xl:col-start-3">
             @if ($forYou->isNotEmpty())

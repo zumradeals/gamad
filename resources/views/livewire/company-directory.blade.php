@@ -45,7 +45,7 @@
                 <button type="button" wire:click="clearFilters" class="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-button border border-ink px-3 text-[14px] font-bold">Réinitialiser les filtres</button>
             </div>
         </aside>
-        <main class="min-w-0 space-y-4">
+        <div class="min-w-0 space-y-4">
             <h1 class="sr-only">Entreprises — Découvrez les entreprises vérifiées</h1>
             <div class="rounded-card border border-line bg-card p-4">
                 <div role="tablist" aria-label="Type d’entreprise" class="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 py-1">
@@ -108,7 +108,7 @@
                 </nav>
             @endif
             <p class="flex items-start justify-center gap-2 text-center text-[13px] text-muted"><x-icon name="shield" :size="16" class="mt-0.5 shrink-0"/> Seules les pages dont l’immatriculation a été vérifiée par GAMAD figurent ici. Cette vérification ne certifie ni les prestations, ni l’identité du gestionnaire.</p>
-        </main>
+        </div>
         <aside aria-label="Découvrir les entreprises" class="min-w-0 space-y-4 lg:col-start-2 xl:col-start-3">
             <section class="hidden rounded-card border border-line bg-card p-4 xl:block">
                 <h2 class="text-[17px] font-extrabold">Recherche rapide</h2>
