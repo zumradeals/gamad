@@ -246,6 +246,10 @@ class Opportunities
         Gate::forUser($user)->authorize('viewResponses', $response->opportunity);
         abort_if($response->state === OpportunityResponse::WITHDRAWN, 422);
         $opportunity = $response->opportunity;
+        // Un blocage interdit toute relation personnelle, même à l'occasion d'une candidature (D-200) : un message clair, pas une page d'erreur.
+        if (People::blocked($user, $response->user, fresh: true)) {
+            throw ValidationException::withMessages(['person' => 'Un blocage empêche toute relation personnelle : vous ne pouvez pas proposer d’échange à cette personne.']);
+        }
         $people->request($user, $response->user, Str::limit('Entreprise '.$opportunity->company->name.' : suite à votre réponse à « '.$opportunity->title.' ».', 270, ''));
         $response->forceFill(['state' => OpportunityResponse::CONTACTED, 'seen_at' => $response->seen_at ?? now()])->save();
         $this->notifier->opportunity($response->user, NotificationKind::OpportunityResponseContacted, $user, $opportunity);

@@ -15,6 +15,7 @@ use App\Models\Publication;
 use App\Models\User;
 use App\Models\UserNotification;
 use App\Services\Opportunities;
+use App\Services\People;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -497,6 +498,57 @@ it('répond « déjà répondu » au lieu d’une erreur 500 quand deux envois s
 
     // (Dans un vrai croisement, la ligne du premier envoi est validée par l'autre requête ; ici elle part avec la transaction annulée.)
     expect(Storage::disk('local')->allFiles('opportunity-responses'))->toBe([]);
+});
+
+// ─── Candidature et blocage (D-200) ─────────────────────────────────────────
+
+it('laisse une personne bloquée, ou qui a bloqué le propriétaire, candidater à l’entreprise et voir son offre publique', function () {
+    $o = opportunite($this->company);
+    $bloquee = User::factory()->create();
+    $bloqueuse = User::factory()->create();
+    app(People::class)->block($this->owner, $bloquee, true);
+    app(People::class)->block($bloqueuse, $this->owner, true);
+
+    foreach ([$bloquee, $bloqueuse] as $personne) {
+        $this->actingAs($personne)->get(route('opportunites.show', $o))->assertOk()->assertSeeText('Postuler');
+        $this->actingAs($personne)->get(route('entreprises.show', $this->company))->assertOk();
+        $this->post(route('opportunites.respond.store', $o), ['message' => 'Ma candidature.', 'attachment' => pdfOpp()])->assertSessionHasNoErrors()->assertRedirect();
+    }
+
+    expect(OpportunityResponse::where('opportunity_id', $o->id)->count())->toBe(2)
+        ->and(UserNotification::where('user_id', $this->owner->id)->count())->toBe(2);
+    $this->actingAs($this->owner)->get(route('opportunites.responses', $o))->assertOk()->assertSeeText('Ma candidature.');
+});
+
+it('garde l’accès aux candidatures antérieures, de la personne comme de l’entreprise, après un blocage', function () {
+    $o = opportunite($this->company);
+    $candidat = User::factory()->create(['name' => 'Awa Candidate']);
+    $this->actingAs($candidat)->post(route('opportunites.respond.store', $o), ['message' => 'Avant le blocage.', 'attachment' => pdfOpp()]);
+    $reponse = OpportunityResponse::sole();
+
+    app(People::class)->block($this->owner, $candidat, true);
+
+    $this->actingAs($this->owner)->get(route('opportunites.responses', $o))->assertOk()->assertSeeText('Avant le blocage.')->assertSeeText('Awa Candidate');
+    $this->get(route('opportunites.attachment', $reponse))->assertOk();
+    $this->actingAs($candidat)->get(route('espace.opportunites'))->assertOk()->assertSeeText($o->title);
+    $this->get(route('opportunites.attachment', $reponse))->assertOk();
+});
+
+it('interdit toujours à l’entreprise de proposer un échange à une personne bloquée, avec un message clair et sans relation créée', function () {
+    $o = opportunite($this->company);
+    $candidat = User::factory()->create(['name' => 'Awa Candidate']);
+    $this->actingAs($candidat)->post(route('opportunites.respond.store', $o), ['message' => 'Bonjour.']);
+    $reponse = OpportunityResponse::sole();
+    app(People::class)->block($candidat, $this->owner, true);
+
+    $page = Livewire::actingAs($this->owner)->test(OpportunityResponses::class, ['opportunity' => $o->id])
+        ->assertSeeText('Un blocage empêche toute relation personnelle avec cette personne.')->assertDontSeeText('Proposer un échange')
+        ->assertDontSee(route('personnes.show', $candidat->profile->public_id), false);
+    $page->call('contact', $reponse->id)->assertSet('message', 'Un blocage empêche toute relation personnelle : vous ne pouvez pas proposer d’échange à cette personne.');
+
+    expect(PersonConnection::count())->toBe(0)->and($reponse->fresh()->state)->toBe('sent')
+        ->and(UserNotification::where('user_id', $candidat->id)->count())->toBe(0);
+    expect(fn () => app(People::class)->request($this->owner, $candidat, 'Faisons connaissance.'))->toThrow(HttpException::class);
 });
 
 // ─── Purge des fichiers orphelins (gamad:purger-cv-orphelins) ───────────────

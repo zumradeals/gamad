@@ -60,6 +60,6 @@ class OpportunityResponses extends Component
         $responses = $opportunity->responses()->where('state', '<>', OpportunityResponse::WITHDRAWN)
             ->whereHas('user', fn ($u) => $u->active())->with('user.profile.city')->latest()->get();
 
-        return view('livewire.opportunity-responses', ['opportunity' => $opportunity, 'responses' => $responses]);
+        return view('livewire.opportunity-responses', ['opportunity' => $opportunity, 'responses' => $responses, 'blockedIds' => People::excludedIds(Auth::user())]);
     }
 }
