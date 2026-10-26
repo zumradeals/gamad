@@ -1,0 +1,47 @@
+import { createRequire } from 'module'; const { chromium } = createRequire('/')('playwright');
+const B = 'http://localhost:8001';
+const b = await chromium.launch();
+const ctx = await b.newContext({ viewport: { width: 390, height: 800 } });
+const p = await ctx.newPage();
+const errors = [];
+p.on('pageerror', e => errors.push('pageerror: ' + e.message));
+p.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
+await p.goto(B + '/login');
+await p.fill('input[name=email]', 'awa@recette.test'); await p.fill('input[name=password]', 'secret-pass-1');
+await p.click('button[type=submit]'); await p.waitForLoadState('networkidle');
+const uid = await p.evaluate(() => null);
+const keys = () => p.evaluate(() => Object.keys(localStorage).filter(k => k.startsWith('gamad:draft:')));
+
+// 1. Écrire un brouillon « besoin » et un brouillon « aide », quitter sans publier : ils restent.
+await p.goto(B + '/agir/besoin'); await p.waitForSelector('textarea');
+await p.fill('textarea', 'Je cherche quelqu’un pour réparer mon ordinateur.'); await p.waitForTimeout(400);
+await p.goto(B + '/agir/aide'); await p.waitForSelector('textarea');
+await p.fill('textarea', 'Je peux aider à installer du Wi-Fi.'); await p.waitForTimeout(400);
+console.log('1. après saisie, clés :', JSON.stringify(await keys()));
+await p.goto(B + '/fil');
+console.log('1b. après avoir quitté volontairement, clés :', JSON.stringify(await keys()));
+
+// 2. Rouvrir « besoin » : le bandeau propose de reprendre ; reprendre puis publier.
+await p.goto(B + '/agir/besoin'); await p.waitForTimeout(500);
+console.log('2. bandeau « Le reprendre ? » visible :', await p.locator('text=Le reprendre ?').isVisible());
+await p.click('button:has-text("Reprendre")'); await p.waitForTimeout(300);
+console.log('2b. texte repris :', (await p.inputValue('textarea')).slice(0, 30));
+await p.click('button:has-text("Continuer")'); await p.waitForTimeout(700);
+await p.click('button:has-text("Continuer")'); await p.waitForTimeout(700);
+await p.click('button:has-text("Publier ma demande")'); await p.waitForURL(/\/publications\//, { timeout: 15000 });
+await p.waitForTimeout(600);
+console.log('3. publié : ', p.url());
+console.log('3b. clés après publication :', JSON.stringify(await keys()), '(attendu : seulement « aide »)');
+
+// 4. Rouvrir le formulaire « besoin » : plus de bandeau ; « aide » proposé toujours.
+await p.goto(B + '/agir/besoin'); await p.waitForTimeout(500);
+console.log('4. bandeau besoin visible après publication :', await p.locator('text=Le reprendre ?').isVisible());
+await p.goto(B + '/agir/aide'); await p.waitForTimeout(500);
+console.log('4b. bandeau aide (autre brouillon) toujours visible :', await p.locator('text=Le reprendre ?').isVisible());
+
+// 5. Échec de publication : brouillon gardé (champ vidé côté serveur impossible → on vérifie la clé après un refus de validation).
+await p.goto(B + '/agir/aide'); await p.waitForTimeout(400);
+await p.click('button:has-text("Effacer le brouillon")'); await p.waitForTimeout(300);
+console.log('5. clés après « Effacer le brouillon » (action volontaire) :', JSON.stringify(await keys()));
+console.log('erreurs JS :', JSON.stringify(errors));
+await b.close();

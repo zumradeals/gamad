@@ -15,7 +15,7 @@
 
 <div class="flex flex-col gap-3.5">
     @if (session('clear_draft'))
-        <span hidden x-data x-init="try { localStorage.removeItem(@js(session('clear_draft'))) } catch (e) {}"></span>
+        <span hidden x-data x-init="gamadDraftClear(@js(session('clear_draft')))"></span>
     @endif
     <div class="-mx-4 -mt-4 flex min-h-14 items-center gap-1 border-b border-line bg-card px-2 py-1.5 md:mx-0 md:mt-0 md:rounded-card md:border">
         <a href="{{ $viewer ? route('fil') : url('/') }}" aria-label="{{ $viewer ? 'Retour à l’accueil' : 'Retour à l’accueil' }}" class="flex size-11 items-center justify-center text-ink hover:text-ink"><x-icon name="back" /></a>

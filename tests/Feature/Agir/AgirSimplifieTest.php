@@ -90,3 +90,38 @@ it('interdit toujours le formulaire à un visiteur et garde /agir pour les ancie
     $this->get('/agir')->assertRedirect('/login');
     $this->actingAs(User::factory()->create())->get('/agir')->assertOk()->assertSeeText('Je montre une réalisation');
 });
+
+// ─── Brouillon local après publication (audit A3, lot C4) ───────────────────
+
+it('demande l’effacement du seul brouillon concerné après une publication réussie', function () {
+    $user = User::factory()->create();
+    $key = 'gamad:draft:'.$user->id.':besoin';
+
+    Livewire::actingAs($user)->test(PublierPublication::class, ['slug' => 'besoin'])
+        ->set('body', 'Je cherche quelqu’un pour réparer mon ordinateur.')->call('publish')->assertHasNoErrors()->assertRedirect();
+    expect(session('clear_draft'))->toBe($key);
+
+    $publication = Publication::where('author_id', $user->id)->sole();
+    $html = $this->actingAs($user)->get(route('publications.show', $publication))->assertOk()->getContent();
+    // Une expression Alpine appelle une fonction : une instruction `try { … }` dans x-init est une erreur de syntaxe.
+    expect($html)->toContain('gamadDraftClear(')->toContain($key)->not->toContain('x-init="try')
+        ->not->toContain('gamad:draft:'.$user->id.':aide')->not->toContain('localStorage.clear');
+});
+
+it('garde le brouillon quand la publication échoue ou n’a pas lieu', function () {
+    $user = User::factory()->create();
+
+    Livewire::actingAs($user)->test(PublierPublication::class, ['slug' => 'besoin'])
+        ->set('body', '')->call('publish')->assertHasErrors();
+    expect(session('clear_draft'))->toBeNull();
+
+    $page = $this->actingAs($user)->get(route('agir.publier', 'besoin'))->assertOk()->getContent();
+    expect($page)->toContain('gamadDraft(')->not->toContain('gamadDraftClear(')->not->toContain('removeItem');
+    expect(Publication::where('author_id', $user->id)->count())->toBe(0);
+});
+
+it('définit la fonction d’effacement côté navigateur, limitée à la clé reçue', function () {
+    $js = file_get_contents(resource_path('js/app.js'));
+
+    expect($js)->toContain('window.gamadDraftClear = (key) =>')->toContain('localStorage.removeItem(key)')->not->toContain('localStorage.clear');
+});

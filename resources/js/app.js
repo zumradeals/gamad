@@ -4,6 +4,11 @@ document.addEventListener('click', (event) => {
     if (link) link.closest('details').open = false;
 });
 
+// Efface le seul brouillon dont la clé est donnée, après une publication réussie (la clé vient du serveur, jamais d’un balayage du stockage).
+window.gamadDraftClear = (key) => {
+    try { localStorage.removeItem(key); } catch {}
+};
+
 // Texte uniquement : aucun fichier ni réglage de visibilité conservé sur l’appareil.
 window.gamadDraft = (wire, key) => ({
     saved: null, status: '', ready: false,
