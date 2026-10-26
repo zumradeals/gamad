@@ -109,8 +109,8 @@ class CarrefourBesoins extends Component
             ->when($emitter === 'zumra', fn (Builder $query) => $query->whereNotNull('zumra_id')->whereNull('project_id'))
             ->when($emitter === 'personne', fn (Builder $query) => $query->whereNull('zumra_id'))
             // Recherche : le texte du besoin, ou la capacité demandée (sans tenir compte des accents ni de la casse).
-            ->when($key !== '', fn (Builder $query) => $query->where(function (Builder $query) use ($text, $key) {
-                $query->where('body', 'ilike', Normalizer::likeContains($text))
+            ->when($key !== '', fn (Builder $query) => $query->where(function (Builder $query) use ($key) {
+                $query->whereRaw(Normalizer::sqlKey('publications.body').' like ?', [Normalizer::likeContains($key)])
                     ->orWhereHas('skills', fn (Builder $skills) => $skills->where('skills.normalized', 'like', Normalizer::likeContains($key)));
             }))
             ->with(['author.profile', 'domain', 'city', 'skills', 'zumra', 'project'])

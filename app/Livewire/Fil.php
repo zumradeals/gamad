@@ -6,10 +6,10 @@ use App\Enums\GestureState;
 use App\Enums\PublicationType;
 use App\Models\Conversation;
 use App\Models\Gesture;
-use App\Models\PersonConnection;
 use App\Models\Profile;
 use App\Models\Publication;
 use App\Models\User;
+use App\Services\ComplementaryPeople;
 use App\Services\People;
 use App\Services\PersonalTrust;
 use App\Services\PublicationBookmarks;
@@ -149,11 +149,11 @@ class Fil extends Component
             ->visibleTo($viewer)
             // Une publication masquée n'apparaît jamais dans le Fil, même à son auteur ni à la modération (D-089).
             ->whereNull('hidden_at')
-            ->when($key !== '', fn (Builder $query) => $query->where(function (Builder $query) use ($text, $key) {
-                $query->where('body', 'ilike', Normalizer::likeContains($text))
+            ->when($key !== '', fn (Builder $query) => $query->where(function (Builder $query) use ($key) {
+                $query->whereRaw(Normalizer::sqlKey('publications.body').' like ?', [Normalizer::likeContains($key)])
                     ->orWhereHas('skills', fn (Builder $skills) => $skills->where('skills.normalized', 'like', Normalizer::likeContains($key)))
                     ->orWhereHas('author', fn (Builder $author) => $author->where('name_search', 'like', Normalizer::likeContains($key)))
-                    ->orWhereHas('company', fn (Builder $company) => $company->where('name', 'ilike', Normalizer::likeContains($text)));
+                    ->orWhereHas('company', fn (Builder $company) => $company->whereRaw(Normalizer::sqlKey('companies.name').' like ?', [Normalizer::likeContains($key)]));
             }))
             ->when(array_key_exists($filter, self::FILTERS), fn ($query) => $query->where('type', self::FILTERS[$filter]->value))
             ->when($filter === 'suivis', fn ($query) => $query->whereNull('zumra_id')->whereNull('project_id')
@@ -226,34 +226,16 @@ class Fil extends Component
      */
     private function suggestions(User $viewer, Profile $profile): Collection
     {
-        $profile->loadMissing(['offeredSkills', 'wantedSkills']);
-        $wanted = $profile->wantedSkills->pluck('id');
-        $offered = $profile->offeredSkills->pluck('id');
-        $related = PersonConnection::query()->forPerson($viewer)->whereIn('state', ['accepted', 'pending'])->get()->map(fn (PersonConnection $c) => $c->otherId($viewer));
-        $followed = DB::table('person_follows')->where('user_id', $viewer->id)->pluck('followed_id');
-        $base = fn () => Profile::query()->visibleTo($viewer)->where('profiles.user_id', '!=', $viewer->id)
-            ->whereNotIn('profiles.user_id', array_merge($related->all(), $followed->all()) ?: [Str::uuid()->toString()])
-            ->whereHas('user', fn (Builder $user) => $user->active())
-            ->orderBy(User::query()->select('name_search')->whereColumn('users.id', 'profiles.user_id'))
-            ->with(['user', 'city', 'offeredSkills', 'wantedSkills']);
+        $people = app(ComplementaryPeople::class);
+        $exclude = $people->relatedUserIds($viewer, withFollowed: true);
 
-        $list = collect();
-        if ($wanted->isNotEmpty() || $offered->isNotEmpty()) {
-            $list = $base()->where(fn (Builder $q) => $q
-                ->whereHas('offeredSkills', fn (Builder $s) => $s->whereIn('skills.id', $wanted))
-                ->orWhereHas('wantedSkills', fn (Builder $s) => $s->whereIn('skills.id', $offered)))
-                ->limit(4)->get()->map(function (Profile $person) use ($wanted, $offered) {
-                    $brings = $person->offeredSkills->whereIn('id', $wanted->all())->pluck('name')->first();
-                    $learns = $person->wantedSkills->whereIn('id', $offered->all())->pluck('name')->first();
-                    $person->setAttribute('reason', $brings ? 'Peut vous apporter : '.$brings : 'Veut apprendre : '.$learns);
-
-                    return $person;
-                });
-        }
+        $list = $people->suggestions($viewer, $profile, $exclude, 4);
 
         if ($list->count() < 4 && $profile->city_id) {
-            $near = $base()->where('profiles.city_id', $profile->city_id)->whereNotIn('profiles.id', $list->pluck('id')->all() ?: [Str::uuid()->toString()])
-                ->limit(4 - $list->count())->get()->map(function (Profile $person) {
+            $near = $people->candidates($viewer, $exclude)->where('profiles.city_id', $profile->city_id)
+                ->whereNotIn('profiles.id', $list->pluck('id')->all() ?: [Str::uuid()->toString()])
+                ->with(['user', 'city', 'offeredSkills', 'wantedSkills'])->limit(4 - $list->count())->get()
+                ->map(function (Profile $person) {
                     $person->setAttribute('reason', 'Même localité déclarée');
 
                     return $person;
