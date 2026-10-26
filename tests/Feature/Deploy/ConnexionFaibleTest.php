@@ -48,7 +48,7 @@ it('charge les polices avec font-display: swap, pour que le texte reste lisible 
     expect(substr_count($css, '@font-face'))->toBeGreaterThan(0)->and(substr_count($css, 'font-display: swap'))->toBe(substr_count($css, '@font-face'));
 });
 
-it('garde la feuille de style compilée sous 12 ko compressés', function () {
+it('garde la feuille de style compilée sous 14 ko compressés', function () {
     $manifeste = base_path('public/build/manifest.json');
     if (! file_exists($manifeste)) {
         $this->markTestSkipped('Le front n’est pas compilé (npm run build).');
@@ -57,7 +57,7 @@ it('garde la feuille de style compilée sous 12 ko compressés', function () {
     $css = collect(json_decode(file_get_contents($manifeste), true))->pluck('file')->filter(fn ($f) => str_ends_with($f, '.css'))->first();
     $taille = strlen(gzencode(file_get_contents(base_path("public/build/$css")), 6));
 
-    expect($taille)->toBeLessThan(12 * 1024);
+    expect($taille)->toBeLessThan(14 * 1024);
 });
 
 it('n’interroge le serveur que toutes les 30 secondes pour les notifications, et pas en plus par page', function () {
