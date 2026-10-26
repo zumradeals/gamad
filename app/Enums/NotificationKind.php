@@ -58,6 +58,8 @@ enum NotificationKind: string
     case ModerationNoticeExplained = 'moderation_notice_explained';
     case ModerationNoticeClosed = 'moderation_notice_closed';
     case PersonReinstated = 'person_reinstated';
+    case AdAccepted = 'ad_accepted';
+    case AdRefused = 'ad_refused';
 
     /** Une notification qui s'adresse à la modération (et non à l'auteur d'un acte de modération). */
     public function isForModeration(): bool
@@ -68,7 +70,7 @@ enum NotificationKind: string
     /** Le texte de la notification commence-t-il par le nom d'une personne ? (Non pour un transfert de fondation.) */
     public function showsActor(): bool
     {
-        return ! in_array($this, [self::ZumraFounderTransferred, self::MatchFound, self::TrustUpdated, self::TrustReview, self::CompanyReviewUpdated, self::CompanyReviewRequested, self::CompanyReportReceived], true);
+        return ! in_array($this, [self::ZumraFounderTransferred, self::MatchFound, self::TrustUpdated, self::TrustReview, self::CompanyReviewUpdated, self::CompanyReviewRequested, self::CompanyReportReceived, self::AdAccepted, self::AdRefused], true);
     }
 
     /** Une notification qui parle d'une ZUMRA (son nom prend la place de l'extrait de publication). */
@@ -148,6 +150,8 @@ enum NotificationKind: string
             self::ModerationNoticeExplained => 'a répondu à l’avis de la modération.',
             self::ModerationNoticeClosed => 'a classé l’avis de la modération : aucune suite.',
             self::PersonReinstated => 'a rétabli votre compte.',
+            self::AdAccepted => 'Votre annonce a été acceptée par la modération. Elle reste « Prête » tant que la diffusion n’est pas ouverte.',
+            self::AdRefused => 'Votre annonce n’a pas été acceptée par la modération. Consultez le motif et corrigez-la.',
         };
     }
 }

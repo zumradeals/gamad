@@ -486,6 +486,7 @@
                 <x-button variant="secondary" class="!text-[13px]"><x-icon name="logout" :size="18" class="mr-2" />Se déconnecter</x-button>
             </form>
         </section>
+        <livewire:consentement-publicite />
         <details wire:ignore.self class="space-panel group" @if ($errors->has('password')) open @endif x-data="{ confirming: {{ $errors->has('password') ? 'true' : 'false' }} }">
             <summary class="space-delete-summary">
                 <x-icon name="warning" :size="24" class="shrink-0 text-danger" />
@@ -521,6 +522,7 @@
             <p class="text-muted">Les publications signalées, celles que vous avez masquées et l’explication de leur auteur ; les avis et suspensions de personnes ; le journal des actes.</p>
             <x-button :href="route('moderation')">Ouvrir la file de modération</x-button>
             <x-button variant="secondary" :href="route('moderation.personnes')">Modération des personnes</x-button>
+            @if (\Illuminate\Support\Facades\Route::has('moderation.annonces') && \App\Support\PubliciteModule::accessibleTo(auth()->user()))<x-button variant="secondary" :href="route('moderation.annonces')">Modération des annonces</x-button>@endif
             <x-button variant="secondary" :href="route('moderation.journal')">Journal d’administration</x-button>
         </section>
 

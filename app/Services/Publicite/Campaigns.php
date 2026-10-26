@@ -5,12 +5,14 @@ namespace App\Services\Publicite;
 use App\Enums\AdCta;
 use App\Enums\AdObjective;
 use App\Enums\AdState;
+use App\Enums\NotificationKind;
 use App\Exceptions\AdException;
 use App\Models\AdCampaign;
 use App\Models\AdModeration;
 use App\Models\Company;
 use App\Models\User;
 use App\Services\AdminJournal;
+use App\Services\Notifier;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -36,7 +38,7 @@ class Campaigns
 
     public const MAX_BUDGET = 10_000_000;
 
-    public function __construct(private readonly AudienceEstimator $audience) {}
+    public function __construct(private readonly AudienceEstimator $audience, private readonly Notifier $notifier) {}
 
     /**
      * Crée un brouillon, ou modifie une campagne. Une campagne Prête, En pause ou Active modifiée repart En examen, et doit alors être
@@ -174,6 +176,7 @@ class Campaigns
                 'moderated_at' => now(),
             ])->save();
             AdModeration::query()->create(['ad_campaign_id' => $campaign->getKey(), 'reviewer_id' => $moderator->getKey(), 'decision' => $accept ? 'accepted' : 'refused', 'reason' => $accept ? null : $reason]);
+            $this->notifier->push($campaign->owner, $accept ? NotificationKind::AdAccepted : NotificationKind::AdRefused, $moderator);
             AdminJournal::record($moderator, $accept ? 'ad.accepted' : 'ad.refused', $campaign, $accept ? null : $reason, ['annonce' => (string) $campaign->title]);
 
             return $campaign->refresh();

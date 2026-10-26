@@ -6,6 +6,7 @@ use App\Enums\NotificationKind;
 use App\Models\UserNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Route;
 
 /** Ouvrir une notification : elle est marquée lue, puis on va à ce qu'elle annonce. Celle d'une autre personne n'existe pas (404). */
 class NotificationController extends Controller
@@ -51,6 +52,7 @@ class NotificationController extends Controller
             NotificationKind::ModerationNoticeIssued => route('avis'),
             NotificationKind::ModerationNoticeClosed => route('espace'),
             NotificationKind::PersonReinstated => route('fil'),
+            NotificationKind::AdAccepted, NotificationKind::AdRefused => Route::has('publicite.campagnes') ? route('publicite.campagnes') : null,
             NotificationKind::ZumraDutyProposed => route('espace.zumras'),
             // Toutes les notifications d'une ZUMRA mènent à son Monde (la ZUMRA est publique : elle existe pour tous).
             NotificationKind::ZumraRequestReceived, NotificationKind::ZumraRequestAccepted, NotificationKind::ZumraInvitationReceived,
