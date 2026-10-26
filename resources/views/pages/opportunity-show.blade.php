@@ -82,12 +82,12 @@
                     <p class="mt-2 whitespace-pre-line break-words text-[15px] leading-relaxed">{{ $opportunity->description }}</p></section>
                 @if ($missions)<section class="mt-6" aria-labelledby="missions-titre"><h2 id="missions-titre" class="text-[18px] font-extrabold">Vos missions</h2>
                     <ul class="mt-2 list-disc space-y-1 pl-5 text-[15px] leading-relaxed">@foreach ($missions as $line)<li class="break-words">{{ $line }}</li>@endforeach</ul></section>@endif
-                @if ($profileLines || $opportunity->skills || $opportunity->experience || $opportunity->qualifications)
+                @if ($profileLines || $opportunity->requiredSkills->isNotEmpty() || $opportunity->experience || $opportunity->qualifications)
                     <section class="mt-6" aria-labelledby="profil-titre"><h2 id="profil-titre" class="text-[18px] font-extrabold">Profil recherché</h2>
                         @if ($profileLines)<ul class="mt-2 list-disc space-y-1 pl-5 text-[15px] leading-relaxed">@foreach ($profileLines as $line)<li class="break-words">{{ $line }}</li>@endforeach</ul>@endif
                         @if ($opportunity->experience)<p class="mt-2 text-[15px]"><strong>Expérience :</strong> {{ $opportunity->experience }}</p>@endif
                         @if ($opportunity->qualifications)<p class="mt-2 whitespace-pre-line break-words text-[15px]"><strong>Qualifications nécessaires :</strong> {{ $opportunity->qualifications }}</p>@endif
-                        @if ($opportunity->skills)<ul aria-label="Compétences recherchées" class="mt-3 flex flex-wrap gap-2">@foreach ($opportunity->skills as $skill)<li class="max-w-full break-words rounded-chip bg-soft-blue px-3 py-1.5 text-[12px] font-semibold text-link">{{ $skill }}</li>@endforeach</ul>@endif
+                        @if ($opportunity->requiredSkills->isNotEmpty())<ul aria-label="Compétences recherchées" class="mt-3 flex flex-wrap gap-2">@foreach ($opportunity->requiredSkills as $skill)<li class="max-w-full break-words rounded-chip bg-soft-blue px-3 py-1.5 text-[12px] font-semibold text-link">{{ $skill->name }}</li>@endforeach</ul>@endif
                     </section>
                 @endif
                 @if ($opportunity->conditions)<section class="mt-6" aria-labelledby="cond-titre"><h2 id="cond-titre" class="text-[18px] font-extrabold">Conditions</h2>

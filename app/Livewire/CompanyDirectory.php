@@ -211,7 +211,7 @@ class CompanyDirectory extends Component
             foreach ($skills as $name) {
                 $like = Normalizer::likeContains(Normalizer::key($name));
                 $q->orWhereRaw(Normalizer::sqlKey('companies.sector').' like ?', [$like])->orWhereRaw(Normalizer::sqlKey('companies.summary').' like ?', [$like])
-                    ->orWhereHas('opportunities', fn (Builder $p) => $p->where(fn (Builder $o) => $o->whereRaw(Normalizer::sqlKey('opportunities.title').' like ?', [$like])->orWhereRaw(Normalizer::sqlKey('opportunities.skills::text').' like ?', [$like])));
+                    ->orWhereHas('opportunities', fn (Builder $p) => $p->where(fn (Builder $o) => $o->whereRaw(Normalizer::sqlKey('opportunities.title').' like ?', [$like])->orWhereHas('requiredSkills', fn (Builder $skill) => $skill->where('skills.normalized', 'like', $like))));
             }
         });
     }
@@ -242,13 +242,13 @@ class CompanyDirectory extends Component
             ->whereNotIn('companies.id', $followedIds ?: [Str::uuid()->toString()]);
         $this->matchingSkills($query, $mine);
 
-        return $query->orderBy('name')->with('opportunities')->limit(3)->get()->map(function (Company $company) use ($skills) {
+        return $query->orderBy('name')->with('opportunities.requiredSkills')->limit(3)->get()->map(function (Company $company) use ($skills) {
             $reason = null;
             foreach ($skills as $name) {
                 $needle = Normalizer::key($name);
                 if (str_contains(Normalizer::key((string) $company->sector), $needle)) {
                     $reason = 'Votre capacité « '.$name.' » correspond à son secteur';
-                } elseif ($company->opportunities->contains(fn ($p) => str_contains(Normalizer::key($p->title.' '.implode(' ', $p->skills ?? [])), $needle))) {
+                } elseif ($company->opportunities->contains(fn ($p) => str_contains(Normalizer::key($p->title.' '.implode(' ', $p->requiredSkills->pluck('name')->all())), $needle))) {
                     $reason = 'Une opportunité publiée mentionne « '.$name.' »';
                 } elseif (str_contains(Normalizer::key((string) $company->summary), $needle)) {
                     $reason = 'Sa présentation mentionne « '.$name.' »';

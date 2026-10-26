@@ -9,6 +9,7 @@ use App\Models\Opportunity;
 use App\Models\OpportunityResponse;
 use App\Models\User;
 use App\Support\Normalizer;
+use App\Support\SkillList;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
@@ -36,7 +37,8 @@ class Opportunities
             $data[$field] = Normalizer::multiline((string) ($data[$field] ?? ''));
         }
         $data['experience'] = Normalizer::display((string) ($data['experience'] ?? ''));
-        $data['skills'] = collect($data['skills'] ?? [])->map(fn ($skill) => Normalizer::display((string) $skill))->filter()->unique(fn ($s) => Normalizer::key($s))->values()->all();
+        // Référentiel commun des capacités (D1) : mêmes règles de nom et de doublon que pour un profil ou une publication.
+        $data['skills'] = SkillList::clean((array) ($data['skills'] ?? []), 'skills', Opportunity::MAX_SKILLS, 'Huit compétences au plus.');
         foreach (['work_mode', 'workload', 'city_id', 'domain_id', 'deadline', 'external_url'] as $field) {
             $data[$field] = filled($data[$field] ?? null) ? $data[$field] : null;
         }
@@ -48,8 +50,6 @@ class Opportunities
             'description' => [$forPublication ? 'required' : 'nullable', 'string', 'max:1000'],
             'missions' => ['nullable', 'string', 'max:2000'],
             'profile' => ['nullable', 'string', 'max:2000'],
-            'skills' => ['array', 'max:'.Opportunity::MAX_SKILLS],
-            'skills.*' => ['string', 'max:60'],
             'experience' => ['nullable', 'string', 'max:160'],
             'qualifications' => ['nullable', 'string', 'max:1000'],
             'conditions' => ['nullable', 'string', 'max:1000'],
@@ -66,12 +66,12 @@ class Opportunities
             'title.max' => 'Le titre est trop long (160 caractères au plus).',
             'description.required' => 'Expliquez ce que vous recherchez.',
             'description.max' => 'La description est trop longue (1 000 caractères au plus).',
-            'skills.max' => 'Huit compétences au plus.',
             'deadline.after_or_equal' => 'La date limite ne peut pas être dans le passé.',
             'deadline.date_format' => 'Choisissez une date valide.',
             'kind.required' => 'Choisissez le type d’opportunité.',
         ];
         $clean = Validator::make($data, $rules, $messages)->validate();
+        $clean['skills'] = $data['skills'];
 
         if ($clean['apply_mode'] === 'external') {
             $clean['external_url'] = $this->safeUrl($clean['external_url'] ?? null);
@@ -125,9 +125,13 @@ class Opportunities
 
     private function persist(User $user, Company $company, array $clean, ?Opportunity $opportunity): Opportunity
     {
+        $skills = $clean['skills'] ?? [];
+        unset($clean['skills']);
+
         if ($opportunity) {
             abort_if($opportunity->company_id !== $company->id, 404);
             $opportunity->fill($clean)->save();
+            $opportunity->syncSkills($skills);
 
             return $opportunity;
         }
@@ -136,6 +140,7 @@ class Opportunities
         $created->company()->associate($company);
         $created->author()->associate($user);
         $created->save();
+        $created->syncSkills($skills);
 
         return $created;
     }
