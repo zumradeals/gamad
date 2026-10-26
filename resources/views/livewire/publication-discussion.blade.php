@@ -31,7 +31,7 @@
             <div class="flex items-center justify-between gap-2"><span class="text-[12px] text-muted">500 caractères maximum</span><x-button type="submit" wire:loading.attr="disabled" wire:target="send">Publier le commentaire</x-button></div>
         </form>
     @else
-        <p class="border-t border-line-soft pt-4 text-[13px] text-muted"><a href="{{ route('login') }}" class="font-bold underline">Connectez-vous</a> avec un compte vérifié pour commenter.</p>
+        <p class="border-t border-line-soft pt-4 text-[13px] text-muted"><a href="{{ route('login') }}" class="inline-flex min-h-11 items-center font-bold underline">Connectez-vous</a> avec un compte vérifié pour commenter.</p>
     @endif
 
     @if ($reportId && $viewer?->isActive())

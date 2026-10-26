@@ -96,7 +96,7 @@ it('paginera par 10 et revient à la première page quand la recherche change', 
     expect(nomsEntreprises($p))->toHaveCount(10);
 });
 
-it('ne montre l’onglet « Recherche des compétences » que pour une opportunité publique réellement publiée', function () {
+it('ne montre l’onglet « Opportunités » que pour une opportunité publique réellement publiée', function () {
     expect(nomsEntreprises(annuaire()->call('setMode', 'opportunities')))->toBe([]);
     annuaire()->call('setMode', 'opportunities')->assertSeeText('Aucune entreprise ne recherche de compétences pour le moment.');
 
@@ -104,7 +104,7 @@ it('ne montre l’onglet « Recherche des compétences » que pour une opportuni
 
     $p = annuaire()->call('setMode', 'opportunities');
     expect(nomsEntreprises($p))->toBe(['Alpha Compta']);
-    $p->assertSeeText('Recherche des compétences');
+    $p->assertSeeText('Propose des opportunités');
 
     // Clôturée : n'apparaît plus.
     $opportunite->forceFill(['status' => 'closed', 'closed_at' => now()])->save();
