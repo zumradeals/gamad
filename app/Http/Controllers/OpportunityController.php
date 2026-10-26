@@ -103,6 +103,7 @@ class OpportunityController extends Controller
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'attachment; filename="reponse.pdf"',
             'X-Content-Type-Options' => 'nosniff',
+            'Content-Security-Policy' => "default-src 'none'; sandbox",
             'Cache-Control' => 'private, no-store',
         ]);
     }
