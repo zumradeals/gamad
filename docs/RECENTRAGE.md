@@ -511,8 +511,8 @@ propose plus le type « Opportunité ».
 
 **Données.** Trois tables additives (opportunités, sauvegardes, réponses) et une colonne nullable sur les notifications.
 
-**Blocage.** Voir D-199 : une entreprise publique garde une identité distincte de son propriétaire ; les interactions personnelles
-directes entre personnes bloquées restent interdites. **État actuel du code (non modifié par D-199) :** une personne bloquée par le
-propriétaire de l'entreprise, ou qui l'a bloqué, ne peut pas répondre à ses opportunités. Le Président a indiqué qu'une candidature
-relève de la relation professionnelle avec l'entreprise, indépendamment de la relation personnelle avec son propriétaire : cette
-précision fera l'objet d'une décision distincte et de tests adaptés, et n'est pas encore appliquée.
+**Blocage.** Voir D-199 et D-200 : une entreprise publique garde une identité distincte de son propriétaire. Une candidature relève de
+la relation professionnelle avec l'entreprise : le blocage entre la personne et le propriétaire n'empêche pas de candidater et ne supprime
+pas l'accès aux candidatures antérieures (personne comme entreprise). Les relations et conversations personnelles directes entre
+personnes bloquées restent interdites : l'entreprise ne peut pas proposer d'échange à une personne bloquée, un message clair l'explique, et
+le lien vers le profil public n'est pas proposé.

@@ -10,6 +10,7 @@
     <section class="space-y-3" aria-label="Réponses">
         @forelse ($responses as $response)
             @php($person = $response->user)
+            @php($blocked = in_array($person->id, $blockedIds, true))
             <article wire:key="resp-{{ $response->id }}" class="rounded-card border border-line bg-card p-4">
                 <div class="flex min-w-0 items-start gap-3">
                     @if ($person->profile)<x-avatar :profile="$person->profile" :size="52" />@endif
@@ -21,10 +22,10 @@
                 </div>
                 @if ($response->message)<p class="mt-3 whitespace-pre-line break-words rounded-button bg-ground p-3 text-[14px] leading-relaxed">{{ $response->message }}</p>@endif
                 <div class="mt-3 flex flex-wrap items-center gap-2">
-                    @if ($person->profile)<x-button :href="route('personnes.show', $person->profile->public_id)" variant="secondary">Voir le profil public</x-button>@endif
+                    @if ($person->profile && ! $blocked)<x-button :href="route('personnes.show', $person->profile->public_id)" variant="secondary">Voir le profil public</x-button>@endif
                     @if ($response->attachment_path)<x-button :href="route('opportunites.attachment', $response)" variant="secondary"><x-icon name="document" :size="16" class="mr-1.5" />Document PDF</x-button>@endif
                     @if ($response->state === 'sent')<button type="button" wire:click="markSeen('{{ $response->id }}')" class="min-h-11 px-3 text-[13px] font-bold text-link">Marquer comme vue</button>@endif
-                    @if ($response->state !== 'contacted')<button type="button" wire:click="contact('{{ $response->id }}')" wire:confirm="Proposer un échange à cette personne ?" class="inline-flex min-h-11 items-center rounded-button bg-accent px-4 text-[14px] font-bold text-ink">Proposer un échange</button>@endif
+                    @if ($blocked)<p class="text-[13px] text-muted">Un blocage empêche toute relation personnelle avec cette personne.</p>@elseif ($response->state !== 'contacted')<button type="button" wire:click="contact('{{ $response->id }}')" wire:confirm="Proposer un échange à cette personne ?" class="inline-flex min-h-11 items-center rounded-button bg-accent px-4 text-[14px] font-bold text-ink">Proposer un échange</button>@endif
                 </div>
             </article>
         @empty

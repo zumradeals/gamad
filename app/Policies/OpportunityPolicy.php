@@ -49,14 +49,17 @@ class OpportunityPolicy
         return $this->manageFor($user, $company) && $company->fresh()->verified();
     }
 
-    /** Répondre : une personne active, autre que l'entreprise elle-même, sans blocage mutuel, sur une opportunité ouverte. */
+    /**
+     * Répondre : une personne active, autre que le propriétaire de l'entreprise, sur une opportunité ouverte (D-200). Une candidature
+     * relève de la relation professionnelle avec l'entreprise : un blocage entre la personne et le propriétaire ne l'empêche pas.
+     * Les relations et conversations personnelles directes entre personnes bloquées restent interdites (People).
+     */
     public function respond(User $user, Opportunity $opportunity): bool
     {
         return $this->active($user)
             && $opportunity->isOpen()
             && $opportunity->apply_mode === 'gamad'
-            && $opportunity->company->owner_id !== $user->id
-            && ! People::blocked($user, $opportunity->company->owner);
+            && $opportunity->company->owner_id !== $user->id;
     }
 
     /** Les réponses reçues, leurs messages et leurs pièces jointes : l'entreprise émettrice, jamais le public. */
