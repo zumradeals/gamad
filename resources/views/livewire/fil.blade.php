@@ -206,9 +206,9 @@
 
         <section class="flex flex-col gap-3 rounded-card bg-ink p-5 text-white">
             <x-icon name="heart" :size="28" class="text-accent" />
-            <h2 class="text-[18px] font-extrabold text-white">Chaque contribution compte</h2>
-            <p class="text-[14px] leading-relaxed text-white/85">Partagez vos expériences, présentez vos réalisations ou exprimez vos besoins. Ensemble, nous faisons grandir le réseau GAMAD.</p>
-            <button type="button" x-data x-on:click="$dispatch('open-composer')" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-button bg-accent px-5 text-[15px] font-bold text-ink">Partager maintenant <x-icon name="arrow-right" :size="16" /></button>
+            <h2 class="text-[18px] font-extrabold text-white">Quand vous le souhaitez</h2>
+            <p class="text-[14px] leading-relaxed text-white/85">Partager une expérience, une réalisation ou un besoin est toujours un choix. Vous pouvez aussi simplement découvrir, lire et revenir quand vous voulez.</p>
+            <button type="button" x-data x-on:click="$dispatch('open-composer')" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-button bg-accent px-5 text-[15px] font-bold text-ink">Partager <x-icon name="arrow-right" :size="16" /></button>
         </section>
     </aside>
 

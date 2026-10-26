@@ -75,7 +75,7 @@
             </div>
         </aside>
 
-        <main class="flex min-w-0 flex-col gap-6" wire:loading.class="opacity-60">
+        <div class="flex min-w-0 flex-col gap-6" wire:loading.class="opacity-60">
             @if ($showNeeds)
                 <section aria-labelledby="besoins-recents" class="flex flex-col gap-3">
                     <div class="flex items-center justify-between gap-3">
@@ -114,7 +114,7 @@
                     @endif
                 </section>
             @endif
-        </main>
+        </div>
 
         <aside class="flex min-w-0 flex-col gap-4" aria-label="Mon engagement et impact">
             <section aria-labelledby="mon-engagement" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4">

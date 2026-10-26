@@ -135,10 +135,10 @@ it('refuse un identifiant de suggestion invalide et le Fil à un visiteur', func
     expect(DB::table('person_follows')->count())->toBe(0);
 });
 
-it('propose le bloc « Chaque contribution compte » qui ouvre le vrai composer', function () {
+it('propose le bloc « Quand vous le souhaitez » qui ouvre le vrai composer', function () {
     $html = leFil($this->moi)->html();
 
-    expect($html)->toContain('Chaque contribution compte')->toContain('Partager maintenant')->toContain("\$dispatch('open-composer')");
+    expect($html)->toContain('Quand vous le souhaitez')->toContain('toujours un choix')->not->toContain('Partager maintenant')->not->toContain('Chaque contribution compte')->toContain("\$dispatch('open-composer')");
     expect(file_get_contents(resource_path('views/livewire/fil-composer.blade.php')))->toContain('x-on:open-composer.window');
 });
 
