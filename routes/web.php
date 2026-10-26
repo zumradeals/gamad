@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdImageController;
 use App\Http\Controllers\AideController;
 use App\Http\Controllers\BrandingController;
 use App\Http\Controllers\CompanyBrandingController;
@@ -33,6 +34,7 @@ use App\Livewire\CompanyCreate;
 use App\Livewire\CompanyDirectory;
 use App\Livewire\CompanyModeration;
 use App\Livewire\ContributionsAdministration;
+use App\Livewire\CreerCampagne;
 use App\Livewire\Espace;
 use App\Livewire\Fil;
 use App\Livewire\FileModeration;
@@ -41,6 +43,7 @@ use App\Livewire\FormulaireZumra;
 use App\Livewire\InviterPersonnes;
 use App\Livewire\JournalAdministration;
 use App\Livewire\MesAttestations;
+use App\Livewire\MesCampagnes;
 use App\Livewire\MesContributions;
 use App\Livewire\MesEnregistrements;
 use App\Livewire\MesProjets;
@@ -198,6 +201,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/contributions/{proposal}', PageProposition::class)->whereUuid('proposal')->name('contributions.show');
     Route::get('/espace/mes-contributions', MesContributions::class)->name('espace.mes-contributions');
     Route::get('/espace/services', PageServicesGamad::class)->name('espace.services');
+    Route::get('/espace/publicite', MesCampagnes::class)->name('publicite.campagnes');
+    Route::get('/espace/publicite/nouvelle', CreerCampagne::class)->name('publicite.creer');
+    Route::get('/espace/publicite/{campaign}/modifier', CreerCampagne::class)->whereUuid('campaign')->name('publicite.modifier');
+    Route::get('/publicite/{campaign}/image', AdImageController::class)->whereUuid('campaign')->name('publicite.image');
     Route::get('/projets/creer', FormulaireProjet::class)->name('projets.new');
     Route::get('/zumra/{zumra}/projets/creer', FormulaireProjet::class)->whereUuid('zumra')->name('projets.create');
     Route::get('/projets/{project}/modifier', FormulaireProjet::class)->whereUuid('project')->name('projets.edit');
