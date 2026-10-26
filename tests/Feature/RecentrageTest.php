@@ -80,7 +80,7 @@ it('retire de l’accueil les promesses et exemples des modules en pause en gard
         projet($founder, $zumra, 'Projet antérieur');
     });
 
-    $this->get('/')->assertOk()->assertSeeText('Rencontrez des personnes')->assertSeeText('Exprimez un besoin')
+    $this->get('/')->assertOk()->assertSeeText('Découvrez, connectez-vous, grandissez')->assertSeeText('Des personnes qui inspirent.')
         ->assertSee('images/gamad-accueil-hero.webp', false)->assertDontSeeText('Collectif antérieur')
         ->assertDontSeeText('Projet antérieur')->assertDontSeeText('Trouvez votre ZUMRA')->assertDontSeeText('Faites avancer un projet')
         ->assertDontSee('href="'.route('zumras.index').'"', false)->assertDontSee('href="'.route('projets.index').'"', false);

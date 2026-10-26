@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Domain;
 use App\Models\Profile;
 use App\Models\Publication;
 use App\Models\User;
@@ -20,7 +21,8 @@ class WelcomeController extends Controller
         return view('pages.welcome', [
             'people' => Profile::visibleTo(null)->where(fn ($q) => $q->whereHas('offeredSkills')->orWhereHas('wantedSkills'))
                 ->with(['user', 'city', 'country', 'offeredSkills', 'wantedSkills'])
-                ->orderBy(User::select('name_search')->whereColumn('users.id', 'profiles.user_id'))->orderBy('id')->limit(3)->get(),
+                ->orderBy(User::select('name_search')->whereColumn('users.id', 'profiles.user_id'))->orderBy('id')->limit(4)->get(),
+            'domains' => Domain::query()->where('active', true)->ordered()->limit(7)->get(['id', 'name']),
             'posts' => Publication::visibleTo(null)->whereNull('zumra_id')->whereNull('hidden_at')
                 ->whereHas('author.profile', fn ($q) => $q->visibleTo(null))
                 ->with(['author.profile', 'city'])->latest()->orderByDesc('id')->limit(3)->get(),

@@ -1,14 +1,16 @@
 <?php
 
 use App\Enums\PublicationType;
+use App\Models\Domain;
 use App\Models\Publication;
 use App\Models\User;
 use App\Services\Moderation;
 
 it('présente GAMAD sans compte comme un réseau de personnes et de savoir-faire', function () {
-    $this->get('/')->assertOk()->assertSeeText('Votre savoir-faire')->assertSeeText('mérite d’être connu.')
-        ->assertSeeText('Rencontrez des personnes')->assertSeeText('Exprimez un besoin')
-        ->assertSeeText('Créer un compte')->assertSeeText('Se connecter')
+    $this->get('/')->assertOk()->assertSeeText('Des personnes qui inspirent.')->assertSeeText('De nouvelles possibilités.')
+        ->assertSeeText('Découvrez, connectez-vous, grandissez')->assertSeeText('Explorer')->assertSeeText('Se connecter')->assertSeeText('Grandir')
+        ->assertSeeText('Des relations qui se construisent avec confiance.')->assertSeeText('Votre place existe déjà sur GAMAD.')
+        ->assertSeeText('Découvrir les personnes')->assertSeeText('Créer un compte')->assertSeeText('Comment ça marche')->assertSeeText('À propos')
         ->assertSee('images/gamad-accueil-hero.webp', false)
         ->assertDontSeeText('Mouvement')->assertDontSeeText('Adoration');
     $this->assertGuest();
@@ -33,7 +35,7 @@ it('affiche des pages d’erreur en français', function () {
 
 it('ne simule ni profils ni publications quand le réseau est vide', function () {
     $this->get('/')->assertOk()->assertSeeText('Les profils publics se découvrent ici.')
-        ->assertDontSeeText('Des partages et des occasions.')->assertDontSeeText('GAMAD en chiffres');
+        ->assertSeeText('Les partages publics de la communauté apparaîtront ici')->assertDontSeeText('GAMAD en chiffres');
 });
 
 it('présente seulement des profils et publications réellement visibles sans compte', function () {
@@ -50,8 +52,8 @@ it('présente seulement des profils et publications réellement visibles sans co
         ->assertDontSeeText('Un auteur au profil réservé.')->assertDontSeeText('Une publication masquée.')->assertDontSeeText($public->email);
 });
 
-it('borne les profils à trois par nom et les publications aux trois plus récentes', function () {
-    foreach (['Delta', 'Bravo', 'Charlie', 'Alpha'] as $name) {
+it('borne les profils à quatre par nom et les publications aux trois plus récentes', function () {
+    foreach (['Echo', 'Delta', 'Bravo', 'Charlie', 'Alpha'] as $name) {
         person($name, ['Couture']);
     }
     $author = User::where('name', 'Alpha')->sole();
@@ -59,9 +61,17 @@ it('borne les profils à trois par nom et les publications aux trois plus récen
         $this->travel(1)->minutes();
         publication($author, PublicationType::Share, ['body' => 'Publication numéro '.$i]);
     }
-    $page = $this->get('/')->assertOk()->assertDontSeeText('Delta')->assertSeeText('Alpha')->assertSeeText('Bravo')->assertSeeText('Charlie')
+    $page = $this->get('/')->assertOk()->assertDontSeeText('Echo')->assertSeeText('Alpha')->assertSeeText('Bravo')->assertSeeText('Charlie')->assertSeeText('Delta')
         ->assertSeeText('Publication numéro 4')->assertDontSeeText('Publication numéro 1');
-    expect($page->viewData('people'))->toHaveCount(3)->and($page->viewData('posts'))->toHaveCount(3);
+    expect($page->viewData('people'))->toHaveCount(4)->and($page->viewData('posts'))->toHaveCount(3);
+});
+
+it('propose des domaines réels qui mènent à la recherche des personnes, sans pied de page factice', function () {
+    $domaine = Domain::query()->where('active', true)->ordered()->first();
+    $html = $this->get('/')->assertOk()->assertSee('href="'.route('personnes.index', ['domaine' => $domaine->id]).'"', false)->getContent();
+
+    expect($html)->toContain('href="'.route('personnes.index').'"')->not->toContain('href="#"')->not->toContain('facebook.com')->not->toContain('youtube.com');
+    $this->get(route('personnes.index', ['domaine' => $domaine->id]))->assertOk();
 });
 
 it('ne promeut pas les communautés et projets conservés dans l’accueil public', function () {
