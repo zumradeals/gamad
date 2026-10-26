@@ -27,6 +27,11 @@ class MatchSuggestion extends Model
         return $this->belongsTo(Profile::class);
     }
 
+    public function opportunity()
+    {
+        return $this->belongsTo(Opportunity::class);
+    }
+
     public function offer()
     {
         return $this->belongsTo(Publication::class, 'offer_id');

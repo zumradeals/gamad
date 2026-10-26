@@ -14,6 +14,7 @@
         @forelse ($items as $item)
             <article wire:key="match-{{ $item['suggestion']->id }}" class="min-w-0 rounded-card border border-line p-4">
                 <div class="flex items-center gap-3">@if ($item['person'])<x-avatar :profile="$item['person']" :size="40" />@endif<h3 class="min-w-0 text-[16px] font-extrabold [overflow-wrap:anywhere]">{{ $item['title'] }}</h3></div>
+                @if ($item['company'] ?? null)<p class="mt-1 text-[12px] text-muted [overflow-wrap:anywhere]">Opportunité de {{ $item['company']->name }}</p>@endif
                 @if ($item['body'])<p class="mt-2 whitespace-pre-line text-[14px] leading-relaxed [overflow-wrap:anywhere]">{{ Str::limit($item['body'], 280) }}</p>@endif
                 @if ($item['context'])<p class="mt-2 text-[12px] text-muted [overflow-wrap:anywhere]">Pour votre publication : {{ Str::limit($item['context']->body, 120) }}</p>@endif
                 <details class="mt-2"><summary class="min-h-11 cursor-pointer content-center text-[13px] font-bold">Pourquoi cette suggestion ?</summary><ul class="list-disc space-y-1 pl-5 text-[13px] text-muted">@foreach ($item['reasons'] as $reason)<li class="[overflow-wrap:anywhere]">{{ $reason }}</li>@endforeach</ul></details>
