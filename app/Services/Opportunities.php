@@ -9,6 +9,7 @@ use App\Models\Opportunity;
 use App\Models\OpportunityResponse;
 use App\Models\User;
 use App\Support\Normalizer;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -211,6 +212,11 @@ class Opportunities
         } catch (\Throwable $error) {
             if ($path) {
                 Storage::disk('local')->delete($path);
+            }
+
+            // Deux envois simultanés de la même personne : le second se heurte à l'unicité, il reçoit le message du doublon, pas une erreur 500.
+            if ($error instanceof UniqueConstraintViolationException) {
+                throw ValidationException::withMessages(['message' => 'Vous avez déjà répondu à cette opportunité.']);
             }
 
             throw $error;

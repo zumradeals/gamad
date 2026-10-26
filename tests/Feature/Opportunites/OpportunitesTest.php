@@ -483,6 +483,22 @@ it('sert le PDF de candidature avec les en-têtes de sécurité des documents pr
         ->assertHeader('Content-Disposition', 'attachment; filename="reponse.pdf"');
 });
 
+it('répond « déjà répondu » au lieu d’une erreur 500 quand deux envois se croisent, et ne garde aucun fichier', function () {
+    $o = opportunite($this->company);
+    $candidat = User::factory()->create();
+    // Le premier envoi s'inscrit entre la lecture et l'écriture du second : l'unicité se déclenche à l'écriture.
+    OpportunityResponse::creating(fn (OpportunityResponse $response) => DB::table('opportunity_responses')->insert([
+        'id' => (string) Str::uuid(), 'opportunity_id' => $response->opportunity_id, 'user_id' => $response->user_id,
+        'state' => OpportunityResponse::SENT, 'created_at' => now(), 'updated_at' => now(),
+    ]));
+
+    $this->actingAs($candidat)->post(route('opportunites.respond.store', $o), ['message' => 'Bonjour', 'attachment' => pdfOpp()])
+        ->assertSessionHasErrors(['message' => 'Vous avez déjà répondu à cette opportunité.']);
+
+    // (Dans un vrai croisement, la ligne du premier envoi est validée par l'autre requête ; ici elle part avec la transaction annulée.)
+    expect(Storage::disk('local')->allFiles('opportunity-responses'))->toBe([]);
+});
+
 // ─── Purge des fichiers orphelins (gamad:purger-cv-orphelins) ───────────────
 
 it('liste les PDF orphelins sans rien effacer par défaut, et épargne les fichiers référencés ou récents', function () {
