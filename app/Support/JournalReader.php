@@ -30,10 +30,11 @@ class JournalReader
         'entreprises' => ['Entreprises', ['companies.']],
         'commentaires' => ['Commentaires', ['comment.']],
         'messages' => ['Messages de contact', ['contact.']],
+        'annonces' => ['Annonces', ['ad.']],
     ];
 
     /** Familles que lit un modérateur. */
-    public const MODERATION_FAMILIES = ['publications', 'personnes', 'commentaires'];
+    public const MODERATION_FAMILIES = ['publications', 'personnes', 'commentaires', 'annonces'];
 
     private const LABELS = [
         'trust.identity_reopen' => 'a rouvert un contrôle d’identité après recours pour',
@@ -70,6 +71,8 @@ class JournalReader
         'wallet.sandbox_cleared' => 'a terminé les essais des portefeuilles (soldes d’essai remis à zéro)',
         'settings.test_email_sent' => 'a envoyé un e-mail de test',
         'settings.test_email_failed' => 'a tenté un e-mail de test, sans succès',
+        'ad.accepted' => 'a accepté une annonce publicitaire',
+        'ad.refused' => 'a refusé une annonce publicitaire',
         'contact.read' => 'a lu un message de contact',
         'contact.handled' => 'a marqué un message de contact comme traité',
         'contact.deleted' => 'a supprimé un message de contact',

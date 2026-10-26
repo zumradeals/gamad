@@ -60,4 +60,19 @@ final class PubliciteModule
     {
         return ZumraModule::parse((string) app(Settings::class)->get('publicite_testers'));
     }
+
+    /**
+     * La diffusion payante (D-212) : fermée par défaut, ouverte par le seul super administrateur avec la confirmation que le dispositif
+     * d'encaissement est validé. Tant qu'elle est fermée, aucune annonce n'est affichée à personne.
+     */
+    public static function diffusionOpen(): bool
+    {
+        return Experience::initial() && (string) app(Settings::class)->get('publicite_diffusion') === 'open';
+    }
+
+    /** Audience minimale avant diffusion personnalisée (D-212) : nombre de profils consentants correspondants. */
+    public static function minimumAudience(): int
+    {
+        return max(20, (int) app(Settings::class)->get('publicite_min_audience'));
+    }
 }
