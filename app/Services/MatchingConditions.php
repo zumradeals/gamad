@@ -33,7 +33,7 @@ class MatchingConditions
 
     public static function defaults(): array
     {
-        return ['enabled' => false, 'notify' => false, 'available' => true, 'intentions' => [], 'terms' => [], 'zones' => [], 'remote' => false, 'from' => '', 'until' => '', 'days' => [], 'note' => ''];
+        return ['enabled' => false, 'discoverable' => false, 'notify' => false, 'available' => true, 'intentions' => [], 'terms' => [], 'zones' => [], 'remote' => false, 'from' => '', 'until' => '', 'days' => [], 'note' => ''];
     }
 
     public static function publicationDefaults(PublicationType $type): array
@@ -79,7 +79,7 @@ class MatchingConditions
         $defaults = $profile ? self::defaults() : self::publicationDefaults(PublicationType::Need);
         $rules = ['enabled' => ['required', 'boolean'], 'remote' => ['required', 'boolean'], 'from' => ['nullable', 'date_format:Y-m-d'], 'until' => ['nullable', 'date_format:Y-m-d'], 'days' => ['array', 'max:7'], 'days.*' => ['integer', 'between:1,7', 'distinct'], 'note' => ['nullable', 'string', 'max:140']];
         if ($profile) {
-            $rules += ['notify' => ['required', 'boolean'], 'available' => ['required', 'boolean'], 'intentions' => ['array', 'max:3'], 'intentions.*' => ['string', Rule::in(array_keys(self::INTENTIONS)), 'distinct'], 'terms' => ['array', 'max:3'], 'terms.*' => ['string', Rule::in(array_keys(self::TERMS)), 'distinct'], 'zones' => ['array', 'max:5'], 'zones.*' => ['uuid', Rule::exists('cities', 'id')->when((bool) ($data['enabled'] ?? false), fn ($rule) => $rule->where('active', true)), 'distinct']];
+            $rules += ['discoverable' => ['required', 'boolean'], 'notify' => ['required', 'boolean'], 'available' => ['required', 'boolean'], 'intentions' => ['array', 'max:3'], 'intentions.*' => ['string', Rule::in(array_keys(self::INTENTIONS)), 'distinct'], 'terms' => ['array', 'max:3'], 'terms.*' => ['string', Rule::in(array_keys(self::TERMS)), 'distinct'], 'zones' => ['array', 'max:5'], 'zones.*' => ['uuid', Rule::exists('cities', 'id')->when((bool) ($data['enabled'] ?? false), fn ($rule) => $rule->where('active', true)), 'distinct']];
         } else {
             $rules += ['open' => ['required', 'boolean'], 'activity' => ['required', Rule::in(['service', 'training'])], 'terms' => ['required', Rule::in(array_keys(self::TERMS))], 'budget' => ['nullable', 'string', 'max:100']];
         }
