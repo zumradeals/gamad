@@ -245,5 +245,8 @@
         <div class="rounded-card border border-line bg-card p-4">@include('partials.publication-social-actions', ['saved' => $saved])</div>
         <livewire:publication-discussion :publication="$publication" :key="'discussion-'.$publication->id" />
     @endif
+    @if ($c1)
+        @include('livewire.partials.besoin-contributions', ['c1' => $c1, 'need' => $publication, 'isAuthor' => $isAuthor])
+    @endif
     <livewire:gesture-sheet />
 </div>

@@ -61,6 +61,11 @@ class UserNotification extends Model
         return $this->belongsTo(Project::class);
     }
 
+    public function contributionProposal(): BelongsTo
+    {
+        return $this->belongsTo(ContributionProposal::class);
+    }
+
     public function conversation(): BelongsTo
     {
         return $this->belongsTo(Conversation::class);

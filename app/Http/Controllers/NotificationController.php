@@ -62,6 +62,10 @@ class NotificationController extends Controller
             NotificationKind::ProjectHostingAsked => $notification->project ? route('zumras.show', ['zumra' => $notification->project->zumra_id, 'onglet' => 'projets']) : null,
             NotificationKind::ProjectHostingAccepted, NotificationKind::ProjectHostingDeclined, NotificationKind::ProjectInviteAccepted, NotificationKind::ProjectCompanyAnswered => $notification->project ? route('projets.show', ['project' => $notification->project, 'onglet' => 'accueil']) : null,
             NotificationKind::ProjectInvited, NotificationKind::ProjectCompanyAsked => route('espace.projets'),
+            // Une proposition de contribution : seules les personnes qui peuvent la voir y accèdent ; sinon retour à la liste.
+            NotificationKind::ContributionProposed, NotificationKind::ContributionAccepted, NotificationKind::ContributionDeclined,
+            NotificationKind::ContributionDeclared, NotificationKind::ContributionWithdrawn, NotificationKind::ContributionRealized => $notification->contributionProposal && Gate::forUser($user)->allows('view', $notification->contributionProposal)
+                ? route('contributions.show', $notification->contributionProposal) : null,
         };
 
         // Ce que la notification annonçait n'existe plus (publication ou conversation supprimée) : retour à la liste.

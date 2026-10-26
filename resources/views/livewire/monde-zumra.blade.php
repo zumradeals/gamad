@@ -155,6 +155,8 @@
         </section>
     @endif
 
+    <x-contribution-entry kind="zumra" :model="$zumra" :viewer="$viewer" />
+
     <nav aria-label="Onglets de la ZUMRA" class="-mx-4 flex overflow-x-auto border-b border-line bg-card px-2 md:mx-0 md:rounded-card md:border">
         @foreach (['formation' => 'Formation', 'fil' => 'Fil'] + ['projets' => 'Projets'] + ['membres' => 'Membres'] + ($canDiscuss ? ['discussion' => 'Discussion'] : []) as $key => $label)
             <button type="button" wire:click="setTab('{{ $key }}')" @if ($tab === $key) aria-current="page" @endif

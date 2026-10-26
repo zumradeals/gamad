@@ -97,6 +97,8 @@
                 @endif
             </section>
 
+            <x-contribution-entry kind="project" :model="$project" :viewer="$viewer" />
+
             <section id="evolution" class="{{ $card }} flex scroll-mt-24 flex-col gap-3" aria-labelledby="titre-evolution">
                 <h2 id="titre-evolution" class="text-[20px] font-extrabold">Évolution</h2>
                 <ol class="grid grid-cols-1 gap-2.5 sm:grid-cols-5 sm:gap-1 sm:text-center" aria-label="Étapes de vie du projet">

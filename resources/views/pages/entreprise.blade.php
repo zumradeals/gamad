@@ -135,6 +135,8 @@
         </section>
     @endif
 
+    @if ($verified)<x-contribution-entry kind="company" :model="$company" :viewer="auth()->user()" />@endif
+
     <div class="grid min-w-0 items-start gap-5 lg:grid-cols-2">
         <div class="flex min-w-0 flex-col gap-5">
             <section id="presentation" aria-labelledby="mission-titre" class="scroll-mt-44 rounded-card border border-line bg-card p-5 md:p-6" x-data="{ more: false }">
