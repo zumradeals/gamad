@@ -375,6 +375,7 @@ it('retire la personne suspendue de ce que voient les autres, et la rend dès le
 });
 
 it('ne compte plus la personne suspendue parmi les membres d’une ZUMRA ni à l’accueil', function () {
+    legacyExperience();
     $zumra = zumra($this->yao);
     ajouteMembre($zumra, $this->awa);
     $this->awa->forceFill(['email_verified_at' => now()])->save();

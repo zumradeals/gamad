@@ -66,6 +66,7 @@ it('refuse aux visiteurs et comptes non vérifiés d’enregistrer', function ()
 });
 
 it('ne permet pas de sauvegarder une publication interdite ou collective', function () {
+    legacyExperience();
     $inactif = User::factory()->unverified()->create();
     $this->actingAs($this->lecteur);
     $post = publication($this->auteur, PublicationType::Knowledge, ['body' => 'Un savoir collectif.']);

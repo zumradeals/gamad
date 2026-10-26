@@ -11,6 +11,7 @@ function classes_du_contenu(string $html): string
 }
 
 beforeEach(function () {
+    legacyExperience();
     $this->yao = person('Yao Kouassi', ['Couture']);
     $this->zumra = zumra($this->yao, 'Couture solidaire');
     $this->projet = projet($this->yao, $this->zumra, 'Uniformes de la rentrée');

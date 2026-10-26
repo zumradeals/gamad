@@ -90,6 +90,7 @@ it('montre le type, l’auteur, le domaine, la ville et l’ancienneté de chaqu
 });
 
 it('filtre : Tout, Besoins, Savoirs, Apprendre, Aides', function () {
+    legacyExperience();
     $auteur = User::factory()->create(['name' => 'Yao Kouassi']);
     publication($auteur, PublicationType::Need, ['body' => 'Texte besoin']);
     publication($auteur, PublicationType::Knowledge, ['body' => 'Texte savoir']);
@@ -107,6 +108,7 @@ it('filtre : Tout, Besoins, Savoirs, Apprendre, Aides', function () {
 });
 
 it('propose les filtres sociaux et métiers sans classement de popularité (D-193)', function () {
+    legacyExperience();
     $html = fil()->html();
     preg_match('/<nav aria-label="Catégories".*?<\/nav>/s', $html, $nav);
     $onglets = array_map(fn ($t) => trim(strip_tags($t)), explode('</button>', $nav[0]));

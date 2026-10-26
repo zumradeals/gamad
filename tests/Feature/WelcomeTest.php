@@ -65,6 +65,7 @@ it('borne les profils à trois par nom et les publications aux trois plus récen
 });
 
 it('ne promeut pas les communautés et projets conservés dans l’accueil public', function () {
+    legacyExperience();
     $author = person('Auteur', ['Couture']);
     $group = zumra($author, 'Collectif conservé');
     projet($author, $group, 'Projet conservé');

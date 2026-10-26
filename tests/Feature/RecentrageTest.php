@@ -256,3 +256,10 @@ it('affiche le menu global de bureau : Accueil, Personnes, Entreprises, recherch
     expect($texte)->toBe('Accueil Personnes Entreprises Opportunités')
         ->and($html)->not->toContain('min-[1700px]:flex')->toContain('href="'.route('entreprises.index').'"')->toContain('href="'.route('notifications').'"')->toContain('role="search"');
 });
+
+it('exécute les tests dans le parcours actif en production, sauf les modules gelés qui choisissent l’ancienne expérience', function () {
+    expect(Experience::initial())->toBeTrue();
+
+    legacyExperience();
+    expect(Experience::initial())->toBeFalse();
+});
