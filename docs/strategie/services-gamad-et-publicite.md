@@ -1,6 +1,6 @@
 # Doctrine stratégique — Services GAMAD et GAMAD Publicité
 
-Statut : **décisions D-209, D-210 et D-211 (docs/DECISIONS.md), soumises au Président pour adoption**. 26 octobre 2026. Documentation uniquement :
+Statut : **décisions D-209, D-210 et D-211 (docs/DECISIONS.md), décidées par le Président le 26 octobre 2026**. 26 octobre 2026. Documentation uniquement :
 aucun développement, aucune migration. En cas de divergence, `docs/DECISIONS.md` fait autorité sur ce texte.
 
 ## Vision économique
