@@ -9,6 +9,7 @@ use App\Models\Conversation;
 use App\Models\Gesture;
 use App\Models\Invitation;
 use App\Models\Message;
+use App\Models\PersonConnection;
 use App\Models\Project;
 use App\Models\ProjectInvitation;
 use App\Models\Publication;
@@ -27,6 +28,32 @@ use Illuminate\Support\Str;
  */
 class Todo
 {
+    /**
+     * Des demandes de relation reçues attendent une réponse : une seule ligne, avec le nombre en toutes lettres et un accès direct à
+     * « Mes relations ». Les demandes envoyées, et celles de personnes bloquées, n'y figurent jamais. Rien ne presse : la personne répond quand elle veut.
+     */
+    private function relationRequests(User $user): array
+    {
+        if (! $user->isActive()) {
+            return [];
+        }
+
+        $count = PersonConnection::query()->forPerson($user)->where('state', 'pending')->where('sender_id', '!=', $user->getKey())
+            ->whereNotIn('sender_id', People::excludedIds($user))->count();
+
+        if ($count === 0) {
+            return [];
+        }
+
+        return [[
+            'key' => 'relations-recues',
+            'title' => 'Demandes de relation',
+            'detail' => $count > 1 ? $count.' personnes souhaitent entrer en relation avec vous.' : '1 personne souhaite entrer en relation avec vous.',
+            'action' => 'Voir mes relations',
+            'url' => route('espace', ['rubrique' => 'relations']).'#mes-liens',
+        ]];
+    }
+
     /** Un besoin résolu depuis plus longtemps n'est plus proposé au remerciement dans cette liste (on peut toujours remercier depuis le besoin). */
     public const THANK_WITHIN_DAYS = 7;
 
@@ -49,6 +76,7 @@ class Todo
             ...$this->participationRequestsToDecide($user),
             ...$this->proposals($user),
             ...$this->contributionReminders($user),
+            ...$this->relationRequests($user),
             ...$this->unreadMessages($user),
             ...$this->thanks($user),
         ];
