@@ -134,7 +134,8 @@ Police unique : **Plus Jakarta Sans** (graisses 400, 500, 600, 700, 800), auto-h
 ## 5. Règles d'interface
 
 - Une fois connecté, **aucune bannière publicitaire** : le contenu utile commence en haut de l'écran. Les
-  grandes illustrations sont réservées à la page d'accueil publique.
+  grandes illustrations sont réservées à la page d'accueil publique. Exception encadrée (D-211) : des cartes
+  « Sponsorisé » discrètes, jamais avant le contenu utile ni dans les conversations privées.
 - L'écran de référence est le téléphone (390 px). L'ordinateur réorganise en colonnes ; il n'ajoute pas de
   fonctions. Sur ordinateur (D-143), le contenu prend la largeur de 1 240 px du Fil, avec des marges de 24 px :
   les listes de cartes sur 2 puis 3 colonnes, les Mondes sur deux colonnes ou en grilles ; seuls les formulaires et
