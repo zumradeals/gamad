@@ -29,12 +29,20 @@ use Tests\TestCase;
 
 require_once __DIR__.'/Helpers/portefeuilles.php';
 
+/** Bascule le test dans l'expérience historique (modules gelés, navigation d'avant D-183). */
+function legacyExperience(): void
+{
+    config(['gamad.initial_experience' => false]);
+}
+
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->beforeEach(function () {
         $this->withoutVite();
-        // Régression des modules conservés (D-183). RecentrageTest vérifie séparément le parcours initial activé en production.
-        config(['gamad.initial_experience' => false]);
+        // Par défaut, les tests tournent dans le parcours actif en production (D-183). Les modules gelés (ZUMRA, Projets,
+        // Portefeuilles, Carrefour Besoins) et la navigation historique choisissent explicitement l'ancienne expérience :
+        // dossiers listés ci-dessous, ou legacyExperience() dans un test ou un beforeEach.
+        config(['gamad.initial_experience' => true]);
         // Les limites de débit contre le spam (D-086) ne gênent pas les tests ordinaires ; les tests qui les vérifient les abaissent.
         config([
             'gamad.limits.publications_per_hour' => 10000, 'gamad.limits.publications_per_day' => 10000,
@@ -44,6 +52,9 @@ pest()->extend(TestCase::class)
         ]);
     })
     ->in('Feature');
+
+// Régression des modules conservés mais gelés (D-183) : leurs tests s'exécutent dans l'expérience historique, qui les ouvre encore.
+pest()->beforeEach(fn () => legacyExperience())->in('Feature/Zumras', 'Feature/Projets', 'Feature/Portefeuilles', 'Feature/Besoins');
 
 /**
  * Charge les fonctions de install.sh sans lancer l'installation, puis exécute un scénario.

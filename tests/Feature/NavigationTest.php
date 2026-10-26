@@ -3,6 +3,8 @@
 use App\Models\User;
 use Illuminate\Testing\TestResponse;
 
+beforeEach(fn () => legacyExperience());
+
 function pageDuFil(): TestResponse
 {
     return test()->actingAs(User::factory()->create())->get('/fil');

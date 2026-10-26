@@ -90,6 +90,7 @@ it('protège les commentaires des publications réservées et masquées', functi
 });
 
 it('respecte les blocages et ne commente pas les publications collectives', function () {
+    legacyExperience();
     app(People::class)->block($this->auteur, $this->lecteur, true);
     expect(fn () => commentaires()->create($this->lecteur, $this->publication, 'Interdit'))->toThrow(AuthorizationException::class);
     $org = zumra($this->auteur);
