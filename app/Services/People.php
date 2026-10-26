@@ -7,6 +7,7 @@ use App\Models\Conversation;
 use App\Models\PersonConnection;
 use App\Models\User;
 use App\Models\WorkAttestation;
+use App\Services\Publicite\AdStats;
 use App\Support\Normalizer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -69,6 +70,8 @@ class People
             PersonConnection::query()->updateOrCreate(['first_id' => $ids[0], 'second_id' => $ids[1]], ['sender_id' => $actor->id, 'state' => 'pending', 'note' => $note, 'revision' => ($pair?->revision ?? 0) + 1]);
             RateLimiter::hit('connection:'.$actor->id, 86400);
             app(Notifier::class)->push($other, NotificationKind::ConnectionRequested, $actor);
+            // GAMAD Publicité (D-212) : une demande de relation venue d'une annonce de cet annonceur est un « contact ».
+            app(AdStats::class)->contactFrom($other);
         });
     }
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdClickController;
 use App\Http\Controllers\AdImageController;
 use App\Http\Controllers\AideController;
 use App\Http\Controllers\BrandingController;
@@ -82,6 +83,7 @@ use App\Livewire\ProposerContribution;
 use App\Livewire\PublierBesoin;
 use App\Livewire\PublierPublication;
 use App\Livewire\RapportContributions;
+use App\Livewire\ResultatsCampagnes;
 use App\Livewire\SignalerProfil;
 use App\Livewire\SignalerPublication;
 use App\Models\Project;
@@ -205,6 +207,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/espace/publicite', MesCampagnes::class)->name('publicite.campagnes');
     Route::get('/espace/publicite/nouvelle', CreerCampagne::class)->name('publicite.creer');
     Route::get('/espace/publicite/{campaign}/modifier', CreerCampagne::class)->whereUuid('campaign')->name('publicite.modifier');
+    Route::get('/publicite/{campaign}/aller', AdClickController::class)->whereUuid('campaign')->name('publicite.cta');
+    Route::get('/espace/publicite/resultats', ResultatsCampagnes::class)->name('publicite.resultats');
     Route::get('/publicite/{campaign}/image', AdImageController::class)->whereUuid('campaign')->name('publicite.image');
     Route::get('/projets/creer', FormulaireProjet::class)->name('projets.new');
     Route::get('/zumra/{zumra}/projets/creer', FormulaireProjet::class)->whereUuid('zumra')->name('projets.create');

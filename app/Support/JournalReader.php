@@ -73,6 +73,7 @@ class JournalReader
         'settings.test_email_failed' => 'a tenté un e-mail de test, sans succès',
         'ad.accepted' => 'a accepté une annonce publicitaire',
         'ad.refused' => 'a refusé une annonce publicitaire',
+        'ad.revoked' => 'a retiré de la diffusion une annonce publicitaire signalée',
         'contact.read' => 'a lu un message de contact',
         'contact.handled' => 'a marqué un message de contact comme traité',
         'contact.deleted' => 'a supprimé un message de contact',

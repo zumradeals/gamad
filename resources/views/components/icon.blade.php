@@ -33,6 +33,7 @@
         'close' => '<path d="M6 6l12 12M18 6L6 18"></path>',
         'check' => '<path d="M20 6L9 17l-5-5"></path>',
         'chat' => '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1.1-4.6A8 8 0 1 1 21 12z"></path>',
+        'dots' => '<circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle>',
         'star' => '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"></path>',
         'megaphone' => '<path d="M3 11v2l13 5V6z"></path><path d="M16 9a3 3 0 0 1 0 6M6 14l1 5h3l-1-4"></path>',
         'heart' => '<path d="M12 21s-7-4.5-9-9a5 5 0 0 1 9-3 5 5 0 0 1 9 3c-2 4.5-9 9-9 9z"></path>',
