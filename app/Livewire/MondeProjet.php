@@ -30,6 +30,7 @@ use App\Services\ProjectShowcase;
 use App\Services\ProjectSteps;
 use App\Services\ProjectTeam;
 use App\Services\Supports;
+use App\Support\ContributionsModule;
 use App\Support\Experience;
 use App\Support\Normalizer;
 use Illuminate\Database\Eloquent\Builder;
@@ -263,6 +264,22 @@ class MondeProjet extends Component
         abort_unless(Str::isUuid($id), 404);
 
         $team->remove(Auth::user(), ProjectMember::query()->where('project_id', $this->projectId)->find($id) ?? abort(404));
+    }
+
+    /**
+     * Habiliter, ou non, un collaborateur à publier les besoins du projet et à traiter ses propositions de contribution (C1, D-207).
+     * Le porteur seul le décide : l'accueil par une ZUMRA ne donne aucun pouvoir sur les contributions du projet.
+     */
+    public function setContributionAuthority(string $id, bool $allowed): void
+    {
+        abort_unless(Str::isUuid($id), 404);
+        abort_unless(ContributionsModule::accessibleTo(Auth::user()), 404);
+
+        $project = $this->project();
+        Gate::authorize('update', $project);
+
+        $member = ProjectMember::query()->where('project_id', $project->getKey())->find($id) ?? abort(404);
+        $member->forceFill(['manages_contributions' => $allowed])->save();
     }
 
     public function acceptRequest(string $id, ParticipationRequests $requests): void

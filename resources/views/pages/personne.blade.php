@@ -86,6 +86,8 @@
             </div>
         </header>
 
+        <x-contribution-entry kind="person" :model="$user" :viewer="auth()->user()" />
+
         <div class="grid min-w-0 items-start gap-5 lg:grid-cols-2">
             <div class="flex min-w-0 flex-col gap-5">
                 @include('pages.partials-person-showcase')

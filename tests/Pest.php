@@ -28,6 +28,7 @@ use Livewire\Livewire;
 use Tests\TestCase;
 
 require_once __DIR__.'/Helpers/portefeuilles.php';
+require_once __DIR__.'/Helpers/contributions.php';
 
 /** Bascule le test dans l'expérience historique (modules gelés, navigation d'avant D-183). */
 function legacyExperience(): void
@@ -49,6 +50,7 @@ pest()->extend(TestCase::class)
             'gamad.limits.gestures_per_hour' => 10000, 'gamad.limits.gestures_per_day' => 10000,
             'gamad.limits.zumras_per_day' => 10000, 'gamad.limits.projects_per_day' => 10000, 'gamad.limits.participation_requests_per_day' => 10000, 'gamad.limits.supports_per_hour' => 10000, 'gamad.limits.zumra_posts_per_minute' => 10000, 'gamad.limits.zumra_posts_per_day' => 10000, 'gamad.limits.join_requests_per_day' => 10000, 'gamad.limits.invitations_per_day' => 10000, 'gamad.limits.reports_per_hour' => 10000, 'gamad.limits.reports_per_day' => 10000,
             'gamad.limits.messages_per_minute' => 10000, 'gamad.limits.messages_per_day' => 10000,
+            'gamad.limits.contribution_proposals_per_hour' => 10000, 'gamad.limits.contribution_proposals_per_day' => 10000, 'gamad.limits.contribution_needs_per_day' => 10000,
         ]);
     })
     ->in('Feature');

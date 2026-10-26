@@ -16,6 +16,7 @@ use App\Services\DisplayName;
 use App\Services\PersonalTrust;
 use App\Services\Todo;
 use App\Services\Wallets;
+use App\Support\ContributionsModule;
 use App\Support\Experience;
 use App\Support\ProfileCompleteness;
 use Illuminate\Support\Collection;
@@ -106,6 +107,17 @@ class Espace extends Component
         abort_unless(in_array($visibility, [Profile::PUBLIC, Profile::MEMBERS], true), 422);
 
         Auth::user()->ensureProfile()->forceFill(['visibility' => $visibility])->save();
+    }
+
+    /**
+     * Accepter ou non de recevoir des propositions d'aide spontanées sur son profil (C1, D-207). Désactivé par défaut : seule la personne
+     * le décide, et seulement pour elle-même.
+     */
+    public function setAcceptsContributions(bool $accepts): void
+    {
+        abort_unless(ContributionsModule::accessibleTo(Auth::user()), 404);
+
+        Auth::user()->ensureProfile()->forceFill(['accepts_contributions' => $accepts])->save();
     }
 
     public function deleteAccount(): void

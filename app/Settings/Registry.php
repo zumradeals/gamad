@@ -23,6 +23,8 @@ final class Registry
 
     public const GROUP_ZUMRA = 'zumra';
 
+    public const GROUP_CONTRIBUTIONS = 'contributions';
+
     /** @var array<string, Definition>|null */
     private static ?array $definitions = null;
 
@@ -100,6 +102,14 @@ final class Registry
                 'public' => 'Public : visible selon les règles de visibilité de GAMAD',
             ]),
             new Definition('zumra_testers', self::GROUP_ZUMRA, 'Comptes testeurs (adresses e-mail)', Definition::STRING, null, ['nullable', 'string', 'max:2000']),
+
+            // Module Contributions (C1, D-207) : fermé tant que le Président ne l'ouvre pas ; jamais activé par une migration ou un déploiement.
+            new Definition('contributions_module', self::GROUP_CONTRIBUTIONS, 'État du module Contributions', Definition::ENUM, 'off', ['required', 'in:off,test,public'], [
+                'off' => 'Désactivé : invisible et inaccessible',
+                'test' => 'Test privé : administrateurs et testeurs autorisés seulement',
+                'public' => 'Public : ouvert aux membres selon les règles de visibilité de GAMAD',
+            ]),
+            new Definition('contributions_testers', self::GROUP_CONTRIBUTIONS, 'Comptes testeurs des Contributions (adresses e-mail)', Definition::STRING, null, ['nullable', 'string', 'max:2000']),
         ])->keyBy(fn (Definition $definition) => $definition->key)->all();
     }
 

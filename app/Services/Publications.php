@@ -182,6 +182,8 @@ class Publications
             Gate::forUser($actor)->authorize('changeNeedState', $locked);
 
             $locked->update(['need_state' => $state, 'resolved_at' => $state === NeedState::Resolved ? now() : null]);
+            // Un besoin satisfait ou clos ne reçoit plus de proposition : celles qui attendent encore une réponse sont refusées (C1).
+            app(ContributionProposals::class)->needClosed($locked);
             $publication->setRawAttributes($locked->getAttributes(), true);
         });
     }

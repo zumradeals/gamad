@@ -30,6 +30,10 @@ return [
         'projects_per_day' => 10,
         'participation_requests_per_day' => 10,
         'supports_per_hour' => 60,
+        // Contributions (C1, D-207) : propositions et besoins publiés, par personne.
+        'contribution_proposals_per_hour' => 10,
+        'contribution_proposals_per_day' => 30,
+        'contribution_needs_per_day' => 10,
         'zumra_posts_per_minute' => 10,
         'zumra_posts_per_day' => 200,
         'join_requests_per_day' => 10,

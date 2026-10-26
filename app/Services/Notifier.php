@@ -6,6 +6,7 @@ use App\Enums\NotificationKind;
 use App\Enums\PlatformRole;
 use App\Models\Company;
 use App\Models\CompanyExperience;
+use App\Models\ContributionProposal;
 use App\Models\Conversation;
 use App\Models\Opportunity;
 use App\Models\Project;
@@ -54,6 +55,21 @@ class Notifier
         $notification->zumra()->associate($zumra);
         $notification->project()->associate($project);
         $notification->save();
+    }
+
+    /** Une proposition de contribution ou la suite qui lui est donnée : renvoie à la proposition (ou à la conversation ouverte). */
+    public function proposal(?User $to, NotificationKind $kind, ?User $actor, ContributionProposal $proposal, ?Conversation $conversation = null): void
+    {
+        if ($to === null || $actor?->getKey() === $to->getKey()) {
+            return;
+        }
+
+        $alert = new UserNotification(['kind' => $kind]);
+        $alert->user()->associate($to);
+        $alert->actor()->associate($actor);
+        $alert->contributionProposal()->associate($proposal);
+        $alert->conversation()->associate($conversation);
+        $alert->save();
     }
 
     /** Les alertes entreprise renvoient au dossier concerné, jamais à une page générique. */

@@ -47,6 +47,12 @@ enum NotificationKind: string
     case ProjectInviteAccepted = 'project_invite_accepted';
     case ProjectCompanyAsked = 'project_company_asked';
     case ProjectCompanyAnswered = 'project_company_answered';
+    case ContributionProposed = 'contribution_proposed';
+    case ContributionAccepted = 'contribution_accepted';
+    case ContributionDeclined = 'contribution_declined';
+    case ContributionDeclared = 'contribution_declared';
+    case ContributionWithdrawn = 'contribution_withdrawn';
+    case ContributionRealized = 'contribution_realized';
     case PublicationExplained = 'publication_explained';
     case ModerationNoticeIssued = 'moderation_notice_issued';
     case ModerationNoticeExplained = 'moderation_notice_explained';
@@ -75,6 +81,12 @@ enum NotificationKind: string
     public function isAboutProject(): bool
     {
         return str_starts_with($this->value, 'project_');
+    }
+
+    /** Une notification qui parle d'une proposition de contribution (le nom du bénéficiaire prend la place de l'extrait). */
+    public function isAboutContribution(): bool
+    {
+        return str_starts_with($this->value, 'contribution_');
     }
 
     /** Phrase qui suit le nom de la personne : « Awa Traoré a proposé son aide… ». */
@@ -125,6 +137,12 @@ enum NotificationKind: string
             self::ProjectInviteAccepted => "a accepté de collaborer au projet{$about}.",
             self::ProjectCompanyAsked => "propose de relier le projet{$about} à votre entreprise.",
             self::ProjectCompanyAnswered => "a répondu à votre demande de lien entre le projet{$about} et son entreprise.",
+            self::ContributionProposed => "vous propose une contribution{$about}.",
+            self::ContributionAccepted => "a accepté votre proposition de contribution{$about}.",
+            self::ContributionDeclined => "n’a pas retenu votre proposition de contribution{$about}.",
+            self::ContributionWithdrawn => "a retiré sa proposition de contribution{$about}.",
+            self::ContributionDeclared => "déclare avoir réalisé sa contribution{$about} : à confirmer.",
+            self::ContributionRealized => "a confirmé la réalisation de votre contribution{$about}.",
             self::PublicationExplained => "a écrit son explication sur la publication masquée{$about}.",
             self::ModerationNoticeIssued => 'vous a envoyé un avis de la modération. Vous pouvez vous expliquer.',
             self::ModerationNoticeExplained => 'a répondu à l’avis de la modération.',

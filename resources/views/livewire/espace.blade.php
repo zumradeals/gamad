@@ -16,6 +16,7 @@
             ['entreprise', 'Mon entreprise', 'home'],
             \App\Support\ZumraModule::accessibleTo(auth()->user()) ? ['zumras', 'Mes ZUMRA', 'community'] : null,
             \App\Support\ZumraModule::accessibleTo(auth()->user()) ? ['projets', 'Mes projets', 'project'] : null,
+            \App\Support\ContributionsModule::accessibleTo(auth()->user()) ? ['contributions', 'Mes contributions', 'heart'] : null,
             ['pistes', 'Mes pistes', 'compass'],
             ($hasLegacy || $walletsEnabled) ? ['activites', 'Activités antérieures', 'tasks'] : null,
         ])),
@@ -51,7 +52,9 @@
                         <p class="hidden px-2.5 pb-1 pt-3 text-[11px] font-extrabold uppercase tracking-wide text-muted xl:block">{{ $group }}</p>
                     @endif
                     @foreach ($items as [$id, $label, $icon])
- @if ($id === 'projets')
+ @if ($id === 'contributions')
+                            <a href="{{ route('espace.mes-contributions') }}" class="space-menu-link shrink-0 whitespace-nowrap !text-[13px] xl:whitespace-normal"><x-icon :name="$icon" :size="20" /><span>{{ $label }}</span></a>
+                        @elseif ($id === 'projets')
                             <a href="{{ route('espace.projets') }}" class="space-menu-link shrink-0 whitespace-nowrap !text-[13px] xl:whitespace-normal"><x-icon :name="$icon" :size="20" /><span>{{ $label }}</span></a>
                         @elseif ($id === 'zumras')
                             <a href="{{ route('espace.zumras') }}" class="space-menu-link shrink-0 whitespace-nowrap !text-[13px] xl:whitespace-normal"><x-icon :name="$icon" :size="20" /><span>{{ $label }}</span></a>
@@ -77,6 +80,17 @@
                     @endforeach
                     <p class="mt-1 text-[12px] leading-relaxed text-muted">{{ $profile->isPublic() ? 'Votre profil est visible par tous, avec ou sans compte.' : 'Votre profil n’est visible que des personnes inscrites.' }}</p>
                 </fieldset>
+
+                @if (\App\Support\ContributionsModule::accessibleTo(auth()->user()))
+                    <div>
+                        <p class="text-[15px] font-extrabold">Propositions d’aide</p>
+                        <label class="flex min-h-11 cursor-pointer items-start gap-3 py-1 text-[14px]">
+                            <input type="checkbox" class="mt-0.5 size-5 shrink-0 accent-[#0e2a3f]" @checked($profile->accepts_contributions) wire:click="setAcceptsContributions({{ $profile->accepts_contributions ? 'false' : 'true' }})">
+                            <span>Recevoir des propositions d’aide sur mon profil</span>
+                        </label>
+                        <p class="text-[12px] leading-relaxed text-muted">Désactivé par défaut. Les propositions restent privées : vous seul les lisez et vous décidez de les accepter ou non.</p>
+                    </div>
+                @endif
 
                 <div>
                     <p class="text-[15px] font-extrabold">Complétude du profil</p>

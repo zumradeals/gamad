@@ -570,3 +570,26 @@ quand le module ZUMRA n'est pas accessible. `/projets/{projet}` ouvre le dossier
 
 **Interdits.** Aucune publication automatique dans le Fil ; aucun document de projet dans ce lot ; pas de bouton « Suivre le projet » (aucun mécanisme existant de
 suivi de projet) ; pas d'« Actualités » publiques ; les publications faites au nom d'un projet gardent leur niveau de visibilité propre.
+
+## Contributions — besoins et entraide volontaire (C1, D-207)
+
+**Principe.** Une contribution est un engagement volontaire envers un bénéficiaire (GAMAD, une ZUMRA, un projet, une personne, une entreprise), jamais une
+cotisation, un investissement ou un paiement. Quatre formes : financière (intention seulement), compétences, temps et service, matérielle. Page principale :
+Agir → Contributions (`/contributions`), maquette validée (en-tête, quatre formes, onglets Tous · Besoins · Contributions · Personnes · ZUMRA · Projets ·
+Entreprises, filtres, « Mon engagement », « Impact de la communauté », « Une solidarité maîtrisée »). Aucun cinquième bouton dans la navigation du téléphone.
+
+**Modèle.** Les besoins sont les publications « J'ai besoin » existantes : `publications.title`, `help_kind`, `needed_by`, `official`. Propositions :
+`contribution_proposals` (auteur, forme, un seul bénéficiaire parmi ZUMRA, projet, entreprise, personne ou GAMAD, description ≤ 500, message ≤ 500, visibilité
+privée ou publique, état, décision, déclaration et confirmation de réalisation). Aucune colonne de montant. Une conversation privée s'ouvre à l'acceptation
+(origine « contribution »). Habilitation d'un collaborateur par le porteur : `project_members.manages_contributions`. Consentement de profil :
+`profiles.accepts_contributions` (désactivé par défaut).
+
+**Droits** (`ContributionAccess`, `ContributionProposalPolicy`, `PublicationPolicy::contribute`). Module fermé : 404 pour tous, par page, action Livewire,
+politique et service. Une ZUMRA ou un projet suivent aussi leur propre état (Z1, P1). Une proposition privée n'existe pas (404) pour les tiers.
+
+**Cycle.** Besoin : publié → en cours de réponse (dès une acceptation) → satisfait ou clôturé ; une clôture refuse d'office les propositions encore en
+attente. Proposition : proposée → acceptée ou refusée ; retirée tant qu'elle n'est pas réalisée ; déclarée réalisée par la personne ; confirmée par le bénéficiaire.
+
+**Interdits.** Aucun paiement, reçu, solde, portefeuille, Mobile Money ou passerelle ; aucune somme dite « collectée » ; aucun classement ni note ; aucune
+coordonnée affichée ; aucune donnée de la maquette dans l'application.
+

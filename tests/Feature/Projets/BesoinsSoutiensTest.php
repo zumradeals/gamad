@@ -140,18 +140,15 @@ it('pagine les besoins du projet', function () {
         ->call('more')->assertSeeText('Besoin n°01')->assertDontSeeText('Voir plus de besoins');
 });
 
-it('laisse une personne répondre à un besoin de projet, jamais ses gestionnaires, et prévient tous les gestionnaires', function () {
+it('laisse une personne répondre à un besoin de projet, jamais son porteur, et ne prévient que le porteur (C1 : la ZUMRA d’accueil ne gère pas)', function () {
     $besoin = besoin_projet($this->yao, $this->projet);
 
     app(Gestures::class)->propose($this->dehors, $besoin, 'Je peux prêter des machines.');
     app(Gestures::class)->propose($this->membre, $besoin);
-    foreach ([$this->yao, $this->resp] as $gestionnaire) {
-        expect(fn () => app(Gestures::class)->propose($gestionnaire, $besoin))->toThrow(AuthorizationException::class);
-    }
+    expect(fn () => app(Gestures::class)->propose($this->yao, $besoin))->toThrow(AuthorizationException::class);
 
-    foreach ([$this->yao, $this->resp] as $gestionnaire) {
-        expect(UserNotification::query()->where('user_id', $gestionnaire->id)->where('kind', NotificationKind::GestureReceived->value)->count())->toBe(2);
-    }
+    expect(UserNotification::query()->where('user_id', $this->yao->id)->where('kind', NotificationKind::GestureReceived->value)->count())->toBe(2)
+        ->and(UserNotification::query()->where('user_id', $this->resp->id)->where('kind', NotificationKind::GestureReceived->value)->count())->toBe(0);
     expect(Gesture::count())->toBe(2);
 });
 
@@ -167,11 +164,12 @@ it('montre le bouton de réponse sur un besoin de projet, et envoie le geste dep
     monde_onglet($this->dehors, $this->projet, 'besoins')->assertSeeText('Proposition envoyée');
 });
 
-it('laisse un gestionnaire accepter la réponse et résoudre le besoin de projet', function () {
+it('laisse le porteur seul accepter la réponse et résoudre le besoin de projet, pas la ZUMRA d’accueil', function () {
     $besoin = besoin_projet($this->yao, $this->projet);
     $g = app(Gestures::class)->propose($this->dehors, $besoin);
 
-    Livewire::actingAs($this->resp)->test(PagePublication::class, ['publication' => $besoin])->assertSeeText('Propositions reçues')->call('accept', $g->id)->assertHasNoErrors();
+    expect($besoin->isManagedBy($this->resp))->toBeFalse();
+    Livewire::actingAs($this->yao)->test(PagePublication::class, ['publication' => $besoin])->assertSeeText('Propositions reçues')->call('accept', $g->id)->assertHasNoErrors();
     expect($besoin->fresh()->need_state)->toBe(NeedState::InProgress);
 
     app(Publications::class)->resolve($this->yao, $besoin->fresh());

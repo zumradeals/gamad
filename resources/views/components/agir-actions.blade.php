@@ -24,4 +24,18 @@
             </a>
         </li>
     @endforeach
+    {{-- Contributions (C1) : seulement quand le module est ouvert à la personne ; aucune entrée publique sinon. --}}
+    @if (\App\Support\ContributionsModule::accessibleTo(auth()->user()))
+        <li>
+            <a href="{{ route('contributions.index') }}" data-contributions-entry
+               @class(['flex min-h-14 items-center gap-3 rounded-button px-3 py-2.5 text-ink no-underline hover:bg-ground hover:text-ink', 'border border-line' => $sheet])>
+                <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-type-call-bg text-type-call-fg"><x-icon name="heart" :size="20" /></span>
+                <span class="min-w-0 flex-1">
+                    <span class="block text-[15px] font-extrabold leading-tight">Contributions</span>
+                    <span class="mt-0.5 block text-[13px] leading-snug text-muted">Proposer son aide ou publier un besoin</span>
+                </span>
+                <x-icon name="next" :size="18" class="shrink-0 text-muted" />
+            </a>
+        </li>
+    @endif
 </ul>
