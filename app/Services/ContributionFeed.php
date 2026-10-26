@@ -16,6 +16,7 @@ use App\Models\Zumra;
 use App\Support\Normalizer;
 use App\Support\ZumraModule;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Les requêtes du module Contributions (C1, D-207) : besoins et propositions que cette personne a le droit de voir, du plus récent au plus
@@ -82,6 +83,22 @@ class ContributionFeed
         $this->applyProposalFilters($query, $filters);
 
         return $query->with(['author.profile', 'zumra', 'project', 'company', 'person', 'domain', 'city', 'need'])->orderByDesc('created_at')->orderByDesc('id');
+    }
+
+    /**
+     * Les besoins ouverts d'un bénéficiaire, tels que cette personne peut les voir (accès contextuel : page d'une ZUMRA, d'un projet,
+     * d'une entreprise ou d'une personne).
+     */
+    public function needsFor(?User $viewer, BeneficiaryKind $kind, Model $beneficiary, int $limit = 3): Builder
+    {
+        return $this->needs($viewer)
+            ->whereIn('need_state', [NeedState::Open->value, NeedState::InProgress->value])
+            ->whereNotNull('help_kind')
+            ->when($kind === BeneficiaryKind::Zumra, fn (Builder $q) => $q->where('zumra_id', $beneficiary->getKey())->whereNull('project_id'))
+            ->when($kind === BeneficiaryKind::Project, fn (Builder $q) => $q->where('project_id', $beneficiary->getKey()))
+            ->when($kind === BeneficiaryKind::Company, fn (Builder $q) => $q->where('company_id', $beneficiary->getKey()))
+            ->when($kind === BeneficiaryKind::Person, fn (Builder $q) => $q->where('author_id', $beneficiary->getKey())->where('official', false)->whereNull('zumra_id')->whereNull('project_id')->whereNull('company_id'))
+            ->limit($limit);
     }
 
     /** Propositions que cette personne reçoit au nom d'un bénéficiaire qu'elle représente (elle-même, sa ZUMRA, son projet, son entreprise, GAMAD). */

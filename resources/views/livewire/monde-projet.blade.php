@@ -238,6 +238,9 @@
                             </div>
                             @if ($manages)
                                 <div class="flex flex-wrap gap-2">
+                                    @if (\App\Support\ContributionsModule::accessibleTo($viewer))
+                                        <x-button type="button" variant="secondary" wire:click="setContributionAuthority('{{ $member->id }}', {{ $member->manages_contributions ? 'false' : 'true' }})" wire:loading.attr="disabled" wire:target="setContributionAuthority" class="!px-4 !text-[14px]">{{ $member->manages_contributions ? 'Retirer l’habilitation aux contributions' : 'Habiliter pour les contributions' }}</x-button>
+                                    @endif
                                     <x-button type="button" variant="secondary" x-show="! confirming" x-on:click="confirming = true" class="!px-4 !text-[14px]">Retirer de l’équipe</x-button>
                                     <span x-show="confirming" x-cloak class="flex flex-wrap items-center gap-2">
                                         <span class="text-[13px] font-semibold">Retirer {{ $person->name }} ?</span>

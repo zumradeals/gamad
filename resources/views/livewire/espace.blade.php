@@ -81,6 +81,17 @@
                     <p class="mt-1 text-[12px] leading-relaxed text-muted">{{ $profile->isPublic() ? 'Votre profil est visible par tous, avec ou sans compte.' : 'Votre profil n’est visible que des personnes inscrites.' }}</p>
                 </fieldset>
 
+                @if (\App\Support\ContributionsModule::accessibleTo(auth()->user()))
+                    <div>
+                        <p class="text-[15px] font-extrabold">Propositions d’aide</p>
+                        <label class="flex min-h-11 cursor-pointer items-start gap-3 py-1 text-[14px]">
+                            <input type="checkbox" class="mt-0.5 size-5 shrink-0 accent-[#0e2a3f]" @checked($profile->accepts_contributions) wire:click="setAcceptsContributions({{ $profile->accepts_contributions ? 'false' : 'true' }})">
+                            <span>Recevoir des propositions d’aide sur mon profil</span>
+                        </label>
+                        <p class="text-[12px] leading-relaxed text-muted">Désactivé par défaut. Les propositions restent privées : vous seul les lisez et vous décidez de les accepter ou non.</p>
+                    </div>
+                @endif
+
                 <div>
                     <p class="text-[15px] font-extrabold">Complétude du profil</p>
                     <div class="mt-2 flex items-center gap-3">
