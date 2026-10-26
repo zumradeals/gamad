@@ -30,6 +30,8 @@ class Company extends Model
             }
         });
         static::deleting(function (Company $company) {
+            // Les CV reçus par ses opportunités : les lignes partent par cascade, sans événement du modèle.
+            OpportunityResponse::deleteAttachmentsOf(OpportunityResponse::query()->whereIn('opportunity_id', $company->allOpportunities()->select('id')));
             foreach ($company->documents as $document) {
                 Storage::disk('local')->delete($document->private_path);
             }

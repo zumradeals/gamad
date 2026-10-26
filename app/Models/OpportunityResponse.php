@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -52,5 +53,11 @@ class OpportunityResponse extends Model
         if ($this->attachment_path) {
             Storage::disk('local')->delete($this->attachment_path);
         }
+    }
+
+    /** Efface les pièces jointes de ces réponses (les lignes sont supprimées par cascade, qui ne déclenche aucun événement du modèle). */
+    public static function deleteAttachmentsOf(Builder $responses): void
+    {
+        $responses->whereNotNull('attachment_path')->each(fn (OpportunityResponse $response) => $response->deleteAttachment());
     }
 }
