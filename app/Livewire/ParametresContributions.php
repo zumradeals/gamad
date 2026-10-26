@@ -60,6 +60,6 @@ class ParametresContributions extends Component
     {
         Gate::authorize('super-admin');
 
-        return view('livewire.parametres-zumra', ['states' => Registry::find('contributions_module')->options]);
+        return view('livewire.parametres-contributions', ['states' => Registry::find('contributions_module')->options]);
     }
 }
