@@ -1,0 +1,27 @@
+<?php
+use App\Models\{User,City,Domain,Company};
+use App\Services\ProfileEditor;
+use Illuminate\Support\Str;
+$mk = function (string $name, string $email, array $off = [], array $want = [], ?string $city = null, $super = false) {
+    $f = User::factory(); if ($super) $f = $f->superAdmin();
+    $u = $f->create(['name' => $name, 'email' => $email, 'password' => 'recette-2026']);
+    $c = $city ? City::where('name', $city)->first() : null;
+    (new ProfileEditor)->save($u, ['name' => $name, 'bio' => "Profil de recette : $name.", 'country_id' => $c?->country_id, 'city_id' => $c?->id, 'visibility' => 'public', 'offered' => $off, 'wanted' => $want, 'domain_ids' => []]);
+    return $u->fresh();
+};
+$admin = $mk('Admin Recette', 'admin@recette.test', [], [], 'Abidjan', true);
+$awa   = $mk('Awa Traoré', 'awa@recette.test', ['Couture', 'Comptabilité'], ['Photovoltaïque'], 'Abidjan');
+$yao   = $mk('Yao Kouassi', 'yao@recette.test', ['Photovoltaïque', 'Électricité'], ['Couture'], 'Abidjan');
+$mariam= $mk('Mariam Koné', 'mariam@recette.test', ['Plomberie'], [], 'Bouaké');
+$intrus= $mk('Ibrahim Intrus', 'intrus@recette.test', [], [], 'Yamoussoukro');
+$patron= $mk('Patron Vérifié', 'patron@recette.test', [], [], 'Abidjan');
+$attente=$mk('Patron En Attente', 'attente@recette.test', [], [], 'Abidjan');
+$mk2 = function (User $owner, string $name, string $status) {
+    $c = new Company(['name' => $name, 'legal_name' => $name.' SARL', 'registration_country' => 'CI', 'registration_number' => 'RCCM-'.Str::random(8), 'sector' => 'Énergie solaire', 'city' => 'Abidjan', 'summary' => "Présentation de $name."]);
+    $c->slug = Str::slug($name).'-'.strtolower(Str::random(8));
+    $c->forceFill(['owner_id' => $owner->id, 'status' => $status, 'verified_at' => $status === 'verified' ? now() : null])->save();
+    return $c;
+};
+$mk2($patron, 'Solaire Abidjan', 'verified');
+$mk2($attente, 'Atelier En Attente', 'pending');
+echo User::count()." users; ".Company::count()." companies\n";

@@ -1,0 +1,9 @@
+import { chromium } from '/opt/node-tools/node_modules/playwright/index.mjs';
+import fs from 'fs'; const ids=JSON.parse(fs.readFileSync('/tmp/curated-ids.json','utf8')); const base='http://localhost:8001';
+const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'}); const c=await b.newContext(); const p=await c.newPage();
+await p.goto(base+'/login'); await p.fill('input[name=email]','awa@recette.test'); await p.fill('input[name=password]','recette-2026'); await Promise.all([p.waitForURL(u=>!u.pathname.startsWith('/login')),p.click('button[type=submit]')]);
+for (const [l,u] of [['catalogue opportunités','/opportunites'],['annuaire entreprises','/entreprises'],['page entreprise','/entreprises/'+ids.co],['détail opportunité','/opportunites/'+ids.opp],['fil','/fil']]) {
+  const r=await p.goto(base+u); const t=await p.content();
+  console.log(l.padEnd(24), r.status(), 'montre « Solaire Abidjan » / offre de l’entreprise bloquée :', /Solaire Abidjan/.test(t) ? 'OUI' : 'non');
+}
+await b.close();
