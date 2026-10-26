@@ -161,9 +161,12 @@ class CompanyDirectory extends Component
         $query = Company::query()->publiclyVisible();
 
         if ($search !== '') {
-            $like = '%'.addcslashes($search, '%_\\').'%';
-            $query->where(fn (Builder $q) => $q->where('name', 'ilike', $like)->orWhere('sector', 'ilike', $like)
-                ->orWhere('city', 'ilike', $like)->orWhere('summary', 'ilike', $like));
+            $like = Normalizer::likeContains(Normalizer::key($search));
+            $query->where(function (Builder $q) use ($like) {
+                foreach (['name', 'sector', 'city', 'summary'] as $column) {
+                    $q->orWhereRaw(Normalizer::sqlKey("companies.{$column}").' like ?', [$like]);
+                }
+            });
         }
 
         $query->when($mode === 'opportunities', fn (Builder $q) => $q->whereHas('opportunities'))
@@ -206,9 +209,9 @@ class CompanyDirectory extends Component
 
         $query->where(function (Builder $q) use ($skills) {
             foreach ($skills as $name) {
-                $like = '%'.addcslashes($name, '%_\\').'%';
-                $q->orWhere('sector', 'ilike', $like)->orWhere('summary', 'ilike', $like)
-                    ->orWhereHas('opportunities', fn (Builder $p) => $p->where(fn (Builder $o) => $o->where('opportunities.title', 'ilike', $like)->orWhereRaw('opportunities.skills::text ilike ?', [$like])));
+                $like = Normalizer::likeContains(Normalizer::key($name));
+                $q->orWhereRaw(Normalizer::sqlKey('companies.sector').' like ?', [$like])->orWhereRaw(Normalizer::sqlKey('companies.summary').' like ?', [$like])
+                    ->orWhereHas('opportunities', fn (Builder $p) => $p->where(fn (Builder $o) => $o->whereRaw(Normalizer::sqlKey('opportunities.title').' like ?', [$like])->orWhereRaw(Normalizer::sqlKey('opportunities.skills::text').' like ?', [$like])));
             }
         });
     }

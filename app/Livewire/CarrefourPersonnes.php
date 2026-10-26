@@ -7,6 +7,7 @@ use App\Models\Domain;
 use App\Models\PersonConnection;
 use App\Models\Profile;
 use App\Models\User;
+use App\Services\ComplementaryPeople;
 use App\Services\People;
 use App\Support\Normalizer;
 use Illuminate\Database\Eloquent\Builder;
@@ -216,34 +217,12 @@ class CarrefourPersonnes extends Component
                 'suivies' => $query->whereIn('profiles.user_id', $followedIds ?: [Str::uuid()->toString()]),
                 'contacts' => $query->whereIn('profiles.user_id', $contactIds ?: [Str::uuid()->toString()]),
                 'autour' => $mine?->city_id ? $query->where('profiles.city_id', $mine->city_id) : $query->whereRaw('1 = 0'),
-                'suggestions' => $this->complementary($query, $mine),
+                'suggestions' => app(ComplementaryPeople::class)->constrain($query, $mine),
                 default => null,
             };
         }
 
         return $query;
-    }
-
-    /** Suggestions : ce que l'autre peut apporter est ce que j'aimerais apprendre, ou l'inverse. Rien d'autre. */
-    private function complementary(Builder $query, ?Profile $mine): void
-    {
-        $wanted = $mine?->wantedSkills->pluck('id')->all() ?? [];
-        $offered = $mine?->offeredSkills->pluck('id')->all() ?? [];
-
-        if ($wanted === [] && $offered === []) {
-            $query->whereRaw('1 = 0');
-
-            return;
-        }
-
-        $query->where(function (Builder $query) use ($wanted, $offered) {
-            if ($wanted !== []) {
-                $query->orWhereHas('offeredSkills', fn (Builder $s) => $s->whereIn('skills.id', $wanted));
-            }
-            if ($offered !== []) {
-                $query->orWhereHas('wantedSkills', fn (Builder $s) => $s->whereIn('skills.id', $offered));
-            }
-        });
     }
 
     /**
@@ -256,22 +235,7 @@ class CarrefourPersonnes extends Component
             return collect();
         }
 
-        $query = Profile::query()->visibleTo($viewer)->where('profiles.user_id', '<>', $viewer->id)
-            ->whereNotIn('profiles.user_id', $contactIds ?: [Str::uuid()->toString()]);
-        $this->complementary($query, $mine);
-
-        $wanted = $mine->wantedSkills->pluck('name', 'id');
-        $offered = $mine->offeredSkills->pluck('name', 'id');
-
-        return $query->orderBy(User::query()->select('name_search')->whereColumn('users.id', 'profiles.user_id'))
-            ->with(['user', 'city', 'domains', 'offeredSkills', 'wantedSkills'])->limit(3)->get()
-            ->map(function (Profile $profile) use ($wanted, $offered) {
-                $brings = $profile->offeredSkills->whereIn('id', $wanted->keys())->pluck('name')->first();
-                $learns = $profile->wantedSkills->whereIn('id', $offered->keys())->pluck('name')->first();
-                $profile->setAttribute('reason', $brings ? 'Peut vous apporter : '.$brings : 'Veut apprendre : '.$learns.', que vous pouvez apporter');
-
-                return $profile;
-            });
+        return app(ComplementaryPeople::class)->suggestions($viewer, $mine, $contactIds, 3, ['user', 'city', 'domains', 'offeredSkills', 'wantedSkills'], explainLearning: true);
     }
 
     /** Même localité déclarée que la mienne : aucune position, aucune distance. */

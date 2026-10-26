@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Models\Wallet;
 use App\Models\Zumra;
 use App\Services\AdminJournal;
+use App\Services\ComplementaryPeople;
 use App\Services\DisplayName;
 use App\Services\PersonalTrust;
 use App\Services\Todo;
@@ -211,20 +212,8 @@ class Espace extends Component
      */
     private function suggestedPeople(User $user, Profile $profile)
     {
-        $wanted = $profile->wantedSkills->pluck('id');
-        $offered = $profile->offeredSkills->pluck('id');
+        $people = app(ComplementaryPeople::class);
 
-        if ($wanted->isEmpty() && $offered->isEmpty()) {
-            return collect();
-        }
-
-        $related = PersonConnection::query()->forPerson($user)->whereIn('state', ['accepted', 'pending'])->get()->map(fn (PersonConnection $c) => $c->otherId($user));
-
-        return Profile::query()->visibleTo($user)
-            ->where('user_id', '!=', $user->getKey())->whereNotIn('user_id', $related)
-            ->where(fn ($q) => $q
-                ->whereHas('offeredSkills', fn ($s) => $s->whereIn('skills.id', $wanted))
-                ->orWhereHas('wantedSkills', fn ($s) => $s->whereIn('skills.id', $offered)))
-            ->with(['user', 'city', 'offeredSkills'])->orderByDesc('updated_at')->limit(3)->get();
+        return $people->suggestions($user, $profile, $people->relatedUserIds($user), 3, ['user', 'city', 'offeredSkills']);
     }
 }

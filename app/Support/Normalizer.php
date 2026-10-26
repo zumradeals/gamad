@@ -48,4 +48,18 @@ final class Normalizer
     {
         return '%'.addcslashes($key, '\\%_').'%';
     }
+
+    /**
+     * Expression SQL (PostgreSQL) qui donne, pour une colonne texte, la même clé que key() pour l'écriture courante du français :
+     * sans casse ni accents. À comparer avec un motif issu de likeContains(key(saisie)). `$column` est un nom de colonne ou une
+     * expression écrits dans le code, jamais une saisie. Pas d'index : à revoir si un volume l'exige.
+     */
+    public static function sqlKey(string $column): string
+    {
+        $from = 'àáâãäåçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ’';
+        // Dans un littéral SQL, deux apostrophes valent une apostrophe : « ’ » devient « ' », comme dans key().
+        $to = "aaaaaaceeeeiiiinooooouuuuyyaaaaaaceeeeiiiinooooouuuuy''";
+
+        return "replace(replace(translate(lower({$column}), '{$from}', '{$to}'), 'œ', 'oe'), 'æ', 'ae')";
+    }
 }
