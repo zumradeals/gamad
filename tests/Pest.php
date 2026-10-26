@@ -5,9 +5,11 @@ use App\Enums\ZumraRole;
 use App\Livewire\MondeZumra;
 use App\Livewire\PageConversation;
 use App\Models\City;
+use App\Models\Company;
 use App\Models\Conversation;
 use App\Models\Domain;
 use App\Models\Gesture;
+use App\Models\Opportunity;
 use App\Models\Project;
 use App\Models\Publication;
 use App\Models\User;
@@ -163,4 +165,20 @@ function projet(User $auteur, Zumra $zumra, string $nom = 'Uniformes de la rentr
 function ligne(Zumra $zumra, User $personne): ZumraMembership
 {
     return $zumra->memberships()->where('user_id', $personne->id)->firstOrFail();
+}
+
+/** Une opportunité publiée (par défaut) au nom d'une entreprise ; `$attributes` remplace n'importe quel champ. */
+function opportunite(Company $company, array $attributes = []): Opportunity
+{
+    $opportunity = new Opportunity(array_diff_key($attributes, array_flip(['status', 'published_at'])) + [
+        'kind' => 'job', 'title' => 'Ingénieur réseau', 'description' => 'Rejoignez nos équipes pour contribuer au déploiement des infrastructures réseau.',
+    ]);
+    $opportunity->company()->associate($company);
+    $opportunity->author()->associate($company->owner);
+    $opportunity->forceFill([
+        'status' => $attributes['status'] ?? Opportunity::PUBLISHED,
+        'published_at' => $attributes['published_at'] ?? now(),
+    ])->save();
+
+    return $opportunity->fresh();
 }

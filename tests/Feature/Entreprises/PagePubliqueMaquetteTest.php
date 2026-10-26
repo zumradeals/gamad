@@ -79,32 +79,34 @@ it('affiche des statistiques réelles seulement quand elles ne sont pas nulles',
 
     publieEntreprise($this->entreprise, PublicationType::Share, "Une actualité\nDétail");
     publieEntreprise($this->entreprise, PublicationType::PersonalWork, "Une réalisation\nDétail");
-    publieEntreprise($this->entreprise, PublicationType::Need, "Une opportunité\nDétail");
+    publieEntreprise($this->entreprise, PublicationType::Share, "Une autre actualité\nDétail");
+    opportunite($this->entreprise);
     DB::table('company_follows')->insert(['user_id' => $this->moi->id, 'company_id' => $this->entreprise->id, 'created_at' => now()]);
 
-    expect($this->actingAs($this->moi)->get($this->url)->viewData('stats'))->toBe(['Publications' => 3, 'Réalisations' => 1, 'Offres' => 1, 'Abonnés' => 1]);
+    expect($this->actingAs($this->moi)->get($this->url)->viewData('stats'))->toBe(['Publications' => 3, 'Réalisations' => 1, 'Opportunités' => 1, 'Abonnés' => 1]);
 });
 
-it('sépare réalisations, offres et publications selon les vrais types de publication', function () {
+it('sépare réalisations, opportunités et publications : les opportunités viennent du module Opportunités', function () {
     publieEntreprise($this->entreprise, PublicationType::PersonalWork, "Réseau d’un marché\nInstallation en deux jours.");
-    publieEntreprise($this->entreprise, PublicationType::Need, "Technicien réseau recherché\nCollaboration ponctuelle.");
+    opportunite($this->entreprise, ['title' => 'Technicien réseau recherché', 'kind' => 'mission']);
     publieEntreprise($this->entreprise, PublicationType::Share, "Nouveaux locaux\nNous avons déménagé.");
 
     $page = $this->actingAs($this->moi)->get($this->url)->assertOk();
-    expect($page->viewData('works'))->toHaveCount(1)->and($page->viewData('offers'))->toHaveCount(1)->and($page->viewData('companyPosts'))->toHaveCount(3);
+    expect($page->viewData('works'))->toHaveCount(1)->and($page->viewData('offers'))->toHaveCount(1)->and($page->viewData('companyPosts'))->toHaveCount(2);
     $page->assertSeeText('Réseau d’un marché')->assertSeeText('Technicien réseau recherché')->assertSeeText('Installation en deux jours.')
         ->assertSeeText('Voir la réalisation');
 });
 
-it('ne montre plus une offre résolue ni une publication masquée', function () {
-    $offre = publieEntreprise($this->entreprise, PublicationType::Need, "Offre à clore\nDétail");
+it('ne montre plus une opportunité clôturée, brouillon ou expirée, ni une publication masquée', function () {
+    opportunite($this->entreprise, ['title' => 'Offre à clore', 'status' => 'closed']);
+    opportunite($this->entreprise, ['title' => 'Offre en brouillon', 'status' => 'draft']);
+    opportunite($this->entreprise, ['title' => 'Offre expirée', 'deadline' => now('Africa/Abidjan')->subDay()->toDateString()]);
     $masquee = publieEntreprise($this->entreprise, PublicationType::Share, "Actualité masquée\nDétail");
-    $offre->forceFill(['need_state' => 'resolved'])->save();
     $masquee->forceFill(['hidden_at' => now(), 'hidden_reason' => 'Modération'])->save();
 
     $page = $this->actingAs($this->moi)->get($this->url)->assertOk();
     expect($page->viewData('offers'))->toHaveCount(0);
-    $page->assertDontSeeText('Actualité masquée')->assertSeeText('Aucune offre en cours pour le moment.');
+    $page->assertDontSeeText('Actualité masquée')->assertSeeText('Aucune opportunité en cours pour le moment.');
 });
 
 it('refuse toute publication d’entreprise non publique et la montre à un visiteur sans compte', function () {
@@ -115,7 +117,7 @@ it('refuse toute publication d’entreprise non publique et la montre à un visi
 });
 
 it('affiche des états vides sobres, sans offre ni réalisation inventée', function () {
-    $this->actingAs($this->moi)->get($this->url)->assertSeeText('Aucune réalisation publiée pour le moment.')->assertSeeText('Aucune offre en cours pour le moment.')
+    $this->actingAs($this->moi)->get($this->url)->assertSeeText('Aucune réalisation publiée pour le moment.')->assertSeeText('Aucune opportunité en cours pour le moment.')
         ->assertSeeText('n’a pas encore présenté ses produits et services')->assertSeeText('n’a pas encore publié')
         ->assertDontSeeText('Publier une réalisation');
     $this->actingAs($this->entreprise->owner)->get($this->url)->assertSeeText('Publier une réalisation')->assertSeeText('Présenter mes produits et services');
@@ -168,10 +170,10 @@ it('relie les six rubriques par ancres avec une rubrique active identifiable', f
     publieEntreprise($this->entreprise, PublicationType::Share, "Une actualité\nDétail");
     $html = $this->actingAs($this->moi)->get($this->url)->assertOk()->getContent();
 
-    foreach (['#presentation', '#realisations', '#produits-services', '#offres', '#publications'] as $ancre) {
+    foreach (['#presentation', '#realisations', '#produits-services', '#opportunites', '#publications'] as $ancre) {
         expect($html)->toContain('href="'.$ancre.'"');
     }
-    expect($html)->toContain("x-bind:aria-current=\"active === 'offres'")->toContain('IntersectionObserver');
+    expect($html)->toContain("x-bind:aria-current=\"active === 'opportunites'")->toContain('IntersectionObserver');
 });
 
 it('conserve la route publique et le blocage d’une page suspendue', function () {

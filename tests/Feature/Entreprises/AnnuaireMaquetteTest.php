@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\PublicationType;
 use App\Livewire\CompanyDirectory;
 use App\Models\Company;
 use App\Models\User;
@@ -101,16 +100,14 @@ it('ne montre l’onglet « Recherche des compétences » que pour une opportuni
     expect(nomsEntreprises(annuaire()->call('setMode', 'opportunities')))->toBe([]);
     annuaire()->call('setMode', 'opportunities')->assertSeeText('Aucune entreprise ne recherche de compétences pour le moment.');
 
-    $owner = $this->alpha->owner;
-    $opportunite = publication($owner, PublicationType::Need, ['body' => 'Nous cherchons un comptable.', 'company' => $this->alpha, 'visibility' => 'public']);
-    $opportunite->forceFill(['company_id' => $this->alpha->id])->save();
+    $opportunite = opportunite($this->alpha, ['title' => 'Comptable', 'description' => 'Nous cherchons un comptable.']);
 
     $p = annuaire()->call('setMode', 'opportunities');
     expect(nomsEntreprises($p))->toBe(['Alpha Compta']);
     $p->assertSeeText('Recherche des compétences');
 
-    // Résolue : n'apparaît plus.
-    $opportunite->forceFill(['need_state' => 'resolved'])->save();
+    // Clôturée : n'apparaît plus.
+    $opportunite->forceFill(['status' => 'closed', 'closed_at' => now()])->save();
     expect(nomsEntreprises(annuaire()->call('setMode', 'opportunities')))->toBe([]);
 });
 
