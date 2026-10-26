@@ -3,7 +3,9 @@
 namespace App\Support;
 
 use App\Models\AdminAction;
+use App\Models\Company;
 use App\Models\Publication;
+use App\Models\PublicationComment;
 use App\Models\User;
 use App\Models\Zumra;
 use Illuminate\Support\Collection;
@@ -25,10 +27,12 @@ class JournalReader
         'listes' => ['Listes de référence', ['domain.', 'country.', 'city.']],
         'comptes' => ['Comptes', ['account.']],
         'confiance' => ['Attestations', ['trust.']],
+        'entreprises' => ['Entreprises', ['companies.']],
+        'commentaires' => ['Commentaires', ['comment.']],
     ];
 
     /** Familles que lit un modérateur. */
-    public const MODERATION_FAMILIES = ['publications', 'personnes'];
+    public const MODERATION_FAMILIES = ['publications', 'personnes', 'commentaires'];
 
     private const LABELS = [
         'trust.identity_reopen' => 'a rouvert un contrôle d’identité après recours pour',
@@ -39,6 +43,13 @@ class JournalReader
         'trust.identity_instruct' => 'a précisé les modalités du contrôle de',
         'trust.work_revoked' => 'a retiré une référence sur',
         'trust.report_closed' => 'a répondu à un signalement concernant',
+        'companies.verify' => 'a vérifié l’entreprise',
+        'companies.decline' => 'a refusé la vérification de l’entreprise',
+        'companies.suspend' => 'a suspendu l’entreprise',
+        'companies.report_resolved' => 'a répondu à un signalement concernant l’entreprise',
+        'comment.hidden' => 'a masqué un commentaire',
+        'comment.restored' => 'a rétabli un commentaire',
+        'comment.report.dismissed' => 'a classé des signalements de commentaire sans suite',
         'publication.hidden' => 'a masqué une publication',
         'publication.restored' => 'a rétabli une publication',
         'report.dismissed' => 'a classé des signalements sans suite',
@@ -128,6 +139,14 @@ class JournalReader
             $names[$publication->getKey()] = '« '.Str::limit($publication->body, 50).' » de '.($publication->author?->name ?? 'une personne supprimée');
         }
 
+        foreach (Company::query()->whereIn('id', $ids(Company::class))->pluck('name', 'id') as $id => $name) {
+            $names[$id] = $name;
+        }
+
+        foreach (PublicationComment::query()->whereIn('id', $ids(PublicationComment::class))->with('author:id,name')->get() as $comment) {
+            $names[$comment->getKey()] = '« '.Str::limit((string) $comment->body, 50).' » de '.($comment->author?->name ?? 'une personne supprimée');
+        }
+
         return $names;
     }
 
@@ -142,7 +161,7 @@ class JournalReader
             return $action->subject_id;
         }
 
-        $known = [(new User)->getMorphClass(), (new Zumra)->getMorphClass(), (new Publication)->getMorphClass()];
+        $known = [(new User)->getMorphClass(), (new Zumra)->getMorphClass(), (new Publication)->getMorphClass(), (new Company)->getMorphClass(), (new PublicationComment)->getMorphClass()];
 
         if (! in_array($action->subject_type, $known, true)) {
             return null;

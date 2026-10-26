@@ -472,6 +472,17 @@ it('efface les CV reçus quand le propriétaire de l’entreprise supprime son c
     Storage::disk('local')->assertMissing($path);
 });
 
+it('sert le PDF de candidature avec les en-têtes de sécurité des documents privés', function () {
+    $o = opportunite($this->company);
+    $this->actingAs(User::factory()->create())->post(route('opportunites.respond.store', $o), ['attachment' => pdfOpp()]);
+    $response = OpportunityResponse::sole();
+
+    $this->actingAs($this->owner)->get(route('opportunites.attachment', $response))->assertOk()
+        ->assertHeader('Content-Security-Policy', "default-src 'none'; sandbox")
+        ->assertHeader('X-Content-Type-Options', 'nosniff')
+        ->assertHeader('Content-Disposition', 'attachment; filename="reponse.pdf"');
+});
+
 // ─── Purge des fichiers orphelins (gamad:purger-cv-orphelins) ───────────────
 
 it('liste les PDF orphelins sans rien effacer par défaut, et épargne les fichiers référencés ou récents', function () {

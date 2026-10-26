@@ -5,12 +5,17 @@ use App\Enums\PublicationType;
 use App\Livewire\JournalAdministration;
 use App\Livewire\PageNotifications;
 use App\Models\AdminAction;
+use App\Models\Company;
 use App\Models\User;
 use App\Models\UserNotification;
 use App\Services\AdminJournal;
+use App\Services\CompanyRegistry;
 use App\Services\Moderation;
+use App\Services\PublicationComments;
 use App\Services\Reports;
 use App\Support\JournalReader;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\Livewire;
 
@@ -166,4 +171,67 @@ it('ne prévient pas le modérateur auteur de sa propre explication', function (
 
     expect(UserNotification::query()->where('user_id', $this->mod->id)->where('kind', NotificationKind::PublicationExplained)->count())->toBe(0)
         ->and(UserNotification::query()->where('user_id', $this->admin->id)->where('kind', NotificationKind::PublicationExplained)->count())->toBe(1);
+});
+
+// ─── Entreprises et commentaires (audit A2) ──────────────────────────────────
+
+function entreprisePourJournal(User $owner, string $status = 'pending'): Company
+{
+    $company = new Company(['name' => 'Atelier Soleil', 'legal_name' => 'Atelier Soleil SARL', 'registration_country' => 'CI', 'registration_number' => 'RCCM-'.Str::random(10),
+        'sector' => 'Artisanat', 'city' => 'Abidjan', 'summary' => 'Une entreprise de test.']);
+    $company->slug = 'atelier-soleil-'.strtolower(Str::random(6));
+    $company->forceFill(['owner_id' => $owner->id, 'status' => $status, 'verified_at' => $status === 'verified' ? now() : null])->save();
+
+    return $company;
+}
+
+it('montre dans le journal la vérification, le refus et la suspension d’une entreprise, avec son nom et le motif', function () {
+    $registry = app(CompanyRegistry::class);
+    $verified = entreprisePourJournal($this->awa);
+    $registry->review($this->admin, $verified, $verified->fresh()->revision, 'verify');
+    $registry->review($this->admin, $verified->fresh(), $verified->fresh()->revision, 'suspend', 'Document non conforme.');
+    $declined = entreprisePourJournal($this->yao);
+    $registry->review($this->admin, $declined, $declined->fresh()->revision, 'decline', 'Numéro introuvable.');
+
+    Livewire::actingAs($this->admin)->test(JournalAdministration::class)
+        ->assertSeeText('a vérifié l’entreprise')->assertSeeText('a suspendu l’entreprise')->assertSeeText('a refusé la vérification de l’entreprise')
+        ->assertSeeText('Atelier Soleil')->assertSeeText('Motif : Document non conforme.')->assertSeeText('Motif : Numéro introuvable.');
+
+    Livewire::actingAs($this->admin)->test(JournalAdministration::class)->set('family', 'entreprises')->assertSeeText('a suspendu l’entreprise')->assertDontSeeText('a masqué');
+});
+
+it('montre dans le journal les actes de modération des commentaires, y compris à un modérateur', function () {
+    $publication = publication($this->awa, PublicationType::Share, ['body' => 'Une expérience de couture.']);
+    $comment = app(PublicationComments::class)->create($this->yao, $publication, 'Un commentaire à masquer.');
+    app(PublicationComments::class)->hide($this->mod, $comment, 'Propos déplacés.');
+
+    Livewire::actingAs($this->mod)->test(JournalAdministration::class)
+        ->assertSeeTextInOrder(['Modératrice Une', 'a masqué un commentaire', 'Un commentaire à masquer.', 'de Yao Kouassi'])->assertSeeText('Motif : Propos déplacés.');
+    Livewire::actingAs($this->mod)->test(JournalAdministration::class)->set('family', 'commentaires')->assertSeeText('a masqué un commentaire');
+});
+
+it('ne montre pas au modérateur les actes sur les entreprises', function () {
+    $company = entreprisePourJournal($this->awa);
+    app(CompanyRegistry::class)->review($this->admin, $company, $company->fresh()->revision, 'verify');
+
+    expect(JournalReader::familiesFor($this->mod))->not->toContain('entreprises')
+        ->and(JournalReader::query($this->mod)->count())->toBe(0)
+        ->and(JournalReader::query($this->mod, 'entreprises')->count())->toBe(0)
+        ->and(JournalReader::query($this->admin)->count())->toBe(1);
+});
+
+it('lit tout acte que le code écrit : chaque action du code appartient à une famille et a un libellé', function () {
+    $actions = collect(File::allFiles(app_path()))
+        ->flatMap(function ($file) {
+            preg_match_all("/AdminJournal::record\(\s*[^,]+,\s*'([a-z_.]+)'\s*[,)]/", $file->getContents(), $m);
+
+            return $m[1];
+        })->unique()->values();
+
+    expect($actions)->not->toBeEmpty();
+    $prefixes = collect(JournalReader::FAMILIES)->flatMap(fn ($family) => $family[1]);
+    foreach ($actions as $action) {
+        expect($prefixes->contains(fn ($prefix) => str_starts_with($action, $prefix)))->toBeTrue("« $action » n’appartient à aucune famille du journal.");
+        expect(JournalReader::label($action))->not->toBe($action, "« $action » n’a pas de libellé lisible.");
+    }
 });
