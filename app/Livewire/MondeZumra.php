@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Enums\JoinRequestState;
+use App\Enums\ProjectHostingState;
 use App\Enums\PublicationType;
 use App\Enums\ZumraDuty;
 use App\Livewire\Concerns\GuardsZumraModule;
@@ -20,11 +21,11 @@ use App\Services\Contributions;
 use App\Services\Invitations;
 use App\Services\JoinRequests;
 use App\Services\Memberships;
+use App\Services\ProjectHosting;
 use App\Services\Supports;
 use App\Services\Wallets;
 use App\Services\ZumraPosts;
 use App\Services\Zumras;
-use App\Support\Experience;
 use App\Support\Normalizer;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -205,6 +206,18 @@ class MondeZumra extends Component
             : $memberships->proposeDuty(Auth::user(), $this->zumra(), $this->membership($id), $duty);
     }
 
+    public function acceptHosting(string $id, ProjectHosting $hosting): void
+    {
+        $hosting->accept(Auth::user(), $this->hostedProject($id));
+        session()->flash('status', 'Projet accueilli. Il reste à son porteur.');
+    }
+
+    public function declineHosting(string $id, ProjectHosting $hosting): void
+    {
+        $hosting->decline(Auth::user(), $this->hostedProject($id));
+        session()->flash('status', 'Demande d’accueil refusée.');
+    }
+
     public function render()
     {
         $viewer = Auth::user();
@@ -219,8 +232,6 @@ class MondeZumra extends Component
 
         // La Discussion n'existe pas pour qui n'est pas membre : « page introuvable » (D-112).
         $tab = in_array($this->tab, self::TABS, true) ? $this->tab : 'formation';
-        // Les Projets restent gelés (D-183) : leur onglet n'existe pas dans le parcours actif.
-        $tab = $tab === 'projets' && Experience::initial() ? 'formation' : $tab;
         $this->tab = $tab;
         abort_if($tab === 'discussion' && ! $canDiscuss, 404);
 
@@ -257,9 +268,15 @@ class MondeZumra extends Component
             $publications = $found->take($this->limit);
         }
 
-        // Les projets de la ZUMRA, publics (D-005), par ordre alphabétique.
-        $projects = $tab === 'projets'
-            ? Project::query()->where('zumra_id', $zumra->id)->orderBy('name_key')->orderBy('id')->get()
+        // Les projets de la ZUMRA que la personne a le droit de voir : les présentations publiées, et ceux qu'elle porte ou auxquels elle collabore.
+        // Être membre de la ZUMRA n'ouvre aucun dossier (P1, D-206).
+        $visibleProjects = fn () => Project::query()->where('zumra_id', $zumra->id)->where('hosting_state', ProjectHostingState::Accepted->value)
+            ->where(fn (Builder $q) => $q->whereNotNull('showcase_published_at')->orWhereIn('projects.id', Project::query()->openableBy($viewer)->select('projects.id')));
+        $projects = $tab === 'projets' ? $visibleProjects()->with('owner')->orderBy('name_key')->orderBy('id')->get() : collect();
+
+        // Pour le fondateur et les responsables : les demandes d'accueil à examiner. Seulement ce qui sert à décider, jamais le dossier.
+        $hostingRequests = $manages && $tab === 'projets'
+            ? Project::query()->where('zumra_id', $zumra->id)->where('hosting_state', ProjectHostingState::Pending->value)->with(['owner.profile', 'domain'])->orderBy('hosting_requested_at')->get()
             : collect();
 
         $gestures = $viewer && $publications->isNotEmpty()
@@ -280,7 +297,8 @@ class MondeZumra extends Component
             'hasMore' => $hasMore,
             'gestures' => $gestures,
             'projects' => $projects,
-            'projectsCount' => Project::query()->where('zumra_id', $zumra->id)->count(),
+            'projectsCount' => $visibleProjects()->count(),
+            'hostingRequests' => $hostingRequests,
             'supported' => app(Supports::class)->supportedBy($viewer, $publications->pluck('id')),
             'managed' => $managed,
             'walletsEnabled' => $walletsEnabled,
@@ -330,6 +348,13 @@ class MondeZumra extends Component
         Gate::authorize('view', $zumra);
 
         return $zumra;
+    }
+
+    private function hostedProject(string $id): Project
+    {
+        abort_unless(Str::isUuid($id), 404);
+
+        return Project::query()->where('zumra_id', $this->zumraId)->findOrFail($id);
     }
 
     private function joinRequest(string $id): JoinRequest

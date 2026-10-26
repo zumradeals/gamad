@@ -60,7 +60,7 @@ it('donne aux formulaires et écrans de saisie une largeur de lecture, plus larg
 });
 
 it('garde la largeur de lecture pour un visiteur sans compte sur les pages publiques larges', function () {
-    foreach ([route('zumras.index'), route('projets.index'), route('projets.show', $this->projet), route('zumras.show', $this->zumra)] as $url) {
+    foreach ([route('zumras.index'), route('projets.index'), route('zumras.show', $this->zumra)] as $url) {
         expect(classes_du_contenu($this->get($url)->assertOk()->getContent()))->toContain('max-w-[1240px]');
     }
 });

@@ -69,7 +69,6 @@ class Memberships
             ZumraMembership::query()->where('zumra_id', $locked->getKey())->where('user_id', $user->getKey())->delete();
 
             // On sort aussi de l'équipe des projets de la ZUMRA.
-            app(ProjectTeam::class)->forgetPerson($locked, $user);
         });
     }
 
@@ -84,8 +83,6 @@ class Memberships
 
             $person = $fresh->user;
             $fresh->delete();
-
-            app(ProjectTeam::class)->forgetPerson($locked, $person);
 
             $this->notifier->push($person, NotificationKind::ZumraMemberRemoved, $actor, zumra: $locked);
         });

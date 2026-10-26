@@ -4,29 +4,32 @@ use App\Enums\JoinRequestState;
 use App\Enums\NotificationKind;
 use App\Enums\ProjectState;
 use App\Enums\ZumraRole;
-use App\Livewire\Espace;
+use App\Livewire\MesProjets;
 use App\Livewire\MondeProjet;
 use App\Livewire\PageNotifications;
+use App\Livewire\ProjetVitrine;
 use App\Models\ParticipationRequest;
 use App\Models\Project;
+use App\Models\ProjectInvitation;
 use App\Models\ProjectMember;
 use App\Models\User;
 use App\Models\UserNotification;
-use App\Models\ZumraMembership;
 use App\Services\Memberships;
 use App\Services\ParticipationRequests;
+use App\Services\ProjectInvitations;
 use App\Services\Projects;
+use App\Services\ProjectShowcase;
 use App\Services\ProjectTeam;
 use App\Services\Todo;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
+/** L'équipe d'un projet (P1, D-206) : des collaborateurs qui ont accepté, invités par le porteur ou venus par la présentation publique. */
 beforeEach(function () {
     $this->yao = person('Yao Kouassi', ['Couture']);
     $this->zumra = zumra($this->yao, 'Couture solidaire');
@@ -40,15 +43,9 @@ beforeEach(function () {
     $this->projet = projet($this->yao, $this->zumra, 'Uniformes de la rentrée');
 });
 
-function equipe_monde(?User $qui, Project $projet)
+function equipe_monde(User $qui, Project $projet)
 {
-    return ($qui ? Livewire::actingAs($qui) : new class
-    {
-        public function __call($m, $a)
-        {
-            return Livewire::$m(...$a);
-        }
-    })->test(MondeProjet::class, ['project' => $projet])->set('tab', 'equipe');
+    return Livewire::actingAs($qui)->test(MondeProjet::class, ['project' => $projet])->set('tab', 'equipe');
 }
 
 function notifications_de(User $qui, NotificationKind $genre)
@@ -56,442 +53,353 @@ function notifications_de(User $qui, NotificationKind $genre)
     return UserNotification::query()->where('user_id', $qui->id)->where('kind', $genre->value)->get();
 }
 
-// ─── Ajouter à l'équipe ──────────────────────────────────────────────────────
+function invite(User $porteur, Project $projet, User $personne, ?string $mot = null): ProjectInvitation
+{
+    return app(ProjectInvitations::class)->invite($porteur, $projet, $personne, $mot);
+}
 
-it('laisse le fondateur et les responsables ajouter un membre de la ZUMRA à l’équipe, qui en est informé', function () {
-    $m = app(ProjectTeam::class)->add($this->yao, $this->projet, $this->awa);
-    app(ProjectTeam::class)->add($this->resp, $this->projet, $this->koffi);
+function publie(Project $projet, User $porteur): void
+{
+    app(ProjectShowcase::class)->publish($porteur, $projet, ['summary' => 'Coudre 200 uniformes.', 'contribute' => 'Offrez du temps.']);
+}
 
-    expect($m->project_id)->toBe($this->projet->id)->and($m->user_id)->toBe($this->awa->id)->and($m->added_by)->toBe($this->yao->id)
-        ->and(ProjectMember::count())->toBe(2);
+// ─── Inviter : le consentement ───────────────────────────────────────────────
 
-    $n = notifications_de($this->awa, NotificationKind::ProjectMemberAdded)->sole();
+it('laisse le porteur inviter une personne, même hors de la ZUMRA, qui en est informée et n’entre qu’en acceptant', function () {
+    $invitation = invite($this->yao, $this->projet, $this->dehors, 'Venez nous aider.');
+
+    expect($invitation->state)->toBe(ProjectInvitation::PENDING)->and($invitation->invited_by)->toBe($this->yao->id)->and(ProjectMember::count())->toBe(0);
+    $n = notifications_de($this->dehors, NotificationKind::ProjectInvited)->sole();
     expect($n->actor_id)->toBe($this->yao->id)->and($n->project_id)->toBe($this->projet->id);
-    expect(notifications_de($this->yao, NotificationKind::ProjectMemberAdded))->toHaveCount(0);
+
+    app(ProjectInvitations::class)->accept($this->dehors, $invitation);
+
+    expect(ProjectMember::query()->where('user_id', $this->dehors->id)->exists())->toBeTrue()->and($invitation->fresh()->state)->toBe(ProjectInvitation::ACCEPTED);
+    expect(notifications_de($this->yao, NotificationKind::ProjectInviteAccepted))->toHaveCount(1);
+    expect($this->projet->privacyLabel())->toBe('Projet partagé');
 });
 
-it('laisse un responsable s’ajouter lui-même, sans notification', function () {
-    app(ProjectTeam::class)->add($this->resp, $this->projet, $this->resp);
+it('laisse la personne refuser, sans prévenir le porteur, et le porteur annuler ; on peut réinviter ensuite', function () {
+    $refusee = invite($this->yao, $this->projet, $this->awa);
+    app(ProjectInvitations::class)->refuse($this->awa, $refusee);
+    expect($refusee->fresh()->state)->toBe(ProjectInvitation::REFUSED)->and(ProjectMember::count())->toBe(0)->and(notifications_de($this->yao, NotificationKind::ProjectInviteAccepted))->toHaveCount(0);
 
-    expect(ProjectMember::sole()->user_id)->toBe($this->resp->id);
-    expect(UserNotification::count())->toBe(0);
+    $annulee = invite($this->yao, $this->projet, $this->koffi);
+    app(ProjectInvitations::class)->cancel($this->yao, $annulee);
+    expect($annulee->fresh()->state)->toBe(ProjectInvitation::CANCELLED);
+    expect(fn () => app(ProjectInvitations::class)->accept($this->koffi, $annulee->fresh()))->toThrow(ValidationException::class);
+
+    $encore = invite($this->yao, $this->projet, $this->awa);
+    expect($encore->id)->toBe($refusee->id)->and($encore->state)->toBe(ProjectInvitation::PENDING);
 });
 
-it('refuse d’ajouter une personne qui n’est pas membre de la ZUMRA, ou dont l’adresse n’est pas vérifiée, ou déjà dans l’équipe', function () {
-    expect(fn () => app(ProjectTeam::class)->add($this->yao, $this->projet, $this->dehors))->toThrow(ValidationException::class, 'membres de la ZUMRA');
+it('réserve l’invitation au porteur, et refuse une personne inexistante, non vérifiée, déjà dans l’équipe ou déjà invitée', function () {
+    foreach ([$this->resp, $this->awa, $this->dehors] as $qui) {
+        expect(fn () => invite($qui, $this->projet, $this->koffi))->toThrow(AuthorizationException::class);
+    }
+    $non = User::factory()->unverified()->create();
+    expect(fn () => invite($this->yao, $this->projet, $non))->toThrow(ValidationException::class);
+    expect(fn () => invite($this->yao, $this->projet, $this->yao))->toThrow(ValidationException::class);
 
-    $discret = User::factory()->unverified()->create();
-    ajouteMembre($this->zumra, $discret);
-    expect(fn () => app(ProjectTeam::class)->add($this->yao, $this->projet, $discret))->toThrow(ValidationException::class);
-
-    app(ProjectTeam::class)->add($this->yao, $this->projet, $this->awa);
-    expect(fn () => app(ProjectTeam::class)->add($this->yao, $this->projet, $this->awa))->toThrow(ValidationException::class, 'déjà dans l’équipe');
-
-    expect(ProjectMember::count())->toBe(1);
+    invite($this->yao, $this->projet, $this->awa);
+    expect(fn () => invite($this->yao, $this->projet, $this->awa))->toThrow(ValidationException::class, 'déjà en attente');
+    app(ProjectInvitations::class)->accept($this->awa, ProjectInvitation::query()->where('user_id', $this->awa->id)->sole());
+    expect(fn () => invite($this->yao, $this->projet, $this->awa))->toThrow(ValidationException::class, 'collabore déjà');
+    expect(fn () => invite($this->yao, $this->projet, $this->koffi, str_repeat('a', 281)))->toThrow(ValidationException::class);
 });
 
-it('refuse l’ajout à un membre simple, à une personne extérieure', function () {
-    foreach ([$this->awa, $this->dehors] as $qui) {
-        expect(fn () => app(ProjectTeam::class)->add($qui, $this->projet, $this->koffi))->toThrow(AuthorizationException::class);
+it('ne laisse répondre qu’à la personne invitée', function () {
+    $invitation = invite($this->yao, $this->projet, $this->awa);
+
+    foreach ([$this->yao, $this->koffi, $this->dehors] as $intrus) {
+        expect(fn () => app(ProjectInvitations::class)->accept($intrus, $invitation))->toThrow(HttpException::class);
     }
     expect(ProjectMember::count())->toBe(0);
 });
 
-it('clôt la demande en attente d’une personne qu’on ajoute à l’équipe', function () {
-    $demande = app(ParticipationRequests::class)->propose($this->awa, $this->projet, 'Je coud.');
+it('garantit en base une seule ligne par personne et par projet, et la liste des états d’une invitation', function () {
+    invite($this->yao, $this->projet, $this->awa);
+    $ligne = fn (array $data) => $data + ['id' => (string) Str::uuid(), 'project_id' => $this->projet->id, 'user_id' => $this->koffi->id, 'state' => 'pending', 'created_at' => now(), 'updated_at' => now()];
 
-    app(ProjectTeam::class)->add($this->yao, $this->projet, $this->awa);
-
-    expect($demande->fresh()->state)->toBe(JoinRequestState::Accepted)->and($demande->fresh()->decided_by)->toBe($this->yao->id);
+    expect(fn () => DB::transaction(fn () => DB::table('project_invitations')->insert($ligne(['user_id' => $this->awa->id]))))->toThrow(QueryException::class);
+    expect(fn () => DB::transaction(fn () => DB::table('project_invitations')->insert($ligne(['state' => 'inconnu']))))->toThrow(QueryException::class);
 });
 
-it('garantit en base une seule ligne par personne et par projet', function () {
-    app(ProjectTeam::class)->add($this->yao, $this->projet, $this->awa);
-
-    expect(fn () => DB::transaction(fn () => DB::table('project_members')->insert([
-        'id' => (string) Str::uuid(), 'project_id' => $this->projet->id, 'user_id' => $this->awa->id, 'joined_at' => now(), 'created_at' => now(), 'updated_at' => now(),
-    ])))->toThrow(QueryException::class);
+it('ne laisse plus ajouter quelqu’un sans son accord : aucune méthode ne le permet', function () {
+    expect(method_exists(ProjectTeam::class, 'add'))->toBeFalse();
 });
 
 // ─── Retirer, quitter ────────────────────────────────────────────────────────
 
-it('laisse les gestionnaires retirer une personne de l’équipe, qui en est informée, mais pas un membre simple', function () {
-    $m = app(ProjectTeam::class)->add($this->yao, $this->projet, $this->awa);
+it('laisse le porteur retirer une personne de l’équipe, qui en est informée, mais pas un collaborateur ni un responsable de ZUMRA', function () {
+    app(ProjectInvitations::class)->accept($this->awa, invite($this->yao, $this->projet, $this->awa));
+    app(ProjectInvitations::class)->accept($this->koffi, invite($this->yao, $this->projet, $this->koffi));
+    $ligne = ProjectMember::query()->where('user_id', $this->awa->id)->sole();
 
-    foreach ([$this->koffi, $this->dehors, $this->awa] as $qui) {
-        expect(fn () => app(ProjectTeam::class)->remove($qui, $m->fresh()))->toThrow(AuthorizationException::class);
+    foreach ([$this->koffi, $this->resp, $this->dehors] as $intrus) {
+        expect(fn () => app(ProjectTeam::class)->remove($intrus, $ligne))->toThrow(AuthorizationException::class);
     }
-    expect(ProjectMember::count())->toBe(1);
+    app(ProjectTeam::class)->remove($this->yao, $ligne);
 
-    app(ProjectTeam::class)->remove($this->resp, $m->fresh());
-
-    expect(ProjectMember::count())->toBe(0);
-    expect(notifications_de($this->awa, NotificationKind::ProjectMemberRemoved)->sole()->actor_id)->toBe($this->resp->id);
+    expect(ProjectMember::query()->where('user_id', $this->awa->id)->exists())->toBeFalse()->and(ProjectMember::count())->toBe(1);
+    expect(notifications_de($this->awa, NotificationKind::ProjectMemberRemoved))->toHaveCount(1);
 });
 
 it('laisse une personne quitter l’équipe, sans prévenir personne', function () {
-    app(ProjectTeam::class)->add($this->yao, $this->projet, $this->awa);
-    UserNotification::query()->delete();
+    app(ProjectInvitations::class)->accept($this->awa, invite($this->yao, $this->projet, $this->awa));
 
     app(ProjectTeam::class)->leave($this->awa, $this->projet);
 
-    expect(ProjectMember::count())->toBe(0)->and(UserNotification::count())->toBe(0);
-    expect(fn () => app(ProjectTeam::class)->leave($this->koffi, $this->projet))->toThrow(HttpException::class);
+    expect(ProjectMember::count())->toBe(0)->and(UserNotification::query()->where('user_id', $this->yao->id)->where('kind', NotificationKind::ProjectMemberRemoved->value)->count())->toBe(0);
+    expect(fn () => app(ProjectTeam::class)->leave($this->awa, $this->projet))->toThrow(HttpException::class);
 });
 
-it('sort de l’équipe des projets, et clôt les demandes en attente, quand on quitte la ZUMRA', function () {
-    $autre = projet($this->yao, $this->zumra, 'Autre projet');
-    app(ProjectTeam::class)->add($this->yao, $this->projet, $this->awa);
-    app(ParticipationRequests::class)->propose($this->awa, $autre);
-    $voisine = zumra($this->dehors, 'Autre ZUMRA');
-    ajouteMembre($voisine, $this->awa);
-    $projetVoisin = projet($this->dehors, $voisine, 'Projet voisin');
-    app(ProjectTeam::class)->add($this->dehors, $projetVoisin, $this->awa);
+it('garde la collaboration d’une personne qui quitte la ZUMRA d’accueil : l’équipe ne dépend pas de la ZUMRA', function () {
+    app(ProjectInvitations::class)->accept($this->awa, invite($this->yao, $this->projet, $this->awa));
 
     app(Memberships::class)->leave($this->awa, $this->zumra);
 
-    expect(ProjectMember::where('user_id', $this->awa->id)->pluck('project_id')->all())->toBe([$projetVoisin->id]);
-    expect(ParticipationRequest::where('project_id', $autre->id)->sole()->state)->toBe(JoinRequestState::Withdrawn);
+    expect(ProjectMember::query()->where('user_id', $this->awa->id)->exists())->toBeTrue();
 });
 
-it('laisse intacte une demande déjà traitée quand la personne quitte la ZUMRA, et ne clôt que celles en attente', function () {
-    $declinee = app(ParticipationRequests::class)->propose($this->awa, $this->projet);
-    app(ParticipationRequests::class)->decline($this->yao, $declinee);
-    $autre = projet($this->yao, $this->zumra, 'Autre projet');
-    $enAttente = app(ParticipationRequests::class)->propose($this->awa, $autre);
-
-    app(Memberships::class)->leave($this->awa, $this->zumra);
-
-    expect($declinee->fresh()->state)->toBe(JoinRequestState::Declined)->and($enAttente->fresh()->state)->toBe(JoinRequestState::Withdrawn);
-});
-
-it('sort aussi de l’équipe quand un gestionnaire retire la personne de la ZUMRA', function () {
-    app(ProjectTeam::class)->add($this->yao, $this->projet, $this->awa);
-
-    app(Memberships::class)->remove($this->yao, $this->zumra, ligne($this->zumra, $this->awa));
-
-    expect(ProjectMember::count())->toBe(0);
-});
-
-it('supprime l’équipe et les demandes avec le projet, et la ligne d’une personne avec son compte', function () {
-    app(ProjectTeam::class)->add($this->yao, $this->projet, $this->awa);
-    app(ParticipationRequests::class)->propose($this->koffi, $this->projet);
+it('supprime l’équipe, les invitations et les demandes avec le projet, et la ligne d’une personne avec son compte', function () {
+    app(ProjectInvitations::class)->accept($this->awa, invite($this->yao, $this->projet, $this->awa));
+    invite($this->yao, $this->projet, $this->koffi);
+    publie($this->projet, $this->yao);
+    app(ParticipationRequests::class)->propose($this->dehors, $this->projet);
 
     $this->awa->delete();
     expect(ProjectMember::count())->toBe(0);
 
     $this->projet->delete();
-    expect(ParticipationRequest::count())->toBe(0);
+    expect(ProjectInvitation::count())->toBe(0)->and(ParticipationRequest::count())->toBe(0);
 });
 
-// ─── Demande « Je veux participer » ──────────────────────────────────────────
+// ─── Demandes d'aide, par la présentation publique ───────────────────────────
 
-it('laisse un membre de la ZUMRA demander à participer, et prévient le fondateur et les responsables, pas lui-même', function () {
-    $d = app(ParticipationRequests::class)->propose($this->awa, $this->projet, 'Je sais coudre des uniformes.');
+it('laisse une personne vérifiée proposer son aide quand la présentation est publiée, et prévient le porteur seul', function () {
+    publie($this->projet, $this->yao);
 
-    expect($d->state)->toBe(JoinRequestState::Pending)->and($d->message)->toBe('Je sais coudre des uniformes.');
+    $demande = app(ParticipationRequests::class)->propose($this->dehors, $this->projet, 'Je couds.');
 
-    foreach ([$this->yao, $this->resp] as $gestionnaire) {
-        $n = notifications_de($gestionnaire, NotificationKind::ProjectParticipationRequested)->sole();
-        expect($n->actor_id)->toBe($this->awa->id)->and($n->project_id)->toBe($this->projet->id);
-    }
-    expect(UserNotification::query()->whereIn('user_id', [$this->awa->id, $this->koffi->id])->count())->toBe(0);
+    expect($demande->state)->toBe(JoinRequestState::Pending)->and($demande->message)->toBe('Je couds.');
+    expect(notifications_de($this->yao, NotificationKind::ProjectParticipationRequested))->toHaveCount(1)
+        ->and(notifications_de($this->resp, NotificationKind::ProjectParticipationRequested))->toHaveCount(0)
+        ->and(notifications_de($this->dehors, NotificationKind::ProjectParticipationRequested))->toHaveCount(0);
 });
 
-it('refuse la demande à qui ne peut pas participer, avec la raison', function () {
-    $verifiee = fn ($qui) => Gate::forUser($qui)->inspect('participate', $this->projet);
+it('refuse la demande sans présentation publique, au porteur, à un collaborateur, à une personne non vérifiée', function () {
+    expect(fn () => app(ParticipationRequests::class)->propose($this->dehors, $this->projet))->toThrow(AuthorizationException::class);
 
-    expect($verifiee($this->dehors)->message())->toContain('rejoignez d’abord la ZUMRA')
-        ->and($verifiee($this->yao)->message())->toContain('ajoutez-vous directement')
-        ->and($verifiee($this->resp)->message())->toContain('ajoutez-vous directement');
-
-    $non = User::factory()->unverified()->create();
-    ajouteMembre($this->zumra, $non);
-    expect($verifiee($non)->message())->toContain('Vérifiez votre adresse e-mail');
-
-    app(ProjectTeam::class)->add($this->yao, $this->projet, $this->awa);
-    expect($verifiee($this->awa)->message())->toContain('déjà dans l’équipe');
-
-    foreach ([$this->dehors, $this->yao, $non, $this->awa] as $qui) {
+    publie($this->projet, $this->yao);
+    app(ProjectInvitations::class)->accept($this->awa, invite($this->yao, $this->projet, $this->awa));
+    foreach ([$this->yao, $this->awa, User::factory()->unverified()->create()] as $qui) {
         expect(fn () => app(ParticipationRequests::class)->propose($qui, $this->projet))->toThrow(AuthorizationException::class);
     }
-    expect(Gate::forUser(null)->allows('participate', $this->projet))->toBeFalse();
     expect(ParticipationRequest::count())->toBe(0);
 });
 
 it('n’accepte plus de demande pour un projet terminé ou abandonné, mais oui pour une idée ou un projet en cours', function () {
-    expect(Gate::forUser($this->awa)->allows('participate', $this->projet))->toBeTrue();
+    publie($this->projet, $this->yao);
+    $demande = fn () => app(ParticipationRequests::class)->propose($this->dehors, $this->projet->fresh());
+
     app(Projects::class)->changeState($this->yao, $this->projet, ProjectState::InProgress);
-    expect(Gate::forUser($this->awa)->allows('participate', $this->projet->fresh()))->toBeTrue();
+    expect($demande())->toBeInstanceOf(ParticipationRequest::class);
+    app(ParticipationRequests::class)->withdraw($this->dehors, ParticipationRequest::sole());
 
     app(Projects::class)->changeState($this->yao, $this->projet, ProjectState::Done);
-    expect(Gate::forUser($this->awa)->inspect('participate', $this->projet->fresh())->message())->toContain('n’accepte plus de participation');
-
-    app(Projects::class)->changeState($this->yao, $this->projet, ProjectState::InProgress);
-    app(Projects::class)->changeState($this->yao, $this->projet, ProjectState::Abandoned);
-    expect(fn () => app(ParticipationRequests::class)->propose($this->awa, $this->projet->fresh()))->toThrow(AuthorizationException::class);
+    expect($demande)->toThrow(AuthorizationException::class);
 });
 
 it('vérifie le mot (280 caractères au plus), le reprend après un retrait, et refuse deux demandes en attente ou une demande déclinée', function () {
-    expect(fn () => app(ParticipationRequests::class)->propose($this->awa, $this->projet, str_repeat('é', 281)))->toThrow(ValidationException::class);
-    expect(app(ParticipationRequests::class)->propose($this->awa, $this->projet, str_repeat('é', 280))->message)->toHaveLength(280);
+    publie($this->projet, $this->yao);
+    expect(fn () => app(ParticipationRequests::class)->propose($this->dehors, $this->projet, str_repeat('a', 281)))->toThrow(ValidationException::class);
 
-    expect(fn () => app(ParticipationRequests::class)->propose($this->awa, $this->projet))->toThrow(AuthorizationException::class, 'déjà envoyée');
+    $premiere = app(ParticipationRequests::class)->propose($this->dehors, $this->projet, 'Premier mot');
+    expect(fn () => app(ParticipationRequests::class)->propose($this->dehors, $this->projet))->toThrow(AuthorizationException::class);
 
-    app(ParticipationRequests::class)->withdraw($this->awa, ParticipationRequest::sole());
-    expect(ParticipationRequest::sole()->state)->toBe(JoinRequestState::Withdrawn);
+    app(ParticipationRequests::class)->withdraw($this->dehors, $premiere);
+    $seconde = app(ParticipationRequests::class)->propose($this->dehors, $this->projet, 'Second mot');
+    expect($seconde->id)->toBe($premiere->id)->and($seconde->message)->toBe('Second mot')->and(ParticipationRequest::count())->toBe(1);
 
-    $d = app(ParticipationRequests::class)->propose($this->awa, $this->projet);
-    expect($d->state)->toBe(JoinRequestState::Pending)->and($d->message)->toBeNull()->and(ParticipationRequest::count())->toBe(1);
-
-    app(ParticipationRequests::class)->decline($this->yao, $d);
-    expect(fn () => app(ParticipationRequests::class)->propose($this->awa, $this->projet))->toThrow(AuthorizationException::class, 'pas été retenue');
+    app(ParticipationRequests::class)->decline($this->yao, $seconde);
+    expect(fn () => app(ParticipationRequests::class)->propose($this->dehors, $this->projet))->toThrow(AuthorizationException::class);
 });
 
-it('limite le nombre de demandes de participation par personne et par jour', function () {
+it('limite le nombre de demandes d’aide par personne et par jour', function () {
     config(['gamad.limits.participation_requests_per_day' => 2]);
-    $a = projet($this->yao, $this->zumra, 'Projet A');
-    $b = projet($this->yao, $this->zumra, 'Projet B');
+    foreach (['Un', 'Deux', 'Trois'] as $nom) {
+        publie(projet($this->yao, $this->zumra, "Projet $nom"), $this->yao);
+    }
 
-    app(ParticipationRequests::class)->propose($this->awa, $this->projet);
-    app(ParticipationRequests::class)->propose($this->awa, $a);
-    expect(fn () => app(ParticipationRequests::class)->propose($this->awa, $b))->toThrow(ValidationException::class, 'limite');
-    expect(app(ParticipationRequests::class)->propose($this->koffi, $b)->project_id)->toBe($b->id);
-
-    $this->travel(25)->hours();
-    expect(app(ParticipationRequests::class)->propose($this->awa, $b)->project_id)->toBe($b->id);
+    $projets = Project::query()->whereIn('name', ['Projet Un', 'Projet Deux', 'Projet Trois'])->orderBy('name')->get();
+    app(ParticipationRequests::class)->propose($this->dehors, $projets[0]);
+    app(ParticipationRequests::class)->propose($this->dehors, $projets[2]);
+    expect(fn () => app(ParticipationRequests::class)->propose($this->dehors, $projets[1]))->toThrow(ValidationException::class, 'limite');
 });
 
 it('ne laisse retirer sa demande qu’à la personne qui l’a faite, tant qu’elle est en attente', function () {
-    $d = app(ParticipationRequests::class)->propose($this->awa, $this->projet);
+    publie($this->projet, $this->yao);
+    $demande = app(ParticipationRequests::class)->propose($this->dehors, $this->projet);
 
-    expect(fn () => app(ParticipationRequests::class)->withdraw($this->koffi, $d))->toThrow(HttpException::class);
-    app(ParticipationRequests::class)->decline($this->yao, $d);
-    expect(fn () => app(ParticipationRequests::class)->withdraw($this->awa, $d->fresh()))->toThrow(ValidationException::class, 'ne peut plus être retirée');
+    expect(fn () => app(ParticipationRequests::class)->withdraw($this->awa, $demande))->toThrow(HttpException::class);
+    app(ParticipationRequests::class)->withdraw($this->dehors, $demande);
+    expect(fn () => app(ParticipationRequests::class)->withdraw($this->dehors, $demande->fresh()))->toThrow(ValidationException::class);
 });
 
 it('accepte une demande : la personne entre dans l’équipe, en est informée, et la demande est close', function () {
-    $d = app(ParticipationRequests::class)->propose($this->awa, $this->projet);
+    publie($this->projet, $this->yao);
+    $demande = app(ParticipationRequests::class)->propose($this->dehors, $this->projet);
 
-    app(ParticipationRequests::class)->accept($this->resp, $d);
+    app(ParticipationRequests::class)->accept($this->yao, $demande);
 
-    expect(ProjectMember::sole()->user_id)->toBe($this->awa->id)->and(ProjectMember::sole()->added_by)->toBeNull()
-        ->and($d->fresh()->state)->toBe(JoinRequestState::Accepted)->and($d->fresh()->decided_by)->toBe($this->resp->id);
-    expect(notifications_de($this->awa, NotificationKind::ProjectParticipationAccepted)->sole()->actor_id)->toBe($this->resp->id);
-
-    expect(fn () => app(ParticipationRequests::class)->accept($this->yao, $d->fresh()))->toThrow(ValidationException::class, 'déjà été traitée');
+    expect($demande->fresh()->state)->toBe(JoinRequestState::Accepted)->and($demande->fresh()->decided_by)->toBe($this->yao->id)
+        ->and(ProjectMember::query()->where('user_id', $this->dehors->id)->exists())->toBeTrue();
+    expect(notifications_de($this->dehors, NotificationKind::ProjectParticipationAccepted))->toHaveCount(1);
 });
 
 it('décline une demande sans prévenir la personne, et refuse un traitement double', function () {
-    $d = app(ParticipationRequests::class)->propose($this->awa, $this->projet);
-    UserNotification::query()->delete();
+    publie($this->projet, $this->yao);
+    $demande = app(ParticipationRequests::class)->propose($this->dehors, $this->projet);
 
-    app(ParticipationRequests::class)->decline($this->yao, $d);
+    app(ParticipationRequests::class)->decline($this->yao, $demande);
 
-    expect($d->fresh()->state)->toBe(JoinRequestState::Declined)->and(UserNotification::count())->toBe(0)->and(ProjectMember::count())->toBe(0);
-    expect(fn () => app(ParticipationRequests::class)->decline($this->yao, $d->fresh()))->toThrow(ValidationException::class);
-    expect(fn () => app(ParticipationRequests::class)->accept($this->yao, $d->fresh()))->toThrow(ValidationException::class);
+    expect($demande->fresh()->state)->toBe(JoinRequestState::Declined)->and(UserNotification::query()->where('user_id', $this->dehors->id)->count())->toBe(0);
+    expect(fn () => app(ParticipationRequests::class)->decline($this->yao, $demande->fresh()))->toThrow(ValidationException::class);
+    expect(fn () => app(ParticipationRequests::class)->accept($this->yao, $demande->fresh()))->toThrow(ValidationException::class);
 });
 
-it('refuse de traiter une demande à un membre simple ou à une personne extérieure', function () {
-    $d = app(ParticipationRequests::class)->propose($this->awa, $this->projet);
+it('réserve le traitement des demandes au porteur : ni un responsable de la ZUMRA, ni un collaborateur, ni un tiers', function () {
+    publie($this->projet, $this->yao);
+    app(ProjectInvitations::class)->accept($this->awa, invite($this->yao, $this->projet, $this->awa));
+    $demande = app(ParticipationRequests::class)->propose($this->dehors, $this->projet);
 
-    foreach ([$this->koffi, $this->dehors, $this->awa] as $qui) {
-        expect(fn () => app(ParticipationRequests::class)->accept($qui, $d->fresh()))->toThrow(AuthorizationException::class);
-        expect(fn () => app(ParticipationRequests::class)->decline($qui, $d->fresh()))->toThrow(AuthorizationException::class);
+    foreach ([$this->resp, $this->awa, $this->koffi] as $qui) {
+        expect(fn () => app(ParticipationRequests::class)->accept($qui, $demande))->toThrow(AuthorizationException::class);
+        expect(fn () => app(ParticipationRequests::class)->decline($qui, $demande))->toThrow(AuthorizationException::class);
     }
-    expect($d->fresh()->state)->toBe(JoinRequestState::Pending)->and(ProjectMember::count())->toBe(0);
-});
-
-it('refuse d’accepter la demande d’une personne qui a quitté la ZUMRA depuis', function () {
-    $d = app(ParticipationRequests::class)->propose($this->awa, $this->projet);
-    ParticipationRequest::query()->whereKey($d->id)->update(['state' => 'pending']);
-    ZumraMembership::query()->where('user_id', $this->awa->id)->delete();
-
-    expect(fn () => app(ParticipationRequests::class)->accept($this->yao, $d->fresh()))->toThrow(ValidationException::class, 'n’est plus dans la ZUMRA');
-    expect(ProjectMember::count())->toBe(0);
+    expect($demande->fresh()->state)->toBe(JoinRequestState::Pending);
 });
 
 it('garantit en base la liste des états d’une demande, et une ligne par personne et par projet', function () {
-    $d = app(ParticipationRequests::class)->propose($this->awa, $this->projet);
+    publie($this->projet, $this->yao);
+    app(ParticipationRequests::class)->propose($this->dehors, $this->projet);
     $ligne = fn (array $data) => $data + ['id' => (string) Str::uuid(), 'project_id' => $this->projet->id, 'user_id' => $this->koffi->id, 'state' => 'pending', 'created_at' => now(), 'updated_at' => now()];
 
+    expect(fn () => DB::transaction(fn () => DB::table('participation_requests')->insert($ligne(['user_id' => $this->dehors->id]))))->toThrow(QueryException::class);
     expect(fn () => DB::transaction(fn () => DB::table('participation_requests')->insert($ligne(['state' => 'inconnu']))))->toThrow(QueryException::class);
-    expect(fn () => DB::transaction(fn () => DB::table('participation_requests')->insert($ligne(['user_id' => $d->user_id]))))->toThrow(QueryException::class);
 });
 
-// ─── Onglet Équipe ───────────────────────────────────────────────────────────
+// ─── Écrans ──────────────────────────────────────────────────────────────────
 
-it('montre à un visiteur sans compte le nombre de personnes de l’équipe, pas leurs noms', function () {
-    app(ProjectTeam::class)->add($this->yao, $this->projet, $this->awa);
+it('montre l’équipe au porteur et aux collaborateurs seulement, par ordre alphabétique', function () {
+    app(ProjectInvitations::class)->accept($this->koffi, invite($this->yao, $this->projet, $this->koffi));
+    app(ProjectInvitations::class)->accept($this->awa, invite($this->yao, $this->projet, $this->awa));
 
-    equipe_monde(null, $this->projet)->assertSeeText('1 personne participe')->assertDontSeeText('Awa Traoré')->assertSeeText('visibles des personnes inscrites')
-        ->assertSeeText('Se connecter')->assertSeeText('Connectez-vous pour participer');
-});
-
-it('montre à une personne connectée et vérifiée les personnes de l’équipe, selon la visibilité de leur profil, par ordre alphabétique', function () {
-    $discret = person('Zoé Discrète', [], [], null, 'members');
-    ajouteMembre($this->zumra, $discret);
-    foreach ([$this->koffi, $this->awa, $discret] as $p) {
-        app(ProjectTeam::class)->add($this->yao, $this->projet, $p);
+    foreach ([$this->yao, $this->awa] as $qui) {
+        $html = equipe_monde($qui, $this->projet)->assertSeeText('2 personnes participent')->assertSeeText('Awa Traoré')->assertSeeText('Koffi Diallo')->html();
+        $equipe = substr($html, strpos($html, 'Équipe du projet'));
+        expect(strpos($equipe, 'Awa Traoré'))->toBeLessThan(strpos($equipe, 'Koffi Diallo'));
     }
-
-    $html = equipe_monde($this->dehors, $this->projet)->assertSeeText('3 personnes participent')->assertSeeText('Awa Traoré')->assertSeeText('Koffi Diallo')->assertSeeText('Zoé Discrète')->html();
-    expect(strpos($html, 'Awa Traoré'))->toBeLessThan(strpos($html, 'Koffi Diallo'))->and(strpos($html, 'Koffi Diallo'))->toBeLessThan(strpos($html, 'Zoé Discrète'));
-    expect($html)->toContain(route('personnes.show', $this->awa->profile->public_id));
+    foreach ([$this->resp, $this->dehors] as $qui) {
+        $this->actingAs($qui)->get(route('projets.show', $this->projet))->assertNotFound();
+    }
+    app('auth')->forgetGuards();
+    $this->get(route('projets.show', $this->projet))->assertNotFound();
 });
 
 it('ne compte pas, dans l’équipe, une personne dont l’adresse n’est plus vérifiée', function () {
-    app(ProjectTeam::class)->add($this->yao, $this->projet, $this->awa);
+    app(ProjectInvitations::class)->accept($this->awa, invite($this->yao, $this->projet, $this->awa));
     $this->awa->forceFill(['email_verified_at' => null])->save();
 
-    equipe_monde($this->dehors, $this->projet)->assertSeeText('0 personne participe')->assertDontSeeText('Awa Traoré');
+    equipe_monde($this->yao, $this->projet)->assertSeeText('0 personne participe')->assertDontSeeText('Awa Traoré');
 });
 
-it('affiche à chacun le bon encadré de participation', function () {
-    equipe_monde($this->awa, $this->projet)->assertSeeText('Participer à ce projet')->assertSeeText('Je veux participer')->assertSeeText('Un mot pour les responsables');
-    equipe_monde($this->dehors, $this->projet)->assertSeeText('rejoignez d’abord la ZUMRA')->assertSeeText('Voir la ZUMRA')->assertDontSeeText('Un mot pour les responsables');
-    equipe_monde($this->yao, $this->projet)->assertSeeText('ajoutez-vous directement')->assertDontSeeText('Un mot pour les responsables');
+it('invite, annule, quitte l’équipe et propose son aide depuis les écrans', function () {
+    $c = equipe_monde($this->yao, $this->projet)->set('inviteQuery', 'Awa')->assertSeeText('Awa Traoré')
+        ->set('inviteWord', 'Rejoignez-nous.')->call('invite', $this->awa->id)->assertHasNoErrors();
+    expect(ProjectInvitation::sole()->message)->toBe('Rejoignez-nous.');
+    $c->set('tab', 'equipe')->assertSeeText('Invitations en attente')->call('cancelInvitation', ProjectInvitation::sole()->id);
+    expect(ProjectInvitation::sole()->state)->toBe(ProjectInvitation::CANCELLED);
 
-    app(ParticipationRequests::class)->propose($this->awa, $this->projet);
-    equipe_monde($this->awa, $this->projet)->assertSeeText('Demande envoyée')->assertSeeText('Retirer ma demande')->assertDontSeeText('Un mot pour les responsables');
+    invite($this->yao, $this->projet, $this->koffi);
+    Livewire::actingAs($this->koffi)->test(MesProjets::class)->assertSeeText('Invitations à collaborer')->assertSeeText('Uniformes de la rentrée')->call('accept', ProjectInvitation::query()->where('user_id', $this->koffi->id)->sole()->id)
+        ->assertSeeText('Mes collaborations');
 
-    app(ParticipationRequests::class)->decline($this->yao, ParticipationRequest::sole());
-    equipe_monde($this->awa, $this->projet)->assertSeeText('pas été retenue')->assertDontSeeText('Retirer ma demande');
-
-    app(ProjectTeam::class)->add($this->yao, $this->projet, $this->koffi);
-    equipe_monde($this->koffi, $this->projet)->assertSeeText('Vous êtes dans l’équipe')->assertSeeText('Quitter l’équipe');
-});
-
-it('demande, retire sa demande et quitte l’équipe depuis l’écran', function () {
-    equipe_monde($this->awa, $this->projet)->set('participationWord', 'Je veux aider.')->call('requestParticipation')->assertHasNoErrors()
-        ->assertSeeText('Demande envoyée')->assertSet('participationWord', '')
-        ->call('withdrawParticipation')->assertSeeText('Demande retirée')->assertSeeText('Je veux participer');
-
-    expect(ParticipationRequest::sole()->state)->toBe(JoinRequestState::Withdrawn);
-
-    app(ProjectTeam::class)->add($this->yao, $this->projet, $this->awa);
-    equipe_monde($this->awa, $this->projet)->call('leaveTeam')->assertSeeText('Vous avez quitté l’équipe');
+    equipe_monde($this->koffi, $this->projet)->assertSeeText('Quitter l’équipe')->call('leaveTeam');
     expect(ProjectMember::count())->toBe(0);
+
+    publie($this->projet, $this->yao);
+    Livewire::actingAs($this->dehors)->test(ProjetVitrine::class, ['project' => $this->projet])->assertSeeText('Proposer mon aide')
+        ->set('participationWord', 'Je couds.')->call('requestParticipation')->assertSeeText('Demande envoyée')->assertSeeText('Retirer ma demande')
+        ->call('withdrawParticipation');
+    expect(ParticipationRequest::sole()->state)->toBe(JoinRequestState::Withdrawn);
 });
 
 it('affiche l’erreur d’un mot trop long sous le champ', function () {
-    equipe_monde($this->awa, $this->projet)->set('participationWord', str_repeat('a', 281))->call('requestParticipation')->assertHasErrors(['participationWord']);
+    publie($this->projet, $this->yao);
+
+    Livewire::actingAs($this->dehors)->test(ProjetVitrine::class, ['project' => $this->projet])->set('participationWord', str_repeat('a', 281))->call('requestParticipation')->assertHasErrors('participationWord');
 });
 
-it('montre aux gestionnaires les demandes à traiter et les membres à ajouter, pas aux autres', function () {
-    app(ParticipationRequests::class)->propose($this->awa, $this->projet, 'Je sais coudre.');
-
-    foreach ([$this->yao, $this->resp] as $qui) {
-        equipe_monde($qui, $this->projet)->assertSeeText('Demandes de participation')->assertSeeText('Je sais coudre.')->assertSeeText('Accepter')->assertSeeText('Décliner')
-            ->assertSeeText('Ajouter des membres de la ZUMRA')->assertSeeText('Koffi Diallo');
-    }
-    foreach ([$this->awa, $this->koffi, $this->dehors, null] as $qui) {
-        equipe_monde($qui, $this->projet)->assertDontSeeText('Demandes de participation')->assertDontSeeText('Ajouter des membres de la ZUMRA')->assertDontSeeText('Je sais coudre.');
-    }
-});
-
-it('traite les demandes et gère l’équipe depuis l’écran, pour un gestionnaire seulement', function () {
-    app(ParticipationRequests::class)->propose($this->awa, $this->projet);
+it('montre au porteur les demandes d’aide à traiter, et les traite depuis l’écran', function () {
+    publie($this->projet, $this->yao);
+    app(ParticipationRequests::class)->propose($this->dehors, $this->projet, 'Je couds.');
     app(ParticipationRequests::class)->propose($this->koffi, $this->projet);
-    [$demandeAwa, $demandeKoffi] = [ParticipationRequest::where('user_id', $this->awa->id)->first(), ParticipationRequest::where('user_id', $this->koffi->id)->first()];
 
-    equipe_monde($this->resp, $this->projet)->call('acceptRequest', $demandeAwa->id)->assertSeeText('Awa Traoré')
-        ->call('declineRequest', $demandeKoffi->id)->assertSeeText('Aucune demande en attente.');
-    expect(ProjectMember::sole()->user_id)->toBe($this->awa->id)->and($demandeKoffi->fresh()->state)->toBe(JoinRequestState::Declined);
+    $c = equipe_monde($this->yao, $this->projet)->assertSeeText('Demandes d’aide')->assertSeeText('Personne Extérieure')->assertSeeText('Je couds.');
+    $c->call('acceptRequest', ParticipationRequest::query()->where('user_id', $this->dehors->id)->sole()->id)->call('declineRequest', ParticipationRequest::query()->where('user_id', $this->koffi->id)->sole()->id)->assertSeeText('Aucune demande en attente.');
 
-    equipe_monde($this->yao, $this->projet)->call('addMember', $this->koffi->id)->assertSeeText('2 personnes participent')
-        ->call('removeMember', ProjectMember::where('user_id', $this->awa->id)->first()->id)->assertSeeText('1 personne participe');
-    expect(ProjectMember::sole()->user_id)->toBe($this->koffi->id);
-
-    foreach ([$this->awa, $this->dehors] as $qui) {
-        equipe_monde($qui, $this->projet)->call('addMember', $this->resp->id)->assertNotFound();
-        equipe_monde($qui, $this->projet)->call('removeMember', ProjectMember::first()->id)->assertNotFound();
-        equipe_monde($qui, $this->projet)->call('acceptRequest', $demandeKoffi->id)->assertNotFound();
-        equipe_monde($qui, $this->projet)->call('declineRequest', $demandeKoffi->id)->assertNotFound();
-    }
-    expect(ProjectMember::count())->toBe(1);
-});
-
-it('ne propose plus à l’ajout les personnes déjà dans l’équipe', function () {
-    foreach ([$this->yao, $this->resp, $this->awa, $this->koffi] as $p) {
-        app(ProjectTeam::class)->add($this->yao, $this->projet, $p);
-    }
-
-    equipe_monde($this->yao, $this->projet)->assertSeeText('Tous les membres de la ZUMRA sont déjà dans l’équipe.')->assertDontSee('addMember(', false);
-    app(ProjectTeam::class)->remove($this->yao, ProjectMember::where('user_id', $this->koffi->id)->first());
-    equipe_monde($this->yao, $this->projet)->assertDontSeeText('Tous les membres de la ZUMRA sont déjà dans l’équipe.')->assertSee("addMember('{$this->koffi->id}')", false);
-});
-
-it('refuse l’ajout d’une personne qui n’est pas de la ZUMRA depuis l’écran, avec le message sous la liste', function () {
-    equipe_monde($this->yao, $this->projet)->call('addMember', $this->dehors->id)->assertHasErrors(['team'])->assertSeeText('Seuls les membres de la ZUMRA');
-    expect(ProjectMember::count())->toBe(0);
+    expect(ProjectMember::query()->where('user_id', $this->dehors->id)->exists())->toBeTrue()->and(ParticipationRequest::query()->where('user_id', $this->koffi->id)->sole()->state)->toBe(JoinRequestState::Declined);
 });
 
 it('ne touche ni un membre ni une demande d’un autre projet, ni un identifiant qui n’en est pas un', function () {
     $autre = projet($this->yao, $this->zumra, 'Autre projet');
-    $membre = app(ProjectTeam::class)->add($this->yao, $autre, $this->awa);
-    $demande = app(ParticipationRequests::class)->propose($this->koffi, $autre);
+    app(ProjectInvitations::class)->accept($this->awa, invite($this->yao, $autre, $this->awa));
+    publie($autre, $this->yao);
+    $demande = app(ParticipationRequests::class)->propose($this->dehors, $autre);
 
-    equipe_monde($this->yao, $this->projet)->call('removeMember', $membre->id)->assertNotFound();
+    equipe_monde($this->yao, $this->projet)->call('removeMember', ProjectMember::sole()->id)->assertNotFound();
     equipe_monde($this->yao, $this->projet)->call('acceptRequest', $demande->id)->assertNotFound();
-    equipe_monde($this->yao, $this->projet)->call('declineRequest', 'pas-un-uuid')->assertNotFound();
-    equipe_monde($this->yao, $this->projet)->call('addMember', 'pas-un-uuid')->assertNotFound();
+    equipe_monde($this->yao, $this->projet)->call('declineRequest', $demande->id)->assertNotFound();
+    equipe_monde($this->yao, $this->projet)->call('removeMember', 'pas-un-uuid')->assertNotFound();
+    equipe_monde($this->yao, $this->projet)->call('cancelInvitation', 'pas-un-uuid')->assertNotFound();
 
     expect(ProjectMember::count())->toBe(1)->and($demande->fresh()->state)->toBe(JoinRequestState::Pending);
 });
 
-// ─── Notifications et « À faire maintenant » ─────────────────────────────────
+it('mène les notifications du projet au bon écran, et nomme le projet', function () {
+    invite($this->yao, $this->projet, $this->awa);
+    publie($this->projet, $this->yao);
+    app(ParticipationRequests::class)->propose($this->dehors, $this->projet);
 
-it('mène les notifications du projet à son onglet Équipe, et nomme le projet', function () {
-    app(ParticipationRequests::class)->propose($this->awa, $this->projet);
-    $n = notifications_de($this->yao, NotificationKind::ProjectParticipationRequested)->sole();
+    $invitation = notifications_de($this->awa, NotificationKind::ProjectInvited)->sole();
+    Livewire::actingAs($this->awa)->test(PageNotifications::class)->assertSeeText('vous invite à collaborer au projet')->assertSeeText('Uniformes de la rentrée');
+    $this->actingAs($this->awa)->get(route('notifications.open', $invitation))->assertRedirect(route('espace.projets'));
 
-    $this->actingAs($this->yao)->get(route('notifications.open', $n))->assertRedirect(route('projets.show', ['project' => $this->projet, 'onglet' => 'equipe']));
-    expect($n->fresh()->read_at)->not->toBeNull();
-
-    Livewire::actingAs($this->resp)->test(PageNotifications::class)->assertSeeText('Awa Traoré')->assertSeeText('veut participer au projet « Uniformes de la rentrée »');
-
-    app(ParticipationRequests::class)->accept($this->yao, ParticipationRequest::sole());
-    Livewire::actingAs($this->awa)->test(PageNotifications::class)->assertSeeText('a accepté votre participation au projet « Uniformes de la rentrée »');
-
-    app(ProjectTeam::class)->remove($this->yao, ProjectMember::sole());
-    Livewire::actingAs($this->awa)->test(PageNotifications::class)->assertSeeText('vous a retiré de l\'équipe du projet');
+    $demande = notifications_de($this->yao, NotificationKind::ProjectParticipationRequested)->sole();
+    $this->actingAs($this->yao)->get(route('notifications.open', $demande))->assertRedirect(route('projets.show', ['project' => $this->projet, 'onglet' => 'equipe']));
 });
 
 it('ne laisse pas ouvrir la notification d’une autre personne, et revient à la liste si le projet n’existe plus', function () {
-    app(ParticipationRequests::class)->propose($this->awa, $this->projet);
-    $n = notifications_de($this->yao, NotificationKind::ProjectParticipationRequested)->sole();
+    invite($this->yao, $this->projet, $this->awa);
+    $notification = notifications_de($this->awa, NotificationKind::ProjectInvited)->sole();
 
-    $this->actingAs($this->awa)->get(route('notifications.open', $n))->assertNotFound();
+    $this->actingAs($this->dehors)->get(route('notifications.open', $notification))->assertNotFound();
 
+    // Les notifications d'un projet disparaissent avec lui.
     $this->projet->delete();
-    expect(UserNotification::query()->whereKey($n->id)->exists())->toBeFalse();
+    expect(UserNotification::query()->whereKey($notification->id)->exists())->toBeFalse();
 });
 
-it('affiche dans « À faire maintenant » des gestionnaires les demandes de participation à traiter, par projet', function () {
-    $autre = projet($this->yao, $this->zumra, 'Autre projet');
-    app(ParticipationRequests::class)->propose($this->awa, $this->projet);
+it('affiche dans « À faire maintenant » du porteur les demandes d’aide à traiter, et à la personne invitée son invitation', function () {
+    publie($this->projet, $this->yao);
+    app(ParticipationRequests::class)->propose($this->dehors, $this->projet);
     app(ParticipationRequests::class)->propose($this->koffi, $this->projet);
-    app(ParticipationRequests::class)->propose($this->awa, $autre);
+    invite($this->yao, $this->projet, $this->awa);
 
-    foreach ([$this->yao, $this->resp] as $qui) {
-        $lignes = collect(app(Todo::class)->for($qui))->pluck('title', 'key');
-        expect($lignes['participation-'.$this->projet->id])->toBe('2 demandes de participation à traiter')
-            ->and($lignes['participation-'.$autre->id])->toBe('1 demande de participation à traiter');
-    }
-    foreach ([$this->awa, $this->dehors] as $qui) {
-        expect(collect(app(Todo::class)->for($qui))->pluck('key')->filter(fn ($k) => str_starts_with($k, 'participation-')))->toBeEmpty();
-    }
-
-    app(ParticipationRequests::class)->decline($this->yao, ParticipationRequest::where('user_id', $this->koffi->id)->first());
-    app(ParticipationRequests::class)->accept($this->yao, ParticipationRequest::where('user_id', $this->awa->id)->where('project_id', $this->projet->id)->first());
-    expect(collect(app(Todo::class)->for($this->yao))->pluck('key')->contains('participation-'.$this->projet->id))->toBeFalse();
-    expect(collect(app(Todo::class)->for($this->yao))->pluck('url', 'key')['participation-'.$autre->id])->toContain('onglet=equipe');
-});
-
-it('affiche la ligne de demandes de participation dans Espace', function () {
-    app(ParticipationRequests::class)->propose($this->awa, $this->projet);
-
-    Livewire::actingAs($this->resp)->test(Espace::class)->assertSeeText('1 demande de participation à traiter')->assertSeeText('Uniformes de la rentrée');
+    $lignes = collect(app(Todo::class)->for($this->yao));
+    expect($lignes->pluck('title')->implode(' '))->toContain('2 demandes de participation à traiter');
+    expect(collect(app(Todo::class)->for($this->resp))->pluck('title')->implode(' '))->not->toContain('participation');
+    expect(collect(app(Todo::class)->for($this->awa))->pluck('title')->implode(' '))->toContain('Invitation à collaborer au projet « Uniformes de la rentrée »');
 });

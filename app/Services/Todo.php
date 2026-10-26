@@ -10,6 +10,7 @@ use App\Models\Gesture;
 use App\Models\Invitation;
 use App\Models\Message;
 use App\Models\Project;
+use App\Models\ProjectInvitation;
 use App\Models\Publication;
 use App\Models\Report;
 use App\Models\User;
@@ -42,6 +43,8 @@ class Todo
             ...$this->reportsToReview($user),
             ...$this->zumraInvitations($user),
             ...$this->dutyProposals($user),
+            ...$this->projectInvitations($user),
+            ...$this->hostingRequestsToExamine($user),
             ...$this->joinRequestsToDecide($user),
             ...$this->participationRequestsToDecide($user),
             ...$this->proposals($user),
@@ -155,6 +158,44 @@ class Todo
             ])->all();
     }
 
+    /** Pour le fondateur et les responsables : des demandes d'accueil de projets attendent une décision (une ligne par ZUMRA). */
+    private function hostingRequestsToExamine(User $user): array
+    {
+        if (! ZumraModule::accessibleTo($user)) {
+            return [];
+        }
+
+        return Zumra::query()->whereIn('id', $user->managedZumraIds())
+            ->whereHas('projects', fn ($q) => $q->where('hosting_state', 'pending'))
+            ->withCount(['projects as pending_count' => fn ($q) => $q->where('hosting_state', 'pending')])
+            ->orderBy('name_key')->limit(self::MAX_LINES)->get()
+            ->map(fn (Zumra $zumra) => [
+                'key' => 'accueil-'.$zumra->getKey(),
+                'title' => $zumra->pending_count.($zumra->pending_count > 1 ? ' demandes d’accueil de projets à examiner' : ' demande d’accueil de projet à examiner'),
+                'detail' => 'Dans la ZUMRA « '.Str::limit($zumra->name, 40).' »',
+                'action' => 'Voir',
+                'url' => route('zumras.show', ['zumra' => $zumra, 'onglet' => 'projets']),
+            ])->all();
+    }
+
+    /** Une invitation à collaborer à un projet attend la réponse de la personne invitée (P1). */
+    private function projectInvitations(User $user): array
+    {
+        if (! ZumraModule::accessibleTo($user)) {
+            return [];
+        }
+
+        return ProjectInvitation::query()->where('user_id', $user->getKey())->where('state', ProjectInvitation::PENDING)->with('project')
+            ->orderByDesc('created_at')->limit(self::MAX_LINES)->get()
+            ->map(fn ($invitation) => [
+                'key' => 'projet-invitation-'.$invitation->getKey(),
+                'title' => 'Invitation à collaborer au projet « '.Str::limit($invitation->project->name, 40).' »',
+                'detail' => 'Vous acceptez ou refusez : personne n’entre dans l’équipe sans accord.',
+                'action' => 'Répondre',
+                'url' => route('espace.projets'),
+            ])->all();
+    }
+
     /** Un poste de gouvernance proposé attend la réponse de la personne désignée. */
     private function dutyProposals(User $user): array
     {
@@ -198,8 +239,13 @@ class Todo
     {
         $pending = fn ($query) => $query->where('state', JoinRequestState::Pending->value)->whereHas('user', fn ($person) => $person->active());
 
+        if (! ZumraModule::accessibleTo($user)) {
+            return [];
+        }
+
+        // Le porteur décide des demandes d'aide faites à son projet (P1).
         return Project::query()
-            ->whereIn('zumra_id', $user->managedZumraIds())
+            ->where('owner_id', $user->getKey())
             ->whereHas('participationRequests', $pending)
             ->withCount(['participationRequests as pending_count' => $pending])
             ->orderBy('name_key')->limit(self::MAX_LINES)->get()

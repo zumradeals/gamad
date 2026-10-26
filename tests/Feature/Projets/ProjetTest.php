@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\ProjectHostingState;
+use App\Enums\ProjectStage;
 use App\Enums\ProjectState;
 use App\Enums\ZumraRole;
 use App\Livewire\CarrefourProjets;
@@ -10,8 +12,9 @@ use App\Models\Domain;
 use App\Models\Project;
 use App\Models\ProjectStateChange;
 use App\Models\User;
-use App\Services\Memberships;
 use App\Services\Projects;
+use App\Services\ProjectShowcase;
+use App\Services\Settings;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +24,7 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 
+/** Projets (P1, D-206) : porté par une personne, privé par défaut, accueilli par une ZUMRA. */
 beforeEach(function () {
     $this->yao = person('Yao Kouassi', ['Couture']);
     $this->zumra = zumra($this->yao, 'Couture solidaire');
@@ -31,28 +35,42 @@ beforeEach(function () {
     ajouteMembre($this->zumra, $this->membre);
 });
 
-function monde_projet(?User $qui, Project $projet)
+function monde_projet(User $qui, Project $projet)
 {
-    return $qui ? Livewire::actingAs($qui)->test(MondeProjet::class, ['project' => $projet]) : Livewire::test(MondeProjet::class, ['project' => $projet]);
+    return Livewire::actingAs($qui)->test(MondeProjet::class, ['project' => $projet]);
+}
+
+function presente(Project $projet, User $porteur, array $data = []): void
+{
+    app(ProjectShowcase::class)->publish($porteur, $projet, $data + ['summary' => 'Coudre 200 uniformes pour trois écoles.']);
 }
 
 // ─── Créer ───────────────────────────────────────────────────────────────────
 
-it('laisse le fondateur et les responsables créer un projet, qui commence comme une idée et garde la trace de sa création', function () {
-    foreach ([$this->yao, $this->resp] as $i => $qui) {
+it('laisse toute personne vérifiée créer un projet privé, dont elle est le porteur, accueilli tout de suite par sa propre ZUMRA', function () {
+    foreach ([$this->yao, $this->resp, $this->membre] as $i => $qui) {
         $p = projet($qui, $this->zumra, "Projet numéro $i");
 
-        expect($p->zumra_id)->toBe($this->zumra->id)->and($p->state)->toBe(ProjectState::Idea);
+        expect($p->zumra_id)->toBe($this->zumra->id)->and($p->owner_id)->toBe($qui->id)->and($p->state)->toBe(ProjectState::Idea)
+            ->and($p->stage)->toBe(ProjectStage::Idea)->and($p->hosting_state)->toBe(ProjectHostingState::Accepted)->and($p->origin_zumra_id)->toBe($this->zumra->id)
+            ->and($p->showcase_published_at)->toBeNull()->and($p->privacyLabel())->toBe('Projet privé');
 
         $trace = ProjectStateChange::query()->where('project_id', $p->id)->sole();
         expect($trace->from_state)->toBeNull()->and($trace->to_state)->toBe(ProjectState::Idea)->and($trace->user_id)->toBe($qui->id);
     }
 });
 
-it('refuse la création à un membre, à une personne extérieure et à un visiteur', function () {
-    foreach ([$this->membre, $this->dehors] as $qui) {
-        expect(fn () => projet($qui, $this->zumra))->toThrow(AuthorizationException::class);
-    }
+it('crée un brouillon privé pour une ZUMRA dont on n’est pas membre : l’accueil est demandé, pas confirmé', function () {
+    $p = app(Projects::class)->create($this->dehors, $this->zumra, ['name' => 'Projet extérieur', 'goal' => 'Un but.', 'hosting_message' => 'Pouvez-vous nous accueillir ?']);
+
+    expect($p->owner_id)->toBe($this->dehors->id)->and($p->hosting_state)->toBe(ProjectHostingState::Pending)->and($p->isHosted())->toBeFalse()
+        ->and($p->hosting_message)->toBe('Pouvez-vous nous accueillir ?')->and($p->origin_zumra_id)->toBeNull()->and($this->zumra->roleOf($this->dehors))->toBeNull();
+});
+
+it('refuse la création à un visiteur et à une personne dont l’adresse n’est pas vérifiée', function () {
+    $non = User::factory()->unverified()->create();
+
+    expect(fn () => projet($non, $this->zumra))->toThrow(AuthorizationException::class);
     expect(Gate::forUser(null)->allows('create', [Project::class, $this->zumra]))->toBeFalse();
     expect(Project::count())->toBe(0);
 });
@@ -69,6 +87,15 @@ it('vérifie le nom (3 à 80 caractères) et le but (obligatoire, 500 caractère
     expect(projet($this->yao, $this->zumra, str_repeat('a', 80), ['goal' => str_repeat('é', 500)])->goal)->toHaveLength(500);
     expect(projet($this->yao, $this->zumra, 'abc')->name)->toBe('abc');
     expect(Project::count())->toBe(2);
+});
+
+it('vérifie le domaine, le mot à la ZUMRA et reprend le domaine de la ZUMRA à défaut', function () {
+    expect(fn () => projet($this->yao, $this->zumra, 'Projet A', ['domain_id' => (string) Str::uuid()]))->toThrow(ValidationException::class);
+    expect(fn () => projet($this->yao, $this->zumra, 'Projet B', ['hosting_message' => str_repeat('a', 281)]))->toThrow(ValidationException::class);
+
+    expect(projet($this->yao, $this->zumra, 'Projet C')->domain_id)->toBe($this->zumra->domain_id);
+    $tech = Domain::query()->where('name', 'like', 'Technologie%')->value('id');
+    expect(projet($this->yao, $this->zumra, 'Projet D', ['domain_id' => $tech])->domain_id)->toBe($tech);
 });
 
 it('remonte ensemble le nom et le but invalides, chacun sous son champ', function () {
@@ -92,13 +119,15 @@ it('refuse deux projets du même nom dans une ZUMRA, sans tenir compte de la cas
     expect(Project::count())->toBe(2);
 });
 
-it('garantit en base l’unicité du nom dans la ZUMRA et la liste des états', function () {
+it('garantit en base l’unicité du nom dans la ZUMRA, la liste des états, des étapes de vie et des accueils', function () {
     $p = projet($this->yao, $this->zumra);
 
     $ligne = fn (array $data) => $data + ['id' => (string) Str::uuid(), 'zumra_id' => $this->zumra->id, 'name' => 'x', 'name_key' => 'x', 'search' => 'x', 'goal' => 'x', 'state' => 'idea', 'state_changed_at' => now(), 'created_at' => now(), 'updated_at' => now()];
 
     expect(fn () => DB::transaction(fn () => DB::table('projects')->insert($ligne(['name_key' => $p->name_key]))))->toThrow(QueryException::class);
-    expect(fn () => DB::transaction(fn () => DB::table('projects')->insert($ligne(['state' => 'inconnu']))))->toThrow(QueryException::class);
+    foreach ([['state' => 'inconnu'], ['stage' => 'inconnue'], ['hosting_state' => 'inconnu'], ['showcase_published_at' => now()]] as $mauvais) {
+        expect(fn () => DB::transaction(fn () => DB::table('projects')->insert($ligne($mauvais))))->toThrow(QueryException::class);
+    }
     expect(fn () => DB::transaction(fn () => DB::table('project_state_changes')->insert(['id' => (string) Str::uuid(), 'project_id' => $p->id, 'to_state' => 'inconnu'])))->toThrow(QueryException::class);
 });
 
@@ -117,22 +146,23 @@ it('limite le nombre de créations de projets par personne et par jour', functio
     expect(projet($this->yao, $this->zumra, 'Projet C')->name)->toBe('Projet C');
 });
 
-it('ne laisse ni changer la ZUMRA ni l’état par la création', function () {
+it('ne laisse ni changer la ZUMRA, ni le porteur, ni l’état, ni l’accueil par la création', function () {
     $autre = zumra($this->dehors, 'Autre ZUMRA');
-    $p = app(Projects::class)->create($this->yao, $this->zumra, ['name' => 'Projet X', 'goal' => 'But', 'zumra_id' => $autre->id, 'state' => 'done']);
+    $p = app(Projects::class)->create($this->yao, $this->zumra, ['name' => 'Projet X', 'goal' => 'But', 'zumra_id' => $autre->id, 'state' => 'done', 'owner_id' => $this->dehors->id, 'hosting_state' => 'pending', 'showcase_published_at' => now()]);
 
-    expect($p->zumra_id)->toBe($this->zumra->id)->and($p->state)->toBe(ProjectState::Idea);
+    expect($p->zumra_id)->toBe($this->zumra->id)->and($p->state)->toBe(ProjectState::Idea)->and($p->owner_id)->toBe($this->yao->id)
+        ->and($p->hosting_state)->toBe(ProjectHostingState::Accepted)->and($p->showcase_published_at)->toBeNull();
 });
 
 // ─── Modifier ────────────────────────────────────────────────────────────────
 
-it('laisse les gestionnaires modifier le nom et le but, pas un membre ni une personne extérieure', function () {
-    $p = projet($this->yao, $this->zumra);
+it('laisse le porteur modifier le nom et le but, pas un responsable de la ZUMRA ni une autre personne', function () {
+    $p = projet($this->membre, $this->zumra);
 
-    app(Projects::class)->update($this->resp, $p, ['name' => 'Nouveau nom', 'goal' => 'Nouveau but']);
+    app(Projects::class)->update($this->membre, $p, ['name' => 'Nouveau nom', 'goal' => 'Nouveau but']);
     expect($p->fresh()->name)->toBe('Nouveau nom')->and($p->fresh()->goal)->toBe('Nouveau but');
 
-    foreach ([$this->membre, $this->dehors] as $qui) {
+    foreach ([$this->yao, $this->resp, $this->dehors] as $qui) {
         expect(fn () => app(Projects::class)->update($qui, $p->fresh(), ['name' => 'Intrus', 'goal' => 'x']))->toThrow(AuthorizationException::class);
     }
     expect($p->fresh()->name)->toBe('Nouveau nom');
@@ -154,6 +184,18 @@ it('garde la clé de recherche à jour quand on modifie le projet', function () 
     expect($p->fresh()->search)->toContain('jardin partage')->toContain('legumes')->not->toContain('projet a');
 });
 
+it('change l’étape de vie du projet, dans les deux sens, pour le porteur seulement', function () {
+    $p = projet($this->yao, $this->zumra);
+
+    foreach ([ProjectStage::Preparation, ProjectStage::Launch, ProjectStage::Activity, ProjectStage::Idea] as $stage) {
+        app(Projects::class)->setStage($this->yao, $p, $stage);
+        expect($p->fresh()->stage)->toBe($stage);
+    }
+    foreach ([$this->resp, $this->membre] as $qui) {
+        expect(fn () => app(Projects::class)->setStage($qui, $p, ProjectStage::Activity))->toThrow(AuthorizationException::class);
+    }
+});
+
 // ─── État ────────────────────────────────────────────────────────────────────
 
 it('permet exactement les changements d’état prévus', function () {
@@ -172,10 +214,10 @@ it('permet exactement les changements d’état prévus', function () {
             $p->forceFill(['state' => $depuis])->save();
 
             if (in_array($vers->value, $permis[$depuis->value], true)) {
-                app(Projects::class)->changeState($this->resp, $p, $vers);
+                app(Projects::class)->changeState($this->yao, $p, $vers);
                 expect($p->fresh()->state)->toBe($vers);
             } else {
-                expect(fn () => app(Projects::class)->changeState($this->resp, $p, $vers))->toThrow(ValidationException::class);
+                expect(fn () => app(Projects::class)->changeState($this->yao, $p, $vers))->toThrow(ValidationException::class);
                 expect($p->fresh()->state)->toBe($depuis);
             }
         }
@@ -184,68 +226,69 @@ it('permet exactement les changements d’état prévus', function () {
 
 it('garde la trace de chaque changement d’état, avec la personne qui l’a fait', function () {
     $p = projet($this->yao, $this->zumra);
-    app(Projects::class)->changeState($this->resp, $p, ProjectState::InProgress);
+    app(Projects::class)->changeState($this->yao, $p, ProjectState::InProgress);
     app(Projects::class)->changeState($this->yao, $p, ProjectState::Done);
 
     $traces = ProjectStateChange::query()->where('project_id', $p->id)->orderBy('created_at')->get();
     expect($traces)->toHaveCount(3)
-        ->and($traces[1]->from_state)->toBe(ProjectState::Idea)->and($traces[1]->to_state)->toBe(ProjectState::InProgress)->and($traces[1]->user_id)->toBe($this->resp->id)
-        ->and($traces[2]->to_state)->toBe(ProjectState::Done)->and($traces[2]->user_id)->toBe($this->yao->id);
+        ->and($traces[1]->from_state)->toBe(ProjectState::Idea)->and($traces[1]->to_state)->toBe(ProjectState::InProgress)->and($traces[1]->user_id)->toBe($this->yao->id)
+        ->and($traces[2]->to_state)->toBe(ProjectState::Done);
     expect($p->fresh()->state_changed_at)->not->toBeNull();
 });
 
-it('refuse le changement d’état à un membre, à une personne extérieure, et ne laisse aucune trace', function () {
+it('refuse le changement d’état à un responsable de la ZUMRA, à une autre personne, et ne laisse aucune trace', function () {
     $p = projet($this->yao, $this->zumra);
 
-    foreach ([$this->membre, $this->dehors] as $qui) {
+    foreach ([$this->resp, $this->membre, $this->dehors] as $qui) {
         expect(fn () => app(Projects::class)->changeState($qui, $p, ProjectState::InProgress))->toThrow(AuthorizationException::class);
     }
     expect($p->fresh()->state)->toBe(ProjectState::Idea)->and(ProjectStateChange::count())->toBe(1);
 });
 
 it('garde la trace d’un changement d’état sans le nom d’une personne dont le compte a disparu', function () {
-    $p = projet($this->resp, $this->zumra);
-    $this->resp->delete();
+    $p = projet($this->membre, $this->zumra);
+    $this->membre->delete();
 
     $trace = ProjectStateChange::query()->where('project_id', $p->id)->sole();
     expect($trace->user_id)->toBeNull();
-
-    monde_projet(null, $p->fresh())->assertSeeText('Projet créé comme une idée')->assertDontSeeText('par ');
+    expect($p->fresh()->owner_id)->toBeNull();
 });
 
-// ─── Monde du projet (public) ────────────────────────────────────────────────
+// ─── Confidentialité ─────────────────────────────────────────────────────────
 
-it('est lisible sans compte : nom, ZUMRA, état, but, histoire, lien vers la ZUMRA', function () {
+it('garde le dossier privé : ni un visiteur, ni un membre de la ZUMRA, ni un responsable, ni un administrateur n’y entrent', function () {
     $p = projet($this->yao, $this->zumra, 'Uniformes de la rentrée');
-    app(Projects::class)->changeState($this->yao, $p, ProjectState::InProgress);
 
-    $this->get(route('projets.show', $p))->assertOk()
-        ->assertSeeText('Uniformes de la rentrée')->assertSeeText('Couture solidaire')->assertSeeText('En cours')
-        ->assertSeeText('Coudre 200 uniformes')->assertSeeText('Projet créé comme une idée')->assertSeeText('Passé de « Idée » à « En cours »')
-        ->assertSeeText('Économie et Finances')->assertSee(route('zumras.show', $this->zumra))
-        ->assertDontSeeText('Modifier le projet')->assertDontSeeText('Changer l’état');
+    $this->actingAs($this->yao)->get(route('projets.show', $p))->assertOk()->assertSeeText('Uniformes de la rentrée')->assertSeeText('Projet privé');
+    foreach ([$this->resp, $this->membre, $this->dehors, User::factory()->superAdmin()->create()] as $qui) {
+        $this->actingAs($qui)->get(route('projets.show', $p))->assertNotFound();
+        $this->actingAs($qui)->get(route('projets.edit', $p))->assertNotFound();
+        expect(Gate::forUser($qui)->allows('view', $p))->toBeFalse();
+    }
+    app('auth')->forgetGuards();
+    $this->get(route('projets.show', $p))->assertNotFound();
 });
 
-it('cache aux autres personnes les actions de gestion, et les montre aux gestionnaires', function () {
+it('refuse toute action Livewire sur le dossier à qui n’en est pas le porteur ou un collaborateur', function () {
     $p = projet($this->yao, $this->zumra);
 
-    foreach ([$this->yao, $this->resp] as $qui) {
-        monde_projet($qui, $p)->assertSeeText('Modifier le projet')->assertSeeText('Changer l’état du projet')->assertSeeText('Démarrer le projet')->assertSeeText('Abandonner');
+    foreach ([$this->resp, $this->membre, $this->dehors] as $qui) {
+        $this->actingAs($qui)->get(route('projets.show', $p))->assertNotFound();
     }
-    foreach ([$this->membre, $this->dehors, null] as $qui) {
-        monde_projet($qui, $p)->assertDontSeeText('Modifier le projet')->assertDontSeeText('Changer l’état du projet');
-    }
+    $ouvert = monde_projet($this->yao, $p);
+    $p->forceFill(['owner_id' => $this->dehors->id])->save();
+    $ouvert->call('setStage', 'launch')->assertNotFound();
+    expect($p->fresh()->stage)->toBe(ProjectStage::Idea);
 });
 
-it('change l’état depuis l’écran, pour un gestionnaire seulement, et refuse un état inconnu', function () {
+it('ferme tout, même au porteur, quand le module ZUMRA est fermé', function () {
     $p = projet($this->yao, $this->zumra);
+    app(Settings::class)->update(['zumra_module' => 'off'], User::factory()->superAdmin()->create());
+    config(['gamad.initial_experience' => true]);
 
-    monde_projet($this->resp, $p)->call('changeState', 'in_progress')->assertHasNoErrors()->assertSeeText('État du projet mis à jour')->assertSeeText('Marquer terminé');
-    expect($p->fresh()->state)->toBe(ProjectState::InProgress);
-
-    monde_projet($this->membre, $p)->call('changeState', 'done')->assertNotFound();
-    monde_projet($this->resp, $p)->call('changeState', 'inconnu')->assertNotFound();
-    expect($p->fresh()->state)->toBe(ProjectState::InProgress);
+    $this->actingAs($this->yao)->get(route('projets.show', $p))->assertNotFound();
+    $this->actingAs($this->yao)->get(route('espace.projets'))->assertNotFound();
+    expect(fn () => projet($this->yao, $this->zumra, 'Autre'))->toThrow(AuthorizationException::class);
 });
 
 it('répond « page introuvable » pour un projet qui n’existe pas', function () {
@@ -256,100 +299,96 @@ it('répond « page introuvable » pour un projet qui n’existe pas', function 
 it('garde le texte brut : rien n’est interprété et les adresses ne sont pas cliquables', function () {
     $p = projet($this->yao, $this->zumra, 'Projet <i>net</i>', ['goal' => "<b>gras</b> https://exemple.org\nligne 2"]);
 
-    $html = monde_projet(null, $p)->html();
+    $html = monde_projet($this->yao, $p)->html();
 
     expect($html)->toContain('&lt;b&gt;gras&lt;/b&gt;')->toContain('Projet &lt;i&gt;net&lt;/i&gt;')->not->toContain('<a href="https://exemple.org');
 });
 
 // ─── Formulaire ──────────────────────────────────────────────────────────────
 
-it('ouvre le formulaire de création aux gestionnaires, jamais aux autres', function () {
-    foreach ([$this->yao, $this->resp] as $qui) {
-        $this->actingAs($qui)->get(route('projets.create', $this->zumra))->assertOk()->assertSeeText('Projet de Couture solidaire')->assertSeeText('Créer le projet');
+it('ouvre le formulaire de création en quatre questions à toute personne vérifiée', function () {
+    foreach ([$this->yao, $this->membre, $this->dehors] as $qui) {
+        $this->actingAs($qui)->get(route('projets.new'))->assertOk()->assertSeeText('Quel est le nom de votre projet ?')->assertSeeText('Que souhaitez-vous réaliser ?')
+            ->assertSeeText('Dans quel domaine ?')->assertSeeText('Quelle ZUMRA accompagnera votre projet ?')->assertSeeText('Votre projet commence privé');
     }
-    foreach ([$this->membre, $this->dehors] as $qui) {
-        $this->actingAs($qui)->get(route('projets.create', $this->zumra))->assertNotFound();
-    }
+    $this->actingAs($this->yao)->get(route('projets.create', $this->zumra))->assertOk()->assertSeeText('Créer le projet');
 });
 
 it('renvoie un visiteur sans compte vers la connexion pour créer ou modifier', function () {
     $p = projet($this->yao, $this->zumra);
 
+    $this->get(route('projets.new'))->assertRedirect(route('login'));
     $this->get(route('projets.create', $this->zumra))->assertRedirect(route('login'));
     $this->get(route('projets.edit', $p))->assertRedirect(route('login'));
 });
 
 it('crée un projet depuis le formulaire, et affiche les erreurs sous chaque champ', function () {
-    Livewire::actingAs($this->yao)->test(FormulaireProjet::class, ['zumra' => $this->zumra])
-        ->set('name', '')->set('goal', '')->call('save')->assertHasErrors(['name', 'goal'])
-        ->set('name', 'Jardin partagé')->set('goal', 'Cultiver ensemble.')->call('save')->assertHasNoErrors();
+    $domaine = Domain::query()->value('id');
+
+    Livewire::actingAs($this->membre)->test(FormulaireProjet::class)
+        ->set('name', '')->set('goal', '')->set('zumra_id', '')->call('save')->assertHasErrors(['name', 'goal', 'zumra_id', 'domain_id'])
+        ->set('name', 'Jardin partagé')->set('goal', 'Cultiver ensemble.')->set('zumra_id', $this->zumra->id)->call('save')->assertHasErrors('domain_id')
+        ->set('domain_id', $domaine)->call('save')->assertHasNoErrors();
 
     $p = Project::sole();
-    expect($p->name)->toBe('Jardin partagé');
-    $this->actingAs($this->yao)->get(route('projets.show', $p))->assertSeeText('Projet créé');
+    expect($p->name)->toBe('Jardin partagé')->and($p->owner_id)->toBe($this->membre->id)->and($p->isHosted())->toBeTrue();
+    $this->actingAs($this->membre)->get(route('projets.show', $p))->assertSeeText('Projet créé');
 });
 
-it('modifie un projet depuis le formulaire, pour un gestionnaire seulement', function () {
-    $p = projet($this->yao, $this->zumra);
+it('demande l’accueil d’une ZUMRA dont on n’est pas membre depuis le formulaire, avec un mot', function () {
+    Livewire::actingAs($this->dehors)->test(FormulaireProjet::class)
+        ->set('name', 'Académie numérique')->set('goal', 'Former des jeunes.')->set('domain_id', Domain::query()->value('id'))->set('zumra_id', $this->zumra->id)
+        ->assertSeeText('Vous n’êtes pas membre de cette ZUMRA')->set('hosting_message', 'Pouvez-vous nous accueillir ?')->call('save')->assertHasNoErrors();
 
-    Livewire::actingAs($this->resp)->test(FormulaireProjet::class, ['project' => $p])
+    $p = Project::sole();
+    expect($p->hosting_state)->toBe(ProjectHostingState::Pending)->and($p->hosting_message)->toBe('Pouvez-vous nous accueillir ?')->and($p->zumra_id)->toBe($this->zumra->id);
+});
+
+it('modifie un projet depuis le formulaire, pour le porteur seulement', function () {
+    $p = projet($this->membre, $this->zumra);
+
+    Livewire::actingAs($this->membre)->test(FormulaireProjet::class, ['project' => $p])
         ->assertSet('name', 'Uniformes de la rentrée')->set('name', 'Autre nom')->call('save')->assertHasNoErrors();
     expect($p->fresh()->name)->toBe('Autre nom');
 
-    foreach ([$this->membre, $this->dehors] as $qui) {
+    foreach ([$this->yao, $this->resp, $this->dehors] as $qui) {
         $this->actingAs($qui)->get(route('projets.edit', $p))->assertNotFound();
     }
 });
 
-it('verrouille la ZUMRA et le projet du formulaire, et revérifie le droit à l’enregistrement', function () {
-    $autre = zumra($this->dehors, 'Autre ZUMRA');
+it('verrouille le projet du formulaire, et revérifie le droit à l’enregistrement', function () {
     $p = projet($this->yao, $this->zumra);
 
-    $c = Livewire::actingAs($this->yao)->test(FormulaireProjet::class, ['zumra' => $this->zumra]);
-    expect(fn () => $c->set('zumraId', $autre->id))->toThrow(CannotUpdateLockedPropertyException::class);
     $e = Livewire::actingAs($this->yao)->test(FormulaireProjet::class, ['project' => $p]);
     expect(fn () => $e->set('projectId', (string) Str::uuid()))->toThrow(CannotUpdateLockedPropertyException::class);
 
-    // Un responsable rétrogradé ne crée plus rien, même avec l'écran déjà ouvert.
-    $ouvert = Livewire::actingAs($this->resp)->test(FormulaireProjet::class, ['zumra' => $this->zumra])->set('name', 'Projet tardif')->set('goal', 'But');
-    app(Memberships::class)->demote($this->yao, $this->zumra, ligne($this->zumra, $this->resp));
-    $ouvert->call('save')->assertNotFound();
-    expect(Project::count())->toBe(1);
+    // Le porteur change : l'ancien ne modifie plus rien, même avec l'écran déjà ouvert.
+    $p->forceFill(['owner_id' => $this->dehors->id])->save();
+    expect(fn () => $e->set('name', 'Tardif')->call('save'))->toThrow(Exception::class);
+    expect($p->fresh()->name)->toBe('Uniformes de la rentrée');
 });
 
 // ─── Onglet Projets de la ZUMRA ──────────────────────────────────────────────
 
-it('liste les projets de la ZUMRA par ordre alphabétique, publics, avec leur état', function () {
-    projet($this->yao, $this->zumra, 'Zèbre');
-    $a = projet($this->yao, $this->zumra, 'Atelier');
-    app(Projects::class)->changeState($this->yao, $a, ProjectState::InProgress);
+it('liste dans la ZUMRA les présentations publiées et mes propres projets, jamais les dossiers des autres', function () {
+    $publie = projet($this->yao, $this->zumra, 'Atelier');
+    presente($publie, $this->yao);
+    projet($this->yao, $this->zumra, 'Zèbre privé');
+    projet($this->membre, $this->zumra, 'Mon projet privé');
     projet($this->dehors, zumra($this->dehors, 'Autre ZUMRA'), 'Projet ailleurs');
 
-    $html = monde($this->dehors, $this->zumra, 'projets')->assertSeeText('Atelier')->assertSeeText('En cours')->assertSeeText('Idée')->assertDontSeeText('Projet ailleurs')->html();
-    expect(strpos($html, 'Atelier'))->toBeLessThan(strpos($html, 'Zèbre'));
-
-    app('auth')->forgetGuards();
-    $this->get(route('zumras.show', [$this->zumra, 'onglet' => 'projets']))->assertOk()->assertSeeText('Atelier')->assertSee(route('projets.show', $a));
+    monde($this->resp, $this->zumra, 'projets')->assertSeeText('Atelier')->assertSeeText('Coudre 200 uniformes')->assertDontSeeText('Zèbre privé')->assertDontSeeText('Mon projet privé')->assertDontSeeText('Projet ailleurs');
+    monde($this->membre, $this->zumra, 'projets')->assertSeeText('Atelier')->assertSeeText('Mon projet privé')->assertDontSeeText('Zèbre privé');
+    monde($this->yao, $this->zumra, 'projets')->assertSeeText('Atelier')->assertSeeText('Zèbre privé')->assertDontSeeText('Mon projet privé');
 });
 
-it('propose « Créer un projet » aux gestionnaires seulement, et un état vide honnête', function () {
-    foreach ([$this->yao, $this->resp] as $qui) {
-        monde($qui, $this->zumra, 'projets')->assertSeeText('Aucun projet pour l’instant.')->assertSeeText('Créez le premier projet')->assertSee(route('projets.create', $this->zumra));
-    }
-    foreach ([$this->membre, $this->dehors] as $qui) {
-        monde($qui, $this->zumra, 'projets')->assertSeeText('Aucun projet pour l’instant.')->assertDontSeeText('Créer un projet')->assertDontSee(route('projets.create', $this->zumra));
-    }
-});
+it('compte dans l’en-tête de la ZUMRA les projets réellement visibles', function () {
+    monde($this->resp, $this->zumra, 'formation')->assertSeeText('0')->assertSeeText('projet visible');
 
-it('affiche dans l’en-tête de la ZUMRA le nombre réel de projets', function () {
-    monde($this->dehors, $this->zumra, 'formation')->assertSeeText('0')->assertSeeText('projet');
-
-    projet($this->yao, $this->zumra, 'Projet A');
-    monde($this->dehors, $this->zumra, 'formation')->assertSeeText('1')->assertSeeText('projet')->assertDontSeeText('projets');
-
-    projet($this->yao, $this->zumra, 'Projet B');
-    projet($this->dehors, zumra($this->dehors, 'Autre ZUMRA'), 'Projet ailleurs');
-    monde($this->dehors, $this->zumra, 'formation')->assertSeeText('2')->assertSeeText('projets');
+    $p = projet($this->yao, $this->zumra, 'Projet A');
+    projet($this->yao, $this->zumra, 'Projet privé');
+    presente($p, $this->yao);
+    monde($this->resp, $this->zumra, 'formation')->assertSeeText('1')->assertSeeText('projet visible')->assertDontSeeText('projets visibles');
 });
 
 it('supprime les projets et leur histoire avec la ZUMRA', function () {
@@ -360,33 +399,27 @@ it('supprime les projets et leur histoire avec la ZUMRA', function () {
     expect(Project::count())->toBe(0)->and(ProjectStateChange::where('project_id', $p->id)->count())->toBe(0);
 });
 
-// ─── Carrefour Projets ───────────────────────────────────────────────────────
+// ─── Carrefour Projets (conservé, mais jamais d'un projet privé) ─────────────
 
 function carrefour_projets(?User $qui = null)
 {
     return $qui ? Livewire::actingAs($qui)->test(CarrefourProjets::class) : Livewire::test(CarrefourProjets::class);
 }
 
-it('est ouvert aux visiteurs sans compte, avec un état vide qui mène aux ZUMRA', function () {
-    $this->get(route('projets.index'))->assertOk()->assertSeeText('Les premières actions se préparent.')->assertSeeText('Aucun projet pour l’instant.')->assertSee(route('zumras.index'));
+it('ne liste que les présentations publiées, jamais un projet privé', function () {
+    projet($this->yao, $this->zumra, 'Projet privé');
+    $this->get(route('projets.index'))->assertOk()->assertSeeText('Aucun projet pour l’instant.')->assertDontSeeText('Projet privé');
 
-    projet($this->yao, $this->zumra);
-    $this->get(route('projets.index'))->assertOk()->assertSeeText('CARREFOUR')->assertSeeText('Uniformes de la rentrée')->assertSeeText('Couture solidaire')->assertSeeText('Voir le projet');
-});
-
-it('affiche la carte d’un projet : état, nom, but, ZUMRA, domaine · ville, jamais de classement', function () {
-    $ville = City::query()->where('name', 'Cocody')->firstOrFail();
-    $z = zumra($this->dehors, 'Tech Cocody', ['city_id' => $ville->id]);
-    projet($this->dehors, $z, 'Application locale', ['goal' => 'Une application pour le quartier.']);
-
-    carrefour_projets()->assertSeeText('Idée')->assertSeeText('Application locale')->assertSeeText('Une application pour le quartier.')->assertSeeText('Tech Cocody')
-        ->assertSeeText('Économie et Finances · '.$ville->label())->assertSeeText('Par ordre alphabétique')->assertSeeText('1 projet')
-        ->assertDontSeeText('Les plus actifs')->assertDontSeeText('classement');
+    $p = projet($this->yao, $this->zumra, 'Projet présenté');
+    presente($p, $this->yao);
+    carrefour_projets()->assertSeeText('Projet présenté')->assertDontSeeText('Projet privé');
 });
 
 it('cherche par nom ou par but, sans tenir compte de la casse ni des accents', function () {
-    projet($this->yao, $this->zumra, 'Jardin partagé', ['goal' => 'Cultiver des légumes']);
-    projet($this->yao, $this->zumra, 'Atelier couture', ['goal' => 'Apprendre à coudre']);
+    $a = projet($this->yao, $this->zumra, 'Jardin partagé', ['goal' => 'Cultiver des légumes']);
+    $b = projet($this->yao, $this->zumra, 'Atelier couture', ['goal' => 'Apprendre à coudre']);
+    presente($a, $this->yao);
+    presente($b, $this->yao);
 
     carrefour_projets()->set('query', 'JARDIN')->assertSeeText('Jardin partagé')->assertDontSeeText('Atelier couture')
         ->set('query', 'legumes')->assertSeeText('Jardin partagé')->assertDontSeeText('Atelier couture')
@@ -399,7 +432,9 @@ it('filtre par état, par domaine et par ville de la ZUMRA, et ignore une valeur
     $z2 = zumra($this->dehors, 'Tech Cocody', ['domain_id' => $tech, 'city_id' => $ville]);
     $p1 = projet($this->yao, $this->zumra, 'Projet couture');
     app(Projects::class)->changeState($this->yao, $p1, ProjectState::InProgress);
-    projet($this->dehors, $z2, 'Projet logiciel');
+    $p2 = projet($this->dehors, $z2, 'Projet logiciel');
+    presente($p1, $this->yao);
+    presente($p2, $this->dehors);
 
     carrefour_projets()->set('state', 'in_progress')->assertSeeText('Projet couture')->assertDontSeeText('Projet logiciel')
         ->set('state', '')->set('domain', $tech)->assertSeeText('Projet logiciel')->assertDontSeeText('Projet couture')
@@ -410,18 +445,11 @@ it('filtre par état, par domaine et par ville de la ZUMRA, et ignore une valeur
 
 it('trie par ordre alphabétique et pagine par 10', function () {
     foreach (range(1, 12) as $i) {
-        projet($this->yao, $this->zumra, sprintf('Projet %02d', $i));
+        presente(projet($this->yao, $this->zumra, sprintf('Projet %02d', $i)), $this->yao);
     }
 
     $c = carrefour_projets();
     $html = $c->assertSeeText('12 projets')->assertSeeText('Page 1 sur 2')->assertSeeText('Projet 01')->assertDontSeeText('Projet 11')->html();
     expect(strpos($html, 'Projet 01'))->toBeLessThan(strpos($html, 'Projet 02'));
     $c->call('nextPage')->assertSeeText('Projet 11')->assertSeeText('Projet 12')->assertDontSeeText('Projet 01');
-});
-
-it('mène à Projets depuis la barre d’ordinateur et le Carrefour ZUMRA', function () {
-    $html = $this->actingAs($this->dehors)->get('/fil')->getContent();
-    expect($html)->toContain('href="'.route('projets.index').'"');
-
-    $this->get(route('zumras.index'))->assertSeeText('Voir les projets')->assertSee(route('projets.index'));
 });

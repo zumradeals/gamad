@@ -40,6 +40,13 @@ enum NotificationKind: string
     case ProjectParticipationAccepted = 'project_participation_accepted';
     case ProjectMemberAdded = 'project_member_added';
     case ProjectMemberRemoved = 'project_member_removed';
+    case ProjectHostingAsked = 'project_hosting_asked';
+    case ProjectHostingAccepted = 'project_hosting_accepted';
+    case ProjectHostingDeclined = 'project_hosting_declined';
+    case ProjectInvited = 'project_invited';
+    case ProjectInviteAccepted = 'project_invite_accepted';
+    case ProjectCompanyAsked = 'project_company_asked';
+    case ProjectCompanyAnswered = 'project_company_answered';
     case PublicationExplained = 'publication_explained';
     case ModerationNoticeIssued = 'moderation_notice_issued';
     case ModerationNoticeExplained = 'moderation_notice_explained';
@@ -111,6 +118,13 @@ enum NotificationKind: string
             self::ProjectParticipationAccepted => "a accepté votre participation au projet{$about}.",
             self::ProjectMemberAdded => "vous a ajouté à l'équipe du projet{$about}.",
             self::ProjectMemberRemoved => "vous a retiré de l'équipe du projet{$about}.",
+            self::ProjectHostingAsked => "propose d'accueillir dans votre ZUMRA le projet{$about}.",
+            self::ProjectHostingAccepted => "a accepté d'accueillir votre projet{$about}.",
+            self::ProjectHostingDeclined => "n'a pas retenu la demande d'accueil de votre projet{$about}.",
+            self::ProjectInvited => "vous invite à collaborer au projet{$about} : à accepter ou refuser.",
+            self::ProjectInviteAccepted => "a accepté de collaborer au projet{$about}.",
+            self::ProjectCompanyAsked => "propose de relier le projet{$about} à votre entreprise.",
+            self::ProjectCompanyAnswered => "a répondu à votre demande de lien entre le projet{$about} et son entreprise.",
             self::PublicationExplained => "a écrit son explication sur la publication masquée{$about}.",
             self::ModerationNoticeIssued => 'vous a envoyé un avis de la modération. Vous pouvez vous expliquer.',
             self::ModerationNoticeExplained => 'a répondu à l’avis de la modération.',

@@ -249,6 +249,21 @@
                     @if ($offers->isNotEmpty())<a href="{{ route('opportunites.index') }}" class="mt-2 inline-flex min-h-11 items-center text-[13px] font-bold text-link">Toutes les opportunités GAMAD →</a>@endif
                 </section>
 
+                @if ($projectLinks->isNotEmpty())
+                    <section id="projets" aria-labelledby="projets-titre" class="scroll-mt-44 rounded-card border border-line bg-card p-5 md:p-6">
+                        <div class="flex items-start gap-4">
+                            <span class="flex size-12 shrink-0 items-center justify-center rounded-button bg-soft-blue text-link"><x-icon name="project" :size="26"/></span>
+                            <div class="min-w-0 flex-1"><h2 id="projets-titre" class="text-[20px] font-extrabold">Projets</h2><p class="mt-1 text-[14px] text-muted">Projets portés ou accompagnés par l'entreprise, présentés par leur porteur.</p></div>
+                        </div>
+                        @foreach ($projectLinks as $link)
+                            <a href="{{ route('projets.show', $link->project) }}" class="@if ($loop->first) mt-4 @endif flex min-h-16 items-center gap-3 border-t border-line-soft py-3 text-ink no-underline hover:text-ink">
+                                <span class="min-w-0 flex-1"><span class="block break-words text-[14px] font-extrabold">{{ $link->project->name }}</span><span class="block text-[12px] text-muted">{{ $link->kindLabel() }} {{ $company->name }}</span></span>
+                                <x-icon name="next" :size="16"/>
+                            </a>
+                        @endforeach
+                    </section>
+                @endif
+
                 <section id="publications" aria-labelledby="publications-titre" class="scroll-mt-44 rounded-card border border-line bg-card p-5 md:p-6" x-data="{ all: false }">
                     <div class="flex items-start gap-4">
                         <span class="flex size-12 shrink-0 items-center justify-center rounded-button bg-soft-blue text-link"><x-icon name="document" :size="26"/></span>
