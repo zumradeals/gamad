@@ -1,14 +1,17 @@
 @php
     $initial = \App\Support\Experience::initial();
-    $meta = collect([$zumra->domain->name, $zumra->city?->label(), $zumra->format->label()])->filter()->implode(' · ');
+    // Module ZUMRA ouvert à cette personne : l'adhésion est active, même si les Projets et les finances restent gelés.
+    $moduleOpen = \App\Support\ZumraModule::accessibleTo($viewer);
+    $frozen = $initial && ! $moduleOpen;
+    $meta = collect([$zumra->sphere?->label(), $zumra->domain->name, $zumra->city?->label(), $zumra->format->label()])->filter()->implode(' · ');
     $since = $zumra->created_at->copy()->locale('fr')->timezone('Africa/Abidjan')->translatedFormat('M Y');
 @endphp
 
 <div class="flex flex-col gap-3.5">
-    @if ($initial)<p class="rounded-card border border-line bg-card p-4 text-[14px] text-muted">Espace existant conservé. Les nouvelles créations, invitations et publications collectives sont en pause.</p>@endif
+    @if ($frozen)<p class="rounded-card border border-line bg-card p-4 text-[14px] text-muted">Espace existant conservé. Les nouvelles créations, invitations et publications collectives sont en pause.</p>@endif
     <header class="-mx-4 -mt-4 flex flex-col gap-3.5 bg-ink px-4 pb-[26px] pt-3 text-white md:mx-0 md:mt-0 md:rounded-card md:p-6">
-        <a href="{{ $initial ? route('espace') : route('zumras.index') }}" class="inline-flex min-h-11 items-center gap-1.5 self-start text-[13px] font-semibold text-white no-underline hover:text-white hover:underline">
-            <x-icon name="back" :size="18" />{{ $initial ? 'Mon espace' : 'Carrefour ZUMRA' }}
+        <a href="{{ $frozen ? route('espace') : route('zumras.index') }}" class="inline-flex min-h-11 items-center gap-1.5 self-start text-[13px] font-semibold text-white no-underline hover:text-white hover:underline">
+            <x-icon name="back" :size="18" />{{ $frozen ? 'Mon espace' : 'Carrefour ZUMRA' }}
         </a>
 
         <div class="flex items-center gap-3.5">
@@ -45,19 +48,37 @@
         @endif
     </header>
 
-    <section aria-label="La ZUMRA en chiffres" class="-mt-9 grid grid-cols-3 divide-x divide-line rounded-card border border-line bg-card py-3.5 md:mt-0">
+    <section aria-label="La ZUMRA en chiffres" class="-mt-9 grid {{ $initial ? 'grid-cols-2' : 'grid-cols-3' }} divide-x divide-line rounded-card border border-line bg-card py-3.5 md:mt-0">
         <div class="flex flex-col items-center gap-0.5">
             <span class="text-[22px] font-extrabold leading-tight">{{ $zumra->members_count }}</span>
             <span class="text-[12px] text-muted">{{ $zumra->members_count > 1 ? 'membres' : 'membre' }}</span>
         </div>
+        @unless ($initial)
         <div class="flex flex-col items-center gap-0.5">
             <span class="text-[22px] font-extrabold leading-tight">{{ $projectsCount }}</span>
             <span class="text-[12px] text-muted">{{ $projectsCount > 1 ? 'projets' : 'projet' }}</span>
         </div>
+        @endunless
         <div class="flex flex-col items-center gap-0.5">
             <span class="text-[18px] font-extrabold capitalize leading-tight">{{ $since }}</span>
             <span class="text-[12px] text-muted">création</span>
         </div>
+    </section>
+
+    <section aria-labelledby="gouvernance" class="flex flex-col gap-2.5 rounded-card border border-line bg-card p-4">
+        <h2 id="gouvernance" class="text-[16px] font-extrabold">Responsabilités</h2>
+        <ul class="flex flex-col divide-y divide-line-soft">
+            @foreach ($governance as $post)
+                <li class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-2 first:pt-0 last:pb-0">
+                    <span class="text-[14px] font-semibold">{{ $post['label'] }}</span>
+                    @if ($post['holder'])
+                        <span class="text-[14px] font-extrabold">{{ $canSeeMembers ? $post['holder']->name : 'Poste occupé' }}</span>
+                    @else
+                        <span class="text-[13px] text-muted">À pourvoir</span>
+                    @endif
+                </li>
+            @endforeach
+        </ul>
     </section>
 
     @can('super-admin')
@@ -99,12 +120,12 @@
                 <x-button type="button" variant="secondary" wire:click="refuseInvitation('{{ $myInvitation->id }}')" wire:loading.attr="disabled" wire:target="acceptInvitation, refuseInvitation" class="sm:flex-1">Refuser</x-button>
             </div>
         </section>
-    @elseif (! $role && (! $initial || $myRequest?->state === \App\Enums\JoinRequestState::Pending))
+    @elseif (! $role && (! $frozen || $myRequest?->state === \App\Enums\JoinRequestState::Pending))
         <section id="rejoindre" aria-label="Rejoindre cette ZUMRA" class="flex flex-col gap-2.5 rounded-card border border-line bg-card p-4"
                  x-data="{ open: false }" x-init="open = location.hash === '#rejoindre'">
             @guest
                 <p class="text-[14px] text-muted">Connectez-vous pour demander à rejoindre cette ZUMRA.</p>
-                <x-button :href="route('login')" variant="accent">Je veux rejoindre</x-button>
+                <x-button :href="route('login')" variant="accent">Demander à rejoindre</x-button>
             @else
                 @if (! $viewer->hasVerifiedEmail())
                     <p class="text-[14px] text-muted">Vérifiez votre adresse e-mail pour demander à rejoindre une ZUMRA.</p>
@@ -119,7 +140,7 @@
                     <p class="text-[14px] font-semibold text-muted">Votre demande n’a pas été retenue.</p>
                 @else
                     <div x-show="! open">
-                        <x-button type="button" variant="accent" class="w-full" x-on:click="open = true">Je veux rejoindre</x-button>
+                        <x-button type="button" variant="accent" class="w-full" x-on:click="open = true">Demander à rejoindre</x-button>
                     </div>
                     <form wire:submit="requestJoin" x-show="open" x-cloak class="flex flex-col gap-2.5" x-data="{ n: 0 }">
                         <label for="mot-adhesion" class="text-[14px] font-extrabold">Un mot pour le fondateur (facultatif)</label>
@@ -135,7 +156,7 @@
     @endif
 
     <nav aria-label="Onglets de la ZUMRA" class="-mx-4 flex overflow-x-auto border-b border-line bg-card px-2 md:mx-0 md:rounded-card md:border">
-        @foreach (['formation' => 'Formation', 'fil' => 'Fil', 'projets' => 'Projets', 'membres' => 'Membres'] + ($canDiscuss ? ['discussion' => 'Discussion'] : []) as $key => $label)
+        @foreach (['formation' => 'Formation', 'fil' => 'Fil'] + ($initial ? [] : ['projets' => 'Projets']) + ['membres' => 'Membres'] + ($canDiscuss ? ['discussion' => 'Discussion'] : []) as $key => $label)
             <button type="button" wire:click="setTab('{{ $key }}')" @if ($tab === $key) aria-current="page" @endif
                     @class(['flex min-h-12 min-w-11 shrink-0 items-center justify-center border-b-[3px] px-3 text-[14px]', 'border-accent font-extrabold text-ink' => $tab === $key, 'border-transparent font-semibold text-muted' => $tab !== $key])>{{ $label }}</button>
         @endforeach
@@ -148,7 +169,7 @@
             <section class="flex flex-col gap-1 rounded-card bg-type-call-bg p-4 text-type-call-fg" aria-label="Apprendre ensemble">
                 <span class="text-[12px] font-extrabold tracking-[1.5px]">APPRENDRE ENSEMBLE</span>
                 <p class="text-[17px] font-extrabold leading-snug">Ici, on apprend avant de construire.</p>
-                @unless ($role || $initial)
+                @unless ($role || $frozen)
                     <p class="text-[14px] font-semibold leading-snug">Rejoignez la ZUMRA pour suivre ses formations, ou partagez ce que vous savez.</p>
                 @endunless
             </section>
@@ -397,6 +418,17 @@
                             $isFounder = $role === \App\Enums\ZumraRole::Founder;
                         @endphp
                         <div class="flex flex-wrap gap-2">
+                            @if ($isFounder && $membership->role === \App\Enums\ZumraRole::Manager)
+                                <div class="flex w-full flex-col gap-1">
+                                    <label for="poste-{{ $membership->id }}" class="text-[12px] font-bold text-muted">Poste de gouvernance</label>
+                                    <select id="poste-{{ $membership->id }}" wire:change="assignDuty('{{ $membership->id }}', $event.target.value)" class="min-h-11 w-full rounded-button border border-chip-line bg-card px-3 text-[14px]">
+                                        <option value="">Aucun poste précis</option>
+                                        @foreach (\App\Enums\ZumraDuty::cases() as $duty)
+                                            <option value="{{ $duty->value }}" @selected($membership->duty === $duty)>{{ $duty->label() }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            @endif
                             @if ($isFounder)
                                 @if ($membership->role === \App\Enums\ZumraRole::Member)
                                     <x-button type="button" variant="secondary" wire:click="promote('{{ $membership->id }}')" wire:loading.attr="disabled" wire:target="promote, demote, removeMember" class="!px-4 !text-[14px]">Nommer responsable</x-button>

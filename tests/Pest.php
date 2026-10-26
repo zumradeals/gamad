@@ -137,6 +137,7 @@ function zumra(User $fondateur, string $nom = 'Couture solidaire', array $data =
         'name' => $nom,
         'domain_id' => Domain::query()->where('name', 'Économie et Finances')->value('id'),
         'format' => 'onsite',
+        'sphere' => 'social',
         'mission' => 'Former des couturières et couturiers, et produire des uniformes scolaires à prix juste.',
     ]);
 }

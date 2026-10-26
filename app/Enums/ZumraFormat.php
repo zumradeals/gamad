@@ -12,8 +12,8 @@ enum ZumraFormat: string
     public function label(): string
     {
         return match ($this) {
-            self::Online => 'En ligne',
-            self::Onsite => 'Présentiel',
+            self::Online => 'Numérique',
+            self::Onsite => 'Physique',
             self::Hybrid => 'Hybride',
         };
     }

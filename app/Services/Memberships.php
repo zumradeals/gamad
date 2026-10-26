@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\InvitationState;
 use App\Enums\JoinRequestState;
 use App\Enums\NotificationKind;
+use App\Enums\ZumraDuty;
 use App\Enums\ZumraRole;
 use App\Models\Invitation;
 use App\Models\JoinRequest;
@@ -13,6 +14,7 @@ use App\Models\Zumra;
 use App\Models\ZumraMembership;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Les membres d'une ZUMRA : admettre, quitter, retirer, nommer et retirer un responsable (D-110, D-111), et passer la fondation
@@ -116,7 +118,31 @@ class Memberships
 
             Gate::forUser($actor)->authorize('setManager', [$locked, $fresh]);
 
-            $fresh->update(['role' => ZumraRole::Member]);
+            $fresh->update(['role' => ZumraRole::Member, 'duty' => null]);
+        });
+    }
+
+    /**
+     * Confie à un responsable un poste de gouvernance, ou le lui retire (`null`). Le fondateur seul ; un poste n'a qu'une personne :
+     * le donner à une autre le retire à la précédente. Aucun privilège n'en découle.
+     */
+    public function assignDuty(User $actor, Zumra $zumra, ZumraMembership $target, ?ZumraDuty $duty): void
+    {
+        DB::transaction(function () use ($actor, $zumra, $target, $duty) {
+            $locked = $this->lock($zumra);
+            $fresh = ZumraMembership::query()->whereKey($target->getKey())->lockForUpdate()->firstOrFail();
+
+            Gate::forUser($actor)->authorize('setManager', [$locked, $fresh]);
+
+            if ($fresh->role !== ZumraRole::Manager) {
+                throw ValidationException::withMessages(['duty' => 'Un poste se confie à un responsable : nommez d’abord la personne responsable.']);
+            }
+
+            if ($duty !== null) {
+                ZumraMembership::query()->where('zumra_id', $locked->getKey())->where('duty', $duty->value)->whereKeyNot($fresh->getKey())->update(['duty' => null]);
+            }
+
+            $fresh->update(['duty' => $duty]);
         });
     }
 

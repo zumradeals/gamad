@@ -26,13 +26,13 @@ function carrefour(?User $qui = null)
 it('est ouvert aux visiteurs sans compte, qui voient les ZUMRA', function () {
     zumra($this->yao, 'Couture solidaire');
 
-    $this->get(route('zumras.index'))->assertOk()->assertSeeText('CARREFOUR')->assertSeeText('Couture solidaire')->assertSeeText('Découvrir')->assertSeeText('Créer un compte');
+    $this->get(route('zumras.index'))->assertOk()->assertSeeText('Des communautés qui font la différence')->assertSeeText('Couture solidaire')->assertSeeText('Voir la ZUMRA')->assertSeeText('Créer un compte');
 });
 
 it('affiche la carte d’une ZUMRA : nom, domaine · ville · format, mission, nombre de membres', function () {
     zumra($this->yao, 'Agri Bouaké', ['domain_id' => $this->agri, 'city_id' => $this->bouake, 'format' => 'onsite', 'mission' => 'Cultiver et transformer le manioc ensemble.']);
 
-    $html = carrefour()->assertSeeText('Agri Bouaké')->assertSeeText('Présentiel')->assertSeeText('Bouaké')->assertSeeText('Cultiver et transformer le manioc ensemble.')->html();
+    $html = carrefour()->assertSeeText('Agri Bouaké')->assertSeeText('Physique')->assertSeeText('Bouaké')->assertSeeText('Cultiver et transformer le manioc ensemble.')->html();
     expect($html)->toContain(route('zumras.show', Zumra::query()->sole()));
 });
 
@@ -46,7 +46,9 @@ it('classe les ZUMRA par ordre alphabétique, sans tenir compte des accents ni d
         ajouteMembre($grosse, User::factory()->create());
     }
 
-    carrefour()->assertSeeTextInOrder(['Alpha', 'béta', 'Étoile', 'zèbre'])->assertDontSeeText('plus actives');
+    $page = carrefour()->set('sort', 'alphabetique')->assertDontSeeText('plus actives');
+    preg_match_all('/<h3[^>]*>\s*<a[^>]*>([^<]+)</', $page->html(), $noms);
+    expect($noms[1])->toBe(['Alpha', 'béta', 'Étoile', 'zèbre']);
 });
 
 it('ne montre que des chiffres réels : le nombre de membres, ni savoirs partagés', function () {
@@ -99,13 +101,13 @@ it('efface la recherche en un geste', function () {
     carrefour()->set('query', 'zzzz')->assertSeeText('Aucune ZUMRA ne correspond')->call('clearFilters')->assertSet('query', '')->assertSeeText('Couture solidaire');
 });
 
-it('pagine par dix', function () {
-    foreach (range(1, 12) as $i) {
+it('pagine par douze', function () {
+    foreach (range(1, 14) as $i) {
         zumra(User::factory()->create(), sprintf('ZUMRA numéro %02d', $i));
     }
 
-    carrefour()->assertSeeText('ZUMRA numéro 10')->assertDontSeeText('ZUMRA numéro 11')->assertSeeText('Page 1 sur 2')
-        ->call('nextPage')->assertSeeText('ZUMRA numéro 11')->assertDontSeeText('ZUMRA numéro 01');
+    carrefour()->set('sort', 'alphabetique')->assertSeeText('ZUMRA numéro 12')->assertDontSeeText('ZUMRA numéro 13')->assertSeeText('Page 1 sur 2')
+        ->call('nextPage')->assertSeeText('ZUMRA numéro 13')->assertDontSeeText('ZUMRA numéro 01');
 });
 
 it('montre « Mes ZUMRA » avec mon rôle, aux personnes connectées seulement', function () {
@@ -114,7 +116,7 @@ it('montre « Mes ZUMRA » avec mon rôle, aux personnes connectées seulement',
     ajouteMembre($autre, $this->yao, ZumraRole::Manager);
     zumra(User::factory()->create(), 'Étrangère à Yao');
 
-    carrefour($this->yao)->assertSeeText('Mes ZUMRA')->assertSeeText('Fondateur')->assertSeeText('Responsable')->assertSeeText('Créer une ZUMRA');
+    carrefour($this->yao)->assertSeeText('Mes ZUMRA')->assertSeeText('Créer une ZUMRA')->assertSee(route('espace.zumras'), false);
 
     app('auth')->forgetGuards();
     carrefour()->assertDontSeeText('Mes ZUMRA');
@@ -173,7 +175,7 @@ it('combine le format aux autres filtres et ignore les valeurs invalides', funct
 });
 
 it('revient à la première page après un changement de pays ou de format', function () {
-    foreach (range(1, 12) as $i) {
+    foreach (range(1, 14) as $i) {
         zumra(User::factory()->create(), sprintf('Communauté %02d', $i), ['format' => 'onsite', 'city_id' => $this->bouake]);
     }
     carrefour()->call('nextPage')->set('format', 'onsite')->assertSeeText('Page 1 sur 2')

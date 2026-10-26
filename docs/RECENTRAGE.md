@@ -531,3 +531,20 @@ la relation professionnelle avec l'entreprise : le blocage entre la personne et 
 pas l'accès aux candidatures antérieures (personne comme entreprise). Les relations et conversations personnelles directes entre
 personnes bloquées restent interdites : l'entreprise ne peut pas proposer d'échange à une personne bloquée, un message clair l'explique, et
 le lien vers le profil public n'est pas proposé.
+
+## Module ZUMRA — ouverture contrôlée (Z1, D-205)
+
+**État du module.** `zumra_module` : `off` (défaut), `test`, `public`, plus la liste `zumra_testers` (adresses e-mail). Seul le super
+administrateur les modifie, depuis Paramètres → Module ZUMRA ; chaque changement est inscrit au journal. `App\Support\ZumraModule` décide
+de l'accès : hors du parcours actif (ancien mode des tests), le module est ouvert comme avant. Un compte testeur doit avoir une adresse
+vérifiée. Le contrôle est côté serveur : redirection du Carrefour, 404 des pages, refus des politiques (`create`, `join`, `invite`, `view`) et
+404 de toute action Livewire du Carrefour et de « Mes ZUMRA ».
+
+**Compatibilité D-183.** Module fermé, une personne membre d'une ZUMRA existante la lit encore ; elle ne peut ni créer, ni inviter, ni demander à
+rejoindre. Les Projets, contributions et portefeuilles ne dépendent pas de ce réglage.
+
+**Données.** `zumras.sphere` (professional, social, religious) et `zumra_memberships.duty` (premier adjoint, deuxième adjoint, responsable
+financier, affaires sociales et religieuses ; un poste, une personne par ZUMRA) : colonnes nulles par défaut.
+
+**Interdits.** Aucun faux compte de membres ni statistique ; aucun classement de popularité ; les noms des responsables ne sont montrés
+qu'aux personnes autorisées à voir les membres ; les projets d'une ZUMRA ne sont pas affichés dans ce parcours.

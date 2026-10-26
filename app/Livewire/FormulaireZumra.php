@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Enums\ZumraFormat;
+use App\Enums\ZumraSphere;
 use App\Models\City;
 use App\Models\Domain;
 use App\Models\Zumra;
@@ -35,6 +36,8 @@ class FormulaireZumra extends Component
 
     public string $mission = '';
 
+    public string $sphere = '';
+
     public function mount(?Zumra $zumra = null): void
     {
         if ($zumra?->exists) {
@@ -55,6 +58,8 @@ class FormulaireZumra extends Component
 
     public function save(Zumras $zumras)
     {
+        $this->resetErrorBag();
+
         if ($this->zumraId) {
             $zumra = $this->zumra();
             $zumras->update(Auth::user(), $zumra, ['city_id' => $this->city_id, 'format' => $this->format, 'mission' => $this->mission]);
@@ -63,7 +68,7 @@ class FormulaireZumra extends Component
             return $this->redirect(route('zumras.show', $zumra), navigate: false);
         }
 
-        $zumra = $zumras->create(Auth::user(), ['name' => $this->name, 'domain_id' => $this->domain_id, 'city_id' => $this->city_id, 'format' => $this->format, 'mission' => $this->mission]);
+        $zumra = $zumras->create(Auth::user(), ['name' => $this->name, 'domain_id' => $this->domain_id, 'city_id' => $this->city_id, 'format' => $this->format, 'mission' => $this->mission, 'sphere' => $this->sphere]);
         session()->flash('status', 'ZUMRA créée. Vous en êtes le fondateur.');
 
         return $this->redirect(route('zumras.show', $zumra), navigate: false);
@@ -82,6 +87,7 @@ class FormulaireZumra extends Component
                 ->where(fn (Builder $query) => $query->where('active', true)->when($zumra?->city_id, fn (Builder $q, $id) => $q->orWhere('id', $id)))
                 ->get()->sortBy(fn (City $c) => Normalizer::key($c->label()))->values(),
             'formats' => ZumraFormat::cases(),
+            'spheres' => ZumraSphere::cases(),
             'nameMax' => Zumra::NAME_MAX,
             'missionMax' => Zumra::MISSION_MAX,
         ])->title($editing ? 'Modifier la ZUMRA' : 'Créer une ZUMRA');

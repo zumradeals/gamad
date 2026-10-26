@@ -62,7 +62,7 @@ it('propose Accueil Personnes Entreprises Mon espace et Agir, sans fenêtre de d
         preg_match_all('/<nav aria-label="Navigation principale".*?<\/nav>/s', $html, $navs);
         $text = trim(preg_replace('/\s+/', ' ', strip_tags(implode(' ', $navs[0]))));
         expect($text)->toContain('Accueil')->toContain('Personnes')->toContain('Entreprises')->toContain('Agir')->toContain('Mon espace')
-            ->not->toContain('Découvrir')->not->toContain('ZUMRA')->not->toContain('Projets')->not->toContain('Besoins');
+            ->toContain('Découvrir')->not->toContain('ZUMRA')->not->toContain('Projets')->not->toContain('Besoins');
         expect($html)->not->toContain('aria-labelledby="decouvrir-titre"')
             ->not->toContain('href="'.route('zumras.index').'"')->not->toContain('href="'.route('projets.index').'"')
             ->not->toContain('href="'.route('besoins.index').'"')->not->toContain('href="'.route('contribution').'"');
@@ -180,7 +180,7 @@ it('bloque les demandes et invitations nouvelles mais permet de traiter une dema
     expect(fn () => app(Invitations::class)->invite($founder, $zumra, $newcomer))->toThrow(AuthorizationException::class);
     app(JoinRequests::class)->accept($founder, $pending);
     expect($zumra->fresh()->roleOf($member))->not->toBeNull();
-    $this->actingAs($newcomer)->get(route('zumras.show', $zumra))->assertOk()->assertDontSeeText('Je veux rejoindre');
+    $this->actingAs($newcomer)->get(route('zumras.show', $zumra))->assertNotFound();
     $this->actingAs($founder)->get(route('personnes.show', $newcomer->profile->public_id))->assertOk()->assertDontSeeText('Inviter dans');
 });
 

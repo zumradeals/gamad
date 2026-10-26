@@ -69,7 +69,7 @@ it('range les cartes des carrefours en colonnes sur ordinateur, et en une seule 
     $personne = person('Awa Traoré', ['Broderie']);
 
     // Carrefours éditoriaux validés en D-162, D-180 et D-181 : deux colonnes lisibles.
-    foreach ([route('zumras.index'), route('projets.index'), route('besoins.index')] as $url) {
+    foreach ([route('projets.index'), route('besoins.index')] as $url) {
         expect($this->actingAs($personne)->get($url)->assertOk()->getContent())
             ->toContain('grid gap-5 lg:grid-cols-2')->not->toContain('xl:grid-cols-3');
     }

@@ -31,6 +31,7 @@ function donnees(array $surcharge = []): array
         'domain_id' => Domain::query()->where('name', 'Économie et Finances')->value('id'),
         'city_id' => City::query()->where('name', 'Cocody')->value('id'),
         'format' => 'hybrid',
+        'sphere' => 'social',
         'mission' => 'Former des couturières et couturiers, et produire des uniformes scolaires à prix juste.',
     ];
 }
@@ -44,7 +45,7 @@ function creer(User $qui, array $surcharge = []): Zumra
 
 it('crée une ZUMRA par l’écran, et son créateur en devient le fondateur et le premier membre', function () {
     Livewire::actingAs($this->yao)->test(FormulaireZumra::class)
-        ->set('name', 'Couture solidaire')->set('domain_id', $this->domaine)->set('city_id', $this->ville)->set('format', 'hybrid')
+        ->set('name', 'Couture solidaire')->set('domain_id', $this->domaine)->set('city_id', $this->ville)->set('format', 'hybrid')->set('sphere', 'social')
         ->set('mission', 'Former des couturières et couturiers.')->call('save')->assertHasNoErrors();
 
     $z = Zumra::query()->sole();
@@ -58,7 +59,7 @@ it('crée une ZUMRA par l’écran, et son créateur en devient le fondateur et 
 
 it('redirige vers le Monde de la ZUMRA avec un message', function () {
     Livewire::actingAs($this->yao)->test(FormulaireZumra::class)
-        ->set('name', 'Couture solidaire')->set('domain_id', $this->domaine)->set('format', 'online')->set('mission', 'Une mission.')->call('save')
+        ->set('name', 'Couture solidaire')->set('domain_id', $this->domaine)->set('format', 'online')->set('sphere', 'social')->set('mission', 'Une mission.')->call('save')
         ->assertRedirect(route('zumras.show', Zumra::query()->sole()));
 
     $this->get(route('zumras.show', Zumra::query()->sole()))->assertSeeText('ZUMRA créée. Vous en êtes le fondateur.');
@@ -66,8 +67,8 @@ it('redirige vers le Monde de la ZUMRA avec un message', function () {
 
 it('affiche l’écran de création avec ses champs, et dit que le nom et le domaine ne changeront plus', function () {
     $this->actingAs($this->yao)->get(route('zumras.create'))->assertOk()
-        ->assertSeeText('Créer une ZUMRA')->assertSeeText('Domaine (un seul)')->assertSeeText('Où la ZUMRA se retrouve')->assertSeeText('Mission')
-        ->assertSeeText('En ligne')->assertSeeText('Présentiel')->assertSeeText('Hybride')->assertSeeText('Le nom et le domaine ne pourront plus changer')
+        ->assertSeeText('Créer une ZUMRA')->assertSeeText('Domaine d’activité (un seul)')->assertSeeText('Où la ZUMRA se retrouve')->assertSeeText('Description courte')
+        ->assertSeeText('Numérique')->assertSeeText('Physique')->assertSeeText('Hybride')->assertSeeText('Le nom et le domaine ne pourront plus changer')
         ->assertSeeText('Créer la ZUMRA')->assertSeeText('/ 500');
 });
 

@@ -1,13 +1,16 @@
 @props(['title' => null, 'wide' => true, 'narrow' => false, 'extraWide' => false])
 
 @php
-    $enabled = fn (array $items) => array_values(array_filter($items, fn ($item) => $item['enabled'] ?? false));
+    $zumraOpen = \App\Support\ZumraModule::accessibleTo(auth()->user());
+    $enabled = fn (array $items) => array_values(array_filter($items, fn ($item) => ($item['enabled'] ?? false) && (($item['module'] ?? null) !== 'zumra' || $zumraOpen)));
     $navigationPrefix = \App\Support\Experience::initial() ? 'navigation.initial.' : 'navigation.';
     $phoneItems = $enabled(config($navigationPrefix.'phone'));
     $desktopItems = $enabled(config($navigationPrefix.'desktop'));
     // « Agir » : rond jaune au centre de la barre du bas (téléphone), bouton jaune dans la barre du haut (ordinateur).
     $agir = collect(config($navigationPrefix.'phone'))->firstWhere('key', 'agir');
     $agir = ($agir['enabled'] ?? false) && auth()->check() ? $agir : null;
+    // Sans le module ZUMRA, « Découvrir » n'a qu'un choix : il mène directement aux Personnes, sans fenêtre.
+    $discoverSheet = ! \App\Support\Experience::initial() || $zumraOpen;
     $isActive = fn (array $item) => $item['route'] && request()->routeIs($item['active'] ?? [$item['route'], $item['route'].'.*']);
 @endphp
 
@@ -24,7 +27,7 @@
 </head>
 <body class="flex flex-col bg-ground text-ink antialiased">
     <header class="sticky top-0 z-20 border-b border-line bg-card">
-        <div class="mx-auto flex w-full max-w-[1240px] flex-wrap items-center gap-3 px-4 py-3 lg:flex-nowrap lg:gap-5 lg:px-6 lg:py-0">
+        <div class="mx-auto flex w-full max-w-[1240px] flex-wrap items-center gap-3 px-4 py-3 lg:flex-nowrap lg:gap-3 lg:px-6 lg:py-0">
             @if (auth()->check() && \App\Support\Experience::initial())
                 {{-- Menu du téléphone (AM-1) : les entrées du menu global de bureau, sans toucher à la barre du bas. --}}
                 <div x-data="{ menuOpen: false }" class="lg:hidden" x-on:click.outside="menuOpen = false" x-on:keydown.escape.window="if (menuOpen) { menuOpen = false; $refs.menuButton.focus() }">
@@ -53,7 +56,7 @@
                 @foreach ($desktopItems as $item)
                     <a href="{{ route($item['route']) }}"
                        @if ($isActive($item)) aria-current="page" @endif
-                       class="flex min-h-[72px] min-w-11 items-center justify-center gap-2 whitespace-nowrap border-b-[3px] px-2.5 text-[13px] no-underline {{ $isActive($item) ? 'border-ink font-extrabold text-ink' : 'border-transparent font-semibold text-muted hover:border-line hover:text-ink' }}">
+                       class="flex min-h-[72px] min-w-11 items-center justify-center gap-2 whitespace-nowrap border-b-[3px] px-2 text-[13px] no-underline {{ $isActive($item) ? 'border-ink font-extrabold text-ink' : 'border-transparent font-semibold text-muted hover:border-line hover:text-ink' }}">
                         @if (isset($item['icon']))<x-icon :name="$item['icon']" :size="22" />@endif
                         {{ $item['label'] }}
                     </a>
@@ -140,9 +143,9 @@
                         {{ $item['label'] }}
                     </button>
                 @else
-                    <a href="{{ route($item['route']) }}"
+                    <a href="{{ route(($item['sheet'] ?? false) && ! $discoverSheet ? 'personnes.index' : $item['route']) }}"
                        @if ($isActive($item)) aria-current="page" @endif
-                       @if ($item['sheet'] ?? false) x-on:click.prevent="discover = true" aria-haspopup="dialog" x-bind:aria-expanded="discover.toString()" @endif
+                       @if (($item['sheet'] ?? false) && $discoverSheet) x-on:click.prevent="discover = true" aria-haspopup="dialog" x-bind:aria-expanded="discover.toString()" @endif
                        class="flex min-h-11 min-w-0 flex-1 flex-col items-center justify-center gap-[3px] text-[11px] no-underline {{ $isActive($item) ? 'font-bold text-ink hover:text-ink' : 'font-semibold text-muted hover:text-ink' }}">
                         <x-icon :name="$item['icon']" />
                         {{ $item['label'] }}
@@ -164,7 +167,7 @@
         </div>
     </div>
 
-    @unless (\App\Support\Experience::initial())
+    @if ($discoverSheet)
     <div x-show="discover" x-cloak x-trap.noscroll="discover" x-on:keydown.escape.window="discover = false"
          class="fixed inset-0 z-30 lg:hidden" role="dialog" aria-modal="true" aria-labelledby="decouvrir-titre">
         <div x-show="discover" x-transition.opacity.duration.150ms class="absolute inset-0 bg-ink/55" x-on:click="discover = false" aria-hidden="true"></div>
@@ -175,14 +178,14 @@
             <div class="mb-4 flex items-start gap-3">
                 <div class="flex min-w-0 flex-1 flex-col gap-1">
                     <h2 id="decouvrir-titre" class="text-[24px] font-extrabold leading-tight">Que cherchez-vous ?</h2>
-                    <p class="text-[15px] leading-snug text-muted">Trouvez une personne, un besoin concret ou un projet à découvrir.</p>
+                    <p class="text-[15px] leading-snug text-muted">{{ \App\Support\Experience::initial() ? 'Trouvez une personne ou une communauté.' : 'Trouvez une personne, un besoin concret ou un projet à découvrir.' }}</p>
                 </div>
                 <button type="button" x-on:click="discover = false" aria-label="Fermer" class="flex size-12 shrink-0 items-center justify-center rounded-button border border-line bg-card text-ink hover:border-ink"><x-icon name="close" :size="22" /></button>
             </div>
             @include('partials.discover-cards')
         </div>
     </div>
-    @endunless
+    @endif
     </div>
     @endauth
 

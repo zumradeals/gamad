@@ -14,6 +14,7 @@
             ['enregistrements', 'Mes enregistrements', 'book'],
             ['attestations', 'Mes attestations', 'shield'],
             ['entreprise', 'Mon entreprise', 'home'],
+            \App\Support\ZumraModule::accessibleTo(auth()->user()) ? ['zumras', 'Mes ZUMRA', 'community'] : null,
             ['pistes', 'Mes pistes', 'compass'],
             ($hasLegacy || $walletsEnabled) ? ['activites', 'Activités antérieures', 'tasks'] : null,
         ])),
@@ -49,7 +50,9 @@
                         <p class="hidden px-2.5 pb-1 pt-3 text-[11px] font-extrabold uppercase tracking-wide text-muted xl:block">{{ $group }}</p>
                     @endif
                     @foreach ($items as [$id, $label, $icon])
-                        @if ($id === 'profil')
+ @if ($id === 'zumras')
+                            <a href="{{ route('espace.zumras') }}" class="space-menu-link shrink-0 whitespace-nowrap !text-[13px] xl:whitespace-normal"><x-icon :name="$icon" :size="20" /><span>{{ $label }}</span></a>
+                        @elseif ($id === 'profil')
                             <a href="{{ route('espace.profil') }}" class="space-menu-link shrink-0 whitespace-nowrap !text-[13px] xl:whitespace-normal"><x-icon :name="$icon" :size="20" /><span>{{ $label }}</span></a>
                         @else
                             <a href="{{ $id === 'vue-ensemble' ? route('espace') : route('espace', ['rubrique' => $id]) }}" wire:click.prevent="show('{{ $id }}')" @if ($section === $id) aria-current="page" @endif class="space-menu-link shrink-0 whitespace-nowrap !text-[13px] xl:whitespace-normal"><x-icon :name="$icon" :size="20" /><span>{{ $label }}</span></a>

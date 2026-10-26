@@ -8,23 +8,26 @@ use App\Models\JoinRequest;
 use App\Models\User;
 use App\Models\Zumra;
 use App\Models\ZumraMembership;
-use App\Support\Experience;
+use App\Support\ZumraModule;
 use Illuminate\Auth\Access\Response;
 
 /** Qui peut créer une ZUMRA, la modifier et voir ses membres (D-111, D-112). Toute règle vit ici, côté serveur. */
 class ZumraPolicy
 {
-    /** Le Carrefour et l'en-tête d'une ZUMRA sont publics (D-112), visiteurs sans compte compris. */
-    public function view(?User $viewer, Zumra $zumra): bool
+    /**
+     * L'en-tête d'une ZUMRA est public (D-112), visiteurs sans compte compris, quand le module ZUMRA est ouvert à la personne (Z1,
+     * D-205). Les membres retrouvent toujours leur ZUMRA (D-183), même module fermé.
+     */
+    public function view(?User $viewer, Zumra $zumra): Response
     {
-        return true;
+        return ZumraModule::canOpen($viewer, $zumra) ? Response::allow() : Response::denyAsNotFound();
     }
 
     /** Créer : toute personne connectée dont l'adresse e-mail est vérifiée. */
     public function create(User $user): Response
     {
-        if (Experience::initial()) {
-            return Response::deny('Les nouvelles activités collectives sont en pause. Retrouvez les personnes et les besoins dans le Fil.');
+        if (! ZumraModule::accessibleTo($user)) {
+            return Response::deny('Les ZUMRA ne sont pas ouvertes pour le moment. Retrouvez les personnes et les besoins dans le Fil.');
         }
 
         return $user->hasVerifiedEmail() ? Response::allow() : Response::deny('Vérifiez votre adresse e-mail pour créer une ZUMRA.');
@@ -62,8 +65,8 @@ class ZumraPolicy
      */
     public function join(User $user, Zumra $zumra): Response
     {
-        if (Experience::initial()) {
-            return Response::deny('Les nouvelles activités collectives sont en pause. Retrouvez les personnes et les besoins dans le Fil.');
+        if (! ZumraModule::accessibleTo($user)) {
+            return Response::deny('Les ZUMRA ne sont pas ouvertes pour le moment. Retrouvez les personnes et les besoins dans le Fil.');
         }
 
         if (! $user->hasVerifiedEmail()) {
@@ -86,8 +89,8 @@ class ZumraPolicy
     /** Inviter des personnes par leurs capacités : le fondateur et les responsables. */
     public function invite(User $user, Zumra $zumra): Response
     {
-        if (Experience::initial()) {
-            return Response::deny('Les nouvelles activités collectives sont en pause. Retrouvez les personnes et les besoins dans le Fil.');
+        if (! ZumraModule::accessibleTo($user)) {
+            return Response::deny('Les ZUMRA ne sont pas ouvertes pour le moment. Retrouvez les personnes et les besoins dans le Fil.');
         }
 
         return $this->manage($user, $zumra);

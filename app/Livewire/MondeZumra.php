@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Enums\JoinRequestState;
 use App\Enums\PublicationType;
+use App\Enums\ZumraDuty;
 use App\Models\Gesture;
 use App\Models\Invitation;
 use App\Models\JoinRequest;
@@ -22,6 +23,7 @@ use App\Services\Supports;
 use App\Services\Wallets;
 use App\Services\ZumraPosts;
 use App\Services\Zumras;
+use App\Support\Experience;
 use App\Support\Normalizer;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -190,6 +192,11 @@ class MondeZumra extends Component
         $memberships->demote(Auth::user(), $this->zumra(), $this->membership($id));
     }
 
+    public function assignDuty(string $id, string $duty, Memberships $memberships): void
+    {
+        $memberships->assignDuty(Auth::user(), $this->zumra(), $this->membership($id), ZumraDuty::tryFrom($duty));
+    }
+
     public function render()
     {
         $viewer = Auth::user();
@@ -204,6 +211,9 @@ class MondeZumra extends Component
 
         // La Discussion n'existe pas pour qui n'est pas membre : « page introuvable » (D-112).
         $tab = in_array($this->tab, self::TABS, true) ? $this->tab : 'formation';
+        // Les Projets restent gelés (D-183) : leur onglet n'existe pas dans le parcours actif.
+        $tab = $tab === 'projets' && Experience::initial() ? 'formation' : $tab;
+        $this->tab = $tab;
         abort_if($tab === 'discussion' && ! $canDiscuss, 404);
 
         // Les personnes dont l'adresse n'est pas vérifiée n'existent pas pour les autres : elles ne figurent ni dans la liste ni dans le compte.
@@ -250,6 +260,7 @@ class MondeZumra extends Component
 
         return view('livewire.monde-zumra', [
             'zumra' => $zumra,
+            'governance' => $zumra->governance(),
             'viewer' => $viewer,
             'canSeeMembers' => $canSeeMembers,
             'members' => $members,

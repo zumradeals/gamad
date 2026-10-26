@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ZumraDuty;
 use App\Enums\ZumraRole;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -16,7 +17,7 @@ class ZumraMembership extends Model
 
     protected function casts(): array
     {
-        return ['role' => ZumraRole::class, 'joined_at' => 'datetime'];
+        return ['role' => ZumraRole::class, 'duty' => ZumraDuty::class, 'joined_at' => 'datetime'];
     }
 
     public function zumra(): BelongsTo

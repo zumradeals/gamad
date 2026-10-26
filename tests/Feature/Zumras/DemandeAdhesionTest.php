@@ -57,7 +57,7 @@ it('accepte 280 caractères de mot et refuse 281', function () {
 });
 
 it('demande à rejoindre par l’écran, qui passe à « Demande envoyée » avec « Retirer ma demande »', function () {
-    monde($this->awa, $this->zumra)->assertSeeText('Je veux rejoindre')->assertSeeText('Un mot pour le fondateur')
+    monde($this->awa, $this->zumra)->assertSeeText('Demander à rejoindre')->assertSeeText('Un mot pour le fondateur')
         ->set('joinWord', 'Bonjour, je souhaite participer.')->call('requestJoin')->assertHasNoErrors()
         ->assertSeeText('Demande envoyée')->assertSeeText('Bonjour, je souhaite participer.')->assertSeeText('Retirer ma demande')->assertDontSeeText('Un mot pour le fondateur');
 
@@ -65,7 +65,7 @@ it('demande à rejoindre par l’écran, qui passe à « Demande envoyée » ave
 });
 
 it('permet de retirer sa demande, puis de la refaire', function () {
-    monde($this->awa, $this->zumra)->call('requestJoin')->call('withdrawRequest')->assertSeeText('Je veux rejoindre')->assertDontSeeText('Demande envoyée');
+    monde($this->awa, $this->zumra)->call('requestJoin')->call('withdrawRequest')->assertSeeText('Demander à rejoindre')->assertDontSeeText('Demande envoyée');
 
     expect(JoinRequest::sole()->state)->toBe(JoinRequestState::Withdrawn);
 
