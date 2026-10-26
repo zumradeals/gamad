@@ -2,7 +2,7 @@
     $n = fn ($v) => $v === null ? '—*' : number_format($v, 0, ',', ' ');
     $fcfa = fn ($v) => $v === null ? '—' : number_format($v, 0, ',', ' ').' FCFA';
     $totals = $summary['totals'];
-    $kpis = [['Affichages', $n($totals['impressions']), 'personnes différentes, une fois par jour'], ['Interactions', $n($totals['interactions']), 'clics sur le bouton de l’annonce'], ['Contacts reçus', $n($totals['contacts']), 'demandes de relation envoyées après un clic'], ['Dépenses prévisionnelles', $fcfa($totals['spend']), 'aucun paiement effectué']];
+    $kpis = [['Affichages', $n($totals['impressions']), 'personnes différentes, une fois par jour'], ['Interactions', $n($totals['interactions']), 'clics sur le bouton de l’annonce'], ['Demandes de relation attribuées', $n($totals['contacts']), 'envoyées à vous dans les 24 h après un clic sur l’annonce'], ['Dépenses prévisionnelles', $fcfa($totals['spend']), 'aucun paiement effectué']];
 @endphp
 <div class="flex flex-col gap-4">
     @include('livewire.partials.publicite-entete', ['current' => 'resultats'])
@@ -42,7 +42,7 @@
         <div class="grid gap-3 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
             <section aria-labelledby="evol" class="rounded-card border border-line bg-card p-4">
                 <div class="flex flex-wrap items-center justify-between gap-2"><h2 id="evol" class="text-[16px] font-extrabold">Évolution par jour</h2>
-                    <span class="flex gap-3.5 text-[12px] font-bold"><span><i class="mr-1.5 inline-block size-2.5 rounded-full bg-ink"></i>Affichages</span><span><i class="mr-1.5 inline-block size-2.5 rounded-full bg-accent"></i>Contacts</span></span></div>
+                    <span class="flex gap-3.5 text-[12px] font-bold"><span><i class="mr-1.5 inline-block size-2.5 rounded-full bg-ink"></i>Affichages</span><span><i class="mr-1.5 inline-block size-2.5 rounded-full bg-accent"></i>Demandes de relation</span></span></div>
                 @if ($summary['series'])
                     @php
                         $series = $summary['series'];
@@ -51,7 +51,7 @@
                         $count = max(1, count($series) - 1);
                         $path = fn ($key, $max) => collect($series)->map(fn ($p, $i) => ($i === 0 ? 'M' : 'L').round(20 + $i * 600 / $count, 1).' '.round(150 - ($p[$key] / $max) * 120, 1))->implode(' ');
                     @endphp
-                    <svg viewBox="0 0 640 170" role="img" aria-label="Affichages et contacts par jour" class="mt-2 h-auto w-full">
+                    <svg viewBox="0 0 640 170" role="img" aria-label="Affichages et demandes de relation par jour" class="mt-2 h-auto w-full">
                         @foreach ([30, 75, 120] as $y)<line x1="20" x2="620" y1="{{ $y }}" y2="{{ $y }}" stroke="#eeebe4"/>@endforeach
                         <path d="{{ $path('impressions', $maxI) }}" fill="none" stroke="#0e2a3f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="{{ $path('contacts', $maxC) }}" fill="none" stroke="#f2c200" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
@@ -62,7 +62,7 @@
             </section>
             <section aria-labelledby="comprendre" class="rounded-card border border-line bg-card p-4">
                 <h2 id="comprendre" class="flex items-center gap-2 text-[16px] font-extrabold"><x-icon name="shield" :size="20" />Comprendre les chiffres</h2>
-                <p class="mt-2 text-[12.5px] leading-relaxed text-muted"><strong class="text-ink">Contacts</strong> : des personnes ont choisi de vous écrire après avoir cliqué sur votre annonce. Vous les retrouvez dans <a href="{{ route('espace', ['rubrique' => 'relations']) }}" class="font-semibold">Mes relations</a> ; vous ne voyez rien d’autre d’elles.</p>
+                <p class="mt-2 text-[12.5px] leading-relaxed text-muted"><strong class="text-ink">Demandes de relation attribuées</strong> : des personnes ont choisi de vous écrire après avoir cliqué sur votre annonce (dans les 24 heures). Vous les retrouvez dans <a href="{{ route('espace', ['rubrique' => 'relations']) }}" class="font-semibold">Mes relations</a> ; vous ne voyez rien d’autre d’elles.</p>
                 <p class="mt-2 text-[12.5px] leading-relaxed text-muted"><strong class="text-ink">Résultats agrégés</strong> : aucun nom, aucun profil, aucune liste de personnes atteintes.</p>
                 <p class="mt-2 text-[12.5px] leading-relaxed text-muted"><strong class="text-ink">Petits effectifs</strong> : sous {{ $threshold }}, un chiffre est masqué (—*) pour protéger les personnes.</p>
             </section>
@@ -71,7 +71,7 @@
         <div class="overflow-x-auto rounded-card border border-line bg-card">
             <table class="w-full min-w-[640px] border-collapse text-[13px]">
                 <caption class="sr-only">Résultats par campagne</caption>
-                <thead><tr class="border-b border-line text-left text-[11.5px] uppercase tracking-wide text-muted"><th scope="col" class="px-3 py-2.5">Campagne</th><th scope="col" class="px-3 py-2.5 text-right">Affichages</th><th scope="col" class="px-3 py-2.5 text-right">Interactions</th><th scope="col" class="px-3 py-2.5 text-right">Contacts</th><th scope="col" class="px-3 py-2.5 text-right">Dépenses prév.</th><th scope="col" class="px-3 py-2.5 text-right">Par contact</th></tr></thead>
+                <thead><tr class="border-b border-line text-left text-[11.5px] uppercase tracking-wide text-muted"><th scope="col" class="px-3 py-2.5">Campagne</th><th scope="col" class="px-3 py-2.5 text-right">Affichages</th><th scope="col" class="px-3 py-2.5 text-right">Interactions</th><th scope="col" class="px-3 py-2.5 text-right">Demandes attribuées</th><th scope="col" class="px-3 py-2.5 text-right">Dépenses prév.</th><th scope="col" class="px-3 py-2.5 text-right">Par demande</th></tr></thead>
                 <tbody>
                     @foreach ($summary['rows'] as $row)
                         <tr wire:key="res-{{ $row['campaign']->id }}" class="border-b border-line-soft last:border-0">
