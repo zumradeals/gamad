@@ -10,6 +10,7 @@ use App\Services\Gratitudes;
 use App\Services\Moderation;
 use App\Services\PublicationBookmarks;
 use App\Services\Publications;
+use App\Support\ContributionsModule;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -143,7 +144,7 @@ class PagePublication extends Component
         // Contributions (C1) : un besoin d'entraide reçoit des propositions ; l'opportunité professionnelle d'une entreprise a son propre parcours.
         $c1 = null;
 
-        if ($publication->isNeed() && ($publication->help_kind || ! $publication->company_id) && \App\Support\ContributionsModule::accessibleTo($viewer)) {
+        if ($publication->isNeed() && ($publication->help_kind || ! $publication->company_id) && ContributionsModule::accessibleTo($viewer)) {
             $c1 = [
                 'canContribute' => Gate::forUser($viewer)->allows('contribute', $publication),
                 'reason' => Gate::forUser($viewer)->inspect('contribute', $publication)->message(),

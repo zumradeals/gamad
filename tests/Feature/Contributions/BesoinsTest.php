@@ -4,11 +4,11 @@ use App\Enums\NeedState;
 use App\Enums\PublicationType;
 use App\Enums\ZumraRole;
 use App\Models\ContributionProposal;
-use App\Models\Project;
 use App\Models\ProjectMember;
 use App\Models\Publication;
 use App\Models\User;
 use App\Services\ContributionNeeds;
+use App\Services\ContributionProposals;
 use App\Services\Publications;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate;
@@ -166,7 +166,7 @@ it('suit le cycle publié, en cours de réponse, satisfait, et refuse ensuite to
     expect($besoin->need_state->contributionLabel())->toBe('Publié');
 
     $proposition = c1Proposition($aidant, ['need' => $besoin, 'kind' => 'material']);
-    app(App\Services\ContributionProposals::class)->accept($this->awa, $proposition);
+    app(ContributionProposals::class)->accept($this->awa, $proposition);
     expect($besoin->fresh()->need_state->contributionLabel())->toBe('En cours de réponse');
 
     app(Publications::class)->resolve($this->awa, $besoin->fresh());
@@ -180,7 +180,7 @@ it('refuse d’office les propositions en attente quand le besoin est clôturé,
     $besoin = c1Besoin($this->awa);
     $attente = c1Proposition(person('Aidant Un'), ['need' => $besoin, 'kind' => 'material']);
     $acceptee = c1Proposition(person('Aidant Deux'), ['need' => $besoin, 'kind' => 'material']);
-    app(App\Services\ContributionProposals::class)->accept($this->awa, $acceptee);
+    app(ContributionProposals::class)->accept($this->awa, $acceptee);
 
     app(Publications::class)->close($this->awa, $besoin->fresh());
 
@@ -189,7 +189,7 @@ it('refuse d’office les propositions en attente quand le besoin est clôturé,
         ->and($attente->fresh()->decision_note)->toBe('Ce besoin est clos.')
         ->and($acceptee->fresh()->state->value)->toBe('accepted');
 
-    expect(fn () => app(App\Services\ContributionProposals::class)->accept($this->awa, $attente->fresh()))->toThrow(AuthorizationException::class);
+    expect(fn () => app(ContributionProposals::class)->accept($this->awa, $attente->fresh()))->toThrow(AuthorizationException::class);
     expect(ContributionProposal::query()->where('need_id', $besoin->id)->count())->toBe(2);
 });
 

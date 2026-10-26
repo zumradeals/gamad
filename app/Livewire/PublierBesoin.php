@@ -12,6 +12,7 @@ use App\Models\Project;
 use App\Models\ProjectMember;
 use App\Models\Publication;
 use App\Models\Zumra;
+use App\Services\ContributionAccess;
 use App\Services\ContributionNeeds;
 use App\Support\Normalizer;
 use Illuminate\Database\Eloquent\Builder;
@@ -104,7 +105,7 @@ class PublierBesoin extends Component
     private function options(): array
     {
         $user = Auth::user();
-        $access = app(\App\Services\ContributionAccess::class);
+        $access = app(ContributionAccess::class);
         $options = ['person' => 'Moi-même'];
 
         if ($access->represents($user, BeneficiaryKind::Gamad, null)) {

@@ -7,7 +7,6 @@ use App\Enums\HelpKind;
 use App\Enums\ProposalState;
 use App\Livewire\Concerns\GuardsContributionsModule;
 use App\Models\City;
-use App\Models\ContributionProposal;
 use App\Models\Domain;
 use App\Services\ContributionFeed;
 use App\Services\ContributionStats;
@@ -126,7 +125,7 @@ class CarrefourContributions extends Component
         $proposalsQuery = $contradiction ? $proposalsQuery->whereRaw('1 = 0') : $proposalsQuery;
         $paginate = in_array($tab, ['besoins', 'contributions'], true);
 
-                $needs = $showNeeds ? ($paginate ? $needsQuery->paginate(self::PER_PAGE, ['*'], 'besoins') : $needsQuery->limit($tab === 'tous' ? self::PREVIEW : self::PER_PAGE)->get()) : collect();
+        $needs = $showNeeds ? ($paginate ? $needsQuery->paginate(self::PER_PAGE, ['*'], 'besoins') : $needsQuery->limit($tab === 'tous' ? self::PREVIEW : self::PER_PAGE)->get()) : collect();
         $proposals = $showProposals ? ($paginate ? $proposalsQuery->paginate(self::PER_PAGE, ['*'], 'propositions') : $proposalsQuery->limit($tab === 'tous' ? self::PREVIEW : self::PER_PAGE)->get()) : collect();
 
         $hasFilters = $filters['q'] !== '' || $filters['kinds'] !== [] || $this->beneficiaries !== [] || $filters['domain'] !== '' || $filters['city'] !== '';

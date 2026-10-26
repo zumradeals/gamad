@@ -9,13 +9,13 @@ use App\Models\Conversation;
 use App\Models\LedgerEntry;
 use App\Models\Payment;
 use App\Models\ProjectMember;
-use App\Models\UserNotification;
-use Illuminate\Support\Facades\Schema;
-use App\Models\Wallet;
 use App\Models\User;
+use App\Models\UserNotification;
+use App\Models\Wallet;
 use App\Services\ContributionProposals;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 

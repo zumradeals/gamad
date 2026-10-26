@@ -210,7 +210,7 @@ class ContributionProposals
     public function needClosed(Publication $need): void
     {
         ContributionProposal::query()->where('need_id', $need->getKey())->where('state', ProposalState::Proposed->value)->get()
-            ->each(function (ContributionProposal $proposal) use ($need) {
+            ->each(function (ContributionProposal $proposal) {
                 $proposal->forceFill(['state' => ProposalState::Declined, 'decided_at' => now(), 'decision_note' => 'Ce besoin est clos.'])->save();
                 $this->notifier->proposal($proposal->author, NotificationKind::ContributionDeclined, null, $proposal);
             });

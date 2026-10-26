@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\GestureState;
 use App\Enums\NeedState;
 use App\Enums\PublicationType;
+use App\Services\ContributionAccess;
 use App\Services\MatchingConditions;
 use App\Services\People;
 use Illuminate\Database\Eloquent\Builder;
@@ -217,7 +218,7 @@ class Publication extends Model
 
         // Besoin officiel de GAMAD, ou besoin de projet (C1, D-207) : le représentant du bénéficiaire seul, jamais la ZUMRA d'accueil.
         if ($this->official || ($this->project_id !== null && $this->isNeed())) {
-            return app(\App\Services\ContributionAccess::class)->manages($user, $this);
+            return app(ContributionAccess::class)->manages($user, $this);
         }
 
         if ($user->getKey() === $this->author_id) {
@@ -237,9 +238,9 @@ class Publication extends Model
     public function managers()
     {
         if ($this->official || ($this->project_id !== null && $this->isNeed())) {
-            [$kind, $beneficiary] = app(\App\Services\ContributionAccess::class)->beneficiary($this);
+            [$kind, $beneficiary] = app(ContributionAccess::class)->beneficiary($this);
 
-            return app(\App\Services\ContributionAccess::class)->representatives($kind, $beneficiary);
+            return app(ContributionAccess::class)->representatives($kind, $beneficiary);
         }
 
         if ($this->zumra_id === null) {
