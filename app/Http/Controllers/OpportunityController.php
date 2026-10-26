@@ -27,6 +27,7 @@ class OpportunityController extends Controller
             'isOwner' => $viewer?->id === $opportunity->company->owner_id,
             'saved' => $viewer && DB::table('opportunity_saves')->where('user_id', $viewer->id)->where('opportunity_id', $opportunity->id)->exists(),
             'response' => $viewer ? OpportunityResponse::query()->where('opportunity_id', $opportunity->id)->where('user_id', $viewer->id)->first() : null,
+            'following' => $viewer && DB::table('company_follows')->where('user_id', $viewer->id)->where('company_id', $opportunity->company_id)->exists(),
             'canRespond' => $viewer && Gate::forUser($viewer)->allows('respond', $opportunity),
             'similar' => Opportunity::query()->open()->where('opportunities.id', '<>', $opportunity->id)->where('company_id', $opportunity->company_id)
                 ->with(['company', 'city'])->latest('published_at')->limit(3)->get(),

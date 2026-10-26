@@ -86,10 +86,11 @@ it('recherche, filtre par type, localité, domaine et date, et combine les filtr
     expect($titres($t->set('query', 'photovolta')))->toEqualCanonicalizing(['Électricien solaire']);
     expect($titres($t->set('query', 'orange')))->toHaveCount(3);
     expect($titres($t->set('query', '')->call('setKind', 'job')))->toEqualCanonicalizing(['Comptable']);
-    expect($titres($t->call('clearFilters')->set('city', $alpha->id)))->toEqualCanonicalizing(['Électricien solaire']);
+    expect($titres($t->call('clearFilters')->set('city', 'Ville Alpha')))->toEqualCanonicalizing(['Électricien solaire']);
+    expect($titres($t->set('city', 'ville ALPHA')))->toEqualCanonicalizing(['Électricien solaire'])->and($titres($t->set('city', 'alph')))->toEqualCanonicalizing(['Électricien solaire']);
     expect($titres($t->set('city', '')->set('domain', $energie->id)))->toEqualCanonicalizing(['Électricien solaire']);
     expect($titres($t->set('domain', '')->set('date', '7')))->toEqualCanonicalizing(['Comptable', 'Électricien solaire']);
-    $t->call('clearFilters')->call('setKind', 'mission')->set('city', $beta->id)->assertSeeText('Aucune opportunité ne correspond à cette recherche.');
+    $t->call('clearFilters')->call('setKind', 'mission')->set('city', 'Ville Beta')->assertSeeText('Aucune opportunité ne correspond à cette recherche.');
     expect($titres($t->call('clearFilters')))->toHaveCount(3);
 });
 
@@ -498,4 +499,36 @@ it('propose aussi sans accents les pistes selon les capacités du profil', funct
     opportunite($this->company, ['title' => 'Installateur', 'skills' => ['Électricité']]);
     $moi = person('Awa Capacité', ['electricite']);
     Livewire::actingAs($moi)->test(OpportunityCatalog::class)->assertSeeText('Selon vos capacités')->assertSeeText('Installateur');
+});
+
+it('suit le parcours téléphone de la maquette : le type seul à l’étape 1, puis le poste et l’explication à l’étape 2', function () {
+    Livewire::actingAs($this->owner)->test(OpportunityForm::class, ['company' => $this->company])
+        ->call('nextCompact')->assertHasErrors('kind')->assertSet('step', 1)
+        ->call('chooseKind', 'internship')->call('nextCompact')->assertHasNoErrors()->assertSet('step', 2)->assertSet('compact', true)
+        ->assertSee('id="title"', false)->assertSee('id="description"', false)->assertSee('1000')
+        ->call('preview')->assertHasErrors(['title', 'description'])->assertSet('step', 2)
+        ->set('title', 'Stagiaire marketing')->set('description', str_repeat('a', 1001))->call('preview')->assertHasErrors('description')
+        ->set('description', 'Participer aux projets digitaux.')->call('preview')->assertHasNoErrors()->assertSet('step', 3)
+        ->call('edit')->assertSet('step', 2)->call('preview')->call('publish')->assertRedirect();
+    expect(Opportunity::sole()->kind->value)->toBe('internship');
+});
+
+it('limite la description à 1 000 caractères, comme le compteur de la maquette', function () {
+    Livewire::actingAs($this->owner)->test(OpportunityForm::class, ['company' => $this->company])
+        ->call('chooseKind', 'job')->set('title', 'Poste')->set('description', str_repeat('a', 1001))->call('next')->assertHasErrors('description')
+        ->set('description', str_repeat('a', 1000))->call('next')->assertHasNoErrors()->assertSet('step', 2);
+});
+
+it('affiche le détail avec lien vers l’entreprise, bouton Suivre et chips de type', function () {
+    $o = opportunite($this->company, ['title' => 'Poste suivi', 'kind' => 'job']);
+    $moi = User::factory()->create();
+    $this->actingAs($moi)->get(route('opportunites.show', $o))->assertSeeText('Voir le profil de l’entreprise')->assertSeeText('Suivre')->assertDontSeeText('Ne plus suivre');
+    $this->post(route('entreprises.follow', $this->company));
+    $this->get(route('opportunites.show', $o))->assertSeeText('Ne plus suivre');
+    $this->actingAs($this->owner)->get(route('opportunites.show', $o))->assertDontSeeText('Suivre');
+});
+
+it('utilise les libellés courts de la maquette pour les onglets et les compteurs entre parenthèses', function () {
+    opportunite($this->company, ['kind' => 'internship']);
+    $this->get(route('opportunites.index'))->assertSeeText('Stages')->assertSeeText('Stages et apprentissage')->assertSeeText('(1)')->assertSee('placeholder="Ex. : Abidjan, Yopougon"', false);
 });

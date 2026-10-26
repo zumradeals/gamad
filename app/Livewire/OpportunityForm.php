@@ -33,6 +33,9 @@ class OpportunityForm extends Component
 
     public int $step = 1;
 
+    /** Parcours téléphone : l'étape 1 ne choisit que le type, le poste et l'explication passent à l'étape 2. */
+    public bool $compact = false;
+
     public string $kind = '';
 
     public string $title = '';
@@ -139,12 +142,23 @@ class OpportunityForm extends Component
         }
         if (Normalizer::multiline($this->description) === '') {
             $errors['description'] = 'Expliquez ce que vous recherchez.';
-        } elseif (mb_strlen($this->description) > 3000) {
-            $errors['description'] = 'La description est trop longue (3 000 caractères au plus).';
+        } elseif (mb_strlen($this->description) > 1000) {
+            $errors['description'] = 'La description est trop longue (1 000 caractères au plus).';
         }
         if ($errors) {
             throw ValidationException::withMessages($errors);
         }
+        $this->step = 2;
+    }
+
+    /** Téléphone : le type seul suffit pour passer aux détails (maquette mobile). */
+    public function nextCompact(): void
+    {
+        $this->resetErrorBag();
+        if (! OpportunityKind::tryFrom($this->kind)) {
+            throw ValidationException::withMessages(['kind' => 'Choisissez ce que propose votre entreprise.']);
+        }
+        $this->compact = true;
         $this->step = 2;
     }
 
@@ -155,7 +169,7 @@ class OpportunityForm extends Component
 
     public function edit(): void
     {
-        $this->step = 1;
+        $this->step = $this->compact ? 2 : 1;
     }
 
     public function preview(Opportunities $service): void

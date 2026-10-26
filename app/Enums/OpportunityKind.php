@@ -31,6 +31,12 @@ enum OpportunityKind: string
         };
     }
 
+    /** Libellé court de l'onglet : « Stages ». */
+    public function tabLabel(): string
+    {
+        return $this === self::Internship ? 'Stages' : $this->pluralLabel();
+    }
+
     public function chooseLabel(): string
     {
         return match ($this) {

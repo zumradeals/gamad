@@ -29,28 +29,29 @@
                 @endif
             </div>
             <div class="relative min-w-0 px-5 pb-6 md:px-8">
-                <div class="-mt-10 flex min-w-0 flex-wrap items-end gap-4">
+                <div class="-mt-10 flex min-w-0 flex-wrap items-end gap-x-4 gap-y-3">
                     <x-company-logo :company="$company" :size="84" class="border-4 border-card bg-card shadow-sm" />
-                    <div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1 pb-1">
-                        <a href="{{ route('entreprises.show', $company) }}" class="inline-flex min-h-11 items-center break-words text-[17px] font-extrabold text-ink no-underline hover:underline">{{ $company->name }}</a>
-                        @if ($verified)<span class="inline-flex size-5 items-center justify-center rounded-full bg-link text-white" title="Immatriculation vérifiée par GAMAD"><x-icon name="check" :size="13" :stroke="3" /><span class="sr-only">Immatriculation vérifiée par GAMAD</span></span>@endif
+                    <div class="min-w-0 flex-1 basis-48 pb-1">
+                        <p class="flex flex-wrap items-center gap-x-2.5"><a href="{{ route('entreprises.show', $company) }}" class="inline-flex min-h-11 items-center break-words text-[17px] font-extrabold text-ink no-underline hover:underline">{{ $company->name }}</a>
+                            @if ($verified)<span class="inline-flex size-5 items-center justify-center rounded-full bg-link text-white" title="Immatriculation vérifiée par GAMAD"><x-icon name="check" :size="13" :stroke="3" /><span class="sr-only">Immatriculation vérifiée par GAMAD</span></span>@endif</p>
+                        <a href="{{ route('entreprises.show', $company) }}" class="-mt-2 inline-flex min-h-11 items-center text-[13px] font-bold text-link">Voir le profil de l’entreprise <x-icon name="next" :size="14" class="ml-1" /></a>
                     </div>
-                    <div class="flex flex-wrap items-center gap-2 pb-1">
+                    <div class="flex w-full flex-col gap-2 pb-1 sm:w-auto sm:flex-row sm:items-center">
                         @if ($canRespond)
-                            <x-button :href="route('opportunites.respond', $opportunity)" variant="accent">{{ $opportunity->kind->applyLabel() }}</x-button>
+                            <x-button :href="route('opportunites.respond', $opportunity)" variant="accent" class="min-h-12">{{ $opportunity->kind->applyLabel() }}</x-button>
                         @elseif ($open && $opportunity->apply_mode === 'external' && $opportunity->external_url)
-                            <x-button :href="$opportunity->external_url" variant="accent" rel="noopener noreferrer nofollow" target="_blank">{{ $opportunity->kind->applyLabel() }} sur le site de l’entreprise <x-icon name="external" :size="16" class="ml-1.5" /></x-button>
+                            <x-button :href="$opportunity->external_url" variant="accent" class="min-h-12" rel="noopener noreferrer nofollow" target="_blank">{{ $opportunity->kind->applyLabel() }} sur le site de l’entreprise <x-icon name="external" :size="16" class="ml-1.5" /></x-button>
                         @elseif ($open && $guest)
-                            <x-button :href="route('login')" variant="accent">Se connecter pour répondre</x-button>
+                            <x-button :href="route('login')" variant="accent" class="min-h-12">Se connecter pour répondre</x-button>
                         @endif
                         @auth
                             @if ($opportunity->status === 'published' || $opportunity->status === 'closed')
-                                <form method="POST" action="{{ route('opportunites.save', $opportunity) }}">@csrf
-                                    <button type="submit" aria-pressed="{{ $saved ? 'true' : 'false' }}" class="inline-flex min-h-11 items-center gap-1.5 rounded-button border border-ink bg-card px-4 text-[14px] font-bold"><x-icon name="book" :size="16" />{{ $saved ? 'Sauvegardée' : 'Sauvegarder' }}</button>
+                                <form method="POST" action="{{ route('opportunites.save', $opportunity) }}" class="flex">@csrf
+                                    <button type="submit" aria-pressed="{{ $saved ? 'true' : 'false' }}" class="inline-flex min-h-12 w-full items-center justify-center gap-1.5 rounded-button border border-line bg-card px-4 text-[14px] font-bold"><x-icon name="book" :size="16" />{{ $saved ? 'Sauvegardée' : 'Sauvegarder' }}</button>
                                 </form>
                             @endif
                         @endauth
-                        <span x-data="{ copied: false, url: @js(route('opportunites.show', $opportunity)) }" class="inline-flex items-center">
+                        <span x-data="{ copied: false, url: @js(route('opportunites.show', $opportunity)) }" class="inline-flex items-center justify-center">
                             <button type="button" x-on:click="if (navigator.share) { navigator.share({ url }).catch(() => {}); } else if (navigator.clipboard) { navigator.clipboard.writeText(url).then(() => copied = true).catch(() => window.prompt('Copiez ce lien', url)); } else { window.prompt('Copiez ce lien', url); }" class="inline-flex min-h-11 items-center gap-1.5 rounded-button px-3 text-[14px] font-bold text-link"><x-icon name="send" :size="16" />Partager</button>
                             <span x-show="copied" x-cloak role="status" class="text-[12px] font-semibold text-type-knowledge-fg">Lien copié.</span>
                         </span>
@@ -69,8 +70,8 @@
 
                 <h1 class="mt-5 break-words text-[28px] font-extrabold leading-tight">{{ $opportunity->title }}</h1>
                 <div class="mt-3 flex flex-wrap items-center gap-2">
-                    <span class="rounded-chip px-3 py-1 text-[13px] font-bold {{ $opportunity->kind->badgeClasses() }}">{{ $opportunity->kind->label() }}</span>
-                    @foreach ($chips as $chip)<span class="rounded-chip border border-line px-3 py-1 text-[13px] font-semibold">{{ $chip }}</span>@endforeach
+                    <span class="inline-flex items-center gap-1.5 rounded-chip border border-link/30 bg-soft-blue px-3 py-1 text-[13px] font-bold text-link"><x-icon :name="$opportunity->kind->icon()" :size="15" />{{ $opportunity->kind->label() }}</span>
+                    @foreach ($chips as $chip)<span class="rounded-chip border border-line bg-card px-3 py-1 text-[13px] font-semibold">{{ $chip }}</span>@endforeach
                 </div>
                 <p class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[14px] text-muted">
                     @if ($opportunity->city)<span class="inline-flex items-center gap-1.5"><x-icon name="pin" :size="16" />{{ $opportunity->city->label() }}</span>@endif
@@ -96,7 +97,8 @@
                     <h2 id="apropos-titre" class="text-[18px] font-extrabold">À propos de l’entreprise</h2>
                     <div class="mt-3 flex min-w-0 items-center gap-3"><x-company-logo :company="$company" :size="52" />
                         <div class="min-w-0 flex-1"><p class="break-words text-[15px] font-extrabold">{{ $company->name }}</p><p class="text-[13px] text-muted">{{ $company->sector }}@if ($company->city) · {{ $company->city }}@endif</p></div>
-                        <x-button :href="route('entreprises.show', $company)" variant="secondary">Voir le profil de l’entreprise</x-button></div>
+                        @if (! $guest && ! $isOwner)<form method="POST" action="{{ route('entreprises.follow', $company) }}">@csrf<button type="submit" class="inline-flex min-h-11 items-center gap-1.5 rounded-button border border-link px-4 text-[14px] font-bold text-link"><x-icon name="plus" :size="16" />{{ $following ? 'Ne plus suivre' : 'Suivre' }}</button></form>@endif
+                        <x-button :href="route('entreprises.show', $company)" variant="secondary" class="!border-link !text-link">Voir le profil de l’entreprise</x-button></div>
                     @if ($company->summary)<p class="mt-3 whitespace-pre-line break-words text-[14px] leading-relaxed text-muted">{{ $company->summary }}</p>@endif
                 </section>
             </div>

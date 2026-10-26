@@ -21,14 +21,13 @@
         </header>
 
         <aside aria-label="Recherche et filtres" class="min-w-0 rounded-card border border-line bg-card p-4 lg:row-start-2">
-            <div class="flex items-center justify-between gap-2 lg:hidden">
-                <h2 class="text-[17px] font-extrabold">Recherche</h2>
-                <button type="button" x-on:click="filters = true" aria-haspopup="dialog" class="inline-flex min-h-11 items-center gap-1.5 rounded-button border border-line px-3 text-[13px] font-bold"><x-icon name="menu" :size="16" />Filtres @if ($activeFilters > 0)<span class="rounded-full bg-ink px-2 text-[11px] text-white">{{ $activeFilters }}</span>@endif</button>
-            </div>
-            <div class="mt-3 flex items-center gap-2 rounded-button border border-line bg-card px-3 focus-within:border-link lg:mt-0">
-                <x-icon name="search" :size="18" />
-                <label for="opportunite-recherche" class="sr-only">Rechercher une opportunité</label>
-                <input id="opportunite-recherche" type="search" wire:model.live.debounce.300ms="query" maxlength="100" autocomplete="off" placeholder="Rechercher une opportunité…" class="min-h-11 min-w-0 flex-1 border-0 bg-transparent text-[14px] outline-none">
+            <div class="flex items-center gap-2">
+                <div class="flex min-w-0 flex-1 items-center gap-2 rounded-button border border-line bg-card px-3 focus-within:border-link">
+                    <x-icon name="search" :size="18" />
+                    <label for="opportunite-recherche" class="sr-only">Rechercher une opportunité</label>
+                    <input id="opportunite-recherche" type="search" wire:model.live.debounce.300ms="query" maxlength="100" autocomplete="off" placeholder="Rechercher…" class="min-h-11 min-w-0 flex-1 border-0 bg-transparent text-[14px] outline-none">
+                </div>
+                <button type="button" x-on:click="filters = true" aria-haspopup="dialog" aria-label="Filtres{{ $activeFilters > 0 ? ' ('.$activeFilters.' actifs)' : '' }}" class="relative flex size-11 shrink-0 items-center justify-center rounded-button border border-line lg:hidden"><x-icon name="menu" :size="20" />@if ($activeFilters > 0)<span class="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-ink text-[11px] font-bold text-white">{{ $activeFilters }}</span>@endif</button>
             </div>
 
             {{-- Panneau de filtres : colonne à gauche sur ordinateur, fenêtre plein écran sur téléphone. --}}
@@ -39,33 +38,37 @@
                     <div class="space-y-0.5">
                         <button type="button" wire:click="setKind('')" aria-pressed="{{ $kind === '' ? 'true' : 'false' }}" class="flex min-h-11 w-full items-center gap-2 rounded-button px-2 text-left text-[14px]">
                             <span class="flex size-[18px] shrink-0 items-center justify-center rounded-[4px] border {{ $kind === '' ? 'border-link bg-link text-white' : 'border-line' }}">@if ($kind === '')<x-icon name="check" :size="12" :stroke="3" />@endif</span>
-                            <span class="flex-1">Tous</span><span class="text-muted">{{ $totalCount }}</span>
+                            <span class="flex-1">Tous</span><span class="text-muted">({{ $totalCount }})</span>
                         </button>
                         @foreach ($kinds as $k)
                             <button type="button" wire:click="setKind('{{ $kind === $k->value ? '' : $k->value }}')" aria-pressed="{{ $kind === $k->value ? 'true' : 'false' }}" class="flex min-h-11 w-full items-center gap-2 rounded-button px-2 text-left text-[14px]">
                                 <span class="flex size-[18px] shrink-0 items-center justify-center rounded-[4px] border {{ $kind === $k->value ? 'border-link bg-link text-white' : 'border-line' }}">@if ($kind === $k->value)<x-icon name="check" :size="12" :stroke="3" />@endif</span>
-                                <span class="flex-1">{{ $k->pluralLabel() }}</span><span class="text-muted">{{ $kindCounts[$k->value] ?? 0 }}</span>
+                                <span class="flex-1">{{ $k->pluralLabel() }}</span><span class="text-muted">({{ $kindCounts[$k->value] ?? 0 }})</span>
                             </button>
                         @endforeach
                     </div>
                 </fieldset>
                 <div class="mt-4"><label for="filtre-localite" class="mb-1.5 block text-[14px] font-extrabold">Localité</label>
-                    <select id="filtre-localite" wire:model.live="city" class="zumra-filter w-full"><option value="">Toutes les localités</option>@foreach ($cities as $c)<option value="{{ $c->id }}">{{ $c->label() }}</option>@endforeach</select></div>
+                    <div class="flex items-center gap-2 rounded-button border border-line bg-card px-3 focus-within:border-link">
+                        <input id="filtre-localite" type="text" list="opportunite-villes" wire:model.live.debounce.400ms="city" maxlength="80" autocomplete="off" placeholder="Ex. : Abidjan, Yopougon" class="min-h-11 min-w-0 flex-1 border-0 bg-transparent text-[14px] outline-none">
+                        <x-icon name="pin" :size="16" class="shrink-0 text-muted" />
+                    </div>
+                    <datalist id="opportunite-villes">@foreach ($cities as $c)<option value="{{ $c->name }}">{{ $c->label() }}</option>@endforeach</datalist></div>
                 <div class="mt-4"><label for="filtre-domaine" class="mb-1.5 block text-[14px] font-extrabold">Domaine</label>
                     <select id="filtre-domaine" wire:model.live="domain" class="zumra-filter w-full"><option value="">Tous les domaines</option>@foreach ($domains as $d)<option value="{{ $d->id }}">{{ $d->name }}</option>@endforeach</select></div>
                 <div class="mt-4"><label for="filtre-date" class="mb-1.5 block text-[14px] font-extrabold">Date de publication</label>
                     <select id="filtre-date" wire:model.live="date" class="zumra-filter w-full">@foreach (\App\Livewire\OpportunityCatalog::DATES as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select></div>
-                <button type="button" wire:click="clearFilters" class="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-button border border-link px-3 text-[14px] font-bold text-link">Réinitialiser les filtres</button>
-                <button type="button" x-on:click="filters = false" class="mt-3 inline-flex min-h-12 w-full items-center justify-center rounded-button bg-accent px-3 text-[15px] font-bold text-ink lg:hidden">Voir les résultats ({{ $n }})</button>
+                <button type="button" x-on:click="filters = false" class="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-button bg-accent px-3 text-[15px] font-bold text-ink lg:hidden">Voir les résultats ({{ $n }})</button>
+                <button type="button" wire:click="clearFilters" class="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-button px-3 text-[14px] font-bold text-link lg:mt-5 lg:border lg:border-link">Réinitialiser les filtres</button>
             </div>
         </aside>
 
         <main class="min-w-0 space-y-4 lg:row-start-2">
             <div class="rounded-card border border-line bg-card p-4">
                 <div role="tablist" aria-label="Type d’opportunité" class="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 py-1">
-                    <button type="button" role="tab" aria-selected="{{ $kind === '' ? 'true' : 'false' }}" wire:click="setKind('')" class="min-h-11 shrink-0 rounded-full px-4 text-[13px] font-bold {{ $kind === '' ? 'bg-link text-white' : 'border border-line bg-card' }}">Toutes <span class="ml-1 opacity-80">{{ $totalCount }}</span></button>
+                    <button type="button" role="tab" aria-selected="{{ $kind === '' ? 'true' : 'false' }}" wire:click="setKind('')" class="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-button px-4 text-[13px] font-bold {{ $kind === '' ? 'bg-link text-white' : 'border border-line bg-card' }}">Toutes <span class="rounded-[5px] px-1.5 text-[12px] {{ $kind === '' ? 'bg-white/25' : 'bg-soft-blue text-link' }}">{{ $totalCount }}</span></button>
                     @foreach ($kinds as $k)
-                        <button type="button" role="tab" aria-selected="{{ $kind === $k->value ? 'true' : 'false' }}" wire:click="setKind('{{ $k->value }}')" class="min-h-11 shrink-0 rounded-full px-4 text-[13px] font-bold {{ $kind === $k->value ? 'bg-link text-white' : 'border border-line bg-card' }}">{{ $k->pluralLabel() }} <span class="ml-1 opacity-80">{{ $kindCounts[$k->value] ?? 0 }}</span></button>
+                        <button type="button" role="tab" aria-selected="{{ $kind === $k->value ? 'true' : 'false' }}" wire:click="setKind('{{ $k->value }}')" class="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-button px-4 text-[13px] font-bold {{ $kind === $k->value ? 'bg-link text-white' : 'border border-line bg-card' }}">{{ $k->tabLabel() }} <span class="rounded-[5px] px-1.5 text-[12px] {{ $kind === $k->value ? 'bg-white/25' : 'bg-soft-blue text-link' }}">{{ $kindCounts[$k->value] ?? 0 }}</span></button>
                     @endforeach
                 </div>
                 <div class="mt-4 flex flex-wrap items-center justify-between gap-3">

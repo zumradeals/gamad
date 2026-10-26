@@ -44,7 +44,7 @@ class Opportunities
         $rules = [
             'kind' => ['required', Rule::enum(OpportunityKind::class)],
             'title' => ['required', 'string', 'max:160'],
-            'description' => [$forPublication ? 'required' : 'nullable', 'string', 'max:3000'],
+            'description' => [$forPublication ? 'required' : 'nullable', 'string', 'max:1000'],
             'missions' => ['nullable', 'string', 'max:2000'],
             'profile' => ['nullable', 'string', 'max:2000'],
             'skills' => ['array', 'max:'.Opportunity::MAX_SKILLS],
@@ -64,7 +64,7 @@ class Opportunities
             'title.required' => 'Indiquez le poste ou le besoin.',
             'title.max' => 'Le titre est trop long (160 caractères au plus).',
             'description.required' => 'Expliquez ce que vous recherchez.',
-            'description.max' => 'La description est trop longue (3 000 caractères au plus).',
+            'description.max' => 'La description est trop longue (1 000 caractères au plus).',
             'skills.max' => 'Huit compétences au plus.',
             'deadline.after_or_equal' => 'La date limite ne peut pas être dans le passé.',
             'deadline.date_format' => 'Choisissez une date valide.',

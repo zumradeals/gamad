@@ -104,13 +104,15 @@ class OpportunityCatalog extends Component
     private function filtered(array $except = []): Builder
     {
         $kind = OpportunityKind::tryFrom($this->kind);
-        $city = Str::isUuid($this->city) ? $this->city : '';
+        $city = Normalizer::display(Str::limit($this->city, 80, ''));
         $domain = Str::isUuid($this->domain) ? $this->domain : '';
         $days = array_key_exists($this->date, self::DATES) && $this->date !== '' ? (int) $this->date : 0;
 
         return Opportunity::query()->open()
             ->when($kind && ! in_array('kind', $except, true), fn (Builder $q) => $q->where('opportunities.kind', $kind->value))
-            ->when($city !== '', fn (Builder $q) => $q->where('opportunities.city_id', $city))
+            ->when($city !== '', fn (Builder $q) => $q->whereHas('city', fn (Builder $c) => $c
+                ->where('cities.normalized', 'like', Normalizer::likeContains(Normalizer::key($city)))
+                ->orWhere('cities.area', 'ilike', '%'.addcslashes($city, '\\%_').'%')))
             ->when($domain !== '', fn (Builder $q) => $q->where('opportunities.domain_id', $domain))
             ->when($days > 0, fn (Builder $q) => $q->where('opportunities.published_at', '>=', now()->subDays($days)));
     }
