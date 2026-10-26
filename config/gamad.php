@@ -15,6 +15,11 @@ return [
     // D-183 : Fil + Personnes. Réouverture des modules collectifs et financiers sur nouvelle décision dans Git.
     'initial_experience' => true,
 
+    // Formulaire de contact (D-208) : conservation des messages, en mois.
+    'contact' => [
+        'retention_months' => 12,
+    ],
+
     'limits' => [
         // Inscriptions par heure et par adresse IP (D-045).
         'register_per_hour' => 20,
@@ -39,6 +44,9 @@ return [
         'join_requests_per_day' => 10,
         'invitations_per_day' => 30,
         'reports_per_hour' => 10,
+        // Messages de contact (D-208), par adresse IP et par adresse e-mail.
+        'contact_per_hour' => 3,
+        'contact_per_day' => 10,
         // Recharges de portefeuille lancées par personne et par heure (D-169).
         'recharges_per_hour' => 10,
         'reports_per_day' => 30,
