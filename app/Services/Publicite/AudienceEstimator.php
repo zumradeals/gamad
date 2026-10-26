@@ -2,6 +2,7 @@
 
 namespace App\Services\Publicite;
 
+use App\Models\AdCampaign;
 use App\Models\Profile;
 use App\Models\User;
 use App\Services\People;
@@ -33,6 +34,17 @@ class AudienceEstimator
      */
     public function count(User $advertiser, array $skillIds = [], array $domainIds = [], array $cityIds = [], bool $remote = false): int
     {
+        return $this->query($advertiser, $skillIds, $domainIds, $cityIds, $remote)->count();
+    }
+
+    /**
+     * @param  array<int, string>  $skillIds
+     * @param  array<int, string>  $domainIds
+     * @param  array<int, string>  $cityIds
+     * @return Builder<Profile>
+     */
+    public function query(User $advertiser, array $skillIds = [], array $domainIds = [], array $cityIds = [], bool $remote = false): Builder
+    {
         $query = Profile::query()->where('ads_personalization', true)
             ->whereHas('user', fn (Builder $q) => $q->whereNull('suspended_at')->whereNotNull('email_verified_at')
                 ->where('users.id', '!=', $advertiser->getKey())->whereNotIn('users.id', People::excludedIds($advertiser)));
@@ -50,7 +62,14 @@ class AudienceEstimator
             $query->whereIn('profiles.city_id', $cityIds);
         }
 
-        return $query->count();
+        return $query;
+    }
+
+    /** Ce profil, consentant, correspond-il aux critères de cette campagne personnalisée ? (Diffusion : décision par personne, jamais exposée.) */
+    public function matches(AdCampaign $campaign, Profile $profile): bool
+    {
+        return $this->query($campaign->owner, $campaign->skills()->pluck('skills.id')->all(), $campaign->domains()->pluck('domains.id')->all(), $campaign->cities()->pluck('cities.id')->all(), (bool) $campaign->remote)
+            ->whereKey($profile->getKey())->exists();
     }
 
     /** Niveau de portée, par rapport à l'audience minimale : jamais le nombre exact. */

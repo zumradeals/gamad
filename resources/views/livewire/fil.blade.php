@@ -132,6 +132,11 @@
         <div class="feed-posts" wire:loading.class="opacity-60" wire:target="setFilter, more">
             @forelse ($posts as $post)
                 <x-publication-card compact wire:key="publication-{{ $post->id }}" :publication="$post" :viewer="$viewer" :gesture="$gestures[$post->id] ?? null" :supported="$supported" :saved="in_array($post->id, $savedIds, true)" :show-follow="true" :followed="in_array($post->author_id, $followedAuthorIds, true)" :managed="$managedZumraIds" :member-of="$memberOf" />
+                @if ($sponsored && $loop->iteration === min(4, $posts->count()))
+                    <div wire:key="sponsorise-{{ $sponsored->id }}" class="feed-sponsored">
+                        @include('livewire.partials.publicite-apercu', ['name' => $sponsored->advertiserName(), 'verified' => (bool) $sponsored->company, 'title' => (string) $sponsored->title, 'body' => (string) $sponsored->body, 'imageUrl' => $sponsored->image_path ? route('publicite.image', $sponsored) : null, 'ctaLabel' => $sponsored->cta?->label() ?? '', 'ctaUrl' => route('publicite.cta', $sponsored), 'external' => $sponsored->cta === \App\Enums\AdCta::Link, 'why' => $sponsoredWhy, 'menu' => true, 'adId' => $sponsored->id])
+                    </div>
+                @endif
             @empty
                 <section aria-labelledby="vide" class="feed-panel flex flex-col items-start gap-3 p-5 md:p-6">
                     <span class="flex size-11 items-center justify-center rounded-button bg-type-call-bg text-type-call-fg" aria-hidden="true"><x-icon name="idea" :size="24" /></span>

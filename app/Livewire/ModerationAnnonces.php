@@ -8,6 +8,7 @@ use App\Models\AdCampaign;
 use App\Services\Publicite\Campaigns;
 use App\Support\PubliciteModule;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
@@ -45,6 +46,27 @@ class ModerationAnnonces extends Component
         $this->decide($campaigns, $id, false, 'Annonce refusée : son annonceur lit le motif.');
     }
 
+    /** Retirer de la diffusion une annonce acceptée et signalée (motif obligatoire). */
+    public function revoke(Campaigns $campaigns, string $id): void
+    {
+        $this->authorizeAccess();
+        $this->reset('message', 'messageIsError');
+        $this->resetErrorBag();
+        $campaign = AdCampaign::query()->findOrFail($id);
+        Gate::authorize('moderate', $campaign);
+
+        try {
+            $campaigns->revoke(Auth::user(), $campaign, (string) ($this->reasons[$id] ?? ''));
+            unset($this->reasons[$id]);
+            $this->message = 'Annonce retirée de la diffusion : son annonceur lit le motif.';
+        } catch (ValidationException $e) {
+            $this->addError('reason-'.$id, $e->errors()['reason'][0] ?? 'Indiquez le motif.');
+        } catch (AdException $e) {
+            $this->message = $e->getMessage();
+            $this->messageIsError = true;
+        }
+    }
+
     private function decide(Campaigns $campaigns, string $id, bool $accept, string $success): void
     {
         $this->authorizeAccess();
@@ -78,6 +100,11 @@ class ModerationAnnonces extends Component
         $items = AdCampaign::query()->with(['company', 'owner', 'skills', 'domains', 'cities'])
             ->where('state', AdState::Review->value)->orderBy('submitted_at')->limit(50)->get();
 
-        return view('livewire.moderation-annonces', ['items' => $items, 'me' => Auth::user()->getKey()]);
+        $reported = AdCampaign::query()->with(['company', 'owner'])
+            ->whereIn('state', [AdState::Ready->value, AdState::Paused->value])
+            ->whereIn('id', DB::table('ad_reports')->select('ad_campaign_id'))->get()
+            ->each(fn (AdCampaign $c) => $c->setAttribute('reports', DB::table('ad_reports')->where('ad_campaign_id', $c->getKey())->pluck('reason')->countBy()->all()));
+
+        return view('livewire.moderation-annonces', ['items' => $items, 'reported' => $reported, 'me' => Auth::user()->getKey()]);
     }
 }

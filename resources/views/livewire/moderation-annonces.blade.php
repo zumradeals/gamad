@@ -63,4 +63,25 @@
             </li>
         @endforelse
     </ol>
+
+    @if ($reported->isNotEmpty())
+        <h2 class="mt-2 text-[17px] font-extrabold">Annonces signalées</h2>
+        <p class="-mt-1 text-[13px] text-muted">Des personnes ont signalé ces annonces déjà acceptées. Les retirer de la diffusion exige un motif ; l’annonceur le lit.</p>
+        <ul class="flex flex-col gap-3">
+            @foreach ($reported as $c)
+                <li wire:key="signalee-{{ $c->id }}" class="flex flex-col gap-2.5 rounded-card border-2 border-ink bg-card p-4">
+                    <p class="text-[14px]"><strong>{{ $c->title }}</strong> · {{ $c->advertiserName() }}</p>
+                    <p class="text-[13px] text-muted">Signalements : @foreach ($c->reports as $reason => $total){{ \App\Services\Publicite\AdFeedback::REASONS[$reason] ?? $reason }} ({{ $total }}){{ $loop->last ? '' : ', ' }}@endforeach</p>
+                    @if ($c->user_id !== $me)
+                        <label for="retrait-{{ $c->id }}" class="text-[13px] font-bold">Motif du retrait</label>
+                        <textarea id="retrait-{{ $c->id }}" wire:model="reasons.{{ $c->id }}" rows="2" maxlength="280" class="w-full rounded-button border border-chip-line bg-soft-blue px-3 py-2.5 text-[14px]"></textarea>
+                        @error('reason-'.$c->id)<p role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>@enderror
+                        <x-button type="button" variant="secondary" wire:click="revoke('{{ $c->id }}')" wire:loading.attr="disabled" class="self-start">Retirer de la diffusion</x-button>
+                    @else
+                        <p class="text-[13px] font-semibold text-muted">C’est votre annonce : une autre personne de la modération la traite.</p>
+                    @endif
+                </li>
+            @endforeach
+        </ul>
+    @endif
 </div>

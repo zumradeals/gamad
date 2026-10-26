@@ -48,10 +48,10 @@ it('ferme les écrans quand le service est désactivé, et les refuse aux visite
     $this->actingAs(User::factory()->superAdmin()->create())->get('/espace/publicite')->assertNotFound();
 });
 
-it('montre l’état vide de Mes campagnes, avec le budget prévisionnel et sans onglet Résultats tant qu’il n’est pas livré', function () {
+it('montre l’état vide de Mes campagnes, avec le budget prévisionnel et les trois onglets', function () {
     $html = $this->actingAs(User::factory()->create())->get('/espace/publicite')->assertOk()->assertSee('Aucune campagne pour l’instant')->assertSee('Budget prévisionnel')->getContent();
     expect($html)->toContain('Créer une campagne')->toContain('Mes campagnes');
-    expect(Route::has('publicite.resultats'))->toBeFalse()->and($html)->not->toContain('>Résultats<');
+    expect($html)->toContain('>Résultats<')->and($html)->toContain(route('publicite.resultats'));
 });
 
 it('affiche les six étapes, l’aperçu étiqueté Sponsorisé et la mention prévisionnelle', function () {

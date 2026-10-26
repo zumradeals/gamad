@@ -183,6 +183,32 @@ class Campaigns
         });
     }
 
+    /**
+     * Retirer de la diffusion (D-211) : la modération retire une annonce déjà acceptée, signalée par des personnes, avec un motif obligatoire.
+     * La campagne devient Refusée (l'annonceur lit le motif, corrige et renvoie) ; la décision est au journal et notifiée.
+     */
+    public function revoke(User $moderator, AdCampaign $campaign, string $reason): AdCampaign
+    {
+        Gate::forUser($moderator)->authorize('moderate', $campaign);
+        $reason = trim($reason);
+        if (mb_strlen($reason) < 5 || mb_strlen($reason) > 280) {
+            throw ValidationException::withMessages(['reason' => 'Indiquez le motif du retrait (5 à 280 caractères).']);
+        }
+
+        return DB::transaction(function () use ($moderator, $campaign, $reason) {
+            $campaign = AdCampaign::query()->lockForUpdate()->findOrFail($campaign->getKey());
+            if (! in_array($campaign->state, [AdState::Ready->value, AdState::Paused->value], true)) {
+                throw AdException::wrongState('retirer');
+            }
+            $campaign->forceFill(['state' => AdState::Refused->value, 'refusal_reason' => $reason, 'moderated_at' => now()])->save();
+            AdModeration::query()->create(['ad_campaign_id' => $campaign->getKey(), 'reviewer_id' => $moderator->getKey(), 'decision' => 'refused', 'reason' => $reason]);
+            $this->notifier->push($campaign->owner, NotificationKind::AdRefused, $moderator);
+            AdminJournal::record($moderator, 'ad.revoked', $campaign, $reason, ['annonce' => (string) $campaign->title]);
+
+            return $campaign->refresh();
+        });
+    }
+
     /** Les annonceurs possibles de la personne : elle-même, et ses entreprises vérifiées. @return array{person: User, companies: \Illuminate\Support\Collection<int, Company>} */
     public function advertisers(User $user): array
     {
