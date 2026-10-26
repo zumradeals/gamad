@@ -208,7 +208,7 @@ class CompanyDirectory extends Component
             foreach ($skills as $name) {
                 $like = '%'.addcslashes($name, '%_\\').'%';
                 $q->orWhere('sector', 'ilike', $like)->orWhere('summary', 'ilike', $like)
-                    ->orWhereHas('opportunities', fn (Builder $p) => $p->where('body', 'ilike', $like));
+                    ->orWhereHas('opportunities', fn (Builder $p) => $p->where(fn (Builder $o) => $o->where('opportunities.title', 'ilike', $like)->orWhereRaw('opportunities.skills::text ilike ?', [$like])));
             }
         });
     }
@@ -245,7 +245,7 @@ class CompanyDirectory extends Component
                 $needle = Normalizer::key($name);
                 if (str_contains(Normalizer::key((string) $company->sector), $needle)) {
                     $reason = 'Votre capacité « '.$name.' » correspond à son secteur';
-                } elseif ($company->opportunities->contains(fn ($p) => str_contains(Normalizer::key($p->body), $needle))) {
+                } elseif ($company->opportunities->contains(fn ($p) => str_contains(Normalizer::key($p->title.' '.implode(' ', $p->skills ?? [])), $needle))) {
                     $reason = 'Une opportunité publiée mentionne « '.$name.' »';
                 } elseif (str_contains(Normalizer::key((string) $company->summary), $needle)) {
                     $reason = 'Sa présentation mentionne « '.$name.' »';

@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\NeedState;
-use App\Enums\PublicationType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
@@ -25,6 +23,12 @@ class Company extends Model
 
     protected static function booted(): void
     {
+        // Le nom de l'entreprise fait partie du texte de recherche de ses opportunités.
+        static::saved(function (Company $company) {
+            if ($company->wasChanged(['name', 'sector'])) {
+                $company->allOpportunities()->get()->each(fn (Opportunity $opportunity) => $opportunity->setRelation('company', $company)->save());
+            }
+        });
         static::deleting(function (Company $company) {
             foreach ($company->documents as $document) {
                 Storage::disk('local')->delete($document->private_path);
@@ -48,15 +52,16 @@ class Company extends Model
         return $this->hasMany(CompanyDocument::class);
     }
 
-    /** Opportunités publiques en cours : besoins publiés au nom de l'entreprise, ni résolus, ni fermés, ni masqués. */
+    /** Opportunités ouvertes publiées par l'entreprise (module Opportunités) : une seule source pour sa page et le catalogue. */
     public function opportunities()
     {
-        return $this->hasMany(Publication::class)
-            ->where('type', PublicationType::Need->value)
-            ->whereIn('need_state', [NeedState::Open->value, NeedState::InProgress->value])
-            ->where('visibility', Publication::PUBLIC)
-            ->whereNull('hidden_at')
-            ->whereHas('author', fn ($author) => $author->active());
+        return $this->hasMany(Opportunity::class)->open();
+    }
+
+    /** Toutes les opportunités de l'entreprise, brouillons et clôturées comprises : réservé à sa gestion. */
+    public function allOpportunities()
+    {
+        return $this->hasMany(Opportunity::class);
     }
 
     public function verified(): bool

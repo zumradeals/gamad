@@ -50,6 +50,9 @@ dans les textes éditoriaux. Authentification et historiques conservés.
 
 **D-193 étend R1 à la vie sociale**, par trois PR successives après validation des maquettes : commentaires publics sous publications personnelles avec modération ; enregistrements privés et partage ; Accueil social et découverte chronologique. Chaque PR est testée et présentée sur téléphone, sans réouvrir les modules gelés.
 
+**D-197 étend R1 au module Opportunités** (voir la section « Module Opportunités — D-197 » plus bas) : trois tables
+additives, une colonne nullable sur les notifications, aucune réactivation de module gelé.
+
 **Critères de fin :** parcours sur téléphone, tests en mode initial et régression du système conservé,
 CI verte, aucune suppression de données ni rupture des confirmations de paiement ou de la visibilité.
 Seul le Président clôt ce lot après essai. Réouverture des modules sur nouvelle décision seulement.
@@ -471,3 +474,19 @@ Références dans settings, changements journalisés. Images dans publication-me
 dans la sauvegarde existante des médias. Anciennes versions conservées dans cette sauvegarde ; seules
 les références courantes sont servies par la route publique. Aucun manifeste installable ni PWA ajouté.
 Pas de dépendance ni migration. R1 reste En cours.
+
+
+## Module Opportunités — D-197, D-198
+Les entreprises vérifiées publient des emplois, stages et apprentissages, missions et collaborations ;
+les personnes les consultent, les sauvegardent et y répondent. Les personnes physiques ne publient pas dans ce module.
+Menu : Accueil · Personnes · Entreprises · Opportunités (icône dédiée sur téléphone).
+Catalogue public `/opportunites` : recherche insensible à la casse et aux accents, type, localité, domaine, date de
+publication, tri par date ou par date limite, pagination par dix, état vide honnête. Détail `/opportunites/{id}` :
+une offre clôturée, archivée ou expirée n'est jamais présentée comme ouverte ; brouillons et archives sont invisibles du public.
+Publication en trois étapes (type et description, détails, aperçu) par le propriétaire de l'entreprise seulement ;
+brouillon possible tant que l'entreprise n'est pas suspendue ; publication réservée aux entreprises vérifiées.
+Réponses : une par personne et par opportunité, message de 1 000 caractères et PDF de 5 Mo facultatifs, stockés en privé
+et servis à leur auteur et à l'entreprise seulement, retrait possible ; « Marquer comme vue » et « Proposer un échange »
+(demande de relation existante) côté entreprise, notifications internes. Aucune note, aucun classement, aucun matching avancé.
+La page publique de l'entreprise affiche « Nos opportunités » depuis la même table ; le formulaire de publication
+ordinaire de l'entreprise n'en crée plus (D-198). Tests : `tests/Feature/Opportunites/`. R1 reste En cours.

@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\OpportunityResponse;
 use App\Models\User;
+use App\Policies\OpportunityPolicy;
 use App\Services\Backup\RcloneProbe;
 use App\Services\Backup\StorageProbe;
 use App\Services\Settings;
@@ -25,6 +27,9 @@ class AppServiceProvider extends ServiceProvider
         }
 
         Password::defaults(fn () => Password::min(8));
+
+        // Les réponses à une opportunité suivent la politique de l'opportunité (auteur de la réponse et entreprise émettrice).
+        Gate::policy(OpportunityResponse::class, OpportunityPolicy::class);
 
         Gate::define('super-admin', fn (User $user) => $user->isSuperAdmin());
         Gate::define('moderate', fn (User $user) => $user->isModerator() || $user->isSuperAdmin());

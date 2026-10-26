@@ -65,11 +65,11 @@ it('publie une actualité entreprise dans le Fil sans transformer le profil pers
         ->assertOk()->assertDontSeeText('Notre atelier ouvre un espace de découverte.');
 });
 
-it('permet au gestionnaire d’annoncer une réalisation et une opportunité sans réinventer le Fil', function () {
+it('permet au gestionnaire d’annoncer une réalisation et renvoie les opportunités vers le module dédié', function () {
     $owner = person('Page entreprise test');
     $company = companyForPublishing($owner);
     $this->actingAs($owner)->get(route('entreprises.posts.create', $company))
-        ->assertOk()->assertSeeText('Actualité')->assertSeeText('Réalisation')->assertSeeText('Opportunité');
+        ->assertOk()->assertSeeText('Actualité')->assertSeeText('Réalisation')->assertSee(route('opportunites.create', $company), false);
 
     $this->post(route('entreprises.posts.store', $company), [
         'kind' => 'work', 'body' => 'Installation et maintenance livrées.',
@@ -78,17 +78,11 @@ it('permet au gestionnaire d’annoncer une réalisation et une opportunité san
     expect($work->type)->toBe(PublicationType::PersonalWork)
         ->and($work->displayLabel())->toBe('Réalisation d’entreprise');
 
+    // Une seule source pour les opportunités : le formulaire du Fil n'en crée plus.
     $this->post(route('entreprises.posts.store', $company), [
         'kind' => 'opportunity', 'body' => 'Nous recherchons un prestataire en fibre optique.',
-    ])->assertRedirect();
-    $opportunity = Publication::where('company_id', $company->id)->where('type', PublicationType::Need->value)->sole();
-    expect($opportunity->displayLabel())->toBe('Opportunité professionnelle')
-        ->and($opportunity->gestureLabel())->toBe('Proposer une collaboration')
-        ->and($opportunity->acceptsGestures())->toBeTrue();
-
-    $this->get(route('publications.show', $opportunity))->assertOk()
-        ->assertSeeText('Opportunité professionnelle')
-        ->assertSeeText($company->name);
+    ])->assertSessionHasErrors('kind');
+    expect(Publication::where('company_id', $company->id)->where('type', PublicationType::Need->value)->count())->toBe(0);
 });
 
 it('interdit la publication au nom d’une entreprise non vérifiée ou appartenant à un tiers', function () {

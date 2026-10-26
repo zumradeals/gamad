@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\NeedState;
 use App\Enums\PublicationType;
 use App\Models\Company;
 use App\Models\CompanyExperience;
@@ -21,7 +20,7 @@ class CompanyController extends Controller
         // Mêmes règles de visibilité et de modération que le Fil : une publication masquée n'apparaît jamais ici.
         $posts = fn () => Publication::query()->visibleTo($viewer)->where('company_id', $company->id)->whereNull('hidden_at');
         $works = $verified ? $posts()->where('type', PublicationType::PersonalWork->value)->with(['skills', 'domain', 'city'])->latest()->limit(12)->get() : collect();
-        $offers = $verified ? $posts()->where('type', PublicationType::Need->value)->whereIn('need_state', [NeedState::Open->value, NeedState::InProgress->value])->with(['city'])->latest()->limit(12)->get() : collect();
+        $offers = $verified ? $company->opportunities()->with(['city'])->latest('published_at')->limit(12)->get() : collect();
 
         return view('pages.entreprise', [
             'company' => $company,
@@ -38,7 +37,7 @@ class CompanyController extends Controller
             'stats' => $verified ? array_filter([
                 'Publications' => $posts()->count(),
                 'Réalisations' => $posts()->where('type', PublicationType::PersonalWork->value)->count(),
-                'Offres' => $posts()->where('type', PublicationType::Need->value)->whereIn('need_state', [NeedState::Open->value, NeedState::InProgress->value])->count(),
+                'Opportunités' => $company->opportunities()->count(),
                 'Abonnés' => DB::table('company_follows')->where('company_id', $company->id)->count(),
             ]) : [],
             'confirmedPeople' => $verified

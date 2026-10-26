@@ -7,6 +7,7 @@ use App\Enums\PlatformRole;
 use App\Models\Company;
 use App\Models\CompanyExperience;
 use App\Models\Conversation;
+use App\Models\Opportunity;
 use App\Models\Project;
 use App\Models\Publication;
 use App\Models\User;
@@ -66,6 +67,20 @@ class Notifier
         $alert->actor()->associate($actor);
         $alert->company()->associate($company);
         $alert->companyExperience()->associate($experience);
+        $alert->save();
+    }
+
+    /** Une réponse à une opportunité, ou la suite que l'entreprise y donne : renvoie à l'opportunité concernée. */
+    public function opportunity(?User $to, NotificationKind $kind, ?User $actor, Opportunity $opportunity): void
+    {
+        if ($to === null || $actor?->id === $to->id) {
+            return;
+        }
+        $alert = new UserNotification(['kind' => $kind]);
+        $alert->user()->associate($to);
+        $alert->actor()->associate($actor);
+        $alert->company()->associate($opportunity->company);
+        $alert->opportunity()->associate($opportunity);
         $alert->save();
     }
 
