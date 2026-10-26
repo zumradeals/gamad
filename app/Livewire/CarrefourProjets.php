@@ -72,7 +72,8 @@ class CarrefourProjets extends Component
         $city = Str::isUuid($this->city) ? $this->city : '';
         $domain = Str::isUuid($this->domain) ? $this->domain : '';
 
-        $projects = Project::query()
+        // Aucun projet privé n'y figure (P1) : seulement les présentations publiées par leur porteur.
+        $projects = Project::query()->showcased()
             ->when($key !== '', fn (Builder $query) => $query->where('search', 'like', Normalizer::likeContains($key)))
             ->when($state, fn (Builder $query) => $query->where('state', $state->value))
             ->when($city !== '', fn (Builder $query) => $query->whereHas('zumra', fn (Builder $zumra) => $zumra->where('city_id', $city)))

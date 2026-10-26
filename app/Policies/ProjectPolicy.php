@@ -9,63 +9,96 @@ use App\Models\Project;
 use App\Models\ProjectMember;
 use App\Models\User;
 use App\Models\Zumra;
-use App\Support\Experience;
+use App\Support\ZumraModule;
 use Illuminate\Auth\Access\Response;
 
-/** Qui voit et gère un projet (D-005, D-127). Toute règle vit ici, côté serveur. */
+/**
+ * Qui voit et gère un projet (P1, D-206). Toute règle vit ici, côté serveur.
+ *
+ * Un projet est privé : son dossier n'est ouvert qu'à son porteur et à ses collaborateurs. L'appartenance à la ZUMRA d'accueil ne donne
+ * aucun accès au dossier ; ses responsables examinent seulement la demande d'accueil. La présentation publique est un choix du porteur.
+ * Les projets suivent l'état du module ZUMRA : fermés, ils n'existent pour personne (D-205).
+ */
 class ProjectPolicy
 {
-    /** La page d'un projet est publique : visiteurs sans compte compris (D-005). */
-    public function view(?User $viewer, Project $project): bool
+    public function before(?User $user): ?Response
     {
-        return true;
+        return ZumraModule::accessibleTo($user) ? null : Response::denyAsNotFound();
     }
 
-    /** Créer un projet dans une ZUMRA : son fondateur et ses responsables (D-127). */
-    public function create(User $user, Zumra $zumra): Response
+    /** Ouvrir le dossier du projet : son porteur et ses collaborateurs, jamais par la seule appartenance à une ZUMRA. Pour les autres, il n'existe pas (404). */
+    public function view(?User $viewer, Project $project): Response
     {
-        if (Experience::initial()) {
-            return Response::deny('Les nouvelles activités collectives sont en pause. Retrouvez les personnes et les besoins dans le Fil.');
+        if (! $viewer) {
+            return Response::denyAsNotFound();
         }
 
-        return $zumra->roleOf($user)?->manages() ? Response::allow() : Response::denyAsNotFound();
+        // Projet d'avant P1 dont le porteur n'existe plus : les responsables de sa ZUMRA le gardent.
+        if ($project->owner_id === null && $project->zumra->roleOf($viewer)?->manages()) {
+            return Response::allow();
+        }
+
+        return $project->isOwnedBy($viewer) || $project->isCollaborator($viewer) ? Response::allow() : Response::denyAsNotFound();
     }
 
-    /** Modifier un projet et changer son état : le fondateur et les responsables de sa ZUMRA (D-127). */
+    /** La présentation publique limitée : seulement si le porteur l'a publiée et que la ZUMRA a accepté l'accueil. */
+    public function viewShowcase(?User $viewer, Project $project): bool
+    {
+        return $project->isShowcasePublished();
+    }
+
+    /**
+     * Créer un projet (P1) : toute personne vérifiée. Dans une ZUMRA dont elle est membre, l'accueil est immédiat ; dans une autre, il
+     * faut que la ZUMRA l'accepte, et le projet reste un brouillon privé en attendant.
+     */
+    public function create(User $user, Zumra $zumra): Response
+    {
+        return $user->hasVerifiedEmail() ? Response::allow() : Response::deny('Vérifiez votre adresse e-mail pour créer un projet.');
+    }
+
+    /** Modifier le projet, gérer son équipe, ses étapes, son accueil et sa présentation : son porteur seul (la ZUMRA ne dirige pas). */
     public function update(User $user, Project $project): Response
+    {
+        if ($project->isOwnedBy($user)) {
+            return Response::allow();
+        }
+
+        // Projet d'avant P1 dont le porteur n'existe plus.
+        if ($project->owner_id === null && $project->zumra->roleOf($user)?->manages()) {
+            return Response::allow();
+        }
+
+        return Response::denyAsNotFound();
+    }
+
+    /** L'équipe : réservée à ceux qui ouvrent le dossier. */
+    public function viewTeam(?User $viewer, Project $project): bool
+    {
+        return $this->view($viewer, $project)->allowed();
+    }
+
+    /** Examiner la demande d'accueil et l'accepter ou la refuser : le fondateur et les responsables de la ZUMRA demandée, sans accès au dossier. */
+    public function decideHosting(User $user, Project $project): Response
     {
         return $project->zumra->roleOf($user)?->manages() ? Response::allow() : Response::denyAsNotFound();
     }
 
-    /** L'équipe : la liste des personnes se lit connecté et vérifié, avec la règle de visibilité de chaque profil (D-140). */
-    public function viewTeam(?User $viewer, Project $project): bool
-    {
-        return (bool) $viewer?->hasVerifiedEmail();
-    }
-
     /**
-     * Demander à participer (D-128) : un membre vérifié de la ZUMRA du projet, qui n'est pas déjà dans l'équipe, sans demande en
-     * attente, tant que le projet n'est ni terminé ni abandonné. Le fondateur et les responsables s'ajoutent directement. Une
-     * demande déclinée ne se refait pas ; une demande retirée se refait.
+     * Proposer son aide (D-128, P1) : une personne vérifiée, hors du projet, quand le projet a publié sa présentation. Une demande
+     * déclinée ne se refait pas ; une demande retirée se refait. Le porteur décide.
      */
     public function participate(User $user, Project $project): Response
     {
-        if (Experience::initial()) {
-            return Response::deny('Les nouvelles activités collectives sont en pause. Retrouvez les personnes et les besoins dans le Fil.');
-        }
-
         if (! $user->hasVerifiedEmail()) {
-            return Response::deny('Vérifiez votre adresse e-mail pour participer.');
+            return Response::deny('Vérifiez votre adresse e-mail pour proposer votre aide.');
         }
 
-        $role = $project->zumra->roleOf($user);
-
-        if (! $role) {
-            return Response::deny('Pour participer, rejoignez d’abord la ZUMRA.');
+        if (! $project->isShowcasePublished()) {
+            return Response::denyAsNotFound();
         }
 
-        if ($role->manages()) {
-            return Response::deny('Vous gérez ce projet : ajoutez-vous directement à l’équipe.');
+        if ($project->isOwnedBy($user)) {
+            return Response::deny('C’est votre projet.');
         }
 
         if (! in_array($project->state, [ProjectState::Idea, ProjectState::InProgress], true)) {

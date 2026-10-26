@@ -554,3 +554,19 @@ financier, affaires sociales et religieuses ; un poste, une personne par ZUMRA) 
 
 **Interdits.** Aucun faux compte de membres ni statistique ; aucun classement de popularité ; les noms des responsables ne sont montrés
 qu'aux personnes autorisées à voir les membres ; les projets d'une ZUMRA ne sont pas affichés dans ce parcours.
+
+## Projets — porteur, confidentialité, accueil (P1, D-206)
+
+**Modèle.** `projects.owner_id` (le porteur), `domain_id`, `city_id`, `stage` (idée, préparation, développement, lancement, activité), `hosting_state`
+(pending, accepted, declined, withdrawn) avec `hosting_message` et la décision, `origin_zumra_id` (lien historique conservé), et la vitrine
+(`showcase_published_at`, `showcase_summary`, `showcase_contribute`, `showcase_show_owner`, `showcase_show_needs`). Trois tables additives :
+`project_skill` (compétences recherchées, référentiel commun), `project_invitations` (consentement) et `project_company_links` (lien avec une entreprise,
+proposé puis confirmé). La migration reprend les projets existants (porteur = créateur, accueil accepté, privés) et reconstruit la contrainte des types de
+notification, qui n'avait pas suivi les ajouts de Z1.
+
+**Droits.** `ProjectPolicy` : `view` = porteur ou collaborateur (404 sinon) ; `update` = porteur seul ; `decideHosting` = responsables de la ZUMRA demandée ;
+`viewShowcase` = vitrine publiée et accueil accepté ; `participate` = personne vérifiée, vitrine publiée, projet ni terminé ni abandonné. `before()` ferme tout
+quand le module ZUMRA n'est pas accessible. `/projets/{projet}` ouvre le dossier au porteur et aux collaborateurs, sinon la vitrine, sinon 404.
+
+**Interdits.** Aucune publication automatique dans le Fil ; aucun document de projet dans ce lot ; pas de bouton « Suivre le projet » (aucun mécanisme existant de
+suivi de projet) ; pas d'« Actualités » publiques ; les publications faites au nom d'un projet gardent leur niveau de visibilité propre.

@@ -12,9 +12,9 @@ use App\Models\ProjectStep;
 use App\Models\Publication;
 use App\Models\User;
 use App\Services\Gestures;
-use App\Services\Memberships;
 use App\Services\Moderation;
 use App\Services\ProjectSteps;
+use App\Services\ProjectTeam;
 use App\Services\Publications;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\QueryException;
@@ -33,6 +33,10 @@ beforeEach(function () {
     ajouteMembre($this->zumra, $this->resp, ZumraRole::Manager);
     ajouteMembre($this->zumra, $this->membre);
     $this->projet = projet($this->yao, $this->zumra, 'Uniformes de la rentrée');
+    // Un projet est privé (P1) : son dossier n'est ouvert qu'à son porteur (yao) et à ses collaborateurs. Ces deux personnes y collaborent,
+    // l'une membre de la ZUMRA, l'autre non, pour essayer chaque niveau de visibilité des publications.
+    app(ProjectTeam::class)->enter($this->projet, $this->membre, null);
+    app(ProjectTeam::class)->enter($this->projet, $this->dehors, null);
 });
 
 function etape(User $qui, Project $projet, string $titre = 'Commander le tissu'): ProjectStep
@@ -58,9 +62,9 @@ function projet_monde(?User $qui, Project $projet, string $onglet = 'avancement'
 
 // ─── Étapes ──────────────────────────────────────────────────────────────────
 
-it('laisse les gestionnaires ajouter des étapes, à faire, dans l’ordre', function () {
+it('laisse le porteur ajouter des étapes, à faire, dans l’ordre', function () {
     $a = etape($this->yao, $this->projet, 'Commander le tissu');
-    $b = etape($this->resp, $this->projet, 'Couper');
+    $b = etape($this->yao, $this->projet, 'Couper');
     $c = etape($this->yao, $this->projet, 'Coudre');
 
     expect($this->projet->steps()->pluck('title')->all())->toBe(['Commander le tissu', 'Couper', 'Coudre'])
@@ -68,8 +72,8 @@ it('laisse les gestionnaires ajouter des étapes, à faire, dans l’ordre', fun
         ->and($a->fresh()->state)->toBe(ProjectStepState::Todo);
 });
 
-it('refuse les étapes à un membre, à une personne extérieure et à un visiteur', function () {
-    foreach ([$this->membre, $this->dehors] as $qui) {
+it('refuse les étapes à un collaborateur, à un responsable de la ZUMRA et à une personne extérieure', function () {
+    foreach ([$this->membre, $this->dehors, $this->resp] as $qui) {
         expect(fn () => etape($qui, $this->projet))->toThrow(AuthorizationException::class);
     }
     expect(ProjectStep::count())->toBe(0);
@@ -92,10 +96,10 @@ it('vérifie le titre d’une étape (2 à 80 caractères) et limite à 20 étap
     expect(etape($this->yao, projet($this->yao, $this->zumra, 'Autre projet'), 'Première')->position)->toBe(1);
 });
 
-it('renomme une étape, pour un gestionnaire seulement', function () {
+it('renomme une étape, pour le porteur seulement', function () {
     $e = etape($this->yao, $this->projet);
 
-    app(ProjectSteps::class)->rename($this->resp, $e, 'Acheter le tissu');
+    app(ProjectSteps::class)->rename($this->yao, $e, 'Acheter le tissu');
     expect($e->fresh()->title)->toBe('Acheter le tissu');
 
     expect(fn () => app(ProjectSteps::class)->rename($this->membre, $e->fresh(), 'Intrus'))->toThrow(AuthorizationException::class);
@@ -103,17 +107,17 @@ it('renomme une étape, pour un gestionnaire seulement', function () {
     expect($e->fresh()->title)->toBe('Acheter le tissu');
 });
 
-it('change l’état d’une étape, pour un gestionnaire seulement, et date le changement', function () {
+it('change l’état d’une étape, pour le porteur seulement, et date le changement', function () {
     $e = etape($this->yao, $this->projet);
     $avant = $e->fresh()->state_changed_at;
 
     $this->travel(2)->minutes();
-    app(ProjectSteps::class)->setState($this->resp, $e, ProjectStepState::InProgress);
+    app(ProjectSteps::class)->setState($this->yao, $e, ProjectStepState::InProgress);
     expect($e->fresh()->state)->toBe(ProjectStepState::InProgress)->and($e->fresh()->state_changed_at->gt($avant))->toBeTrue();
 
     $date = $e->fresh()->state_changed_at;
     $this->travel(2)->minutes();
-    app(ProjectSteps::class)->setState($this->resp, $e->fresh(), ProjectStepState::InProgress);
+    app(ProjectSteps::class)->setState($this->yao, $e->fresh(), ProjectStepState::InProgress);
     expect($e->fresh()->state_changed_at->equalTo($date))->toBeTrue();
 
     foreach ([$this->membre, $this->dehors] as $qui) {
@@ -136,20 +140,20 @@ it('déplace une étape d’un cran, sans effet aux extrémités, et garde des p
     expect($titres())->toBe(['Étape C', 'Étape A', 'Étape B']);
     app(ProjectSteps::class)->move($this->yao, $b->fresh(), 1);
     expect($titres())->toBe(['Étape C', 'Étape A', 'Étape B']);
-    app(ProjectSteps::class)->move($this->resp, $c->fresh(), 1);
+    app(ProjectSteps::class)->move($this->yao, $c->fresh(), 1);
     expect($titres())->toBe(['Étape A', 'Étape C', 'Étape B'])->and($this->projet->steps()->pluck('position')->all())->toBe([1, 2, 3]);
 
     expect(fn () => app(ProjectSteps::class)->move($this->membre, $a->fresh(), 1))->toThrow(AuthorizationException::class);
     expect($titres())->toBe(['Étape A', 'Étape C', 'Étape B']);
 });
 
-it('retire une étape sans laisser de trou dans l’ordre, pour un gestionnaire seulement', function () {
+it('retire une étape sans laisser de trou dans l’ordre, pour le porteur seulement', function () {
     $a = etape($this->yao, $this->projet, 'Étape A');
     $b = etape($this->yao, $this->projet, 'Étape B');
     etape($this->yao, $this->projet, 'Étape C');
 
     expect(fn () => app(ProjectSteps::class)->remove($this->dehors, $b))->toThrow(AuthorizationException::class);
-    app(ProjectSteps::class)->remove($this->resp, $b);
+    app(ProjectSteps::class)->remove($this->yao, $b);
 
     expect($this->projet->steps()->pluck('title')->all())->toBe(['Étape A', 'Étape C'])->and($this->projet->steps()->pluck('position')->all())->toBe([1, 2]);
 
@@ -176,39 +180,39 @@ it('supprime les étapes avec le projet', function () {
 // ─── Avancement affiché ──────────────────────────────────────────────────────
 
 it('affiche l’avancement à partir des étapes réelles : étapes franchies sur le total, et rien sans étape', function () {
-    projet_monde(null, $this->projet)->assertDontSeeText('étape franchie')->assertDontSeeText('étapes franchies')->assertDontSee('role="progressbar"', false)->assertSeeText('Aucune étape pour l’instant.');
+    projet_monde($this->yao, $this->projet)->assertDontSeeText('étape franchie')->assertDontSeeText('étapes franchies')->assertDontSee('role="progressbar"', false)->assertSeeText('Aucune étape pour l’instant.');
 
     $a = etape($this->yao, $this->projet, 'Commander');
     etape($this->yao, $this->projet, 'Couper');
     etape($this->yao, $this->projet, 'Coudre');
-    projet_monde(null, $this->projet)->assertSeeText('0 étape franchie sur 3');
+    projet_monde($this->yao, $this->projet)->assertSeeText('0 étape franchie sur 3');
 
     app(ProjectSteps::class)->setState($this->yao, $a, ProjectStepState::Done);
-    $html = projet_monde(null, $this->projet)->assertSeeText('1 étape franchie sur 3')->html();
+    $html = projet_monde($this->yao, $this->projet)->assertSeeText('1 étape franchie sur 3')->html();
     expect($html)->toContain('aria-valuenow="1"')->toContain('aria-valuemax="3"')->toContain('width: 33%');
 
     app(ProjectSteps::class)->setState($this->yao, ProjectStep::where('title', 'Couper')->first(), ProjectStepState::Done);
-    projet_monde(null, $this->projet)->assertSeeText('2 étapes franchies sur 3');
+    projet_monde($this->yao, $this->projet)->assertSeeText('2 étapes franchies sur 3');
 });
 
-it('montre les étapes à tous, dans l’ordre, avec leur état, et les commandes aux gestionnaires seulement', function () {
+it('montre les étapes au porteur et aux collaborateurs, dans l’ordre, avec leur état, et les commandes au porteur seulement', function () {
     etape($this->yao, $this->projet, 'Commander');
     etape($this->yao, $this->projet, 'Couper');
 
-    $html = projet_monde(null, $this->projet)->assertSeeText('1. Commander')->assertSeeText('2. Couper')->assertSeeText('À faire')
+    $html = projet_monde($this->dehors, $this->projet)->assertSeeText('1. Commander')->assertSeeText('2. Couper')->assertSeeText('À faire')
         ->assertDontSeeText('Nouvelle étape')->assertDontSeeText('Monter')->assertDontSeeText('Retirer')->html();
     expect(strpos($html, 'Commander'))->toBeLessThan(strpos($html, 'Couper'));
 
     foreach ([$this->membre, $this->dehors] as $qui) {
         projet_monde($qui, $this->projet)->assertDontSeeText('Nouvelle étape')->assertDontSeeText('Monter');
     }
-    foreach ([$this->yao, $this->resp] as $qui) {
+    foreach ([$this->yao] as $qui) {
         projet_monde($qui, $this->projet)->assertSeeText('Nouvelle étape')->assertSeeText('Monter')->assertSeeText('Descendre')->assertSeeText('Retirer');
     }
 });
 
 it('gère les étapes depuis l’écran : ajouter, changer l’état, déplacer, retirer', function () {
-    $c = projet_monde($this->resp, $this->projet)->set('stepTitle', 'Commander le tissu')->call('addStep')->assertHasNoErrors()->assertSet('stepTitle', '')->assertSeeText('1. Commander le tissu')
+    $c = projet_monde($this->yao, $this->projet)->set('stepTitle', 'Commander le tissu')->call('addStep')->assertHasNoErrors()->assertSet('stepTitle', '')->assertSeeText('1. Commander le tissu')
         ->set('stepTitle', 'Couper')->call('addStep');
 
     $premier = $this->projet->steps()->first();
@@ -225,7 +229,7 @@ it('affiche l’erreur du titre d’étape sous le champ', function () {
     projet_monde($this->yao, $this->projet)->set('stepTitle', '')->call('addStep')->assertHasErrors(['stepTitle'])->assertSeeText('Le nom d’une étape doit avoir entre 2 et 80 caractères.');
 });
 
-it('refuse les actions d’étape à un membre ou une personne extérieure, depuis l’écran', function () {
+it('refuse les actions d’étape à un collaborateur, depuis l’écran', function () {
     $e = etape($this->yao, $this->projet);
 
     foreach ([$this->membre, $this->dehors] as $qui) {
@@ -257,18 +261,18 @@ it('verrouille le projet de l’écran', function () {
     expect(fn () => $c->set('projectId', $autre->id))->toThrow(CannotUpdateLockedPropertyException::class);
 });
 
-it('cache les étapes à qui a été rétrogradé, même avec l’écran déjà ouvert', function () {
-    $c = projet_monde($this->resp, $this->projet);
-    app(Memberships::class)->demote($this->yao, $this->zumra, ligne($this->zumra, $this->resp));
+it('refuse une action à un collaborateur retiré de l’équipe, même avec l’écran déjà ouvert', function () {
+    $c = projet_monde($this->dehors, $this->projet);
+    app(ProjectTeam::class)->remove($this->yao, $this->projet->members()->where('user_id', $this->dehors->id)->sole());
 
-    $c->set('stepTitle', 'Tardive')->call('addStep')->assertNotFound();
+    expect(fn () => $c->set('stepTitle', 'Tardive')->call('addStep'))->toThrow(Exception::class);
     expect(ProjectStep::count())->toBe(0);
 });
 
 // ─── Publier au nom d'un projet ──────────────────────────────────────────────
 
-it('laisse les gestionnaires publier une avancée et une réalisation au nom du projet, qui sont aussi des publications de la ZUMRA', function () {
-    foreach ([$this->yao, $this->resp] as $qui) {
+it('laisse le porteur publier une avancée et une réalisation au nom du projet, qui sont aussi des publications de la ZUMRA', function () {
+    foreach ([$this->yao] as $qui) {
         foreach ([PublicationType::ProjectUpdate, PublicationType::Achievement] as $type) {
             $p = avancee($qui, $this->projet, type: $type);
 
@@ -276,11 +280,11 @@ it('laisse les gestionnaires publier une avancée et une réalisation au nom du 
                 ->and($p->type)->toBe($type)->and($p->need_state)->toBeNull();
         }
     }
-    expect(Publication::count())->toBe(4);
+    expect(Publication::count())->toBe(2);
 });
 
-it('refuse de publier au nom du projet à un membre, à une personne extérieure', function () {
-    foreach ([$this->membre, $this->dehors] as $qui) {
+it('refuse de publier au nom du projet à un collaborateur ou à un responsable de la ZUMRA', function () {
+    foreach ([$this->membre, $this->dehors, $this->resp] as $qui) {
         expect(fn () => avancee($qui, $this->projet))->toThrow(AuthorizationException::class);
     }
     expect(Publication::count())->toBe(0);
@@ -335,8 +339,8 @@ it('supprime les avancées et réalisations avec le projet, et laisse les autres
 
 // ─── Écran de publication ────────────────────────────────────────────────────
 
-it('ouvre l’écran de publication d’un projet aux gestionnaires, avec les trois niveaux de visibilité', function () {
-    foreach ([$this->yao, $this->resp] as $qui) {
+it('ouvre l’écran de publication d’un projet à son porteur, avec les trois niveaux de visibilité', function () {
+    foreach ([$this->yao] as $qui) {
         $this->actingAs($qui)->get(route('projets.publier', [$this->projet, 'avancee']))->assertOk()
             ->assertSeeText('Vous publiez au nom du projet Uniformes de la rentrée (Couture solidaire)')->assertSeeText('Publier l’avancée')
             ->assertSeeText('Public')->assertSeeText('Inscrits seulement')->assertSeeText('ZUMRA seulement');
@@ -358,7 +362,7 @@ it('renvoie un visiteur sans compte vers la connexion pour publier au nom d’un
 });
 
 it('publie depuis l’écran et mène à la publication ; le texte vide est refusé', function () {
-    Livewire::actingAs($this->resp)->test(PublierPublication::class, ['slug' => 'avancee', 'project' => $this->projet])
+    Livewire::actingAs($this->yao)->test(PublierPublication::class, ['slug' => 'avancee', 'project' => $this->projet])
         ->assertSet('domain_id', $this->zumra->domain_id)
         ->set('body', '')->call('publish')->assertHasErrors(['body'])
         ->set('body', 'Les trois écoles ont validé la commande.')->set('visibility', 'zumra')->call('publish')->assertHasNoErrors();
@@ -374,8 +378,9 @@ it('verrouille le projet et la ZUMRA de l’écran, et revérifie le droit de pu
     expect(fn () => $c->set('projectId', $autre->id))->toThrow(CannotUpdateLockedPropertyException::class);
     expect(fn () => $c->set('zumraId', (string) Str::uuid()))->toThrow(CannotUpdateLockedPropertyException::class);
 
-    $ouvert = Livewire::actingAs($this->resp)->test(PublierPublication::class, ['slug' => 'avancee', 'project' => $this->projet])->set('body', 'Tardive');
-    app(Memberships::class)->demote($this->yao, $this->zumra, ligne($this->zumra, $this->resp));
+    // Un projet transféré à un autre porteur n'est plus publiable par l'ancien : le droit est revérifié à chaque envoi.
+    $ouvert = Livewire::actingAs($this->yao)->test(PublierPublication::class, ['slug' => 'avancee', 'project' => $this->projet])->set('body', 'Tardive');
+    $this->projet->forceFill(['owner_id' => $this->resp->id])->save();
     $ouvert->call('publish')->assertNotFound();
     expect(Publication::count())->toBe(0);
 });
@@ -384,15 +389,16 @@ it('verrouille le projet et la ZUMRA de l’écran, et revérifie le droit de pu
 
 it('montre le Fil du projet : avancées et réalisations visibles, plus récentes d’abord, avec le lien vers le projet', function () {
     avancee($this->yao, $this->projet, ['body' => 'Première avancée']);
-    avancee($this->resp, $this->projet, ['body' => 'Belle réalisation'], PublicationType::Achievement);
+    avancee($this->yao, $this->projet, ['body' => 'Belle réalisation'], PublicationType::Achievement);
     avancee($this->yao, projet($this->yao, $this->zumra, 'Autre projet'), ['body' => 'Avancée ailleurs']);
 
     $html = projet_monde($this->dehors, $this->projet, 'fil')->assertSeeText('Première avancée')->assertSeeText('Belle réalisation')->assertDontSeeText('Avancée ailleurs')
         ->assertSeeText('Avancée de projet')->assertSeeText('Réalisation')->assertSeeText('Projet : Uniformes de la rentrée')->html();
     expect(strpos($html, 'Belle réalisation'))->toBeLessThan(strpos($html, 'Première avancée'));
 
-    // Page publique : un visiteur sans compte lit aussi le Fil.
-    $this->get(route('projets.show', ['project' => $this->projet, 'onglet' => 'fil']))->assertOk()->assertSeeText('Première avancée');
+    // Un projet est privé : un visiteur sans compte n'ouvre pas son dossier.
+    app('auth')->forgetGuards();
+    $this->get(route('projets.show', ['project' => $this->projet, 'onglet' => 'fil']))->assertNotFound();
 });
 
 it('applique la visibilité de chaque publication dans le Fil du projet', function () {
@@ -402,16 +408,14 @@ it('applique la visibilité de chaque publication dans le Fil du projet', functi
 
     projet_monde($this->membre, $this->projet, 'fil')->assertSeeText('Texte public')->assertSeeText('Texte inscrits')->assertSeeText('Texte ZUMRA');
     projet_monde($this->dehors, $this->projet, 'fil')->assertSeeText('Texte public')->assertSeeText('Texte inscrits')->assertDontSeeText('Texte ZUMRA');
-    app('auth')->forgetGuards();
-    projet_monde(null, $this->projet, 'fil')->assertSeeText('Texte public')->assertDontSeeText('Texte inscrits')->assertDontSeeText('Texte ZUMRA');
 });
 
-it('propose « Publier une avancée » et « Publier une réalisation » aux gestionnaires seulement, avec un état vide honnête', function () {
-    foreach ([$this->yao, $this->resp] as $qui) {
+it('propose « Publier une avancée » et « Publier une réalisation » au porteur seulement, avec un état vide honnête', function () {
+    foreach ([$this->yao] as $qui) {
         $html = projet_monde($qui, $this->projet, 'fil')->assertSeeText('Rien dans le Fil de ce projet pour l’instant.')->assertSeeText('Publier une avancée')->assertSeeText('Publier une réalisation')->html();
         expect($html)->toContain(route('projets.publier', [$this->projet, 'avancee']))->toContain(route('projets.publier', [$this->projet, 'realisation']));
     }
-    foreach ([$this->membre, $this->dehors, null] as $qui) {
+    foreach ([$this->membre, $this->dehors] as $qui) {
         projet_monde($qui, $this->projet, 'fil')->assertSeeText('Rien dans le Fil de ce projet pour l’instant.')->assertDontSeeText('Publier une avancée');
     }
 });
@@ -431,9 +435,9 @@ it('ouvre les onglets Avancement et Fil, et ignore un onglet inconnu', function 
     projet_monde($this->dehors, $this->projet)->call('setTab', 'fil')->assertSet('tab', 'fil')->call('setTab', 'inconnu')->assertSet('tab', 'avancement')->assertSeeText('Histoire du projet');
 });
 
-it('montre les quatre onglets : Avancement, Fil, Équipe et Besoins', function () {
-    foreach ([$this->yao, $this->dehors, null] as $qui) {
-        projet_monde($qui, $this->projet)->assertSeeText('Avancement')->assertSeeText('Fil')->assertSeeText('Équipe')->assertSeeText('Besoins');
+it('montre les onglets du dossier : Avancement, Accueil, Équipe, Compétences, Présentation publique, Entreprise, Fil et Besoins', function () {
+    foreach ([$this->yao, $this->dehors] as $qui) {
+        projet_monde($qui, $this->projet)->assertSeeText('Avancement')->assertSeeText('Accueil')->assertSeeText('Équipe')->assertSeeText('Compétences')->assertSeeText('Présentation publique')->assertSeeText('Entreprise')->assertSeeText('Fil')->assertSeeText('Besoins');
     }
 });
 
@@ -450,17 +454,17 @@ it('n’admet aucun geste sur une avancée ou une réalisation (le soutien est a
         expect(fn () => app(Gestures::class)->propose($qui, $p, 'Je soutiens'))->toThrow(AuthorizationException::class);
     }
 
-    foreach ([$this->dehors, $this->membre, null] as $qui) {
+    foreach ([$this->dehors, $this->membre] as $qui) {
         projet_monde($qui, $this->projet, 'fil')->assertDontSeeText('Se connecter pour répondre')->assertDontSeeText('Je peux aider')
             ->assertDontSeeText('Ça m’intéresse')->assertDontSeeText('Voir ma publication');
     }
     expect(PublicationType::Need->takesGestures())->toBeTrue()->and(PublicationType::ZumraCall->takesGestures())->toBeFalse();
 });
 
-it('montre à un gestionnaire sa publication de projet, sans réponses à attendre', function () {
+it('montre au porteur sa publication de projet, sans réponses à attendre', function () {
     $p = avancee($this->yao, $this->projet, ['body' => 'Notre avancée']);
 
-    Livewire::actingAs($this->resp)->test(PagePublication::class, ['publication' => $p])
+    Livewire::actingAs($this->yao)->test(PagePublication::class, ['publication' => $p])
         ->assertSeeText('Notre avancée de projet')->assertSeeText('Projet : Uniformes de la rentrée')->assertDontSeeText('Personne n’a encore répondu')->assertDontSeeText('Aucune réponse pour l’instant');
 
     Livewire::actingAs($this->dehors)->test(PagePublication::class, ['publication' => $p])->assertSeeText('Avancée de projet')->assertSeeText('Projet : Uniformes de la rentrée');
@@ -500,7 +504,7 @@ it('laisse la modération masquer une publication de projet, que les gestionnair
     app(Moderation::class)->hide(User::factory()->moderator()->create(), $p, 'Motif de test');
 
     projet_monde($this->dehors, $this->projet, 'fil')->assertDontSeeText('Avancée à masquer');
-    projet_monde($this->resp, $this->projet, 'fil')->assertSeeText('Avancée à masquer');
+    projet_monde($this->yao, $this->projet, 'fil')->assertSeeText('Avancée à masquer');
     Livewire::actingAs($this->dehors)->test(Fil::class)->assertDontSeeText('Avancée à masquer');
 });
 

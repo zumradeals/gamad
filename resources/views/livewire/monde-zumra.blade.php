@@ -48,17 +48,15 @@
         @endif
     </header>
 
-    <section aria-label="La ZUMRA en chiffres" class="-mt-9 grid {{ $initial ? 'grid-cols-2' : 'grid-cols-3' }} divide-x divide-line rounded-card border border-line bg-card py-3.5 md:mt-0">
+    <section aria-label="La ZUMRA en chiffres" class="-mt-9 grid grid-cols-3 divide-x divide-line rounded-card border border-line bg-card py-3.5 md:mt-0">
         <div class="flex flex-col items-center gap-0.5">
             <span class="text-[22px] font-extrabold leading-tight">{{ $zumra->members_count }}</span>
             <span class="text-[12px] text-muted">{{ $zumra->members_count > 1 ? 'membres' : 'membre' }}</span>
         </div>
-        @unless ($initial)
         <div class="flex flex-col items-center gap-0.5">
             <span class="text-[22px] font-extrabold leading-tight">{{ $projectsCount }}</span>
-            <span class="text-[12px] text-muted">{{ $projectsCount > 1 ? 'projets' : 'projet' }}</span>
+            <span class="text-[12px] text-muted">{{ $projectsCount > 1 ? 'projets visibles' : 'projet visible' }}</span>
         </div>
-        @endunless
         <div class="flex flex-col items-center gap-0.5">
             <span class="text-[18px] font-extrabold capitalize leading-tight">{{ $since }}</span>
             <span class="text-[12px] text-muted">création</span>
@@ -158,7 +156,7 @@
     @endif
 
     <nav aria-label="Onglets de la ZUMRA" class="-mx-4 flex overflow-x-auto border-b border-line bg-card px-2 md:mx-0 md:rounded-card md:border">
-        @foreach (['formation' => 'Formation', 'fil' => 'Fil'] + ($initial ? [] : ['projets' => 'Projets']) + ['membres' => 'Membres'] + ($canDiscuss ? ['discussion' => 'Discussion'] : []) as $key => $label)
+        @foreach (['formation' => 'Formation', 'fil' => 'Fil'] + ['projets' => 'Projets'] + ['membres' => 'Membres'] + ($canDiscuss ? ['discussion' => 'Discussion'] : []) as $key => $label)
             <button type="button" wire:click="setTab('{{ $key }}')" @if ($tab === $key) aria-current="page" @endif
                     @class(['flex min-h-12 min-w-11 shrink-0 items-center justify-center border-b-[3px] px-3 text-[14px]', 'border-accent font-extrabold text-ink' => $tab === $key, 'border-transparent font-semibold text-muted' => $tab !== $key])>{{ $label }}</button>
         @endforeach
@@ -250,25 +248,44 @@
     @endif
 
     @if ($tab === 'projets')
+        @if ($hostingRequests->isNotEmpty())
+            <section aria-labelledby="demandes-accueil" class="flex flex-col gap-3 rounded-card border-2 border-ink bg-card p-4">
+                <h2 id="demandes-accueil" class="text-[17px] font-extrabold">Demandes d’accueil de projets</h2>
+                <p class="text-[13px] text-muted">Vous voyez seulement ce qui sert à décider. Accueillir un projet ne vous donne ni sa direction, ni ses documents, ni ses ressources.</p>
+                @foreach ($hostingRequests as $request)
+                    <div wire:key="accueil-{{ $request->id }}" class="flex flex-col gap-2 border-t border-line-soft pt-3 first:border-0 first:pt-0">
+                        <span class="break-words text-[16px] font-extrabold">{{ $request->name }}</span>
+                        <span class="text-[12px] text-muted">{{ $request->domain?->name }} · Porteur : {{ $request->owner?->name ?? 'une personne' }}</span>
+                        <p class="whitespace-pre-line break-words text-[14px] leading-normal">{{ $request->goal }}</p>
+                        @if ($request->hosting_message)<p class="whitespace-pre-line break-words rounded-button bg-ground p-3 text-[14px]">« {{ $request->hosting_message }} »</p>@endif
+                        <div class="grid grid-cols-2 gap-2">
+                            <x-button type="button" wire:click="acceptHosting('{{ $request->id }}')" wire:loading.attr="disabled" wire:target="acceptHosting, declineHosting" class="!px-4 !text-[14px]">Accueillir</x-button>
+                            <x-button type="button" variant="secondary" wire:click="declineHosting('{{ $request->id }}')" wire:loading.attr="disabled" wire:target="acceptHosting, declineHosting" class="!px-4 !text-[14px]">Refuser</x-button>
+                        </div>
+                    </div>
+                @endforeach
+            </section>
+        @endif
+
         <section aria-labelledby="projets" class="flex flex-col gap-3">
             <div class="flex items-center justify-between gap-2">
                 <h2 id="projets" class="text-[17px] font-extrabold">Projets de la ZUMRA</h2>
-                @if ($manages && ! $initial)
-                    <a href="{{ route('projets.create', $zumra) }}" class="inline-flex min-h-11 items-center text-[14px] font-bold">Créer un projet</a>
+                @if ($viewer)
+                    <a href="{{ route('projets.create', $zumra) }}" class="inline-flex min-h-11 items-center text-[14px] font-bold">Proposer mon projet</a>
                 @endif
             </div>
 
             <div class="grid gap-3.5 md:grid-cols-2 xl:grid-cols-3">
             @forelse ($projects as $project)
                 <a wire:key="projet-{{ $project->id }}" href="{{ route('projets.show', $project) }}" class="flex flex-col gap-2 rounded-card border border-line bg-card p-4 text-ink no-underline hover:text-ink">
-                    <span class="self-start rounded-chip px-2.5 py-1 text-[12px] font-bold {{ $project->state->badgeClasses() }}">{{ $project->state->label() }}</span>
+                    <span class="self-start rounded-chip bg-type-call-bg px-2.5 py-1 text-[12px] font-bold text-type-call-fg">{{ $project->stage->label() }}</span>
                     <span class="break-words text-[16px] font-extrabold">{{ $project->name }}</span>
-                    <span class="whitespace-pre-line break-words text-[14px] leading-normal">{{ \Illuminate\Support\Str::limit($project->goal, 160) }}</span>
+                    <span class="whitespace-pre-line break-words text-[14px] leading-normal">{{ \Illuminate\Support\Str::limit($project->isShowcasePublished() ? $project->showcase_summary : 'Votre projet (privé).', 160) }}</span>
                 </a>
             @empty
                 <section class="rounded-card border border-line bg-card p-5 md:col-span-full">
                     <p class="text-[16px] font-extrabold">Aucun projet pour l’instant.</p>
-                    <p class="mt-1 text-muted">{{ $manages ? 'Créez le premier projet de la ZUMRA : une action avec un but, un état et une page publique.' : 'Les projets de la ZUMRA apparaîtront ici.' }}</p>
+                    <p class="mt-1 text-muted">Les projets accueillis par la ZUMRA apparaissent ici lorsque leur porteur publie une présentation.</p>
                 </section>
             @endforelse
             </div>

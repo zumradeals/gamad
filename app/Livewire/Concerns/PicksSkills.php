@@ -95,7 +95,8 @@ trait PicksSkills
             ->where(fn ($query) => $query
                 ->whereExists(fn ($used) => $used->select(DB::raw(1))->from('profile_skill')->whereColumn('profile_skill.skill_id', 'skills.id'))
                 ->orWhereExists(fn ($used) => $used->select(DB::raw(1))->from('publication_skill')->whereColumn('publication_skill.skill_id', 'skills.id'))
-                ->orWhereExists(fn ($used) => $used->select(DB::raw(1))->from('opportunity_skill')->whereColumn('opportunity_skill.skill_id', 'skills.id')))
+                ->orWhereExists(fn ($used) => $used->select(DB::raw(1))->from('opportunity_skill')->whereColumn('opportunity_skill.skill_id', 'skills.id'))
+                ->orWhereExists(fn ($used) => $used->select(DB::raw(1))->from('project_skill')->whereColumn('project_skill.skill_id', 'skills.id')))
             ->where('normalized', 'like', Normalizer::likeContains($key))
             ->whereNotIn('normalized', $selected)
             ->orderByRaw('case when normalized like ? then 0 else 1 end', [addcslashes($key, '\\%_').'%'])

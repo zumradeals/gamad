@@ -1,28 +1,37 @@
 @php
-    $initial = \App\Support\Experience::initial();
     $zumra = $project->zumra;
-    $meta = collect([$zumra->domain->name, $zumra->city?->label()])->filter()->implode(' · ');
+    $meta = collect([$project->domainLabel(), ($project->city ?? $zumra->city)?->label()])->filter()->implode(' · ');
     $date = fn ($d) => $d->copy()->locale('fr')->timezone('Africa/Abidjan')->translatedFormat('j F Y');
     $total = $steps->count();
+    $tabs = ['avancement' => 'Avancement', 'accueil' => 'Accueil', 'equipe' => 'Équipe', 'competences' => 'Compétences', 'vitrine' => 'Présentation publique', 'entreprise' => 'Entreprise']
+        + ($initial ? [] : ['fil' => 'Fil', 'besoins' => 'Besoins']);
 @endphp
 
 <div class="flex flex-col gap-3.5">
-    @if ($initial)<p class="rounded-card border border-line bg-card p-4 text-[14px] text-muted">Projet existant conservé. Les nouvelles créations, participations et publications collectives sont en pause.</p>@endif
     <header class="-mx-4 -mt-4 flex flex-col gap-3.5 bg-ink px-4 pb-[26px] pt-3 text-white md:mx-0 md:mt-0 md:rounded-card md:p-6">
-        <a href="{{ $initial ? route('espace') : route('projets.index') }}" class="inline-flex min-h-11 items-center gap-1.5 self-start text-[13px] font-semibold text-white no-underline hover:text-white hover:underline">
-            <x-icon name="back" :size="18" />{{ $initial ? 'Mon espace' : 'Carrefour Projets' }}
+        <a href="{{ route('espace.projets') }}" class="inline-flex min-h-11 items-center gap-1.5 self-start text-[13px] font-semibold text-white no-underline hover:text-white hover:underline">
+            <x-icon name="back" :size="18" />Mes projets
         </a>
 
         <div class="flex flex-col gap-2">
-            <span class="self-start rounded-chip px-3 py-1 text-[12px] font-bold {{ $project->state->badgeClasses() }}">{{ $project->state->label() }}</span>
+            <div class="flex flex-wrap gap-2">
+                <span class="rounded-chip bg-white px-3 py-1 text-[12px] font-bold text-ink">{{ $project->privacyLabel() }}</span>
+                <span class="rounded-chip px-3 py-1 text-[12px] font-bold {{ $project->state->badgeClasses() }}">{{ $project->state->label() }}</span>
+                <span class="rounded-chip bg-white/15 px-3 py-1 text-[12px] font-bold text-white">{{ $project->stage->label() }}</span>
+                @if ($project->isShowcasePublished())<span class="rounded-chip bg-type-knowledge-bg px-3 py-1 text-[12px] font-bold text-type-knowledge-fg">Présentation publique</span>@endif
+            </div>
             <h1 class="break-words text-[26px] font-extrabold leading-tight tracking-[-0.4px]">{{ $project->name }}</h1>
-            <a href="{{ route('zumras.show', $zumra) }}" class="inline-flex min-h-11 items-center gap-2.5 self-start text-white no-underline hover:text-white">
+            <p class="flex items-center gap-2.5 text-[14px] text-[#d6e0e8]">
                 <x-zumra-initials :zumra="$zumra" :size="36" class="!bg-white !text-ink" />
                 <span class="flex flex-col leading-tight">
-                    <span class="text-[14px] font-extrabold underline">{{ $zumra->name }}</span>
-                    <span class="text-[12px] text-[#d6e0e8]">{{ $meta }}</span>
+                    @if ($project->isHosted())
+                        <span class="font-extrabold text-white">Accueilli par {{ $zumra->name }}</span>
+                    @else
+                        <span class="font-extrabold text-white">{{ $project->hosting_state->label() }} : {{ $zumra->name }}</span>
+                    @endif
+                    <span class="text-[12px]">{{ $meta }}</span>
                 </span>
-            </a>
+            </p>
         </div>
 
         <p class="whitespace-pre-line break-words text-[15px] leading-relaxed text-[#eaf0f5] md:max-w-3xl">{{ $project->goal }}</p>
@@ -31,15 +40,20 @@
             <x-status>{{ session('status') }}</x-status>
         @endif
 
-        @if ($manages)
-            <x-button :href="route('projets.edit', $project)" variant="accent" class="md:self-start md:px-8">Modifier le projet</x-button>
+        @if ($errors->any())
+            <div role="alert" class="rounded-button border border-danger bg-card px-4 py-3 text-[14px] font-semibold text-danger">@foreach ($errors->all() as $message)<p>{{ $message }}</p>@endforeach</div>
         @endif
+
+        <div class="flex flex-col gap-2 md:flex-row md:self-start">
+            @if ($manages)<x-button :href="route('projets.edit', $project)" variant="accent" class="md:px-8">Modifier le projet</x-button>@endif
+            @if ($project->isShowcasePublished())<x-button :href="route('projets.show', ['project' => $project, 'vue' => 'publique'])" variant="secondary" class="md:px-8">Voir la présentation publique</x-button>@endif
+        </div>
     </header>
 
     <nav aria-label="Onglets du projet" class="-mx-4 flex overflow-x-auto border-b border-line bg-card px-2 md:mx-0 md:rounded-card md:border">
-        @foreach (['avancement' => 'Avancement', 'fil' => 'Fil', 'equipe' => 'Équipe', 'besoins' => 'Besoins'] as $key => $label)
+        @foreach ($tabs as $key => $label)
             <button type="button" wire:click="setTab('{{ $key }}')" @if ($tab === $key) aria-current="page" @endif
-                    @class(['flex min-h-12 min-w-11 shrink-0 items-center justify-center border-b-[3px] px-3 text-[14px]', 'border-accent font-extrabold text-ink' => $tab === $key, 'border-transparent font-semibold text-muted' => $tab !== $key])>{{ $label }}</button>
+                    @class(['flex min-h-12 min-w-11 shrink-0 items-center justify-center whitespace-nowrap border-b-[3px] px-3 text-[14px]', 'border-accent font-extrabold text-ink' => $tab === $key, 'border-transparent font-semibold text-muted' => $tab !== $key])>{{ $label }}</button>
         @endforeach
     </nav>
 
@@ -50,6 +64,21 @@
         <section aria-labelledby="avancement" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px] lg:col-start-2 lg:row-start-1">
             <h2 id="avancement" class="text-[17px] font-extrabold">Avancement</h2>
             <p class="text-[15px]"><strong>{{ $project->state->label() }}</strong> depuis le {{ $date($project->state_changed_at) }}.</p>
+
+            <div class="flex flex-col gap-1.5">
+                <p class="text-[14px] font-bold">Étape de vie : {{ $project->stage->label() }}</p>
+                <ol class="flex flex-wrap gap-1.5" aria-label="Étapes de vie du projet">
+                    @foreach (\App\Enums\ProjectStage::cases() as $stage)
+                        <li @class(['rounded-chip px-2.5 py-1 text-[12px] font-bold', 'bg-ink text-white' => $stage === $project->stage, 'bg-type-knowledge-bg text-type-knowledge-fg' => $stage->rank() < $project->stage->rank(), 'bg-line-soft text-muted' => $stage->rank() > $project->stage->rank()])>{{ $stage->label() }}</li>
+                    @endforeach
+                </ol>
+                @if ($manages)
+                    <label for="etape-vie" class="sr-only">Changer l’étape de vie du projet</label>
+                    <select id="etape-vie" wire:change="setStage($event.target.value)" class="min-h-11 rounded-[10px] border border-chip-line bg-card px-3 text-[14px] font-semibold text-ink">
+                        @foreach (\App\Enums\ProjectStage::cases() as $stage)<option value="{{ $stage->value }}" @selected($stage === $project->stage)>{{ $stage->label() }}</option>@endforeach
+                    </select>
+                @endif
+            </div>
 
             @if ($total > 0)
                 <div class="flex flex-col gap-1.5">
@@ -129,7 +158,7 @@
         @if ($manages)
             <section aria-labelledby="etat" class="flex flex-col gap-2.5 rounded-card border border-line bg-card p-4 lg:col-start-2 lg:row-start-3" x-data="{ confirming: null }">
                 <h2 id="etat" class="text-[15px] font-extrabold">Changer l’état du projet</h2>
-                <p class="text-[13px] text-muted">Seuls le fondateur et les responsables de la ZUMRA changent l’état. Chaque changement est gardé dans l’histoire du projet.</p>
+                <p class="text-[13px] text-muted">Seul le porteur change l’état. Chaque changement est gardé dans l’histoire du projet.</p>
                 <div class="flex flex-col gap-2">
                     @foreach ($project->state->next() as $next)
                         <div wire:key="etat-{{ $next->value }}" class="flex flex-col gap-2">
@@ -178,9 +207,9 @@
         <div class="flex flex-col gap-3.5">
         <section aria-labelledby="equipe" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
             <h2 id="equipe" class="text-[17px] font-extrabold">Équipe du projet</h2>
-            <p class="text-[14px]"><strong>{{ $teamCount }}</strong> {{ $teamCount > 1 ? 'personnes participent' : 'personne participe' }} à ce projet. L’équipe se compose de membres de la ZUMRA.</p>
+            <p class="text-[14px]"><strong>{{ $teamCount }}</strong> {{ $teamCount > 1 ? 'personnes participent' : 'personne participe' }} à ce projet. Chacune a donné son accord.</p>
 
-            @if ($canSeeTeam)
+            @if (true)
                 <ul class="flex flex-col divide-y divide-line-soft">
                     @forelse ($teamMembers as $member)
                         @php
@@ -219,7 +248,7 @@
                             @endif
                         </li>
                     @empty
-                        <li class="text-[14px] text-muted">{{ $manages ? 'Personne dans l’équipe pour l’instant. Ajoutez des membres de la ZUMRA ci-dessous.' : 'Personne dans l’équipe pour l’instant.' }}</li>
+                        <li class="text-[14px] text-muted">{{ $manages ? 'Personne dans l’équipe pour l’instant. Invitez une personne : elle accepte ou refuse.' : 'Personne dans l’équipe pour l’instant.' }}</li>
                     @endforelse
                 </ul>
             @else
@@ -233,47 +262,18 @@
             @endif
         </section>
 
-        @if ($viewer)
+        @if (! $manages && $viewer)
             <section aria-labelledby="participer" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
-                <h2 id="participer" class="text-[17px] font-extrabold">Participer à ce projet</h2>
-                @if ($isMember)
-                    <p class="text-[14px] font-bold text-type-knowledge-fg">Vous êtes dans l’équipe.</p>
-                    <div x-data="{ confirming: false }">
-                        <x-button type="button" variant="secondary" x-show="! confirming" x-on:click="confirming = true">Quitter l’équipe</x-button>
-                        <div x-show="confirming" x-cloak class="flex flex-wrap items-center gap-2">
-                            <span class="text-[13px] font-semibold">Quitter l’équipe de ce projet ?</span>
-                            <x-button type="button" wire:click="leaveTeam" wire:loading.attr="disabled" wire:target="leaveTeam" class="!px-4 !text-[14px]">Oui</x-button>
-                            <x-button type="button" variant="secondary" x-on:click="confirming = false" class="!px-4 !text-[14px]">Non</x-button>
-                        </div>
+                <h2 id="participer" class="text-[17px] font-extrabold">Votre participation</h2>
+                <p class="text-[14px] font-bold text-type-knowledge-fg">Vous collaborez à ce projet.</p>
+                <div x-data="{ confirming: false }">
+                    <x-button type="button" variant="secondary" x-show="! confirming" x-on:click="confirming = true">Quitter l’équipe</x-button>
+                    <div x-show="confirming" x-cloak class="flex flex-wrap items-center gap-2">
+                        <span class="text-[13px] font-semibold">Quitter l’équipe de ce projet ?</span>
+                        <x-button type="button" wire:click="leaveTeam" wire:loading.attr="disabled" wire:target="leaveTeam" class="!px-4 !text-[14px]">Oui</x-button>
+                        <x-button type="button" variant="secondary" x-on:click="confirming = false" class="!px-4 !text-[14px]">Non</x-button>
                     </div>
-                @elseif ($participation->allowed())
-                    <form wire:submit="requestParticipation" class="flex flex-col gap-2" x-data="{ n: 0 }">
-                        <label for="mot-participation" class="text-[13px] font-bold text-muted">Un mot pour les responsables (facultatif)</label>
-                        <textarea id="mot-participation" wire:model="participationWord" rows="3" maxlength="{{ \App\Models\ParticipationRequest::MESSAGE_MAX }}" x-on:input="n = $el.value.length"
-                                  @class(['w-full rounded-button border bg-card px-3.5 py-3 text-[15px]', $errors->has('participationWord') ? 'border-danger' : 'border-chip-line'])
-                                  @if ($errors->has('participationWord')) aria-invalid="true" aria-describedby="participation-erreur" @endif></textarea>
-                        @error('participationWord')
-                            <p id="participation-erreur" role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>
-                        @enderror
-                        <x-button wire:loading.attr="disabled" wire:target="requestParticipation">
-                            <span wire:loading.remove wire:target="requestParticipation">Je veux participer</span>
-                            <span wire:loading wire:target="requestParticipation">Envoi…</span>
-                        </x-button>
-                    </form>
-                @elseif ($myRequest?->isPending())
-                    <p class="text-[14px] font-bold text-type-learning-fg">Demande envoyée. Les responsables de la ZUMRA vont la lire.</p>
-                    <x-button type="button" variant="secondary" wire:click="withdrawParticipation" wire:loading.attr="disabled" wire:target="withdrawParticipation">Retirer ma demande</x-button>
-                @else
-                    <p class="text-[14px] text-muted">{{ $participation->message() }}</p>
-                    @if (! $initial && ! $project->zumra->roleOf($viewer) && $viewer->hasVerifiedEmail())
-                        <x-button :href="route('zumras.show', $zumra).'#rejoindre'" variant="secondary">Voir la ZUMRA</x-button>
-                    @endif
-                @endif
-            </section>
-        @elseif (! $initial)
-            <section class="flex flex-col gap-2 rounded-card border border-line bg-card p-4">
-                <p class="text-[14px] text-muted">Connectez-vous pour participer à ce projet : il faut être membre de la ZUMRA.</p>
-                <x-button :href="route('login')" variant="secondary">Se connecter</x-button>
+                </div>
             </section>
         @endif
 
@@ -281,7 +281,7 @@
         @if ($manages)
             <div class="flex flex-col gap-3.5">
             <section aria-labelledby="demandes" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
-                <h2 id="demandes" class="text-[17px] font-extrabold">Demandes de participation</h2>
+                <h2 id="demandes" class="text-[17px] font-extrabold">Demandes d’aide</h2>
                 @forelse ($requests as $request)
                     @php
                         $person = $request->user;
@@ -307,26 +307,41 @@
                 @endforelse
             </section>
 
-            <section aria-labelledby="ajouter" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
-                <h2 id="ajouter" class="text-[17px] font-extrabold">Ajouter des membres de la ZUMRA</h2>
-                @error('team')
-                    <p role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>
-                @enderror
-                @forelse ($candidates as $candidate)
+            <section aria-labelledby="inviter" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
+                <h2 id="inviter" class="text-[17px] font-extrabold">Inviter une personne</h2>
+                <p class="text-[13px] text-muted">Elle accepte ou refuse : personne n’entre dans l’équipe sans son accord. Elle n’a pas besoin d’être membre de la ZUMRA.</p>
+                @error('inviteWord')<p role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>@enderror
+                <label for="chercher-personne" class="text-[13px] font-bold text-muted">Chercher une personne par son nom</label>
+                <input id="chercher-personne" type="search" wire:model.live.debounce.300ms="inviteQuery" maxlength="60" autocomplete="off" class="min-h-12 w-full rounded-button border border-chip-line bg-card px-3.5 text-[15px]">
+                <label for="mot-invitation" class="text-[13px] font-bold text-muted">Un mot (facultatif)</label>
+                <input id="mot-invitation" type="text" wire:model="inviteWord" maxlength="{{ \App\Models\ProjectInvitation::MESSAGE_MAX }}" autocomplete="off" class="min-h-12 w-full rounded-button border border-chip-line bg-card px-3.5 text-[15px]">
+                @foreach ($candidates as $candidate)
                     <div wire:key="candidat-{{ $candidate->id }}" class="flex items-center gap-3 border-t border-line-soft pt-3 first:border-0 first:pt-0">
                         <div class="flex min-w-0 flex-1 flex-col">
                             <span class="break-words text-[15px] font-extrabold">{{ $candidate->user->name }}</span>
-                            <span class="text-[12px] text-muted">{{ $candidate->role->label() }}</span>
+                            @if ($candidate->city)<span class="text-[12px] text-muted">{{ $candidate->city->label() }}</span>@endif
                         </div>
-                        <x-button type="button" variant="secondary" wire:click="addMember('{{ $candidate->user_id }}')" wire:loading.attr="disabled" wire:target="addMember" class="shrink-0 !px-4 !text-[14px]">Ajouter</x-button>
+                        <x-button type="button" variant="secondary" wire:click="invite('{{ $candidate->user_id }}')" wire:loading.attr="disabled" wire:target="invite" class="shrink-0 !px-4 !text-[14px]">Inviter</x-button>
+                    </div>
+                @endforeach
+            </section>
+
+            <section aria-labelledby="invitations-attente" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
+                <h2 id="invitations-attente" class="text-[17px] font-extrabold">Invitations en attente</h2>
+                @forelse ($invitations as $invitation)
+                    <div wire:key="invitation-{{ $invitation->id }}" class="flex items-center gap-3 border-t border-line-soft pt-3 first:border-0 first:pt-0">
+                        <span class="min-w-0 flex-1 break-words text-[15px] font-extrabold">{{ $invitation->user->name }}</span>
+                        <x-button type="button" variant="secondary" wire:click="cancelInvitation('{{ $invitation->id }}')" wire:loading.attr="disabled" wire:target="cancelInvitation" class="shrink-0 !px-4 !text-[14px]">Annuler</x-button>
                     </div>
                 @empty
-                    <p class="text-[14px] text-muted">Tous les membres de la ZUMRA sont déjà dans l’équipe.</p>
+                    <p class="text-[14px] text-muted">Aucune invitation en attente.</p>
                 @endforelse
             </section>
         </div>
         @endif
         </div>
+    @elseif (in_array($tab, ['accueil', 'competences', 'vitrine', 'entreprise'], true))
+        @include('livewire.partials.projet-gestion')
     @else
         <section aria-labelledby="besoins-projet" class="flex flex-col gap-3">
             <div class="flex flex-wrap items-center justify-between gap-2">

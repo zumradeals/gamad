@@ -7,7 +7,6 @@ use App\Enums\NotificationKind;
 use App\Models\ParticipationRequest;
 use App\Models\Project;
 use App\Models\User;
-use App\Models\ZumraMembership;
 use App\Support\Normalizer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -15,8 +14,8 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Les demandes « Je veux participer » (D-128) : un membre de la ZUMRA demande à entrer dans l'équipe d'un projet, avec un mot
- * facultatif de 280 caractères, retirable ; le fondateur ou un responsable de la ZUMRA l'accepte ou la décline.
+ * Les demandes « Proposer mon aide » (D-128, P1) : une personne vérifiée demande, depuis la présentation publique du projet, à entrer dans
+ * son équipe, avec un mot facultatif de 280 caractères, retirable ; le porteur seul l'accepte ou la décline.
  */
 class ParticipationRequests
 {
@@ -38,7 +37,7 @@ class ParticipationRequests
         $this->throttle($user);
 
         return DB::transaction(function () use ($user, $project, $message) {
-            $locked = Project::query()->whereKey($project->getKey())->lockForUpdate()->with('zumra')->firstOrFail();
+            $locked = Project::query()->whereKey($project->getKey())->lockForUpdate()->with('zumra', 'owner')->firstOrFail();
 
             Gate::forUser($user)->authorize('participate', $locked);
 
@@ -48,9 +47,8 @@ class ParticipationRequests
             $request->user()->associate($user);
             $request->save();
 
-            // Le fondateur et les responsables de la ZUMRA sont prévenus.
-            ZumraMembership::query()->where('zumra_id', $locked->zumra_id)->whereIn('role', ['founder', 'manager'])->with('user')->get()
-                ->each(fn (ZumraMembership $manager) => $this->notifier->push($manager->user, NotificationKind::ProjectParticipationRequested, $user, project: $locked));
+            // Le porteur est prévenu : lui seul décide.
+            $this->notifier->push($locked->owner, NotificationKind::ProjectParticipationRequested, $user, project: $locked);
 
             return $request;
         });
@@ -88,10 +86,6 @@ class ParticipationRequests
 
             if (! $fresh->isPending()) {
                 throw ValidationException::withMessages(['request' => 'Cette demande a déjà été traitée.']);
-            }
-
-            if (! $project->zumra->roleOf($fresh->user)) {
-                throw ValidationException::withMessages(['request' => 'Cette personne n’est plus dans la ZUMRA.']);
             }
 
             $this->team->enter($project, $fresh->user, null);

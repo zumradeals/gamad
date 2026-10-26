@@ -18,6 +18,7 @@ use App\Models\User;
 use App\Models\UserNotification;
 use App\Services\Gestures;
 use App\Services\Moderation;
+use App\Services\ProjectTeam;
 use App\Services\Publications;
 use App\Services\Supports;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -38,6 +39,10 @@ beforeEach(function () {
     ajouteMembre($this->zumra, $this->resp, ZumraRole::Manager);
     ajouteMembre($this->zumra, $this->membre);
     $this->projet = projet($this->yao, $this->zumra, 'Uniformes de la rentrée');
+    // Un projet est privé (P1) : son porteur (yao) et ses collaborateurs en ouvrent le dossier. Deux collaborateurs, l'un membre de la ZUMRA, l'autre non.
+    app(ProjectTeam::class)->enter($this->projet, $this->membre, null);
+    app(ProjectTeam::class)->enter($this->projet, $this->dehors, null);
+    app(ProjectTeam::class)->enter($this->projet, $this->autre, null);
 });
 
 function besoin_projet(User $qui, Project $projet, array $data = []): Publication
@@ -63,8 +68,8 @@ function monde_onglet(?User $qui, Project $projet, string $onglet)
 
 // ─── Besoins de projet ───────────────────────────────────────────────────────
 
-it('laisse les gestionnaires publier un besoin au nom du projet : un besoin ouvert, de la ZUMRA et du projet', function () {
-    foreach ([$this->yao, $this->resp] as $qui) {
+it('laisse le porteur publier un besoin au nom du projet : un besoin ouvert, de la ZUMRA et du projet', function () {
+    foreach ([$this->yao] as $qui) {
         $p = besoin_projet($qui, $this->projet);
 
         expect($p->type)->toBe(PublicationType::Need)->and($p->need_state)->toBe(NeedState::Open)->and($p->project_id)->toBe($this->projet->id)
@@ -72,18 +77,18 @@ it('laisse les gestionnaires publier un besoin au nom du projet : un besoin ouve
     }
 });
 
-it('refuse le besoin de projet à un membre simple et à une personne extérieure', function () {
-    foreach ([$this->membre, $this->dehors] as $qui) {
+it('refuse le besoin de projet à un collaborateur et à un responsable de la ZUMRA', function () {
+    foreach ([$this->membre, $this->dehors, $this->resp] as $qui) {
         expect(fn () => besoin_projet($qui, $this->projet))->toThrow(AuthorizationException::class);
     }
     expect(Publication::count())->toBe(0);
 });
 
-it('ouvre l’écran « Publier un besoin » d’un projet aux gestionnaires, et publie', function () {
-    $this->actingAs($this->resp)->get(route('projets.publier', [$this->projet, 'besoin']))->assertOk()->assertSeeText('Vous publiez au nom du projet Uniformes de la rentrée')->assertSeeText('Publier mon besoin');
+it('ouvre l’écran « Publier un besoin » d’un projet à son porteur, et publie', function () {
+    $this->actingAs($this->yao)->get(route('projets.publier', [$this->projet, 'besoin']))->assertOk()->assertSeeText('Vous publiez au nom du projet Uniformes de la rentrée')->assertSeeText('Publier mon besoin');
     $this->actingAs($this->membre)->get(route('projets.publier', [$this->projet, 'besoin']))->assertNotFound();
 
-    Livewire::actingAs($this->resp)->test(PublierPublication::class, ['slug' => 'besoin', 'project' => $this->projet])
+    Livewire::actingAs($this->yao)->test(PublierPublication::class, ['slug' => 'besoin', 'project' => $this->projet])
         ->set('body', 'Nous cherchons trois machines à coudre.')->call('publish')->assertHasNoErrors();
 
     $p = Publication::sole();
@@ -115,15 +120,13 @@ it('applique la visibilité de chaque besoin dans l’onglet Besoins', function 
 
     monde_onglet($this->membre, $this->projet, 'besoins')->assertSeeText('Besoin public')->assertSeeText('Besoin inscrits')->assertSeeText('Besoin ZUMRA');
     monde_onglet($this->dehors, $this->projet, 'besoins')->assertSeeText('Besoin public')->assertSeeText('Besoin inscrits')->assertDontSeeText('Besoin ZUMRA');
-    app('auth')->forgetGuards();
-    monde_onglet(null, $this->projet, 'besoins')->assertSeeText('Besoin public')->assertDontSeeText('Besoin inscrits')->assertDontSeeText('Besoin ZUMRA');
 });
 
-it('propose « Publier un besoin » aux gestionnaires seulement, avec un état vide honnête', function () {
-    foreach ([$this->yao, $this->resp] as $qui) {
+it('propose « Publier un besoin » au porteur seulement, avec un état vide honnête', function () {
+    foreach ([$this->yao] as $qui) {
         monde_onglet($qui, $this->projet, 'besoins')->assertSeeText('Aucun besoin pour ce projet pour l’instant.')->assertSeeText('Publier un besoin')->assertSee(route('projets.publier', [$this->projet, 'besoin']));
     }
-    foreach ([$this->membre, $this->dehors, null] as $qui) {
+    foreach ([$this->membre, $this->dehors] as $qui) {
         monde_onglet($qui, $this->projet, 'besoins')->assertSeeText('Aucun besoin pour ce projet pour l’instant.')->assertDontSeeText('Publier un besoin');
     }
 });
@@ -157,8 +160,6 @@ it('montre le bouton de réponse sur un besoin de projet, et envoie le geste dep
 
     monde_onglet($this->dehors, $this->projet, 'besoins')->assertSeeText('Je peux aider');
     monde_onglet($this->yao, $this->projet, 'besoins')->assertDontSeeText('Je peux aider')->assertSeeText('Voir ma publication');
-    app('auth')->forgetGuards();
-    monde_onglet(null, $this->projet, 'besoins')->assertSeeText('Se connecter pour répondre');
 
     Livewire::actingAs($this->dehors)->test(GestureSheet::class)->dispatch('open-gesture', id: $besoin->id)->set('message', 'Je suis disponible.')->call('send');
     expect(Gesture::sole()->state)->toBe(GestureState::Sent);
@@ -308,15 +309,15 @@ it('montre « Je soutiens » aux personnes qui peuvent soutenir, et l’état de
     monde_onglet($this->membre, $this->projet, 'fil')->assertSeeText('Je soutiens');
 });
 
-it('ne montre pas « Je soutiens » aux gestionnaires ni aux personnes non vérifiées, et propose de se connecter aux visiteurs', function () {
+it('ne montre pas « Je soutiens » au porteur ni aux personnes non vérifiées', function () {
     avancee_projet($this->yao, $this->projet);
     $non = User::factory()->unverified()->create();
 
-    foreach ([$this->yao, $this->resp, $non] as $qui) {
+    app(ProjectTeam::class)->enter($this->projet, $non, null);
+
+    foreach ([$this->yao, $non] as $qui) {
         monde_onglet($qui, $this->projet, 'fil')->assertDontSeeText('Je soutiens')->assertDontSeeText('Retirer mon soutien');
     }
-    app('auth')->forgetGuards();
-    monde_onglet(null, $this->projet, 'fil')->assertSeeText('Se connecter pour soutenir')->assertDontSeeText('Je soutiens');
 });
 
 it('ne montre « Je soutiens » que sur une avancée, pas sur une réalisation ni un besoin', function () {
@@ -327,7 +328,7 @@ it('ne montre « Je soutiens » que sur une avancée, pas sur une réalisation n
     monde_onglet($this->dehors, $this->projet, 'besoins')->assertDontSeeText('Je soutiens');
 });
 
-it('affiche le nombre réel de soutiens, au singulier et au pluriel, à tout le monde, sans nommer personne', function () {
+it('affiche le nombre réel de soutiens, au singulier et au pluriel, sans nommer personne', function () {
     $p = avancee_projet($this->yao, $this->projet);
     monde_onglet($this->dehors, $this->projet, 'fil')->assertDontSeeText('personne soutient')->assertDontSeeText('personnes soutiennent');
 
@@ -337,8 +338,6 @@ it('affiche le nombre réel de soutiens, au singulier et au pluriel, à tout le 
     app(Supports::class)->support($this->membre, $p);
     app(Supports::class)->support($this->autre, $p);
     monde_onglet($this->yao, $this->projet, 'fil')->assertSeeText('3 personnes soutiennent')->assertDontSeeText('Simple Membre');
-    app('auth')->forgetGuards();
-    monde_onglet(null, $this->projet, 'fil')->assertSeeText('3 personnes soutiennent');
 });
 
 it('soutient et retire depuis l’écran, par la feuille d’actions, pour une personne connectée seulement', function () {

@@ -39,12 +39,12 @@ use App\Livewire\InviterPersonnes;
 use App\Livewire\JournalAdministration;
 use App\Livewire\MesAttestations;
 use App\Livewire\MesEnregistrements;
+use App\Livewire\MesProjets;
 use App\Livewire\MesZumras;
 use App\Livewire\ModerationCommentaires;
 use App\Livewire\ModerationConfiance;
 use App\Livewire\ModerationPersonnes;
 use App\Livewire\ModifierProfil;
-use App\Livewire\MondeProjet;
 use App\Livewire\MondeZumra;
 use App\Livewire\OpportunityCatalog;
 use App\Livewire\OpportunityForm;
@@ -69,6 +69,8 @@ use App\Livewire\PublierPublication;
 use App\Livewire\RapportContributions;
 use App\Livewire\SignalerProfil;
 use App\Livewire\SignalerPublication;
+use App\Models\Project;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', WelcomeController::class)->name('home');
@@ -100,7 +102,16 @@ Route::get('/zumra/{zumra}', MondeZumra::class)->whereUuid('zumra')->name('zumra
 
 // Un projet est public (D-005) : le Carrefour et la page d'un projet se lisent sans compte.
 Route::get('/projets', CarrefourProjets::class)->name('projets.index');
-Route::get('/projets/{project}', MondeProjet::class)->whereUuid('project')->name('projets.show');
+// Un projet est privé (P1, D-206) : son porteur et ses collaborateurs ouvrent le dossier ; tout autre n'y trouve, si le porteur l'a
+// publiée, que la présentation publique limitée. Sinon, la page n'existe pas.
+Route::get('/projets/{project}', function (Project $project) {
+    $viewer = request()->user();
+    $workspace = Gate::forUser($viewer)->allows('view', $project);
+    $showcase = Gate::forUser($viewer)->allows('viewShowcase', $project);
+    abort_unless($workspace || $showcase, 404);
+
+    return view('pages.projet', ['project' => $project, 'showcase' => $showcase && (! $workspace || request('vue') === 'publique')]);
+})->whereUuid('project')->name('projets.show');
 
 // Une publication publique se lit sans compte ; répondre demande un compte (D-085). Une publication interdite répond 404.
 Route::get('/publications/{publication}/fichier', PublicationMediaController::class)->whereUuid('publication')->name('publications.media');
@@ -166,6 +177,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/zumra/{zumra}/inviter', InviterPersonnes::class)->whereUuid('zumra')->name('zumras.invite');
     Route::get('/zumra/{zumra}/publier/{slug}', PublierPublication::class)->whereUuid('zumra')->name('zumras.publier');
     Route::get('/zumra/{zumra}/modifier', FormulaireZumra::class)->whereUuid('zumra')->name('zumras.edit');
+    Route::get('/espace/projets', MesProjets::class)->name('espace.projets');
+    Route::get('/projets/creer', FormulaireProjet::class)->name('projets.new');
     Route::get('/zumra/{zumra}/projets/creer', FormulaireProjet::class)->whereUuid('zumra')->name('projets.create');
     Route::get('/projets/{project}/modifier', FormulaireProjet::class)->whereUuid('project')->name('projets.edit');
     Route::get('/projets/{project}/publier/{slug}', PublierPublication::class)->whereUuid('project')->name('projets.publier');

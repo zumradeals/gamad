@@ -96,10 +96,11 @@ it('rend les ZUMRA publiques à tous quand le module est public, sans activer le
     $zumra = zumraZ1($admin, 'Communauté ouverte');
 
     $this->get(route('zumras.index'))->assertOk()->assertSeeText('Communauté ouverte')->assertDontSeeText('Voir les projets');
-    $page = $this->get(route('zumras.show', $zumra))->assertOk()->assertSeeText('Demander à rejoindre')->assertSeeText('Responsabilités');
-    expect($page->getContent())->not->toContain('wire:click="setTab(\'projets\')"');
-    $this->get(route('zumras.show', ['zumra' => $zumra, 'onglet' => 'projets']))->assertOk()->assertDontSeeText('Aucun projet');
-    $this->actingAs(User::factory()->create())->get(route('projets.create', $zumra))->assertForbidden();
+    $this->get(route('zumras.show', $zumra))->assertOk()->assertSeeText('Demander à rejoindre')->assertSeeText('Responsabilités');
+    // Les projets (P1) restent privés : la ZUMRA n'affiche que les présentations publiées.
+    $this->get(route('zumras.show', ['zumra' => $zumra, 'onglet' => 'projets']))->assertOk()->assertSeeText('Aucun projet pour l’instant.');
+    // Il n'y a toujours pas de Carrefour des projets dans le parcours actif.
+    $this->get(route('projets.index'))->assertRedirect(route('personnes.index'));
 });
 
 it('affiche le menu ZUMRA et le choix Découvrir seulement quand le module est accessible', function () {

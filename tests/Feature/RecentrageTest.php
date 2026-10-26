@@ -150,12 +150,12 @@ it('bloque les nouvelles créations et publications collectives tout en gardant 
     expect(fn () => app(Projects::class)->create($founder, $zumra, []))->toThrow(AuthorizationException::class);
     expect(fn () => app(Publications::class)->publish($founder, PublicationType::Need, ['body' => 'Nouveau'], $zumra))->toThrow(ValidationException::class);
     expect(fn () => app(Publications::class)->publish($founder, PublicationType::Need, ['body' => 'Nouveau'], project: $project))->toThrow(ValidationException::class);
-    $this->actingAs($founder)->get(route('projets.create', $zumra))->assertForbidden();
+    $this->actingAs($founder)->get(route('projets.create', $zumra))->assertNotFound();
     $this->get(route('zumras.publier', [$zumra, 'besoin']))->assertForbidden();
     $this->get(route('projets.publier', [$project, 'besoin']))->assertForbidden();
     // Module ZUMRA fermé (D-205) : même le fondateur ne lit plus la ZUMRA ; ses données sont conservées.
     $this->get(route('zumras.show', $zumra))->assertNotFound();
-    $this->get(route('projets.show', $project))->assertOk();
+    $this->get(route('projets.show', $project))->assertNotFound();
     $this->get(route('publications.show', $post))->assertOk()->assertSeeText($post->body);
     $this->get(route('espace', ['rubrique' => 'activites']))->assertSeeText('Mes activités antérieures')->assertSeeText($zumra->name)->assertDontSee('href="'.route('zumras.show', $zumra).'"', false);
     expect($zumra->fresh())->not->toBeNull()->and($project->fresh())->not->toBeNull()->and($post->fresh()->zumra_id)->toBe($zumra->id);
