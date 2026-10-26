@@ -128,6 +128,6 @@ it('conserve l’historique du journal même quand le compte est ensuite supprim
     Livewire::actingAs($moderator)->test(Espace::class)->set('name', 'Nouveau Nom')->call('updateName');
     Livewire::actingAs($moderator->fresh())->test(Espace::class)->set('password', 'motdepasse1')->call('deleteAccount');
 
-    expect(AdminAction::where('actor_id', $moderator->id)->pluck('actor_label')->all())
+    expect(AdminAction::where('actor_id', $moderator->id)->orderBy('created_at')->orderBy('id')->pluck('actor_label')->all())
         ->toBe(['Ancien Nom', 'Nouveau Nom']);
 });
