@@ -64,6 +64,9 @@ Onglets V1 :
 | Type de publication | `PublicationType` (enum) | Voir §5. |
 | Besoin | `Need` | Une publication « J'ai besoin » qui a un suivi d'état. |
 | Savoir | `Publication` de type `knowledge` | Un savoir partagé : conseil, fiche, parcours de formation. |
+| Entreprise | `Company` | Une présence professionnelle (D-194) tenue par un compte gestionnaire, distincte de la personne qui la gère (D-199). Après vérification de l'immatriculation par GAMAD sur documents administratifs, elle porte le badge « Immatriculation vérifiée par GAMAD » ; seules les entreprises vérifiées publient des opportunités. |
+| Opportunité | `Opportunity` | Une offre publiée par une entreprise vérifiée, dans le module Opportunités (D-197) : emploi, stage et apprentissage, mission ou collaboration. Distincte d'une publication : elle ne passe pas par le Fil (D-198). Aucune note, aucun classement, aucun pourcentage de compatibilité. |
+| Réponse à une opportunité | `OpportunityResponse` | La réponse d'une personne à une opportunité (« Postuler » pour un emploi ou un stage, « Je suis intéressé » pour une mission ou une collaboration). Une seule par personne et par opportunité ; message et PDF facultatifs, privés, visibles de la personne et de l'entreprise seulement ; retirable par la personne. |
 | Geste d'action | `Gesture` | La réponse à une publication : Je peux aider, Je veux apprendre, Je peux transmettre, Ça m'intéresse, Je soutiens, Je veux participer, Je veux rejoindre. |
 | Invitation | `Invitation` | Proposition de rejoindre une ZUMRA ou un projet, avec un rôle. |
 | Conversation | `Conversation` | Échange privé entre deux personnes, ouvert par un geste accepté. |

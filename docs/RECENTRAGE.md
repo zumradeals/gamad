@@ -468,3 +468,51 @@ Références dans settings, changements journalisés. Images dans publication-me
 dans la sauvegarde existante des médias. Anciennes versions conservées dans cette sauvegarde ; seules
 les références courantes sont servies par la route publique. Aucun manifeste installable ni PWA ajouté.
 Pas de dépendance ni migration. R1 reste En cours.
+
+
+## Opportunités — D-197, D-198
+
+Contrat du module Opportunités (précise D-194 ; blocage : D-199). Le module est la **source unique** des nouvelles
+opportunités des entreprises ; les anciennes publications d'entreprise de ce type restent conservées dans leur historique, sans
+suppression ni migration. Aucun module gelé (ZUMRA, Projets, contributions, portefeuilles) n'est réactivé.
+
+**Navigation.** Menu global : Accueil · Personnes · Entreprises · Opportunités. Sur ordinateur, l'entrée figure dans la barre du
+haut ; sur téléphone, la barre du bas reste Accueil · Agir · Mon espace et l'entrée Opportunités est dans le menu de l'en-tête.
+
+**Qui fait quoi.**
+- Publier, modifier, clore, rouvrir, archiver et lire les réponses : le **propriétaire de l'entreprise seulement** (pas de
+  délégation dans cette première version) ; publier exige une entreprise **vérifiée** ; une entreprise non vérifiée peut préparer un
+  brouillon sans publier ; une entreprise suspendue ne peut rien faire. Une personne physique ne publie pas d'opportunité.
+- Consulter le catalogue et le détail : tout visiteur, pour les opportunités ouvertes d'entreprises vérifiées. Un brouillon ou une
+  archive n'est jamais public ; une offre clôturée, archivée ou expirée n'est jamais présentée comme ouverte.
+- Sauvegarder : toute personne connectée. Répondre : une personne active (e-mail vérifié, non suspendue), autre que le propriétaire de
+  l'entreprise, sur une opportunité ouverte dont le mode de candidature est GAMAD (une offre à lien externe renvoie vers ce lien).
+
+**Catégories.** Emploi, stage et apprentissage, mission, collaboration. Un lien externe de candidature est en https seulement.
+
+**Catalogue `/opportunites`.** Recherche insensible à la casse et aux accents, filtres type, localité, domaine, date de
+publication, tri par date ou par date limite, dix résultats par page, état vide honnête. Détail `/opportunites/{id}`.
+
+**Publication.** Trois étapes : type et description, détails, aperçu. Brouillon, modification, clôture, réouverture, archivage.
+
+**Réponses.** Une par personne et par opportunité ; message de 1 000 caractères au plus ; PDF de 5 Mo au plus, stocké en privé et servi
+à la personne et à l'entreprise seulement (en-têtes de document privé : `nosniff`, `no-store`, pièce jointe, politique de sécurité
+restrictive) ; la personne peut retirer sa réponse (message et fichier effacés). L'entreprise peut « Marquer comme vue » et
+« Proposer un échange » : l'échange ne s'ouvre que par la **demande de relation existante** (aucune boîte de réception parallèle).
+Notifications internes à l'entreprise (réponse reçue) et à la personne (l'entreprise souhaite échanger).
+Le PDF disparaît avec la réponse, l'opportunité, la personne ou l'entreprise ; la commande `gamad:purger-cv-orphelins` liste (ou, avec
+`--purger`, efface) les fichiers que plus aucune réponse ne référence.
+
+**Interdits.** Aucune note, aucun classement, aucun pourcentage de compatibilité, aucun matching avancé : les personnes
+correspondantes ne sont pas encore proposées aux entreprises, et le module ne publie rien dans le Fil.
+
+**Page de l'entreprise.** « Nos opportunités » vient de la même table ; le formulaire de publication ordinaire d'une entreprise ne
+propose plus le type « Opportunité ».
+
+**Données.** Trois tables additives (opportunités, sauvegardes, réponses) et une colonne nullable sur les notifications.
+
+**Blocage.** Voir D-199 : une entreprise publique garde une identité distincte de son propriétaire ; les interactions personnelles
+directes entre personnes bloquées restent interdites. **État actuel du code (non modifié par D-199) :** une personne bloquée par le
+propriétaire de l'entreprise, ou qui l'a bloqué, ne peut pas répondre à ses opportunités. Le Président a indiqué qu'une candidature
+relève de la relation professionnelle avec l'entreprise, indépendamment de la relation personnelle avec son propriétaire : cette
+précision fera l'objet d'une décision distincte et de tests adaptés, et n'est pas encore appliquée.
