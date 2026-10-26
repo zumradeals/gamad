@@ -1,0 +1,159 @@
+<?php
+// Fichier de recette TEMPORAIRE (non versionné) : mesure, ne corrige pas.
+
+use App\Enums\NotificationKind;
+use App\Livewire\Fil;
+use App\Livewire\OpportunityCatalog;
+use App\Models\Company;
+use App\Models\Opportunity;
+use App\Models\OpportunityResponse;
+use App\Models\User;
+use App\Models\UserNotification;
+use App\Services\Opportunities;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Livewire\Livewire;
+
+function aCompany(string $name = 'Recette SA', ?User $owner = null, bool $verified = true, string $status = ''): Company
+{
+    $c = new Company(['name' => $name, 'legal_name' => $name.' SARL', 'registration_country' => 'CI', 'registration_number' => 'RC-'.Str::random(10), 'sector' => 'Énergie', 'city' => 'Abidjan', 'summary' => 'Test.']);
+    $c->slug = Str::slug($name).'-'.strtolower(Str::random(8));
+    $c->forceFill(['owner_id' => ($owner ?? User::factory()->create())->id, 'status' => $status ?: ($verified ? 'verified' : 'pending'), 'verified_at' => $verified ? now() : null])->save();
+
+    return $c;
+}
+
+function queries(callable $fn): int
+{
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+    $fn();
+    $n = count(DB::getQueryLog());
+    DB::disableQueryLog();
+
+    return $n;
+}
+
+beforeEach(fn () => Storage::fake('local'));
+
+it('AUDIT-1 : les pièces jointes de réponses disparaissent avec le compte du candidat', function () {
+    $co = aCompany();
+    $o = opportunite($co);
+    $cand = User::factory()->create();
+    $this->actingAs($cand)->post(route('opportunites.respond.store', $o), ['attachment' => UploadedFile::fake()->createWithContent('cv.pdf', "%PDF-1.4\nx\n%%EOF")])->assertRedirect();
+    $path = OpportunityResponse::sole()->attachment_path;
+    Storage::disk('local')->assertExists($path);
+    $cand->delete();
+    expect(OpportunityResponse::count())->toBe(0);
+    Storage::disk('local')->assertMissing($path);
+});
+
+it('AUDIT-2 : les pièces jointes des candidats disparaissent avec l’entreprise supprimée', function () {
+    $co = aCompany();
+    $o = opportunite($co);
+    $cand = User::factory()->create();
+    $this->actingAs($cand)->post(route('opportunites.respond.store', $o), ['attachment' => UploadedFile::fake()->createWithContent('cv.pdf', "%PDF-1.4\nx\n%%EOF")])->assertRedirect();
+    $path = OpportunityResponse::sole()->attachment_path;
+    $co->owner->delete();
+    expect(Company::count())->toBe(0)->and(Opportunity::count())->toBe(0);
+    Storage::disk('local')->assertMissing($path);
+});
+
+it('AUDIT-3 : ouvrir chaque type de notification ne plante jamais', function () {
+    $user = User::factory()->create();
+    $other = User::factory()->create();
+    $co = aCompany('Notif SA', $user);
+    $o = opportunite($co);
+    $pub = publication($other);
+    foreach (NotificationKind::cases() as $kind) {
+        $n = new UserNotification(['kind' => $kind]);
+        $n->user()->associate($user);
+        $n->actor()->associate($other);
+        $n->company()->associate($co);
+        $n->opportunity()->associate($o);
+        $n->publication()->associate($pub);
+        $n->save();
+        $status = $this->actingAs($user)->get(route('notifications.open', $n))->status();
+        expect($status)->toBeIn([302], $kind->value.' -> '.$status);
+        expect($kind->sentence('X'))->toBeString();
+    }
+    $this->actingAs($user)->get(route('notifications'))->assertOk();
+});
+
+it('AUDIT-4 : une entreprise suspendue disparaît partout (catalogue, détail, page, Fil, Mes opportunités)', function () {
+    $co = aCompany('Suspendue SA');
+    $o = opportunite($co, ['title' => 'Offre fantôme']);
+    $cand = User::factory()->create();
+    $this->actingAs($cand)->post(route('opportunites.respond.store', $o), ['message' => 'Bonjour']);
+    $this->post(route('opportunites.save', $o));
+    $co->forceFill(['status' => 'suspended'])->save();
+    $this->get(route('opportunites.index'))->assertDontSeeText('Offre fantôme');
+    $this->get(route('opportunites.show', $o))->assertNotFound();
+    $this->get(route('entreprises.show', $co))->assertNotFound();
+    $this->get(route('espace.opportunites'))->assertOk()->assertDontSeeText('Offre fantôme');
+    $this->get(route('entreprises.index'))->assertDontSeeText('Suspendue SA');
+    // Le propriétaire suspendu ne gère plus rien.
+    $this->actingAs($co->owner)->get(route('opportunites.responses', $o))->assertForbidden();
+    $this->get(route('opportunites.edit', $o))->assertForbidden();
+});
+
+it('AUDIT-5 : blocage entre le propriétaire et un candidat', function () {
+    $co = aCompany('Bloc SA');
+    $o = opportunite($co);
+    $cand = User::factory()->create(['name' => 'Candidat Bloqué']);
+    $this->actingAs($cand)->post(route('opportunites.respond.store', $o), ['message' => 'Avant le blocage'])->assertRedirect();
+    app(App\Services\People::class)->block($co->owner, $cand, true);
+    // Le candidat ne peut plus répondre à une autre offre de cette entreprise.
+    $o2 = opportunite($co, ['title' => 'Seconde']);
+    $this->actingAs($cand)->post(route('opportunites.respond.store', $o2), [])->assertForbidden();
+    // Et la réponse déjà reçue ?
+    $page = $this->actingAs($co->owner)->get(route('opportunites.responses', $o))->assertOk();
+    $visible = str_contains($page->getContent(), 'Candidat Bloqué');
+    fwrite(STDERR, "\n[AUDIT-5] réponse d'une personne bloquée encore visible côté entreprise : ".($visible ? 'OUI' : 'non')."\n");
+    $this->actingAs($cand)->get(route('opportunites.show', $o))->assertStatus(200);
+    expect(true)->toBeTrue();
+});
+
+it('AUDIT-6 : modules gelés et pages héritées en mode initial', function () {
+    foreach (['/zumra', '/projets', '/besoins', '/decouvrir'] as $url) {
+        $guest = $this->get($url)->status();
+        $user = $this->actingAs(User::factory()->create())->get($url)->status();
+        fwrite(STDERR, "\n[AUDIT-6] $url invité=$guest connecté=$user\n");
+        auth()->logout();
+    }
+    expect(true)->toBeTrue();
+});
+
+it('AUDIT-7 : requêtes SQL par page (détection de N+1 par montée en charge)', function () {
+    config(['gamad.initial_experience' => true]);
+    $viewer = person('Voyeur', ['Couture'], ['Photovoltaïque'], 'Abidjan');
+    $measure = function (int $n) use ($viewer) {
+        foreach (range(1, $n) as $i) {
+            $owner = User::factory()->create();
+            $co = aCompany("Société $i $n ".Str::random(4), $owner);
+            opportunite($co, ['title' => "Poste $i $n", 'skills' => ['Couture']]);
+            publication(person("Personne $i $n ".Str::random(3), ['Couture'], ['Photovoltaïque'], 'Abidjan'), App\Enums\PublicationType::Need, ['body' => "Besoin $i"]);
+        }
+        $this->actingAs($viewer);
+        $pages = ['/fil' => '/fil', '/personnes' => '/personnes', '/entreprises' => '/entreprises', '/opportunites' => '/opportunites', '/espace' => '/espace', '/notifications' => '/notifications'];
+        $out = [];
+        foreach ($pages as $label => $url) {
+            $out[$label] = queries(fn () => $this->get($url)->assertOk());
+        }
+        $co = Company::query()->latest('created_at')->first();
+        $out['/entreprises/{x}'] = queries(fn () => $this->get(route('entreprises.show', $co))->assertOk());
+        $op = Opportunity::query()->latest('created_at')->first();
+        $out['/opportunites/{x}'] = queries(fn () => $this->get(route('opportunites.show', $op))->assertOk());
+
+        return $out;
+    };
+    $small = $measure(4);
+    $large = $measure(20);
+    foreach ($small as $page => $q) {
+        fwrite(STDERR, sprintf("\n[AUDIT-7] %-22s  4 lignes: %3d requêtes | 24 lignes: %3d requêtes  %s", $page, $q, $large[$page], $large[$page] > $q + 5 ? '<-- CROISSANCE' : ''));
+    }
+    fwrite(STDERR, "\n");
+    expect(true)->toBeTrue();
+});

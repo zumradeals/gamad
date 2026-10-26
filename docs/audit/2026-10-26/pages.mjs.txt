@@ -1,0 +1,58 @@
+// Recette visuelle : parcourt les pages principales à 1440, 390 et 360 px, signale anomalies (statut, débordement, cibles tactiles, erreurs console, images cassées).
+import { chromium } from '/opt/node-tools/node_modules/playwright/index.mjs';
+import fs from 'fs';
+const base = 'http://localhost:8001', out = '/home/user/gamad/captures/audit';
+fs.mkdirSync(out, { recursive: true });
+const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+const sizes = { pc: { width: 1440, height: 900 }, m390: { width: 390, height: 844 }, m360: { width: 360, height: 740 } };
+const results = [];
+const consoleErrors = [];
+
+async function login(ctx, email) {
+  const p = await ctx.newPage();
+  await p.goto(base + '/login'); await p.fill('input[name=email]', email); await p.fill('input[name=password]', 'recette-2026');
+  await Promise.all([p.waitForURL(u => !u.pathname.startsWith('/login'), { timeout: 15000 }), p.click('button[type=submit]')]);
+  return p;
+}
+async function check(p, label, url, size) {
+  const errs = [];
+  const onConsole = m => { if (m.type() === 'error') errs.push(m.text().slice(0, 140)); };
+  const onPage = e => errs.push('PAGEERROR ' + String(e).slice(0, 140));
+  p.on('console', onConsole); p.on('pageerror', onPage);
+  let status = 0;
+  try { const r = await p.goto(base + url, { waitUntil: 'networkidle', timeout: 20000 }); status = r?.status() ?? 0; } catch (e) { status = -1; }
+  await p.waitForTimeout(250);
+  const info = await p.evaluate(() => {
+    const vis = e => { const b = e.getBoundingClientRect(); const cs = getComputedStyle(e); return b.width > 0 && b.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && !e.closest('[x-cloak],.sr-only,[hidden],[aria-hidden=true]'); };
+    const small = [...document.querySelectorAll('a[href],button,select,input:not([type=hidden]):not([type=file]):not([type=radio]):not([type=checkbox]),summary')].filter(e => vis(e) && e.getBoundingClientRect().height < 43.5 && !e.closest('.sr-only') && !e.classList.contains('sr-only')).map(e => (e.textContent || e.getAttribute('aria-label') || e.name || e.tagName).trim().replace(/\s+/g, ' ').slice(0, 28));
+    const broken = [...document.images].filter(i => i.complete && i.naturalWidth === 0 && i.src).map(i => i.src.slice(-50));
+    const wide = document.documentElement.scrollWidth - innerWidth;
+    const title = document.title; const h1 = document.querySelector('h1')?.textContent.trim().slice(0, 40) ?? '';
+    return { small: [...new Set(small)].slice(0, 6), nSmall: small.length, broken, overflow: wide > 1 ? wide : 0, title, h1 };
+  });
+  p.off('console', onConsole); p.off('pageerror', onPage);
+  const row = { label, url, size, status, ...info, errs };
+  results.push(row);
+  const bad = status >= 500 || status === -1 || info.overflow || info.broken.length || errs.length || (size !== 'pc' && info.nSmall > 0);
+  if (bad) await p.screenshot({ path: `${out}/anomalie-${size}-${label}.png`, fullPage: true });
+  return row;
+}
+
+const pages = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+for (const [sizeName, vp] of Object.entries(sizes)) {
+  const ctxFor = {};
+  for (const who of ['guest', 'awa', 'patron', 'admin']) {
+    const ctx = await browser.newContext({ viewport: vp, deviceScaleFactor: 1, hasTouch: sizeName !== 'pc' });
+    ctxFor[who] = { ctx, page: who === 'guest' ? await ctx.newPage() : await login(ctx, `${who}@recette.test`) };
+  }
+  for (const pg of pages) {
+    const h = ctxFor[pg.as]; if (!h) continue;
+    await check(h.page, pg.label, pg.url, sizeName);
+  }
+  for (const h of Object.values(ctxFor)) await h.ctx.close();
+}
+fs.writeFileSync('/tmp/recette-pages.json', JSON.stringify(results, null, 1));
+const bad = results.filter(r => r.status >= 400 && !(r.expect ?? []).includes(r.status) || r.overflow || r.broken.length || r.errs.length || (r.size !== 'pc' && r.nSmall > 0));
+console.log('pages testées:', results.length, ' anomalies brutes:', bad.length);
+for (const r of bad) console.log(r.size.padEnd(5), String(r.status).padEnd(4), r.label.padEnd(26), r.overflow ? `OVERFLOW+${r.overflow} ` : '', r.broken.length ? 'IMG-CASSEE ' : '', r.errs.length ? 'CONSOLE:' + r.errs[0] + ' ' : '', r.nSmall ? `CIBLES<44:${r.nSmall} (${r.small.slice(0, 3).join(' | ')})` : '');
+await browser.close();

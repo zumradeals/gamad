@@ -1,0 +1,26 @@
+import { chromium } from '/opt/node-tools/node_modules/playwright/index.mjs';
+import fs from 'fs';
+const base = 'http://localhost:8001', out = '/home/user/gamad/captures/audit';
+const ids = JSON.parse(fs.readFileSync('/tmp/curated-ids.json', 'utf8'));
+const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+const sizes = { pc: { width: 1440, height: 900 }, m390: { width: 390, height: 844 }, m360: { width: 360, height: 740 } };
+const shots = [
+  ['accueil-fil', '/fil', 'awa'], ['personnes', '/personnes', 'awa'], ['entreprises', '/entreprises', 'awa'],
+  ['entreprise-page', `/entreprises/${ids.co}`, 'awa'], ['opportunites', '/opportunites', 'awa'],
+  ['opportunite-detail', `/opportunites/${ids.opp}`, 'awa'], ['espace', '/espace', 'awa'], ['notifications', '/notifications', 'awa'],
+  ['agir-besoin', '/agir/besoin', 'awa'], ['gestion-opportunites', `/entreprises/${ids.co}/opportunites`, 'patron'],
+  ['journal-moderation-vide', '/moderation/journal', 'admin'],
+];
+for (const [sn, vp] of Object.entries(sizes)) {
+  const ctxs = {};
+  for (const who of ['awa', 'patron', 'admin']) {
+    const ctx = await browser.newContext({ viewport: vp, hasTouch: sn !== 'pc' }); const p = await ctx.newPage();
+    await p.goto(base + '/login'); await p.fill('input[name=email]', `${who}@recette.test`); await p.fill('input[name=password]', 'recette-2026');
+    await Promise.all([p.waitForURL(u => !u.pathname.startsWith('/login')), p.click('button[type=submit]')]); ctxs[who] = p;
+  }
+  for (const [label, url, who] of shots) { const p = ctxs[who]; await p.goto(base + url, { waitUntil: 'networkidle' }); await p.waitForTimeout(300); await p.screenshot({ path: `${out}/${sn}-${label}.png`, fullPage: sn === 'pc' ? false : true }); }
+  // menu Agir (feuille mobile / liste bureau)
+  const p = ctxs.awa; await p.goto(base + '/fil'); await p.click(sn === 'pc' ? 'button[aria-controls="agir-menu-desktop"]' : 'button[aria-controls="agir-menu-mobile"]'); await p.waitForTimeout(300); await p.screenshot({ path: `${out}/${sn}-menu-agir.png` });
+  for (const c of Object.values(ctxs)) await c.context().close();
+}
+await browser.close(); console.log('ok');

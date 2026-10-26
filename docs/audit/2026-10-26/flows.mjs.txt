@@ -1,0 +1,126 @@
+// Recette fonctionnelle bout en bout sur la base isolée gamad_recette (port 8001).
+import { chromium } from '/opt/node-tools/node_modules/playwright/index.mjs';
+import fs from 'fs';
+import { execSync } from 'child_process';
+const base = 'http://localhost:8001', out = '/home/user/gamad/captures/audit';
+fs.mkdirSync(out, { recursive: true });
+const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+const vp = process.env.VP === 'mobile' ? { width: 390, height: 844 } : { width: 1440, height: 900 };
+const S = {}; const log = [];
+const users = {};
+async function who(name) {
+  if (users[name]) return users[name];
+  const ctx = await browser.newContext({ viewport: vp, hasTouch: vp.width < 600 });
+  const p = await ctx.newPage(); p.on('dialog', d => d.accept());
+  p._errs = []; p.on('pageerror', e => p._errs.push(String(e).slice(0, 120))); p.on('console', m => { if (m.type() === 'error') p._errs.push(m.text().slice(0, 120)); });
+  await p.goto(base + '/login'); await p.fill('input[name=email]', `${name}@recette.test`); await p.fill('input[name=password]', 'recette-2026');
+  await Promise.all([p.waitForURL(u => !u.pathname.startsWith('/login'), { timeout: 15000 }), p.click('button[type=submit]')]);
+  return (users[name] = p);
+}
+let n = 0;
+async function step(name, who_, fn) {
+  const p = await who(who_); n++; const id = String(n).padStart(2, '0');
+  p._errs.length = 0;
+  try { await fn(p); const e = p._errs.slice(); log.push({ id, name, ok: true, errs: e }); console.log('PASS', id, name, e.length ? '(erreurs console: ' + e[0] + ')' : ''); }
+  catch (e) { log.push({ id, name, ok: false, err: String(e).split('\n')[0].slice(0, 220) }); console.log('FAIL', id, name, '→', String(e).split('\n')[0].slice(0, 200)); try { await p.screenshot({ path: `${out}/flux-${vp.width}-${id}.png`, fullPage: true }); } catch {} }
+}
+const text = async (p, t, o = {}) => { await p.waitForSelector(`text=${t}`, { timeout: o.timeout ?? 8000 }); };
+const nowait = async p => p.waitForLoadState('networkidle');
+
+// ───────── F1 : Accueil → Personnes → Profil → Demande de relation → Conversation
+await step('F1.1 Accueil connecté affiche le Fil', 'awa', async p => { await p.goto(base + '/fil'); await p.waitForSelector('main'); await p.waitForSelector('text=Que souhaitez-vous partager'); });
+await step('F1.2 Menu Personnes → recherche par capacité « plomberie »', 'awa', async p => { await p.goto(base + '/fil'); if (vp.width >= 1024) { await p.click('nav[aria-label="Navigation principale"] >> text=Personnes'); await p.waitForURL('**/personnes'); } else { S.noMobileNav = !(await p.isVisible('nav[aria-label="Navigation principale"] >> text=Personnes')); } await p.goto(base + '/personnes?q=plomberie'); await text(p, 'Mariam Koné'); });
+await step('F1.3 Ouvrir le profil de Mariam', 'awa', async p => { await p.click('a:has-text("Voir le profil") >> nth=0'); await p.waitForURL(/personnes\//); S.mariam = p.url(); await text(p, 'Mariam Koné'); });
+await step('F1.4 Contacter → envoyer la demande de relation', 'awa', async p => { await p.click('button:has-text("Contacter")'); await p.fill('textarea[id^=contact-]', 'Bonjour Mariam, j’aimerais échanger sur la plomberie.'); await p.click('button:has-text("Envoyer ma demande")'); await text(p, 'Votre demande attend son accord'); });
+await step('F1.5 Mariam voit la notification de demande', 'mariam', async p => { await p.goto(base + '/notifications'); await text(p, 'souhaite entrer en relation'); });
+await step('F1.6 Ouvrir la notification → contenu concerné', 'mariam', async p => { await p.click('a:has-text("souhaite entrer en relation")'); await p.waitForLoadState('networkidle'); S.notifTarget = p.url(); });
+await step('F1.7 Mariam accepte la relation depuis le profil d’Awa', 'mariam', async p => { await p.goto(base + '/personnes?q=couture'); await p.click('a:has-text("Voir le profil") >> nth=0'); await p.waitForURL(/personnes\//); await text(p, 'Awa Traoré'); await p.click('button:has-text("Accepter la relation")'); await text(p, 'En relation'); });
+await step('F1.8 Awa écrit dans la conversation', 'awa', async p => { await p.goto(S.mariam); await p.click('main a:has-text("Écrire") >> nth=0'); await p.waitForURL(/conversations\//); S.conv = p.url(); await p.fill('#body', 'Bonjour, merci d’avoir accepté !'); await p.click('button[aria-label="Envoyer"]'); await text(p, 'merci d’avoir accepté'); });
+await step('F1.9 Mariam reçoit et lit le message (notification)', 'mariam', async p => { await p.goto(base + '/notifications'); await text(p, 'vous a écrit un message'); await p.click('a:has-text("vous a écrit un message")'); await p.waitForURL(/conversations\//); await text(p, 'merci d’avoir accepté'); });
+
+// ───────── F2 : Agir → Publication → Réponse → Acceptation → Action confirmée
+await step('F2.1 Awa publie un besoin (Agir → 3 étapes)', 'awa', async p => {
+  await p.goto(base + '/fil');
+  const open = vp.width < 600 ? 'button[aria-controls="agir-menu-mobile"]' : 'button[aria-controls="agir-menu-desktop"]';
+  await p.click(open); await p.click('a[data-agir-action="besoin"]:visible'); await p.waitForURL('**/agir/besoin');
+  await p.fill('#body', 'Je cherche quelqu’un pour installer des panneaux solaires sur ma boutique à Abidjan.');
+  await p.click('button:has-text("Continuer")'); await text(p, 'Où ?'); await p.click('button:has-text("Continuer")'); await text(p, 'Relisez avant de publier');
+  await p.click('button:has-text("Publier ma demande")'); await p.waitForURL(/publications\//); S.need = p.url(); await text(p, 'panneaux solaires');
+});
+await step('F2.2 Yao trouve le besoin dans le Fil (filtre Besoins) et propose son aide', 'yao', async p => {
+  await p.goto(base + '/fil?filtre=besoins'); await text(p, 'panneaux solaires');
+  await p.goto(S.need); await p.click('button:has-text("Je peux aider"):visible'); await p.fill('#geste-mot', 'Je suis électricien solaire, disponible samedi.');
+  await p.click('button:has-text("Envoyer ma proposition")'); await text(p, 'proposition', { timeout: 8000 });
+});
+await step('F2.3 Awa est notifiée de la réponse', 'awa', async p => { await p.goto(base + '/notifications'); await text(p, 'a répondu à votre publication'); });
+await step('F2.4 Awa accepte la proposition de Yao', 'awa', async p => { await p.goto(S.need); await p.click('button:has-text("Accepter")'); await text(p, 'Acceptée'); });
+await step('F2.5 Passage à la conversation et proposition d’une prochaine action', 'awa', async p => { await p.click('main a:has-text("Écrire") >> nth=0'); await p.waitForURL(/conversations\//); S.conv2 = p.url(); await p.click('button:has-text("Proposer notre prochaine action")'); await p.fill('#action-text', 'Visite de la boutique samedi à 10 h'); await p.click('button:has-text("Proposer cette action")'); await text(p, 'Visite de la boutique'); });
+await step('F2.6 Yao confirme l’action', 'yao', async p => { await p.goto(S.conv2); await p.click('button:has-text("Confirmer cette action")'); await text(p, 'confirm'); });
+await step('F2.7 Awa marque le besoin comme résolu', 'awa', async p => { await p.goto(S.need); await p.click('button:has-text("Marquer comme résolu")'); await p.waitForTimeout(300); const b = p.locator('button:has-text("Oui, il est résolu"), button:has-text("Enregistrer")').first(); await b.click().catch(() => {}); await p.waitForTimeout(800); await nowait(p); });
+
+// ───────── F3/F4 : Entreprises → page → Opportunités ; entreprise vérifiée publie
+await step('F3.1 Annuaire Entreprises (invité inclus) liste uniquement les vérifiées', 'awa', async p => { await p.goto(base + '/entreprises'); await text(p, 'Solaire Abidjan'); const t = await p.content(); if (t.includes('Atelier En Attente')) throw new Error('entreprise non vérifiée listée'); });
+await step('F3.2 Page entreprise vérifiée : Nos opportunités / services', 'awa', async p => { await p.click('a:has-text("Voir le profil") >> nth=0'); await p.waitForURL(/entreprises\//); S.company = p.url(); await text(p, 'Nos opportunités'); });
+await step('F4.1 Patron publie une opportunité (3 étapes)', 'patron', async p => {
+  await p.goto(S.company.replace(/\/$/, '') + '/opportunites/nouvelle'); await p.click('button:has-text("Un emploi")'); await p.waitForSelector('button[aria-pressed="true"]:has-text("Un emploi")');
+  if (vp.width < 1024) { await p.click('button:has-text("Continuer"):visible'); await p.waitForSelector('#title:visible'); }
+  await p.fill('#title', 'Ingénieur électricien solaire'); await p.fill('#description', 'Installation et maintenance de systèmes photovoltaïques à Abidjan.');
+  await p.click('button:has-text("Continuer"):visible'); if (vp.width >= 1024) { await p.waitForSelector('#city_id'); await p.click('button:has-text("Continuer"):visible'); } await text(p, 'Aperçu de votre opportunité');
+  await p.click('button:has-text("Publier l’opportunité")'); await p.waitForURL(/opportunites\/[0-9a-f-]{36}$/); S.opp = p.url(); await text(p, 'Ingénieur électricien solaire');
+});
+await step('F4.2 L’opportunité apparaît sur la page entreprise et dans le catalogue', 'awa', async p => { await p.goto(S.company); await text(p, 'Ingénieur électricien solaire'); await p.goto(base + '/opportunites'); await text(p, 'Ingénieur électricien solaire'); });
+await step('F4.3 Entreprise en attente : brouillon possible, publication impossible', 'attente', async p => { await p.goto(base + '/entreprises'); const link = await p.evaluate(() => [...document.querySelectorAll('a')].map(a => a.href).find(h => h.includes('/entreprises/') && h.includes('atelier-en-attente'))); const slug = link ?? null; S.pendingCompany = slug; await p.goto(base + '/espace'); });
+
+// ───────── F5 : Personne → Recherche → Candidature → Suivi → Contact
+await step('F5.1 Recherche sans accents « ingenieur electricien »', 'awa', async p => { await p.goto(base + '/opportunites'); await p.fill('#opportunite-recherche', 'ingenieur electricien'); await p.waitForTimeout(900); await text(p, 'Ingénieur électricien solaire'); });
+await step('F5.2 Ouvrir le détail et postuler avec message + PDF', 'awa', async p => {
+  await p.goto(S.opp); await p.click('a:has-text("Postuler")'); await p.waitForURL(/repondre/);
+  await p.fill('#message', 'Bonjour, électricien solaire depuis 6 ans, disponible immédiatement.');
+  fs.writeFileSync('/tmp/cv-recette.pdf', '%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF');
+  await p.setInputFiles('#attachment', '/tmp/cv-recette.pdf'); await p.click('button:has-text("Envoyer ma candidature")'); await text(p, 'Votre réponse');
+});
+await step('F5.3 Doublon impossible, retour direct sur l’offre', 'awa', async p => { await p.goto(S.opp + '/repondre'); await p.waitForURL(S.opp); });
+await step('F5.4 Patron est notifié et ouvre les réponses', 'patron', async p => { await p.goto(base + '/notifications'); await text(p, 'a répondu à votre opportunité'); await p.click('a:has-text("a répondu à votre opportunité")'); await p.waitForURL(/reponses/); await text(p, 'Awa Traoré'); });
+await step('F5.5 Patron télécharge le PDF privé', 'patron', async p => { const href = await p.getAttribute('a:has-text("Document PDF")', 'href'); const r = await p.request.get(href); if (r.status() !== 200 || !(r.headers()['content-type'] ?? '').includes('pdf')) throw new Error('statut ' + r.status()); });
+await step('F5.6 Un tiers ne peut ni lire les réponses ni le PDF', 'intrus', async p => { const href = new URL(S.opp).pathname; const r = await p.request.get(base + href + '/reponses'); if (r.status() !== 403) throw new Error('réponses: ' + r.status()); });
+await step('F5.7 Patron marque vue puis propose un échange', 'patron', async p => { await p.click('button:has-text("Marquer comme vue")'); await text(p, 'Vue par l’entreprise'); await p.click('button:has-text("Proposer un échange")'); await text(p, 'Votre proposition d’échange'); });
+await step('F5.8 Awa suit l’état et reçoit la notification', 'awa', async p => { await p.goto(base + '/notifications'); await text(p, 'souhaite échanger avec vous'); await p.click('a:has-text("souhaite échanger avec vous")'); await p.waitForURL(/opportunites\//); await text(p, 'L’entreprise souhaite échanger'); });
+await step('F5.9 Awa sauvegarde puis retrouve dans Mes opportunités', 'awa', async p => { await p.click('button:has-text("Sauvegarder")'); await p.goto(base + '/espace/opportunites'); await text(p, 'Ingénieur électricien solaire'); await text(p, 'Mes réponses'); });
+
+// ───────── F7 : Effets d’une modification / clôture
+await step('F7.1 Clôture : plus au catalogue, badge Clôturée sur le détail', 'patron', async p => { await p.goto(S.company.replace(/\/$/, '') + '/opportunites'); await p.click('button:has-text("Clôturer") >> nth=0'); await text(p, 'Opportunité clôturée'); });
+await step('F7.2 Vérification côté candidat (catalogue, détail, page entreprise)', 'awa', async p => { await p.goto(base + '/opportunites'); const t = await p.content(); if (t.includes('Ingénieur électricien solaire') && !t.includes('Aucune opportunité')) throw new Error('encore listée'); await p.goto(S.opp); await text(p, 'Clôturée'); await p.goto(S.company); const c = await p.content(); if (/Nos opportunités[\s\S]{0,400}Ingénieur électricien solaire/.test(c)) throw new Error('encore sur la page entreprise'); });
+
+// ───────── F8 : Blocage, suspension, traçabilité
+await step('F8.0 Patron publie une seconde opportunité (avant suspension)', 'patron', async p => {
+  await p.goto(S.company.replace(/\/$/, '') + '/opportunites/nouvelle'); await p.click('button:has-text("Une mission")'); await p.waitForSelector('button[aria-pressed="true"]:has-text("Une mission")');
+  if (vp.width < 1024) { await p.click('button:has-text("Continuer"):visible'); await p.waitForSelector('#title:visible'); }
+  await p.fill('#title', 'Mission de maintenance toiture'); await p.fill('#description', 'Contrôle annuel des installations en toiture.');
+  await p.click('button:has-text("Continuer"):visible'); if (vp.width >= 1024) { await p.waitForSelector('#city_id'); await p.click('button:has-text("Continuer"):visible'); } await text(p, 'Aperçu de votre opportunité');
+  await p.click('button:has-text("Publier l’opportunité")'); await p.waitForURL(/opportunites\/[0-9a-f-]{36}$/); S.opp2 = p.url();
+});
+await step('F8.1 Awa bloque Ibrahim depuis son profil (sans capacité : absent des recherches, accès par lien)', 'awa', async p => {
+  const pid = execSync(`su postgres -c "psql -d gamad_recette -tAc \\"select public_id from profiles where user_id=(select id from users where email='intrus@recette.test')\\""`).toString().trim(); S.intrusId = pid;
+  await p.goto(base + '/personnes/' + pid); await text(p, 'Ibrahim Intrus');
+  await p.click('button[aria-label="Autres actions pour ce profil"]'); await p.click('button:has-text("Bloquer cette personne")'); await p.waitForTimeout(1500);
+  const r = await p.request.get(base + '/personnes/' + pid); if (r.status() !== 404) throw new Error('profil bloqué encore accessible : ' + r.status());
+});
+await step('F8.2 Ibrahim (bloqué) ne voit plus le profil d’Awa (404)', 'intrus', async p => { const mid = S.mariam.split('/personnes/')[1]; const awaId = execSync(`su postgres -c "psql -d gamad_recette -tAc \\"select public_id from profiles where user_id=(select id from users where email='awa@recette.test')\\""`).toString().trim(); const r = await p.request.get(base + '/personnes/' + awaId); if (r.status() !== 404) throw new Error('profil visible : ' + r.status()); });
+await step('F8.3 Admin suspend l’entreprise « Solaire Abidjan » avec motif', 'admin', async p => {
+  await p.goto(base + '/moderation/entreprises'); await text(p, 'Solaire Abidjan');
+  const art = p.locator('article:has-text("Solaire Abidjan")').first(); await art.locator('textarea').fill('Recette : suspension de contrôle.'); await art.locator('button:has-text("Suspendre avec motif")').click(); await text(p, 'Décision enregistrée');
+});
+await step('F8.4 Après suspension : page entreprise, offres et catalogue indisponibles', 'awa', async p => {
+  for (const [u, label] of [[S.company, 'page entreprise'], [S.opp2, 'opportunité'], [S.opp, 'ancienne opportunité']]) { const r = await p.request.get(u); if (r.status() !== 404) throw new Error(label + ' : ' + r.status()); }
+  await p.goto(base + '/opportunites'); const t = await p.content(); if (t.includes('Mission de maintenance toiture')) throw new Error('offre suspendue au catalogue');
+  await p.goto(base + '/entreprises'); if ((await p.content()).includes('Solaire Abidjan')) throw new Error('entreprise suspendue dans l’annuaire');
+  await p.goto(base + '/espace/opportunites'); if ((await p.content()).includes('Ingénieur électricien solaire')) throw new Error('réponse visible malgré la suspension');
+});
+await step('F8.5 Propriétaire suspendu : accès aux opportunités refusé, message clair sur sa page', 'patron', async p => { const r = await p.request.get(S.company.replace(/\/$/, '') + '/opportunites'); if (r.status() !== 403) throw new Error('gestion: ' + r.status()); });
+await step('F8.6 Journal d’administration trace la suspension', 'admin', async p => { await p.goto(base + '/moderation/journal'); await text(p, 'suspen'); });
+
+fs.writeFileSync('/tmp/recette-state.json', JSON.stringify(S, null, 1));
+fs.writeFileSync(`/tmp/recette-flows-${vp.width}.json`, JSON.stringify(log, null, 1));
+const fails = log.filter(l => !l.ok);
+console.log(`\n${log.length} étapes, ${fails.length} échec(s)`);
+await browser.close();

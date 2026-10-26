@@ -1,0 +1,28 @@
+<?php
+use Illuminate\Support\Facades\DB;
+use App\Models\{User,Company,Opportunity,OpportunityResponse,UserNotification};
+use App\Services\Opportunities;
+use Illuminate\Support\Str;
+$mk = function ($tag) {
+    $owner = User::factory()->create(['email'=>"own$tag@r.test"]);
+    $c = new Company(['name'=>"Repro $tag",'legal_name'=>"Repro $tag SARL",'registration_country'=>'CI','registration_number'=>'R'.Str::random(8),'sector'=>'X','city'=>'Abidjan','summary'=>'t']);
+    $c->slug='repro-'.$tag.'-'.strtolower(Str::random(8)); $c->forceFill(['owner_id'=>$owner->id,'status'=>'verified','verified_at'=>now()])->save();
+    $o = new Opportunity(['kind'=>'job','title'=>"Poste $tag",'description'=>'d']); $o->company()->associate($c); $o->author()->associate($owner); $o->forceFill(['status'=>'published','published_at'=>now()])->save();
+    $cand = User::factory()->create(['email'=>"cand$tag@r.test"]);
+    app(Opportunities::class)->respond($cand, $o->fresh(), 'msg', null);
+    return [$owner,$c,$o->fresh(),$cand];
+};
+foreach ([Str::random(4),Str::random(4),Str::random(4)] as $tag) {
+    [$owner,$c,$o,$cand] = $mk($tag);
+    try { $owner->delete(); echo "$tag suppression propriétaire: OK\n"; } catch (\Throwable $e) { echo "$tag suppression propriétaire: ECHEC — ".substr(preg_replace('/\s+/',' ',$e->getMessage()),0,200)."\n"; }
+}
+// variante : on supprime seulement l'entreprise
+[$owner,$c,$o,$cand] = $mk(Str::random(4));
+try { $c->delete(); echo "D suppression entreprise seule: OK\n"; } catch (\Throwable $e) { echo "D suppression entreprise seule: ECHEC — ".substr(preg_replace('/\s+/',' ',$e->getMessage()),0,200)."\n"; }
+echo "--- dans une transaction englobante ---\n";
+foreach ([Str::random(4),Str::random(4)] as $tag) {
+    [$owner,$c,$o,$cand] = $mk($tag);
+    try { DB::transaction(fn () => $owner->delete()); echo "$tag suppression propriétaire (transaction): OK\n"; } catch (\Throwable $e) { echo "$tag suppression propriétaire (transaction): ECHEC — ".substr(preg_replace('/\s+/',' ',$e->getMessage()),0,160)."\n"; }
+}
+[$owner,$c,$o,$cand] = $mk(Str::random(4));
+try { DB::transaction(fn () => $cand->delete()); echo "suppression candidat (transaction): OK\n"; } catch (\Throwable $e) { echo "suppression candidat: ECHEC ".substr($e->getMessage(),0,120)."\n"; }

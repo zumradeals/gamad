@@ -1,0 +1,238 @@
+[
+ {
+  "id": "01",
+  "name": "F1.1 Accueil connecté affiche le Fil",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "02",
+  "name": "F1.2 Menu Personnes → recherche par capacité « plomberie »",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "03",
+  "name": "F1.3 Ouvrir le profil de Mariam",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "04",
+  "name": "F1.4 Contacter → envoyer la demande de relation",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "05",
+  "name": "F1.5 Mariam voit la notification de demande",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "06",
+  "name": "F1.6 Ouvrir la notification → contenu concerné",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "07",
+  "name": "F1.7 Mariam accepte la relation depuis le profil d’Awa",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "08",
+  "name": "F1.8 Awa écrit dans la conversation",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "09",
+  "name": "F1.9 Mariam reçoit et lit le message (notification)",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "10",
+  "name": "F2.1 Awa publie un besoin (Agir → 3 étapes)",
+  "ok": true,
+  "errs": [
+   "SyntaxError: Unexpected token 'try'"
+  ]
+ },
+ {
+  "id": "11",
+  "name": "F2.2 Yao trouve le besoin dans le Fil (filtre Besoins) et propose son aide",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "12",
+  "name": "F2.3 Awa est notifiée de la réponse",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "13",
+  "name": "F2.4 Awa accepte la proposition de Yao",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "14",
+  "name": "F2.5 Passage à la conversation et proposition d’une prochaine action",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "15",
+  "name": "F2.6 Yao confirme l’action",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "16",
+  "name": "F2.7 Awa marque le besoin comme résolu",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "17",
+  "name": "F3.1 Annuaire Entreprises (invité inclus) liste uniquement les vérifiées",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "18",
+  "name": "F3.2 Page entreprise vérifiée : Nos opportunités / services",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "19",
+  "name": "F4.1 Patron publie une opportunité (3 étapes)",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "20",
+  "name": "F4.2 L’opportunité apparaît sur la page entreprise et dans le catalogue",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "21",
+  "name": "F4.3 Entreprise en attente : brouillon possible, publication impossible",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "22",
+  "name": "F5.1 Recherche sans accents « ingenieur electricien »",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "23",
+  "name": "F5.2 Ouvrir le détail et postuler avec message + PDF",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "24",
+  "name": "F5.3 Doublon impossible, retour direct sur l’offre",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "25",
+  "name": "F5.4 Patron est notifié et ouvre les réponses",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "26",
+  "name": "F5.5 Patron télécharge le PDF privé",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "27",
+  "name": "F5.6 Un tiers ne peut ni lire les réponses ni le PDF",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "28",
+  "name": "F5.7 Patron marque vue puis propose un échange",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "29",
+  "name": "F5.8 Awa suit l’état et reçoit la notification",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "30",
+  "name": "F5.9 Awa sauvegarde puis retrouve dans Mes opportunités",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "31",
+  "name": "F7.1 Clôture : plus au catalogue, badge Clôturée sur le détail",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "32",
+  "name": "F7.2 Vérification côté candidat (catalogue, détail, page entreprise)",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "33",
+  "name": "F8.0 Patron publie une seconde opportunité (avant suspension)",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "34",
+  "name": "F8.1 Awa bloque Ibrahim depuis son profil (sans capacité : absent des recherches, accès par lien)",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "35",
+  "name": "F8.2 Ibrahim (bloqué) ne voit plus le profil d’Awa (404)",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "36",
+  "name": "F8.3 Admin suspend l’entreprise « Solaire Abidjan » avec motif",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "37",
+  "name": "F8.4 Après suspension : page entreprise, offres et catalogue indisponibles",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "38",
+  "name": "F8.5 Propriétaire suspendu : accès aux opportunités refusé, message clair sur sa page",
+  "ok": true,
+  "errs": []
+ },
+ {
+  "id": "39",
+  "name": "F8.6 Journal d’administration trace la suspension",
+  "ok": false,
+  "err": "TimeoutError: page.waitForSelector: Timeout 8000ms exceeded."
+ }
+]
