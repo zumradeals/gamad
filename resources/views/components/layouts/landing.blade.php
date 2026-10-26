@@ -1,4 +1,4 @@
-@props(['title' => null, 'login' => false])
+@props(['title' => null, 'login' => false, 'register' => false])
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -19,7 +19,7 @@
                 <span class="flex items-center gap-1.5"><x-logo :tagline="false" /></span>
             </a>
             <nav aria-label="Navigation de l’accueil" class="hidden items-center gap-6 lg:flex">
-                <a href="{{ route('home') }}" @if (! $login) aria-current="page" @endif class="landing-nav-link {{ $login ? 'border-transparent' : 'border-accent font-bold' }}">Accueil</a>
+                <a href="{{ route('home') }}" @if (! $login && ! $register) aria-current="page" @endif class="landing-nav-link {{ $login || $register ? 'border-transparent' : 'border-accent font-bold' }}">Accueil</a>
                 <a href="{{ route('personnes.index') }}" class="landing-nav-link border-transparent">Découvrir</a>
                 <a href="{{ route('home') }}#comment" class="landing-nav-link border-transparent">Comment ça marche</a>
                 <a href="{{ route('home') }}#confiance" class="landing-nav-link border-transparent">À propos</a>
@@ -27,7 +27,7 @@
             <div class="flex items-center gap-3">
                 <a href="{{ route('personnes.index') }}" aria-label="Rechercher une personne" class="inline-flex size-11 items-center justify-center rounded-button text-ink hover:bg-soft-blue"><x-icon name="search" :size="22" /></a>
                 @unless ($login)<span class="hidden sm:contents"><x-button :href="route('login')" variant="secondary" class="!px-4 !text-[13px]">Se connecter</x-button></span>@endunless
-                <span class="hidden sm:contents"><x-button :href="route('register')" variant="accent" class="!px-4 !text-[13px]">Créer un compte</x-button></span>
+                @unless ($register)<span class="hidden sm:contents"><x-button :href="route('register')" variant="accent" class="!px-4 !text-[13px]">Créer un compte</x-button></span>@endunless
                 <details class="landing-mobile-menu relative lg:hidden">
                     <summary class="flex size-11 cursor-pointer list-none items-center justify-center rounded-button border border-line" aria-label="Menu de l’accueil"><x-icon name="menu" :size="22" /></summary>
                     <nav aria-label="Navigation mobile de l’accueil" class="absolute right-0 top-full mt-2 flex w-64 max-w-[calc(100vw-32px)] flex-col gap-1 rounded-card border border-line bg-card p-3 shadow-lg">
@@ -59,6 +59,6 @@
             </footer>
         </div>
     </div>
-    @if ($login)@livewireScripts @endif
+    @if ($login || $register)@livewireScripts @endif
 </body>
 </html>
