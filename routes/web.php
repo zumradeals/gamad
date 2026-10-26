@@ -75,6 +75,7 @@ use App\Livewire\ParametresCopie;
 use App\Livewire\ParametresDomaines;
 use App\Livewire\ParametresPaiement;
 use App\Livewire\ParametresPortefeuille;
+use App\Livewire\ParametresProjets;
 use App\Livewire\ParametresPublicite;
 use App\Livewire\ParametresTerritoires;
 use App\Livewire\ParametresTextes;
@@ -238,6 +239,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/espace/parametres', Parametres::class)->middleware('can:super-admin')->name('espace.parametres');
     Route::get('/espace/parametres/textes', ParametresTextes::class)->middleware('can:super-admin')->name('espace.parametres.textes');
     Route::get('/espace/parametres/zumra', ParametresZumra::class)->middleware('can:super-admin')->name('espace.parametres.zumra');
+    Route::get('/espace/parametres/projets', ParametresProjets::class)->middleware('can:super-admin')->name('espace.parametres.projets');
     Route::get('/espace/parametres/publicite', ParametresPublicite::class)->middleware('can:super-admin')->name('espace.parametres.publicite');
     Route::get('/espace/parametres/contributions', ParametresContributions::class)->middleware('can:super-admin')->name('espace.parametres.contributions');
     Route::get('/espace/parametres/paiement', ParametresPaiement::class)->middleware('can:super-admin')->name('espace.parametres.paiement');

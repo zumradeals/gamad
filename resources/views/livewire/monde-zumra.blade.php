@@ -158,7 +158,7 @@
     <x-contribution-entry kind="zumra" :model="$zumra" :viewer="$viewer" />
 
     <nav aria-label="Onglets de la ZUMRA" class="-mx-4 flex overflow-x-auto border-b border-line bg-card px-2 md:mx-0 md:rounded-card md:border">
-        @foreach (['formation' => 'Formation', 'fil' => 'Fil'] + ['projets' => 'Projets'] + ['membres' => 'Membres'] + ($canDiscuss ? ['discussion' => 'Discussion'] : []) as $key => $label)
+        @foreach (['formation' => 'Formation', 'fil' => 'Fil'] + (\App\Support\ProjectsModule::accessibleTo($viewer) ? ['projets' => 'Projets'] : []) + ['membres' => 'Membres'] + ($canDiscuss ? ['discussion' => 'Discussion'] : []) as $key => $label)
             <button type="button" wire:click="setTab('{{ $key }}')" @if ($tab === $key) aria-current="page" @endif
                     @class(['flex min-h-12 min-w-11 shrink-0 items-center justify-center border-b-[3px] px-3 text-[14px]', 'border-accent font-extrabold text-ink' => $tab === $key, 'border-transparent font-semibold text-muted' => $tab !== $key])>{{ $label }}</button>
         @endforeach

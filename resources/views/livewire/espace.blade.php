@@ -15,7 +15,7 @@
             ['attestations', 'Mes attestations', 'shield'],
             ['entreprise', 'Mon entreprise', 'home'],
             \App\Support\ZumraModule::accessibleTo(auth()->user()) ? ['zumras', 'Mes ZUMRA', 'community'] : null,
-            \App\Support\ZumraModule::accessibleTo(auth()->user()) ? ['projets', 'Mes projets', 'project'] : null,
+            \App\Support\ProjectsModule::accessibleTo(auth()->user()) ? ['projets', 'Mes projets', 'project'] : null,
             \App\Support\ContributionsModule::accessibleTo(auth()->user()) ? ['contributions', 'Mes contributions', 'heart'] : null,
             \App\Services\ServicesGamad::availableFor(auth()->user()) !== [] ? ['services', 'Services GAMAD', 'star'] : null,
             ['pistes', 'Mes pistes', 'compass'],

@@ -103,6 +103,13 @@ final class Registry
                 'test' => 'Test privé : administrateurs et testeurs autorisés seulement',
                 'public' => 'Public : visible selon les règles de visibilité de GAMAD',
             ]),
+            // Module Projets (D-213) : suit le module ZUMRA tant que le Président ne choisit rien ; jamais modifié par une migration ou un déploiement.
+            new Definition('projets_module', self::GROUP_ZUMRA, 'État du module Projets', Definition::ENUM, 'inherit', ['required', 'in:inherit,off,test,public'], [
+                'inherit' => 'Suit le module ZUMRA (état actuel, par défaut)',
+                'off' => 'Désactivé : invisible et inaccessible, même si les ZUMRA sont ouvertes',
+                'test' => 'Test privé : administrateurs et testeurs des ZUMRA seulement',
+                'public' => 'Public : ouvert comme les ZUMRA (les ZUMRA doivent être ouvertes)',
+            ]),
             new Definition('zumra_testers', self::GROUP_ZUMRA, 'Comptes testeurs (adresses e-mail)', Definition::STRING, null, ['nullable', 'string', 'max:2000']),
 
             // Module Contributions (C1, D-207) : fermé tant que le Président ne l'ouvre pas ; jamais activé par une migration ou un déploiement.

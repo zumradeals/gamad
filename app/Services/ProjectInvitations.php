@@ -8,7 +8,7 @@ use App\Models\ProjectInvitation;
 use App\Models\ProjectMember;
 use App\Models\User;
 use App\Support\Normalizer;
-use App\Support\ZumraModule;
+use App\Support\ProjectsModule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
@@ -109,7 +109,7 @@ class ProjectInvitations
     {
         $fresh = ProjectInvitation::query()->whereKey($invitation->getKey())->lockForUpdate()->with('project.owner', 'inviter')->firstOrFail();
 
-        abort_unless($fresh->user_id === $user->getKey() && ZumraModule::accessibleTo($user), 404);
+        abort_unless($fresh->user_id === $user->getKey() && ProjectsModule::accessibleTo($user), 404);
 
         if (! $user->hasVerifiedEmail()) {
             throw ValidationException::withMessages(['invitation' => 'Vérifiez votre adresse e-mail pour répondre.']);

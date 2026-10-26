@@ -9,7 +9,7 @@ use App\Models\Project;
 use App\Models\ProjectMember;
 use App\Models\User;
 use App\Models\Zumra;
-use App\Support\ZumraModule;
+use App\Support\ProjectsModule;
 use Illuminate\Auth\Access\Response;
 
 /**
@@ -23,7 +23,7 @@ class ProjectPolicy
 {
     public function before(?User $user): ?Response
     {
-        return ZumraModule::accessibleTo($user) ? null : Response::denyAsNotFound();
+        return ProjectsModule::accessibleTo($user) ? null : Response::denyAsNotFound();
     }
 
     /** Ouvrir le dossier du projet : son porteur et ses collaborateurs, jamais par la seule appartenance à une ZUMRA. Pour les autres, il n'existe pas (404). */
