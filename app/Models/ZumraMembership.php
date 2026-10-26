@@ -13,11 +13,25 @@ class ZumraMembership extends Model
 {
     use HasUuids;
 
+    public const DUTY_PENDING = 'pending';
+
     protected $guarded = ['id', 'zumra_id', 'user_id'];
 
     protected function casts(): array
     {
         return ['role' => ZumraRole::class, 'duty' => ZumraDuty::class, 'joined_at' => 'datetime'];
+    }
+
+    /** Poste proposé par le fondateur, que la personne n'a pas encore accepté : il n'est pas occupé. */
+    public function dutyPending(): bool
+    {
+        return $this->duty !== null && $this->duty_state === self::DUTY_PENDING;
+    }
+
+    /** Poste effectif : accepté par la personne, ou antérieur à l'acceptation (sans état). */
+    public function dutyEffective(): bool
+    {
+        return $this->duty !== null && $this->duty_state !== self::DUTY_PENDING;
     }
 
     public function zumra(): BelongsTo

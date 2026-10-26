@@ -404,7 +404,11 @@
                 <p class="mb-3 text-[13px] leading-relaxed text-muted">Vos activités et historiques restent accessibles. Les nouvelles créations collectives, recharges et contributions sont en pause.</p>
                 <div class="flex flex-col gap-2">
                     @foreach ($legacyZumras as $legacyZumra)
-                        <a href="{{ route('zumras.show', $legacyZumra) }}" class="inline-flex min-h-11 items-center text-[14px] font-semibold [overflow-wrap:anywhere]">{{ $legacyZumra->name }}</a>
+                        @if (\App\Support\ZumraModule::accessibleTo(auth()->user()))
+                            <a href="{{ route('zumras.show', $legacyZumra) }}" class="inline-flex min-h-11 items-center text-[14px] font-semibold [overflow-wrap:anywhere]">{{ $legacyZumra->name }}</a>
+                        @else
+                            <span class="inline-flex min-h-11 items-center text-[14px] font-semibold [overflow-wrap:anywhere]">{{ $legacyZumra->name }}</span>
+                        @endif
                     @endforeach
                     @foreach ($legacyWallets as $legacyWallet)
                         @php $legacyOwner = $legacyWallet->isPerson() ? null : $legacyZumras->firstWhere('id', $legacyWallet->owner_id); @endphp

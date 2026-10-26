@@ -68,8 +68,10 @@
             @if ($company)
                 <a href="{{ route('entreprises.show', $company) }}" class="inline-flex min-h-11 items-center break-words text-[15px] font-bold text-ink no-underline hover:underline">{{ $company->name }}</a>
                 <span class="inline-flex items-center gap-1 self-start text-[11px] font-semibold text-type-knowledge-fg"><x-icon name="check-circle" :size="13"/> Immatriculation vérifiée</span>
-            @elseif ($zumra)
+            @elseif ($zumra && \App\Support\ZumraModule::accessibleTo(auth()->user()))
                 <a href="{{ route('zumras.show', $zumra) }}" class="inline-flex min-h-11 items-center break-words text-[15px] font-bold text-ink no-underline hover:text-ink hover:underline">{{ $zumra->name }}</a>
+            @elseif ($zumra)
+                <span class="inline-flex min-h-11 items-center break-words text-[15px] font-bold text-ink">{{ $zumra->name }}</span>
             @elseif ($canSeeAuthor)
                 <a href="{{ route('personnes.show', $profile->public_id) }}" class="inline-flex min-h-11 items-center break-words text-[15px] font-bold text-ink no-underline hover:text-ink hover:underline">{{ $author->name }}</a>
             @else

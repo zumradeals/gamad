@@ -10,16 +10,20 @@ use App\Models\AdminAction;
 use App\Models\Domain;
 use App\Models\Invitation;
 use App\Models\User;
+use App\Models\UserNotification;
 use App\Models\Zumra;
 use App\Services\Invitations;
 use App\Services\JoinRequests;
 use App\Services\Memberships;
 use App\Services\Settings;
+use App\Services\Todo;
 use App\Services\Zumras;
 use App\Support\ZumraModule;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /** Z1 (D-205) : le module ZUMRA, ouvert ou fermé par le seul super administrateur, dans le parcours actif. */
 function ouvreModule(string $etat, string $testeurs = ''): void
@@ -46,7 +50,7 @@ it('reste désactivé par défaut : invisible dans la navigation et inaccessible
     $this->get(route('zumras.index'))->assertRedirect(route('personnes.index'));
     $this->actingAs($simple)->get(route('zumras.index'))->assertRedirect(route('personnes.index'));
     $this->actingAs($simple)->get(route('zumras.show', $zumra))->assertNotFound();
-    $this->actingAs($simple)->get(route('zumras.create'))->assertForbidden();
+    $this->actingAs($simple)->get(route('zumras.create'))->assertNotFound();
     $this->actingAs($simple)->get(route('espace.zumras'))->assertNotFound();
     Livewire::actingAs($simple)->test(CarrefourZumras::class)->assertNotFound();
 });
@@ -140,18 +144,6 @@ it('ne permet qu’au super administrateur de régler le module, et journalise c
     Livewire::actingAs($admin)->test(ParametresZumra::class)->set('testers', 'pas une adresse')->call('save')->assertHasErrors('testers');
 });
 
-it('laisse un membre retrouver sa ZUMRA existante, module fermé (D-183)', function () {
-    $admin = User::factory()->superAdmin()->create();
-    ouvreModule('test');
-    $zumra = zumraZ1($admin);
-    $membre = person('Membre');
-    ajouteMembre($zumra, $membre);
-    ouvreModule('off');
-
-    $this->actingAs($membre)->get(route('zumras.show', $zumra))->assertOk()->assertSeeText('Espace existant conservé');
-    $this->actingAs($membre)->get(route('zumras.index'))->assertRedirect(route('personnes.index'));
-});
-
 it('crée une ZUMRA seul, avec sa nature, comme responsable principal', function () {
     ouvreModule('public');
     $auteur = person('Fondatrice');
@@ -180,28 +172,15 @@ it('filtre le Carrefour par nature et fonctionnement, et ne met à la une que de
     Livewire::test(CarrefourZumras::class)->set('query', 'Entraide')->assertDontSee('ZUMRA à la une');
 });
 
-it('présente les cinq responsabilités, occupées ou à pourvoir, sans score', function () {
+it('présente les cinq responsabilités, occupées, en attente ou à pourvoir, sans score', function () {
     $admin = User::factory()->superAdmin()->create();
     ouvreModule('public');
     $zumra = zumraZ1($admin);
     $adjointe = person('Adjointe');
-    $membre = person('Membre');
     ajouteMembre($zumra, $adjointe, ZumraRole::Manager);
-    ajouteMembre($zumra, $membre);
 
     $gouvernance = collect($zumra->governance());
-    expect($gouvernance)->toHaveCount(5)->and($gouvernance->where('holder', null)->count())->toBe(4);
-
-    app(Memberships::class)->assignDuty($admin, $zumra, ligne($zumra, $adjointe), ZumraDuty::Finance);
-    expect(collect($zumra->governance())->firstWhere('label', 'Responsable financier')['holder']->is($adjointe))->toBeTrue();
-
-    // Un membre simple n'a pas de poste ; seul le fondateur en attribue.
-    expect(fn () => app(Memberships::class)->assignDuty($admin, $zumra, ligne($zumra, $membre), ZumraDuty::Finance))->toThrow(ValidationException::class);
-    expect(fn () => app(Memberships::class)->assignDuty($adjointe, $zumra, ligne($zumra, $adjointe), ZumraDuty::SecondDeputy))->toThrow(AuthorizationException::class);
-
-    // Le retirer comme responsable libère le poste.
-    app(Memberships::class)->demote($admin, $zumra, ligne($zumra, $adjointe));
-    expect(collect($zumra->governance())->firstWhere('label', 'Responsable financier')['holder'])->toBeNull();
+    expect($gouvernance)->toHaveCount(5)->and($gouvernance->where('state', 'free')->count())->toBe(4)->and($gouvernance->first()['state'])->toBe('occupied');
 
     $this->get(route('zumras.show', $zumra))->assertSeeText('Responsable principal')->assertSeeText('À pourvoir');
 });
@@ -222,4 +201,174 @@ it('liste mes ZUMRA et laisse accepter ou refuser une invitation', function () {
 
     expect($zumra->roleOf($invitee))->toBe(ZumraRole::Member)->and($autre->roleOf($invitee))->toBeNull();
     $this->actingAs($fondateur)->get(route('espace'))->assertOk()->assertSee('href="'.route('espace.zumras').'"', false);
+});
+
+/** Z1 (D-205), précisions du Président : fermeture totale et acceptation explicite des responsabilités. */
+it('ferme totalement le module à un membre d’une ZUMRA existante, par adresse, par action et par service, sans rien supprimer', function () {
+    $admin = User::factory()->superAdmin()->create();
+    ouvreModule('public');
+    $zumra = zumraZ1($admin);
+    $membre = person('Membre');
+    $manager = person('Responsable');
+    ajouteMembre($zumra, $membre);
+    ajouteMembre($zumra, $manager, ZumraRole::Manager);
+    ouvreModule('off');
+
+    foreach ([$membre, $manager] as $personne) {
+        $this->actingAs($personne)->get(route('zumras.show', $zumra))->assertNotFound();
+        $this->actingAs($personne)->get(route('zumras.edit', $zumra))->assertNotFound();
+        $this->actingAs($personne)->get(route('zumras.invite', $zumra))->assertNotFound();
+        $this->actingAs($personne)->get(route('zumras.create'))->assertNotFound();
+        $this->actingAs($personne)->get(route('espace.zumras'))->assertNotFound();
+        $this->actingAs($personne)->get(route('zumras.index'))->assertRedirect(route('personnes.index'));
+        $this->actingAs($personne)->get(route('espace'))->assertOk()->assertDontSee('href="'.route('espace.zumras').'"', false);
+    }
+    Livewire::actingAs($membre)->test(MondeZumra::class, ['zumra' => $zumra])->assertNotFound();
+    expect(fn () => app(Memberships::class)->leave($membre, $zumra))->toThrow(AuthorizationException::class);
+    expect(fn () => app(Memberships::class)->remove($manager, $zumra, ligne($zumra, $membre)))->toThrow(AuthorizationException::class);
+    expect(fn () => app(Invitations::class)->invite($manager, $zumra, person('Autre')))->toThrow(AuthorizationException::class);
+
+    // Les données sont conservées, et le module rouvert les retrouve.
+    expect($zumra->fresh()->memberships()->count())->toBe(3);
+    ouvreModule('public');
+    $this->actingAs($membre)->get(route('zumras.show', $zumra))->assertOk();
+});
+
+it('ferme aussi un module en test privé aux membres non autorisés et refuse une invitation reçue', function () {
+    $admin = User::factory()->superAdmin()->create();
+    ouvreModule('public');
+    $zumra = zumraZ1($admin);
+    $invitee = person('Invitée');
+    $invitation = app(Invitations::class)->invite($admin, $zumra, $invitee);
+    ouvreModule('test');
+
+    $this->actingAs($invitee)->get(route('zumras.show', $zumra))->assertNotFound();
+    expect(fn () => app(Invitations::class)->accept($invitee, $invitation))->toThrow(NotFoundHttpException::class);
+    expect(collect(app(Todo::class)->for($invitee))->pluck('key')->contains('invitation-'.$invitation->id))->toBeFalse();
+    expect($zumra->roleOf($invitee))->toBeNull();
+});
+
+function responsableNomme(Zumra $zumra, string $nom = 'Adjointe'): User
+{
+    $personne = person($nom);
+    ajouteMembre($zumra, $personne, ZumraRole::Manager);
+
+    return $personne;
+}
+
+it('propose un poste en attente, sans le rendre effectif, et informe la personne', function () {
+    $fondateur = person('Fondatrice');
+    ouvreModule('public');
+    $zumra = zumraZ1($fondateur);
+    $adjointe = responsableNomme($zumra);
+
+    app(Memberships::class)->proposeDuty($fondateur, $zumra, ligne($zumra, $adjointe), ZumraDuty::Finance);
+
+    $ligne = ligne($zumra, $adjointe);
+    expect($ligne->dutyPending())->toBeTrue()->and($ligne->dutyEffective())->toBeFalse();
+    $poste = collect($zumra->governance())->firstWhere('label', 'Responsable financier');
+    expect($poste['state'])->toBe('pending')->and($poste['holder']->is($adjointe))->toBeTrue();
+    expect(UserNotification::query()->where('user_id', $adjointe->id)->where('kind', 'zumra_duty_proposed')->exists())->toBeTrue();
+
+    $page = $this->actingAs($fondateur)->get(route('zumras.show', $zumra))->assertOk();
+    $page->assertSeeText('En attente : Adjointe')->assertDontSeeText('Poste occupé');
+    // Un visiteur ne voit pas le nom, seulement qu'un poste est en attente.
+    auth()->logout();
+    $this->get(route('zumras.show', $zumra))->assertSeeText('En attente')->assertDontSeeText('Adjointe');
+});
+
+it('rend le poste effectif seulement à l’acceptation de la personne désignée, qui est la seule à répondre', function () {
+    $fondateur = person('Fondatrice');
+    ouvreModule('public');
+    $zumra = zumraZ1($fondateur);
+    $adjointe = responsableNomme($zumra);
+    $autre = responsableNomme($zumra, 'Autre responsable');
+    app(Memberships::class)->proposeDuty($fondateur, $zumra, ligne($zumra, $adjointe), ZumraDuty::Finance);
+
+    // Ni le fondateur, ni un autre responsable ne répondent à sa place.
+    foreach ([$fondateur, $autre] as $intrus) {
+        expect(fn () => app(Memberships::class)->acceptDuty($intrus, ligne($zumra, $adjointe)))->toThrow(NotFoundHttpException::class);
+    }
+    expect(ligne($zumra, $adjointe)->dutyPending())->toBeTrue();
+
+    Livewire::actingAs($adjointe)->test(MesZumras::class)->assertSee('Responsabilités proposées')->assertSee('Responsable financier')
+        ->call('acceptDuty', ligne($zumra, $adjointe)->id)->assertSee('Responsabilité acceptée.');
+
+    expect(ligne($zumra, $adjointe)->dutyEffective())->toBeTrue()->and(collect($zumra->governance())->firstWhere('label', 'Responsable financier')['state'])->toBe('occupied');
+    expect(UserNotification::query()->where('user_id', $fondateur->id)->where('kind', 'zumra_duty_accepted')->exists())->toBeTrue();
+    // Une fois répondu, la proposition n'existe plus.
+    expect(fn () => app(Memberships::class)->declineDuty($adjointe, ligne($zumra, $adjointe)))->toThrow(ValidationException::class);
+});
+
+it('libère le poste quand la personne désignée le refuse, et le fondateur peut retirer proposition ou poste', function () {
+    $fondateur = person('Fondatrice');
+    ouvreModule('public');
+    $zumra = zumraZ1($fondateur);
+    $adjointe = responsableNomme($zumra);
+    $autre = responsableNomme($zumra, 'Autre responsable');
+    $service = app(Memberships::class);
+
+    $service->proposeDuty($fondateur, $zumra, ligne($zumra, $adjointe), ZumraDuty::Finance);
+    Livewire::actingAs($adjointe)->test(MesZumras::class)->call('declineDuty', ligne($zumra, $adjointe)->id)->assertSee('Responsabilité refusée.');
+    expect(ligne($zumra, $adjointe)->duty)->toBeNull()->and(collect($zumra->governance())->firstWhere('label', 'Responsable financier')['state'])->toBe('free');
+    expect(UserNotification::query()->where('user_id', $fondateur->id)->where('kind', 'zumra_duty_declined')->exists())->toBeTrue();
+
+    // Une proposition en attente est remplacée ; un poste accepté doit d'abord être retiré.
+    $service->proposeDuty($fondateur, $zumra, ligne($zumra, $adjointe), ZumraDuty::Finance);
+    $service->proposeDuty($fondateur, $zumra, ligne($zumra, $autre), ZumraDuty::Finance);
+    expect(ligne($zumra, $adjointe)->duty)->toBeNull()->and(ligne($zumra, $autre)->dutyPending())->toBeTrue();
+    $service->acceptDuty($autre, ligne($zumra, $autre));
+    expect(fn () => $service->proposeDuty($fondateur, $zumra, ligne($zumra, $adjointe), ZumraDuty::Finance))->toThrow(ValidationException::class);
+    $service->clearDuty($fondateur, $zumra, ligne($zumra, $autre));
+    expect(ligne($zumra, $autre)->duty)->toBeNull();
+});
+
+it('réserve les postes au fondateur, à un responsable nommé, et ne change aucun pouvoir', function () {
+    $fondateur = person('Fondatrice');
+    ouvreModule('public');
+    $zumra = zumraZ1($fondateur);
+    $adjointe = responsableNomme($zumra);
+    $membre = person('Membre');
+    ajouteMembre($zumra, $membre);
+    $service = app(Memberships::class);
+
+    expect(fn () => $service->proposeDuty($adjointe, $zumra, ligne($zumra, $adjointe), ZumraDuty::Finance))->toThrow(AuthorizationException::class);
+    expect(fn () => $service->proposeDuty($fondateur, $zumra, ligne($zumra, $membre), ZumraDuty::Finance))->toThrow(ValidationException::class);
+
+    $service->proposeDuty($fondateur, $zumra, ligne($zumra, $adjointe), ZumraDuty::Finance);
+    $service->acceptDuty($adjointe, ligne($zumra, $adjointe));
+    expect(ligne($zumra, $adjointe)->role)->toBe(ZumraRole::Manager)->and($zumra->roleOf($fondateur))->toBe(ZumraRole::Founder);
+    // Retirer le rôle de responsable libère aussi le poste.
+    $service->demote($fondateur, $zumra, ligne($zumra, $adjointe));
+    expect(ligne($zumra, $adjointe)->duty)->toBeNull()->and(ligne($zumra, $adjointe)->duty_state)->toBeNull();
+});
+
+it('garde effectifs les postes déjà tenus avant l’acceptation et migre sans rien perdre', function () {
+    $fondateur = person('Fondatrice');
+    ouvreModule('public');
+    $zumra = zumraZ1($fondateur);
+    $ancien = responsableNomme($zumra, 'Ancien titulaire');
+    // Donnée d'avant l'acceptation : un poste sans état.
+    DB::table('zumra_memberships')->where('id', ligne($zumra, $ancien)->id)->update(['duty' => 'finance', 'duty_state' => null]);
+
+    expect(ligne($zumra, $ancien)->dutyEffective())->toBeTrue()->and(ligne($zumra, $ancien)->dutyPending())->toBeFalse();
+    $poste = collect($zumra->fresh()->governance())->firstWhere('label', 'Responsable financier');
+    expect($poste['state'])->toBe('occupied')->and($poste['holder']->is($ancien))->toBeTrue();
+    $this->actingAs($fondateur)->get(route('zumras.show', $zumra))->assertSeeText('Ancien titulaire');
+    // Le responsable principal reste occupé sans acceptation : c'est le fondateur.
+    expect(collect($zumra->governance())->first()['state'])->toBe('occupied');
+});
+
+it('montre une responsabilité proposée dans « À faire maintenant », et plus rien si le module est fermé', function () {
+    $fondateur = person('Fondatrice');
+    ouvreModule('public');
+    $zumra = zumraZ1($fondateur);
+    $adjointe = responsableNomme($zumra);
+    app(Memberships::class)->proposeDuty($fondateur, $zumra, ligne($zumra, $adjointe), ZumraDuty::SecondDeputy);
+
+    $lignes = app(Todo::class)->for($adjointe);
+    expect(collect($lignes)->pluck('title')->implode(' '))->toContain('Responsabilité proposée : Deuxième responsable adjoint');
+    ouvreModule('off');
+    expect(collect(app(Todo::class)->for($adjointe))->pluck('title')->implode(' '))->not->toContain('Responsabilité proposée');
+    expect(fn () => app(Memberships::class)->acceptDuty($adjointe, ligne($zumra, $adjointe)))->toThrow(NotFoundHttpException::class);
 });

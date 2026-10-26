@@ -93,19 +93,26 @@ class Zumra extends Model
     }
 
     /**
-     * Les cinq postes de gouvernance recommandés, chacun avec la personne qui l'occupe ou null s'il reste à pourvoir. Le responsable
-     * principal est le fondateur. Simple lecture : aucun score ni privilège n'en découle.
+     * Les cinq postes de gouvernance recommandés. `state` : `occupied` (accepté par la personne), `pending` (proposé, pas encore accepté)
+     * ou `free` (à pourvoir). Le responsable principal est le fondateur. Simple lecture : aucun score ni privilège n'en découle.
      *
-     * @return array<int, array{label: string, holder: ?User, duty: ?ZumraDuty}>
+     * @return array<int, array{label: string, holder: ?User, duty: ?ZumraDuty, state: string}>
      */
     public function governance(): array
     {
         $memberships = $this->memberships()->with('user')->whereHas('user', fn ($user) => $user->active())->whereIn('role', [ZumraRole::Founder->value, ZumraRole::Manager->value])->get();
 
-        $posts = [['label' => 'Responsable principal', 'holder' => $memberships->firstWhere('role', ZumraRole::Founder)?->user, 'duty' => null]];
+        $founder = $memberships->firstWhere('role', ZumraRole::Founder)?->user;
+        $posts = [['label' => 'Responsable principal', 'holder' => $founder, 'duty' => null, 'state' => $founder ? 'occupied' : 'free']];
 
         foreach (ZumraDuty::cases() as $duty) {
-            $posts[] = ['label' => $duty->label(), 'holder' => $memberships->first(fn ($m) => $m->role === ZumraRole::Manager && $m->duty === $duty)?->user, 'duty' => $duty];
+            $membership = $memberships->first(fn ($m) => $m->role === ZumraRole::Manager && $m->duty === $duty);
+            $posts[] = [
+                'label' => $duty->label(),
+                'holder' => $membership?->user,
+                'duty' => $duty,
+                'state' => $membership === null ? 'free' : ($membership->dutyPending() ? 'pending' : 'occupied'),
+            ];
         }
 
         return $posts;

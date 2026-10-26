@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\JoinRequestState;
 use App\Enums\LedgerKind;
 use App\Enums\PaymentStatus;
 use App\Enums\PublicationType;
@@ -131,7 +132,7 @@ it('ne traite pas les filtres des modules gelés comme des filtres actifs', func
 
 it('bloque la création de ZUMRA par le service et par une ancienne URL', function () {
     $user = person('Fondatrice', ['Couture']);
-    $this->actingAs($user)->get(route('zumras.create'))->assertForbidden();
+    $this->actingAs($user)->get(route('zumras.create'))->assertNotFound();
     expect(fn () => app(Zumras::class)->create($user, []))->toThrow(AuthorizationException::class);
     expect(Zumra::query()->count())->toBe(0);
 });
@@ -152,10 +153,11 @@ it('bloque les nouvelles créations et publications collectives tout en gardant 
     $this->actingAs($founder)->get(route('projets.create', $zumra))->assertForbidden();
     $this->get(route('zumras.publier', [$zumra, 'besoin']))->assertForbidden();
     $this->get(route('projets.publier', [$project, 'besoin']))->assertForbidden();
-    $this->get(route('zumras.show', $zumra))->assertOk()->assertDontSeeText('Partager un savoir')->assertDontSeeText('Inviter des personnes selon leurs capacités');
+    // Module ZUMRA fermé (D-205) : même le fondateur ne lit plus la ZUMRA ; ses données sont conservées.
+    $this->get(route('zumras.show', $zumra))->assertNotFound();
     $this->get(route('projets.show', $project))->assertOk();
     $this->get(route('publications.show', $post))->assertOk()->assertSeeText($post->body);
-    $this->get(route('espace', ['rubrique' => 'activites']))->assertSeeText('Mes activités antérieures')->assertSee('href="'.route('zumras.show', $zumra).'"', false);
+    $this->get(route('espace', ['rubrique' => 'activites']))->assertSeeText('Mes activités antérieures')->assertSeeText($zumra->name)->assertDontSee('href="'.route('zumras.show', $zumra).'"', false);
     expect($zumra->fresh())->not->toBeNull()->and($project->fresh())->not->toBeNull()->and($post->fresh()->zumra_id)->toBe($zumra->id);
 });
 
@@ -163,11 +165,12 @@ it('refuse aussi un envoi depuis un formulaire collectif ouvert avant le gel', f
     $founder = person('Fondatrice', ['Couture']);
     $zumra = avantRecentrage(fn () => zumra($founder));
     $form = avantRecentrage(fn () => Livewire::actingAs($founder)->test(PublierPublication::class, ['zumra' => $zumra, 'slug' => 'besoin']));
-    $form->set('body', 'Envoi après le recentrage')->call('publish')->assertHasErrors('body');
+    // Module ZUMRA fermé (D-205) : l'action est refusée dès la requête Livewire (404), rien n'est publié.
+    expect(fn () => $form->set('body', 'Envoi après le recentrage')->call('publish'))->toThrow(Exception::class, 'Invalid Livewire snapshot');
     expect(Publication::query()->count())->toBe(0);
 });
 
-it('bloque les demandes et invitations nouvelles mais permet de traiter une demande déjà engagée', function () {
+it('bloque les demandes et invitations nouvelles, et conserve sans la traiter une demande déjà engagée', function () {
     $founder = person('Fondatrice', ['Couture']);
     $member = person('Demande existante', ['Couture']);
     $newcomer = person('Nouveau', ['Couture']);
@@ -178,8 +181,9 @@ it('bloque les demandes et invitations nouvelles mais permet de traiter une dema
     });
     expect(fn () => app(JoinRequests::class)->propose($newcomer, $zumra))->toThrow(AuthorizationException::class);
     expect(fn () => app(Invitations::class)->invite($founder, $zumra, $newcomer))->toThrow(AuthorizationException::class);
-    app(JoinRequests::class)->accept($founder, $pending);
-    expect($zumra->fresh()->roleOf($member))->not->toBeNull();
+    // Module fermé : même une demande déjà engagée ne se traite plus, et reste conservée.
+    expect(fn () => app(JoinRequests::class)->accept($founder, $pending))->toThrow(AuthorizationException::class);
+    expect($zumra->fresh()->roleOf($member))->toBeNull()->and($pending->fresh()->state)->toBe(JoinRequestState::Pending);
     $this->actingAs($newcomer)->get(route('zumras.show', $zumra))->assertNotFound();
     $this->actingAs($founder)->get(route('personnes.show', $newcomer->profile->public_id))->assertOk()->assertDontSeeText('Inviter dans');
 });

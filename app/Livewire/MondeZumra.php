@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Enums\JoinRequestState;
 use App\Enums\PublicationType;
 use App\Enums\ZumraDuty;
+use App\Livewire\Concerns\GuardsZumraModule;
 use App\Models\Gesture;
 use App\Models\Invitation;
 use App\Models\JoinRequest;
@@ -44,6 +45,8 @@ use Livewire\Component;
 #[Layout('components.layouts.app')]
 class MondeZumra extends Component
 {
+    use GuardsZumraModule;
+
     public const MEMBERS_SHOWN = 100;
 
     public const PAGE_SIZE = 10;
@@ -192,9 +195,14 @@ class MondeZumra extends Component
         $memberships->demote(Auth::user(), $this->zumra(), $this->membership($id));
     }
 
+    /** Le fondateur propose un poste à un responsable (il reste « en attente » jusqu'à son acceptation), ou retire la proposition. */
     public function assignDuty(string $id, string $duty, Memberships $memberships): void
     {
-        $memberships->assignDuty(Auth::user(), $this->zumra(), $this->membership($id), ZumraDuty::tryFrom($duty));
+        $duty = ZumraDuty::tryFrom($duty);
+
+        $duty === null
+            ? $memberships->clearDuty(Auth::user(), $this->zumra(), $this->membership($id))
+            : $memberships->proposeDuty(Auth::user(), $this->zumra(), $this->membership($id), $duty);
     }
 
     public function render()

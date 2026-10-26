@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Enums\ZumraFormat;
 use App\Enums\ZumraSphere;
+use App\Livewire\Concerns\GuardsZumraModule;
 use App\Models\City;
 use App\Models\Domain;
 use App\Models\Zumra;
@@ -23,6 +24,8 @@ use Livewire\Component;
 #[Layout('components.layouts.app', ['narrow' => true])]
 class FormulaireZumra extends Component
 {
+    use GuardsZumraModule;
+
     #[Locked]
     public ?string $zumraId = null;
 

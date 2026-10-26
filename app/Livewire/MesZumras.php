@@ -7,7 +7,9 @@ use App\Livewire\Concerns\GuardsZumraModule;
 use App\Models\Invitation;
 use App\Models\JoinRequest;
 use App\Models\Zumra;
+use App\Models\ZumraMembership;
 use App\Services\Invitations;
+use App\Services\Memberships;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -37,6 +39,18 @@ class MesZumras extends Component
         session()->flash('status', 'Invitation refusée.');
     }
 
+    public function acceptDuty(string $id, Memberships $memberships): void
+    {
+        $memberships->acceptDuty(Auth::user(), $this->dutyProposal($id));
+        session()->flash('status', 'Responsabilité acceptée.');
+    }
+
+    public function declineDuty(string $id, Memberships $memberships): void
+    {
+        $memberships->declineDuty(Auth::user(), $this->dutyProposal($id));
+        session()->flash('status', 'Responsabilité refusée.');
+    }
+
     public function render()
     {
         $user = Auth::user();
@@ -45,12 +59,20 @@ class MesZumras extends Component
             'memberships' => $user->zumraMemberships()->with(['zumra.domain', 'zumra.city'])
                 ->whereHas('zumra')->get()->sortBy(fn ($membership) => $membership->zumra->name_key)->values(),
             'invitations' => Invitation::query()->open()->where('user_id', $user->getKey())->with(['zumra.domain', 'inviter'])->orderBy('created_at')->get(),
+            'proposals' => $user->zumraMemberships()->whereNotNull('duty')->where('duty_state', ZumraMembership::DUTY_PENDING)->with('zumra')->whereHas('zumra')->get(),
             'requests' => JoinRequest::query()->where('user_id', $user->getKey())->where('state', JoinRequestState::Pending->value)
                 ->whereHas('zumra', fn (Builder $zumra) => $zumra->whereNotNull('id'))->with('zumra')->orderBy('created_at')->get(),
             'counts' => Zumra::query()->whereIn('id', $user->zumraMemberships()->select('zumra_id'))
                 ->withCount(['memberships as members_count' => fn (Builder $query) => $query->whereHas('user', fn (Builder $member) => $member->active())])
                 ->pluck('members_count', 'id'),
         ]);
+    }
+
+    private function dutyProposal(string $id): ZumraMembership
+    {
+        abort_unless(Str::isUuid($id), 404);
+
+        return ZumraMembership::query()->where('user_id', Auth::id())->findOrFail($id);
     }
 
     private function invitation(string $id): Invitation

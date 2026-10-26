@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Z1 (D-205), additif : la nature d'une ZUMRA (sociale, professionnelle ou religieuse) et le poste de gouvernance d'un responsable.
- * Les colonnes sont facultatives : aucune ZUMRA existante n'est modifiée, aucune donnée n'est supprimée.
+ * Un poste proposé doit être accepté par la personne (« pending ») avant d'être effectif. Les colonnes sont facultatives : aucune ZUMRA existante n'est modifiée, aucune donnée n'est supprimée.
  */
 return new class extends Migration
 {
@@ -19,6 +19,8 @@ return new class extends Migration
 
         Schema::table('zumra_memberships', function (Blueprint $table) {
             $table->string('duty', 30)->nullable()->after('role');
+            // « pending » : poste proposé, pas encore accepté. Vide avec un poste : poste déjà effectif (responsabilités d'avant l'acceptation).
+            $table->string('duty_state', 10)->nullable()->after('duty');
         });
 
         // Un poste n'a qu'une personne par ZUMRA.
@@ -30,7 +32,7 @@ return new class extends Migration
         DB::statement('drop index if exists zumra_memberships_duty_unique');
 
         Schema::table('zumra_memberships', function (Blueprint $table) {
-            $table->dropColumn('duty');
+            $table->dropColumn(['duty', 'duty_state']);
         });
 
         Schema::table('zumras', function (Blueprint $table) {

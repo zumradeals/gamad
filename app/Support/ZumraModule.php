@@ -3,7 +3,6 @@
 namespace App\Support;
 
 use App\Models\User;
-use App\Models\Zumra;
 use App\Services\Settings;
 use Illuminate\Support\Str;
 
@@ -40,12 +39,6 @@ final class ZumraModule
             self::TEST => $user !== null && self::isTester($user),
             default => false,
         };
-    }
-
-    /** Une personne qui fait partie d'une ZUMRA existante la retrouve toujours (D-183) : lecture de sa ZUMRA, sans nouvelle fonction. */
-    public static function canOpen(?User $user, Zumra $zumra): bool
-    {
-        return self::accessibleTo($user) || ($user !== null && $zumra->roleOf($user) !== null);
     }
 
     public static function isTester(User $user): bool

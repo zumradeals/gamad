@@ -540,10 +540,16 @@ de l'accès : hors du parcours actif (ancien mode des tests), le module est ouve
 vérifiée. Le contrôle est côté serveur : redirection du Carrefour, 404 des pages, refus des politiques (`create`, `join`, `invite`, `view`) et
 404 de toute action Livewire du Carrefour et de « Mes ZUMRA ».
 
-**Compatibilité D-183.** Module fermé, une personne membre d'une ZUMRA existante la lit encore ; elle ne peut ni créer, ni inviter, ni demander à
-rejoindre. Les Projets, contributions et portefeuilles ne dépendent pas de ce réglage.
+**Fermeture totale (D-205).** Module fermé, aucune personne ordinaire, membre d'une ZUMRA existante comprise, ne lit ni n'utilise une ZUMRA :
+`ZumraPolicy::before` refuse tout (404), ainsi que les composants Livewire, l'acceptation d'une invitation, le retrait d'une demande et les
+rubriques « À faire maintenant ». Les données sont conservées ; les liens vers une ZUMRA deviennent du texte. Les Projets, contributions et
+portefeuilles ne dépendent pas de ce réglage.
 
-**Données.** `zumras.sphere` (professional, social, religious) et `zumra_memberships.duty` (premier adjoint, deuxième adjoint, responsable
+**Responsabilités.** Le fondateur propose un poste à un responsable (`duty_state = pending`) ; la personne l'accepte ou le refuse depuis « Mes
+ZUMRA » ; le fondateur en est informé. Un poste en attente n'est pas occupé. Un état vide avec un poste désigne un poste déjà tenu avant
+l'acceptation : il reste effectif. Le poste ne donne aucun pouvoir.
+
+**Données.** `zumras.sphere` (professional, social, religious) et `zumra_memberships.duty` et `duty_state` (premier adjoint, deuxième adjoint, responsable
 financier, affaires sociales et religieuses ; un poste, une personne par ZUMRA) : colonnes nulles par défaut.
 
 **Interdits.** Aucun faux compte de membres ni statistique ; aucun classement de popularité ; les noms des responsables ne sont montrés

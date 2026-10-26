@@ -32,6 +32,23 @@
         </section>
     @endif
 
+    @if ($proposals->isNotEmpty())
+        <section aria-labelledby="mes-responsabilites" class="flex flex-col gap-3 rounded-card border-2 border-ink bg-card p-4">
+            <h2 id="mes-responsabilites" class="text-[18px] font-extrabold">Responsabilités proposées</h2>
+            <p class="text-[13px] text-muted">Une responsabilité ne vous est confiée qu’une fois acceptée. Tant que vous n’avez pas répondu, elle reste « en attente ».</p>
+            @foreach ($proposals as $proposal)
+                <div wire:key="poste-{{ $proposal->id }}" class="flex flex-col gap-2 border-t border-line-soft pt-3 first:border-0 first:pt-0">
+                    <p class="text-[15px] font-extrabold">{{ $proposal->duty->label() }}</p>
+                    <p class="text-[13px] text-muted">Dans <a href="{{ route('zumras.show', $proposal->zumra) }}" class="font-semibold">{{ $proposal->zumra->name }}</a>. Ce poste ne donne aucun pouvoir supplémentaire.</p>
+                    <div class="flex flex-col gap-2 sm:flex-row">
+                        <x-button type="button" wire:click="acceptDuty('{{ $proposal->id }}')" wire:loading.attr="disabled" wire:target="acceptDuty, declineDuty" class="sm:flex-1">Accepter</x-button>
+                        <x-button type="button" variant="secondary" wire:click="declineDuty('{{ $proposal->id }}')" wire:loading.attr="disabled" wire:target="acceptDuty, declineDuty" class="sm:flex-1">Refuser</x-button>
+                    </div>
+                </div>
+            @endforeach
+        </section>
+    @endif
+
     <section aria-labelledby="mes-communautes" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4">
         <h2 id="mes-communautes" class="text-[18px] font-extrabold">Mes communautés</h2>
         @forelse ($memberships as $membership)
@@ -41,7 +58,7 @@
                 <div class="flex min-w-0 flex-1 flex-col">
                     <span class="break-words text-[16px] font-extrabold">{{ $zumra->name }}</span>
                     <span class="text-[13px] text-muted">{{ collect([$zumra->sphere?->label(), $zumra->domain->name, $zumra->city?->label(), $zumra->format->label()])->filter()->implode(' · ') }}</span>
-                    <span class="text-[13px] font-semibold">{{ $membership->role === \App\Enums\ZumraRole::Founder ? 'Responsable principal' : $membership->role->label() }}@if ($membership->duty) · {{ $membership->duty->label() }}@endif · {{ $members }} {{ $members > 1 ? 'membres' : 'membre' }}</span>
+                    <span class="text-[13px] font-semibold">{{ $membership->role === \App\Enums\ZumraRole::Founder ? 'Responsable principal' : $membership->role->label() }}@if ($membership->dutyEffective()) · {{ $membership->duty->label() }}@endif · {{ $members }} {{ $members > 1 ? 'membres' : 'membre' }}</span>
                 </div>
                 <x-button :href="route('zumras.show', $zumra)" variant="secondary" class="w-full sm:w-auto">Ouvrir l’espace</x-button>
             </div>

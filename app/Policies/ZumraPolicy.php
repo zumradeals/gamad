@@ -15,12 +15,18 @@ use Illuminate\Auth\Access\Response;
 class ZumraPolicy
 {
     /**
-     * L'en-tête d'une ZUMRA est public (D-112), visiteurs sans compte compris, quand le module ZUMRA est ouvert à la personne (Z1,
-     * D-205). Les membres retrouvent toujours leur ZUMRA (D-183), même module fermé.
+     * Fermeture totale (Z1, D-205) : module désactivé, ou en test privé pour une personne non autorisée, aucune ZUMRA n'existe (404) :
+     * ni lecture, ni action, même pour un membre. Cette règle précède toutes les autres.
      */
-    public function view(?User $viewer, Zumra $zumra): Response
+    public function before(?User $user): ?Response
     {
-        return ZumraModule::canOpen($viewer, $zumra) ? Response::allow() : Response::denyAsNotFound();
+        return ZumraModule::accessibleTo($user) ? null : Response::denyAsNotFound();
+    }
+
+    /** L'en-tête d'une ZUMRA est public (D-112), visiteurs sans compte compris, quand le module est ouvert à la personne. */
+    public function view(?User $viewer, Zumra $zumra): bool
+    {
+        return true;
     }
 
     /** Créer : toute personne connectée dont l'adresse e-mail est vérifiée. */

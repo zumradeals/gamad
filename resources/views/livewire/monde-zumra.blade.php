@@ -71,8 +71,10 @@
             @foreach ($governance as $post)
                 <li class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-2 first:pt-0 last:pb-0">
                     <span class="text-[14px] font-semibold">{{ $post['label'] }}</span>
-                    @if ($post['holder'])
+                    @if ($post['state'] === 'occupied')
                         <span class="text-[14px] font-extrabold">{{ $canSeeMembers ? $post['holder']->name : 'Poste occupé' }}</span>
+                    @elseif ($post['state'] === 'pending')
+                        <span class="text-[13px] font-semibold text-muted">En attente{{ $canSeeMembers ? ' : '.$post['holder']->name : '' }}</span>
                     @else
                         <span class="text-[13px] text-muted">À pourvoir</span>
                     @endif
@@ -420,9 +422,9 @@
                         <div class="flex flex-wrap gap-2">
                             @if ($isFounder && $membership->role === \App\Enums\ZumraRole::Manager)
                                 <div class="flex w-full flex-col gap-1">
-                                    <label for="poste-{{ $membership->id }}" class="text-[12px] font-bold text-muted">Poste de gouvernance</label>
+                                    <label for="poste-{{ $membership->id }}" class="text-[12px] font-bold text-muted">Proposer un poste de gouvernance @if ($membership->dutyPending())<span class="font-semibold">(en attente d’acceptation)</span>@endif</label>
                                     <select id="poste-{{ $membership->id }}" wire:change="assignDuty('{{ $membership->id }}', $event.target.value)" class="min-h-11 w-full rounded-button border border-chip-line bg-card px-3 text-[14px]">
-                                        <option value="">Aucun poste précis</option>
+                                        <option value="">{{ $membership->duty ? 'Retirer '.($membership->dutyPending() ? 'la proposition' : 'le poste') : 'Aucun poste précis' }}</option>
                                         @foreach (\App\Enums\ZumraDuty::cases() as $duty)
                                             <option value="{{ $duty->value }}" @selected($membership->duty === $duty)>{{ $duty->label() }}</option>
                                         @endforeach
