@@ -16,6 +16,7 @@
             ['entreprise', 'Mon entreprise', 'home'],
             \App\Support\ZumraModule::accessibleTo(auth()->user()) ? ['zumras', 'Mes ZUMRA', 'community'] : null,
             \App\Support\ZumraModule::accessibleTo(auth()->user()) ? ['projets', 'Mes projets', 'project'] : null,
+            \App\Support\ContributionsModule::accessibleTo(auth()->user()) ? ['contributions', 'Mes contributions', 'heart'] : null,
             ['pistes', 'Mes pistes', 'compass'],
             ($hasLegacy || $walletsEnabled) ? ['activites', 'Activités antérieures', 'tasks'] : null,
         ])),
@@ -51,7 +52,9 @@
                         <p class="hidden px-2.5 pb-1 pt-3 text-[11px] font-extrabold uppercase tracking-wide text-muted xl:block">{{ $group }}</p>
                     @endif
                     @foreach ($items as [$id, $label, $icon])
- @if ($id === 'projets')
+ @if ($id === 'contributions')
+                            <a href="{{ route('espace.mes-contributions') }}" class="space-menu-link shrink-0 whitespace-nowrap !text-[13px] xl:whitespace-normal"><x-icon :name="$icon" :size="20" /><span>{{ $label }}</span></a>
+                        @elseif ($id === 'projets')
                             <a href="{{ route('espace.projets') }}" class="space-menu-link shrink-0 whitespace-nowrap !text-[13px] xl:whitespace-normal"><x-icon :name="$icon" :size="20" /><span>{{ $label }}</span></a>
                         @elseif ($id === 'zumras')
                             <a href="{{ route('espace.zumras') }}" class="space-menu-link shrink-0 whitespace-nowrap !text-[13px] xl:whitespace-normal"><x-icon :name="$icon" :size="20" /><span>{{ $label }}</span></a>

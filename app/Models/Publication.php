@@ -58,6 +58,8 @@ class Publication extends Model
             'resolved_at' => 'datetime',
             'hidden_at' => 'datetime',
             'explained_at' => 'datetime',
+            'needed_by' => 'date',
+            'official' => 'boolean',
         ];
     }
 
@@ -119,6 +121,12 @@ class Publication extends Model
     public function supports(): HasMany
     {
         return $this->hasMany(PublicationSupport::class);
+    }
+
+    /** Les propositions de contribution reçues en réponse à ce besoin (C1). */
+    public function proposals(): HasMany
+    {
+        return $this->hasMany(ContributionProposal::class, 'need_id');
     }
 
     public function gestures(): HasMany
@@ -207,6 +215,11 @@ class Publication extends Model
             return false;
         }
 
+        // Besoin officiel de GAMAD, ou besoin de projet (C1, D-207) : le représentant du bénéficiaire seul, jamais la ZUMRA d'accueil.
+        if ($this->official || ($this->project_id !== null && $this->isNeed())) {
+            return app(\App\Services\ContributionAccess::class)->manages($user, $this);
+        }
+
         if ($user->getKey() === $this->author_id) {
             return true;
         }
@@ -223,6 +236,12 @@ class Publication extends Model
     /** Personnes à prévenir quand quelqu'un répond : l'auteur, ou le fondateur et les responsables de la ZUMRA. */
     public function managers()
     {
+        if ($this->official || ($this->project_id !== null && $this->isNeed())) {
+            [$kind, $beneficiary] = app(\App\Services\ContributionAccess::class)->beneficiary($this);
+
+            return app(\App\Services\ContributionAccess::class)->representatives($kind, $beneficiary);
+        }
+
         if ($this->zumra_id === null) {
             return collect([$this->author]);
         }

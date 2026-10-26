@@ -44,6 +44,11 @@ class Conversation extends Model
         return $this->belongsTo(Gesture::class);
     }
 
+    public function contributionProposal(): BelongsTo
+    {
+        return $this->belongsTo(ContributionProposal::class);
+    }
+
     public function publication(): BelongsTo
     {
         return $this->belongsTo(Publication::class);

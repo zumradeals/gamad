@@ -392,6 +392,11 @@
     }
 }
 
+/* Page Contributions (C1) : bandeau d'en-tête. */
+@layer components {
+    .contrib-hero { background: linear-gradient(120deg, #0a2d68, #0b4aa6); }
+}
+
 /* Carrefour Besoins : demande, capacités et émetteur. */
 @layer components {
     .need-directory { --color-muted: #3d4f5e; }

@@ -4,10 +4,13 @@ namespace App\Policies;
 
 use App\Enums\GestureState;
 use App\Enums\NeedState;
+use App\Models\ContributionProposal;
 use App\Models\Gesture;
 use App\Models\Publication;
 use App\Models\User;
+use App\Services\ContributionAccess;
 use App\Services\People;
+use App\Support\ContributionsModule;
 use Illuminate\Auth\Access\Response;
 
 /**
@@ -132,6 +135,45 @@ class PublicationPolicy
         }
 
         return Response::allow();
+    }
+
+    /**
+     * Proposer une contribution à un besoin (C1, D-207) : module Contributions ouvert à la personne, besoin visible et encore ouvert,
+     * bénéficiaire accessible, personne vérifiée qui ne le représente pas et qui n'a pas déjà une proposition en cours.
+     */
+    public function contribute(User $user, Publication $publication): Response
+    {
+        if (! ContributionsModule::accessibleTo($user) || ! $publication->isNeed() || $publication->isHidden()) {
+            return Response::denyAsNotFound();
+        }
+
+        if (! $user->hasVerifiedEmail()) {
+            return Response::deny('Vérifiez votre adresse e-mail pour proposer une contribution.');
+        }
+
+        if (! $this->view($user, $publication)->allowed()) {
+            return Response::denyAsNotFound();
+        }
+
+        $access = app(ContributionAccess::class);
+
+        [$kind, $beneficiary] = $access->beneficiary($publication);
+
+        if (! $access->exists($user, $kind, $beneficiary)) {
+            return Response::denyAsNotFound();
+        }
+
+        if ($publication->isManagedBy($user)) {
+            return Response::deny('C’est votre besoin.');
+        }
+
+        if (! ($publication->need_state?->isActive() ?? false)) {
+            return Response::deny('Ce besoin n’accepte plus de proposition.');
+        }
+
+        $open = ContributionProposal::query()->where('need_id', $publication->getKey())->where('user_id', $user->getKey())->whereIn('state', ['proposed', 'accepted', 'declared'])->exists();
+
+        return $open ? Response::deny('Vous avez déjà une proposition en cours pour ce besoin.') : Response::allow();
     }
 
     /** Remercier (D-084) : l'auteur d'un besoin résolu qui a au moins un geste accepté, une seule fois. */

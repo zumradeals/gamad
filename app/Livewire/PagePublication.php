@@ -140,7 +140,23 @@ class PagePublication extends Component
                 ->get()
             : collect();
 
+        // Contributions (C1) : un besoin d'entraide reçoit des propositions ; l'opportunité professionnelle d'une entreprise a son propre parcours.
+        $c1 = null;
+
+        if ($publication->isNeed() && ($publication->help_kind || ! $publication->company_id) && \App\Support\ContributionsModule::accessibleTo($viewer)) {
+            $c1 = [
+                'canContribute' => Gate::forUser($viewer)->allows('contribute', $publication),
+                'reason' => Gate::forUser($viewer)->inspect('contribute', $publication)->message(),
+                'proposals' => $isAuthor
+                    ? $publication->proposals()->with(['author.profile'])->whereNotIn('state', ['withdrawn'])->orderByRaw("case state when 'proposed' then 0 when 'declared' then 1 when 'accepted' then 2 else 3 end")->orderByDesc('created_at')->get()
+                    : collect(),
+                'mine' => $viewer && ! $isAuthor ? $publication->proposals()->where('user_id', $viewer->getKey())->latest()->first() : null,
+                'count' => $publication->proposals()->whereIn('state', ['proposed', 'accepted', 'declared', 'realized'])->count(),
+            ];
+        }
+
         return view('livewire.page-publication', [
+            'c1' => $c1,
             'accepted' => $received->where('state', GestureState::Accepted)->values(),
             'gratitude' => $isAuthor ? $publication->gratitude()->with('helper.profile')->first() : null,
             'publication' => $publication,
