@@ -24,6 +24,7 @@ return [
             ['key' => 'fil', 'label' => 'Accueil', 'route' => 'fil', 'active' => ['fil'], 'icon' => 'home', 'enabled' => true],
             ['key' => 'personnes', 'label' => 'Personnes', 'route' => 'personnes.index', 'active' => ['personnes.*'], 'icon' => 'group', 'enabled' => true],
             ['key' => 'entreprises', 'label' => 'Entreprises', 'route' => 'entreprises.index', 'active' => ['entreprises.*'], 'icon' => 'project', 'enabled' => true],
+            ['key' => 'opportunites', 'label' => 'Opportunités', 'route' => 'opportunites.index', 'active' => ['opportunites.*'], 'icon' => 'tasks', 'enabled' => true],
         ],
     ],
 

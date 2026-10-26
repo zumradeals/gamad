@@ -14,6 +14,7 @@ use App\Http\Controllers\CompanyResubmitController;
 use App\Http\Controllers\CompanyVisualController;
 use App\Http\Controllers\GeniusPayWebhookController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OpportunityController;
 use App\Http\Controllers\PersonController;
 use App\Http\Controllers\PublicationBookmarkController;
 use App\Http\Controllers\PublicationMediaController;
@@ -44,6 +45,10 @@ use App\Livewire\ModerationPersonnes;
 use App\Livewire\ModifierProfil;
 use App\Livewire\MondeProjet;
 use App\Livewire\MondeZumra;
+use App\Livewire\OpportunityCatalog;
+use App\Livewire\OpportunityForm;
+use App\Livewire\OpportunityManager;
+use App\Livewire\OpportunityResponses;
 use App\Livewire\PageContribution;
 use App\Livewire\PageConversation;
 use App\Livewire\PageNotifications;
@@ -78,6 +83,8 @@ Route::get('/personnes/{profile:public_id}', [PersonController::class, 'show'])-
 Route::get('/personnes/{profile:public_id}/photo', [PersonController::class, 'photo'])->name('personnes.photo');
 
 // Les entreprises non vérifiées n'apparaissent ni dans l'annuaire ni dans les profils publics.
+Route::get('/opportunites', OpportunityCatalog::class)->name('opportunites.index');
+Route::get('/opportunites/{opportunity}', [OpportunityController::class, 'show'])->whereUuid('opportunity')->name('opportunites.show');
 Route::get('/entreprises', CompanyDirectory::class)->name('entreprises.index');
 Route::get('/entreprises/{company}', [CompanyController::class, 'show'])->where('company', '.+-[a-z0-9]{8}')->name('entreprises.show');
 Route::get('/entreprises/{company}/visuel/{kind}', CompanyVisualController::class)
@@ -120,6 +127,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->where('company', '.+-[a-z0-9]{8}')->name('entreprises.posts.create');
     Route::post('/entreprises/{company}/publier', [CompanyPostController::class, 'store'])
         ->where('company', '.+-[a-z0-9]{8}')->name('entreprises.posts.store');
+    // Module Opportunités : seules les entreprises publient ; les personnes consultent, sauvegardent et répondent.
+    Route::get('/entreprises/{company}/opportunites', OpportunityManager::class)->where('company', '.+-[a-z0-9]{8}')->name('entreprises.opportunities');
+    Route::get('/entreprises/{company}/opportunites/nouvelle', OpportunityForm::class)->where('company', '.+-[a-z0-9]{8}')->name('opportunites.create');
+    Route::get('/opportunites/{opportunity}/modifier', OpportunityForm::class)->whereUuid('opportunity')->name('opportunites.edit');
+    Route::get('/opportunites/{opportunity}/reponses', OpportunityResponses::class)->whereUuid('opportunity')->name('opportunites.responses');
+    Route::post('/opportunites/{opportunity}/sauvegarder', [OpportunityController::class, 'save'])->whereUuid('opportunity')->name('opportunites.save');
+    Route::get('/opportunites/{opportunity}/repondre', [OpportunityController::class, 'respond'])->whereUuid('opportunity')->name('opportunites.respond');
+    Route::post('/opportunites/{opportunity}/repondre', [OpportunityController::class, 'storeResponse'])->whereUuid('opportunity')->middleware('throttle:20,1')->name('opportunites.respond.store');
+    Route::post('/opportunites/reponses/{response}/retirer', [OpportunityController::class, 'withdraw'])->whereUuid('response')->name('opportunites.withdraw');
+    Route::get('/opportunites/reponses/{response}/document', [OpportunityController::class, 'attachment'])->whereUuid('response')->name('opportunites.attachment');
+    Route::get('/espace/opportunites', [OpportunityController::class, 'mine'])->name('espace.opportunites');
     Route::get('/espace/experiences-professionnelles', [CompanyExperienceController::class, 'index'])->name('espace.company-experiences');
     Route::post('/espace/experiences-professionnelles', [CompanyExperienceController::class, 'store'])->name('espace.company-experiences.store');
     Route::post('/espace/experiences-professionnelles/{experience}/retirer', [CompanyExperienceController::class, 'withdraw'])

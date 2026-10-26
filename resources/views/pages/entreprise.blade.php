@@ -8,7 +8,7 @@
     $restOf = fn ($post) => \Illuminate\Support\Str::limit(trim(preg_replace('/^[^\n]*\n?/', '', trim($post->body)) ?: trim($post->body)), 110);
     $tabs = ['presentation' => 'Présentation'];
     if ($verified) {
-        $tabs += ['realisations' => 'Réalisations', 'produits-services' => 'Produits et services', 'offres' => 'Offres', 'publications' => 'Publications'];
+        $tabs += ['realisations' => 'Réalisations', 'produits-services' => 'Produits et services', 'opportunites' => 'Opportunités', 'publications' => 'Publications'];
         if ($confirmedPeople->isNotEmpty()) {
             $tabs['equipe'] = 'Équipe';
         }
@@ -230,21 +230,23 @@
 
         <div class="flex min-w-0 flex-col gap-5">
             @if ($verified)
-                <section id="offres" aria-labelledby="offres-titre" class="scroll-mt-44 rounded-card border border-line bg-card p-5 md:p-6">
+                <section id="opportunites" aria-labelledby="opportunites-titre" class="scroll-mt-44 rounded-card border border-line bg-card p-5 md:p-6">
                     <div class="flex items-start gap-4">
                         <span class="flex size-12 shrink-0 items-center justify-center rounded-button bg-soft-blue text-link"><x-icon name="community" :size="26"/></span>
-                        <div class="min-w-0 flex-1"><h2 id="offres-titre" class="text-[20px] font-extrabold">Nos offres</h2><p class="mt-1 text-[14px] text-muted">Opportunités et collaborations proposées par l'entreprise.</p></div>
+                        <div class="min-w-0 flex-1"><h2 id="opportunites-titre" class="text-[20px] font-extrabold">Nos opportunités</h2><p class="mt-1 text-[14px] text-muted">Emplois, stages, missions et collaborations proposés par l'entreprise.</p></div>
+                        @if ($isOwner)<a href="{{ route('entreprises.opportunities', $company) }}" class="inline-flex min-h-11 shrink-0 items-center text-[13px] font-bold text-link">Gérer</a>@endif
                     </div>
                     @forelse ($offers as $offer)
-                        <a href="{{ route('publications.show', $offer) }}" @if ($loop->first) class="mt-4 flex min-h-16 items-center gap-3 border-t border-line-soft py-3 text-ink no-underline hover:text-ink" @else class="flex min-h-16 items-center gap-3 border-t border-line-soft py-3 text-ink no-underline hover:text-ink" @endif>
-                            <span class="flex size-10 shrink-0 items-center justify-center rounded-button bg-type-need-bg text-type-need-fg"><x-icon name="heart" :size="20"/></span>
-                            <span class="min-w-0 flex-1"><span class="block break-words text-[14px] font-extrabold">{{ $firstLine($offer) }}</span><span class="block text-[12px] text-muted">{{ $offer->displayLabel() }} · {{ $offer->city?->label() ?? $company->city }} · {{ $offer->created_at->copy()->locale('fr')->timezone('Africa/Abidjan')->translatedFormat('j F Y') }}</span></span>
+                        <a href="{{ route('opportunites.show', $offer) }}" @if ($loop->first) class="mt-4 flex min-h-16 items-center gap-3 border-t border-line-soft py-3 text-ink no-underline hover:text-ink" @else class="flex min-h-16 items-center gap-3 border-t border-line-soft py-3 text-ink no-underline hover:text-ink" @endif>
+                            <span class="flex size-10 shrink-0 items-center justify-center rounded-button {{ $offer->kind->badgeClasses() }}"><x-icon :name="$offer->kind->icon()" :size="20"/></span>
+                            <span class="min-w-0 flex-1"><span class="block break-words text-[14px] font-extrabold">{{ $offer->title }}</span><span class="block text-[12px] text-muted">{{ $offer->kind->label() }} · {{ $offer->city?->label() ?? $company->city }} · {{ $offer->published_at->copy()->locale('fr')->timezone('Africa/Abidjan')->translatedFormat('j F Y') }}</span></span>
                             <x-icon name="next" :size="16"/>
                         </a>
                     @empty
-                        <p class="mt-4 text-[14px] text-muted">Aucune offre en cours pour le moment.</p>
-                        @if ($isOwner)<a href="{{ route('entreprises.posts.create', $company) }}" class="inline-flex min-h-11 items-center text-[14px] font-bold text-link">Publier une opportunité →</a>@endif
+                        <p class="mt-4 text-[14px] text-muted">Aucune opportunité en cours pour le moment.</p>
+                        @if ($isOwner)<a href="{{ route('opportunites.create', $company) }}" class="inline-flex min-h-11 items-center text-[14px] font-bold text-link">Publier une opportunité →</a>@endif
                     @endforelse
+                    @if ($offers->isNotEmpty())<a href="{{ route('opportunites.index') }}" class="mt-2 inline-flex min-h-11 items-center text-[13px] font-bold text-link">Toutes les opportunités GAMAD →</a>@endif
                 </section>
 
                 <section id="publications" aria-labelledby="publications-titre" class="scroll-mt-44 rounded-card border border-line bg-card p-5 md:p-6" x-data="{ all: false }">

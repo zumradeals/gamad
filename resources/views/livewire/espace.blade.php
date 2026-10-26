@@ -371,6 +371,8 @@
             <h2 class="flex items-center gap-2 text-[18px] font-extrabold"><x-icon name="book" :size="22" />Mes enregistrements</h2>
             <p class="text-[13px] text-muted">Retrouvez les publications que vous avez conservées pour les relire.</p>
             <x-button :href="route('espace.enregistrements')" variant="secondary" class="self-start">Ouvrir mes enregistrements</x-button>
+            <p class="mt-2 text-[13px] text-muted">Vos réponses et les opportunités que vous avez sauvegardées se trouvent à part.</p>
+            <x-button :href="route('espace.opportunites')" variant="secondary" class="self-start">Mes opportunités</x-button>
         </section>
 
         @elseif ($section === 'attestations')

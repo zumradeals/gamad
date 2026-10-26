@@ -28,7 +28,6 @@ class CompanyPostController extends Controller
             'types' => [
                 'news' => ['label' => 'Actualité', 'description' => 'Partager une information, une initiative ou un conseil.'],
                 'work' => ['label' => 'Réalisation', 'description' => 'Montrer un travail réalisé par votre entreprise.'],
-                'opportunity' => ['label' => 'Opportunité', 'description' => 'Rechercher une compétence ou proposer une collaboration.'],
             ],
         ]);
     }
@@ -37,13 +36,12 @@ class CompanyPostController extends Controller
     {
         $this->authorizeOwner($company);
         $data = $request->validate([
-            'kind' => ['required', Rule::in(['news', 'work', 'opportunity'])],
+            'kind' => ['required', Rule::in(['news', 'work'])],
             'body' => ['required', 'string', 'max:'.Publication::BODY_MAX],
             'media' => ['nullable', 'file', 'max:10240', 'mimetypes:image/jpeg,image/png,image/webp,video/mp4,video/webm,application/pdf'],
         ]);
         $type = match ($data['kind']) {
             'work' => PublicationType::PersonalWork,
-            'opportunity' => PublicationType::Need,
             default => PublicationType::Share,
         };
 

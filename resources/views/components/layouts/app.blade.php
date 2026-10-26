@@ -53,6 +53,7 @@
 
             @auth
                 <div class="flex items-center gap-1">
+                    <a href="{{ route('opportunites.index') }}" @if (request()->routeIs('opportunites.*')) aria-current="page" @endif aria-label="Opportunités" class="flex size-11 items-center justify-center rounded-button text-ink hover:bg-soft-blue hover:text-ink lg:hidden"><x-icon name="tasks" :size="24" /></a>
                     <livewire:notification-bell />
                 </div>
                 {{-- Menu utilisateur : visible sur ordinateur, avec le nom de la personne (maquette « Mon espace »). --}}
