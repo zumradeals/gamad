@@ -207,7 +207,7 @@ class Fil extends Component
             ->whereIn('followed_id', $posts->pluck('author_id'))->pluck('followed_id')->all();
 
         // D-211 : une carte sponsorisée est une insertion séparée à un rang fixe, jamais un classement : l'ordre de `$posts` ne change pas.
-        $sponsored = ($filter === 'tout' && $text === '') ? app(AdServing::class)->forViewer($viewer) : null;
+        $sponsored = ($filter === 'tout' && $text === '' && $posts->isNotEmpty()) ? app(AdServing::class)->forViewer($viewer) : null;
         if ($sponsored) {
             app(AdStats::class)->impression($sponsored, $viewer);
         }
