@@ -26,6 +26,11 @@ class UserNotification extends Model
         return $this->belongsTo(Company::class);
     }
 
+    public function opportunity(): BelongsTo
+    {
+        return $this->belongsTo(Opportunity::class);
+    }
+
     public function companyExperience(): BelongsTo
     {
         return $this->belongsTo(CompanyExperience::class);

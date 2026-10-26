@@ -32,6 +32,10 @@ class NotificationController extends Controller
                 ? route('entreprises.show', $notification->company) : route('notifications'),
             NotificationKind::CompanyReviewRequested, NotificationKind::CompanyReportReceived => $user->isSuperAdmin()
                 ? route('moderation.entreprises') : route('notifications'),
+            NotificationKind::OpportunityResponseReceived => $notification->opportunity && $notification->opportunity->company->owner_id === $user->id
+                ? route('opportunites.responses', $notification->opportunity) : route('notifications'),
+            NotificationKind::OpportunityResponseContacted => $notification->opportunity?->visibleTo($user)
+                ? route('opportunites.show', $notification->opportunity) : route('notifications'),
             NotificationKind::TrustReview => $user->isSuperAdmin() ? route('moderation.confiance') : route('espace'),
             NotificationKind::MatchFound => route('espace').'#suggestions',
             NotificationKind::ConnectionRequested => route('espace').'#mes-liens',

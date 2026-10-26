@@ -16,7 +16,7 @@
                     ? $notification->project?->name
                     : ($notification->kind->isAboutZumra()
                     ? $notification->zumra?->name
-                    : ($notification->company?->name ?? ($notification->publication ? \Illuminate\Support\Str::limit($notification->publication->body, 40) : null)));
+                    : ($notification->opportunity?->title ?? $notification->company?->name ?? ($notification->publication ? \Illuminate\Support\Str::limit($notification->publication->body, 40) : null)));
                 $isUnread = $notification->read_at === null;
             @endphp
             <a wire:key="notification-{{ $notification->id }}" href="{{ route('notifications.open', $notification) }}"

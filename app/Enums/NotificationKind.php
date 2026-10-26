@@ -12,6 +12,8 @@ enum NotificationKind: string
     case CompanyReviewUpdated = 'company_review_updated';
     case CompanyReviewRequested = 'company_review_requested';
     case CompanyReportReceived = 'company_report_received';
+    case OpportunityResponseReceived = 'opportunity_response_received';
+    case OpportunityResponseContacted = 'opportunity_response_contacted';
     case TrustReview = 'trust_review';
     case MatchFound = 'match_found';
     case ConnectionRequested = 'connection_requested';
@@ -78,6 +80,8 @@ enum NotificationKind: string
             self::CompanyReviewUpdated => 'La vérification administrative de votre entreprise a changé. Consultez votre page.',
             self::CompanyReviewRequested => 'Un dossier entreprise attend un contrôle administratif.',
             self::CompanyReportReceived => 'Un signalement concernant une page entreprise attend un examen.',
+            self::OpportunityResponseReceived => "a répondu à votre opportunité{$about}.",
+            self::OpportunityResponseContacted => "souhaite échanger avec vous au sujet de l'opportunité{$about}.",
             self::TrustReview => 'Des demandes de confiance attendent un examen.',
             self::MatchFound => 'De nouvelles pistes correspondent à vos préférences. Découvrez pourquoi.',
             self::ConnectionRequested => 'souhaite entrer en relation avec vous.',
