@@ -31,6 +31,8 @@ return new class extends Migration
             $table->date('deadline')->nullable();
             $table->string('apply_mode', 12)->default('gamad');
             $table->string('external_url', 500)->nullable();
+            // Texte de recherche sans accents ni majuscules (Normalizer::key), tenu à jour à chaque enregistrement.
+            $table->text('search_text')->nullable();
             $table->string('status', 12)->default('draft');
             $table->timestamp('published_at')->nullable();
             $table->timestamp('closed_at')->nullable();

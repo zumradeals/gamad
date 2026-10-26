@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\OpportunityKind;
+use App\Support\Normalizer;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -51,11 +52,36 @@ class Opportunity extends Model
         static::creating(function (Opportunity $opportunity) {
             $opportunity->reference ??= 'OPP-'.now('Africa/Abidjan')->format('Y').'-'.strtoupper(Str::random(6));
         });
+        static::saving(function (Opportunity $opportunity) {
+            $opportunity->search_text = $opportunity->buildSearchText();
+        });
         static::deleting(function (Opportunity $opportunity) {
             foreach ($opportunity->responses as $response) {
                 $response->deleteAttachment();
             }
         });
+    }
+
+    /** Texte de recherche : intitulé, description, missions, profil, compétences, secteur et entreprise, sans accents ni majuscules. */
+    public function buildSearchText(): string
+    {
+        $company = $this->relationLoaded('company') ? $this->company : ($this->company_id ? Company::query()->find($this->company_id) : null);
+
+        return Normalizer::key(implode(' ', array_filter([
+            $this->title, $this->description, $this->missions, $this->profile, $this->experience, $this->qualifications,
+            implode(' ', $this->skills ?? []), $company?->name, $company?->sector,
+        ])));
+    }
+
+    /** Mots de la saisie, normalisés : chacun doit figurer dans le texte de recherche. */
+    public function scopeMatching(Builder $query, string $text): Builder
+    {
+        $words = array_filter(explode(' ', Normalizer::key(Str::limit($text, 100, ''))), fn ($word) => $word !== '');
+        foreach (array_slice($words, 0, 6) as $word) {
+            $query->where('opportunities.search_text', 'like', Normalizer::likeContains($word));
+        }
+
+        return $query;
     }
 
     public function company(): BelongsTo

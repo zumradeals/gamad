@@ -121,12 +121,8 @@ class OpportunityCatalog extends Component
         $sort = array_key_exists($this->sort, self::SORTS) ? $this->sort : 'recentes';
         $key = Normalizer::key(Str::limit($this->query, 100, ''));
 
-        $search = fn (Builder $q) => $q->when($key !== '', function (Builder $q) {
-            $like = '%'.addcslashes(Str::limit($this->query, 100, ''), '%_\\').'%';
-            $q->where(fn (Builder $w) => $w->where('opportunities.title', 'ilike', $like)->orWhere('opportunities.description', 'ilike', $like)
-                ->orWhereRaw('opportunities.skills::text ilike ?', [$like])
-                ->orWhereHas('company', fn (Builder $c) => $c->where('name', 'ilike', $like)));
-        });
+        // Recherche insensible à la casse et aux accents : chaque mot saisi doit figurer dans le texte de recherche de l'opportunité.
+        $search = fn (Builder $q) => $q->when($key !== '', fn (Builder $q) => $q->matching($this->query));
 
         $base = fn (array $except = []) => $this->filtered($except)->tap($search);
 
@@ -173,8 +169,7 @@ class OpportunityCatalog extends Component
         return Opportunity::query()->open()->with(['company', 'city'])
             ->where(function (Builder $q) use ($names) {
                 foreach ($names as $name) {
-                    $like = '%'.addcslashes($name, '%_\\').'%';
-                    $q->orWhere('opportunities.title', 'ilike', $like)->orWhereRaw('opportunities.skills::text ilike ?', [$like]);
+                    $q->orWhere('opportunities.search_text', 'like', Normalizer::likeContains(Normalizer::key($name)));
                 }
             })
             ->latest('published_at')->limit(3)->get()

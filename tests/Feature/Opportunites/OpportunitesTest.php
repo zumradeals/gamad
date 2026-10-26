@@ -464,3 +464,38 @@ it('applique la limite de débit aux réponses', function () {
     }
     expect($status)->toBe(429);
 });
+
+it('ignore les accents et la casse dans la recherche : « ingenieur » trouve « Ingénieur »', function () {
+    $societe = entrepriseOpp('Société Générale Énergie');
+    opportunite($this->company, ['title' => 'Ingénieur réseau', 'description' => 'Déploiement des infrastructures.', 'skills' => ['Électricité']]);
+    opportunite($societe, ['title' => 'Comptable', 'description' => 'Tenue des comptes.']);
+    $titres = fn ($recherche) => Livewire::test(OpportunityCatalog::class)->set('query', $recherche)->viewData('opportunities')->pluck('title')->all();
+
+    foreach (['ingenieur', 'INGENIEUR', 'Ingénieur', 'ingénieur', 'INGÉNIEUR', '  ingenieur  ', 'reseau', 'deploiement', 'electricite', 'ÉLECTRICITÉ', 'ingenieur reseau', 'reseau ingenieur'] as $saisie) {
+        expect($titres($saisie))->toBe(['Ingénieur réseau'], $saisie);
+    }
+    // Le nom de l'entreprise est aussi cherché sans accents.
+    expect($titres('societe generale energie'))->toBe(['Comptable'])->and($titres('SOCIÉTÉ énergie'))->toBe(['Comptable']);
+    // Tous les mots doivent figurer : un mot absent exclut l'opportunité.
+    expect($titres('ingenieur comptable'))->toBe([])->and($titres('introuvable'))->toBe([]);
+    // Les caractères spéciaux de la saisie sont neutralisés.
+    expect($titres('100%'))->toBe([])->and($titres('_'))->toBe([]);
+});
+
+it('garde la recherche à jour quand l’opportunité ou l’entreprise change', function () {
+    $o = opportunite($this->company, ['title' => 'Plombier']);
+    expect($o->search_text)->toContain('plombier')->toContain('orange test');
+    $o->update(['title' => 'Électricien']);
+    expect($o->fresh()->search_text)->toContain('electricien')->not->toContain('plombier');
+
+    $this->company->update(['name' => 'Société Renommée']);
+    expect($o->fresh()->search_text)->toContain('societe renommee')->not->toContain('orange test');
+    $titres = Livewire::test(OpportunityCatalog::class)->set('query', 'renommee')->viewData('opportunities')->pluck('title')->all();
+    expect($titres)->toBe(['Électricien']);
+});
+
+it('propose aussi sans accents les pistes selon les capacités du profil', function () {
+    opportunite($this->company, ['title' => 'Installateur', 'skills' => ['Électricité']]);
+    $moi = person('Awa Capacité', ['electricite']);
+    Livewire::actingAs($moi)->test(OpportunityCatalog::class)->assertSeeText('Selon vos capacités')->assertSeeText('Installateur');
+});

@@ -23,6 +23,12 @@ class Company extends Model
 
     protected static function booted(): void
     {
+        // Le nom de l'entreprise fait partie du texte de recherche de ses opportunités.
+        static::saved(function (Company $company) {
+            if ($company->wasChanged(['name', 'sector'])) {
+                $company->allOpportunities()->get()->each(fn (Opportunity $opportunity) => $opportunity->setRelation('company', $company)->save());
+            }
+        });
         static::deleting(function (Company $company) {
             foreach ($company->documents as $document) {
                 Storage::disk('local')->delete($document->private_path);
