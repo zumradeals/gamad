@@ -28,6 +28,7 @@
                 <div class="mt-3 flex flex-wrap items-center gap-2">
                     <x-button :href="route('opportunites.edit', $item)" variant="secondary">{{ $item->status === 'draft' ? 'Continuer' : 'Modifier' }}</x-button>
                     @if ($item->status !== 'draft')<x-button :href="route('opportunites.responses', $item)" variant="secondary">Réponses ({{ $item->responses_count }})</x-button>@endif
+                    @if ($item->status === 'published' && ! $item->expired() && $verified)<x-button :href="route('opportunites.people', $item)" variant="secondary">Découvrir des personnes</x-button>@endif
                     @if ($item->status === 'published')<button type="button" wire:click="close('{{ $item->id }}')" wire:confirm="Clôturer cette opportunité ? Elle n’acceptera plus de réponses." class="min-h-11 px-3 text-[13px] font-bold text-link">Clôturer</button>@endif
                     @if ($item->status === 'closed')<button type="button" wire:click="reopen('{{ $item->id }}')" class="min-h-11 px-3 text-[13px] font-bold text-link">Rouvrir</button>@endif
                     @if (in_array($item->status, ['published', 'closed'], true))<button type="button" wire:click="archive('{{ $item->id }}')" wire:confirm="Archiver cette opportunité ? Elle ne sera plus visible du public." class="min-h-11 px-3 text-[13px] font-bold text-muted">Archiver</button>@endif

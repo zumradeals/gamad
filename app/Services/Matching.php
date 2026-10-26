@@ -214,6 +214,24 @@ class Matching
     }
 
     /**
+     * Raisons affichées à une entreprise (D3) : uniquement des données déjà visibles sur le profil, jamais une préférence privée
+     * (intentions, conditions, localités choisies, disponibilités). Aucune note.
+     *
+     * @return array<int, string>
+     */
+    public function companyReasons(Opportunity $opportunity, Profile $profile): array
+    {
+        $opportunity->loadMissing(['city', 'requiredSkills']);
+        $profile->loadMissing(['city', 'offeredSkills']);
+        $skills = $opportunity->requiredSkills->whereIn('id', $profile->offeredSkills->modelKeys())->pluck('name')->all();
+
+        return array_values(array_filter([
+            $skills === [] ? null : 'Capacité proposée en commun : '.implode(', ', $skills),
+            $opportunity->city_id && $profile->city?->active && $profile->city_id === $opportunity->city_id ? 'Même localité déclarée : '.$profile->city->label() : null,
+        ]));
+    }
+
+    /**
      * Raisons explicables d'une opportunité pour une personne, ou null : intention « Proposer mes compétences » (les quatre catégories),
      * opportunité ouverte d'une entreprise vérifiée visible de la personne, une compétence recherchée au moins parmi mes capacités
      * proposées, lieu choisi ou distance, période compatible avec la date limite. Le blocage avec le propriétaire n'écarte pas

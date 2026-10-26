@@ -498,6 +498,11 @@ de découverte avec l'intention « Proposer mes compétences » : une compétenc
 une période compatible avec la date limite. Raisons explicables, « Ne m'intéresse pas », aucune notification, aucun score ni classement ; les entreprises ne voient
 aucune liste de personnes correspondantes.
 
+**Découvrir des personnes (D-204).** Le propriétaire d'une entreprise vérifiée, depuis une opportunité publiée et ouverte, ouvre une recherche limitée aux
+personnes qui ont choisi d'être découvertes par les entreprises (préférence distincte, désactivée par défaut) et dont une capacité proposée correspond à une
+compétence recherchée. Il ne voit que le profil visible et des raisons publiques (capacité en commun, même localité déclarée), jamais les préférences privées.
+Dix profils par page, vingt pages par entreprise et par jour, rotation quotidienne neutre, aucun total, aucun score, aucune notification ni contact automatique.
+
 **Catégories.** Emploi, stage et apprentissage, mission, collaboration. Un lien externe de candidature est en https seulement.
 
 **Catalogue `/opportunites`.** Recherche insensible à la casse et aux accents, filtres type, localité, domaine, date de

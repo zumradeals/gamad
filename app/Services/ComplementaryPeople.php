@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Opportunity;
 use App\Models\PersonConnection;
 use App\Models\Profile;
 use App\Models\User;
@@ -37,6 +38,20 @@ class ComplementaryPeople
         return Profile::query()->visibleTo($viewer)->where('profiles.user_id', '<>', $viewer->id)
             ->whereNotIn('profiles.user_id', $excludeUserIds ?: [Str::uuid()->toString()])
             ->orderBy(User::query()->select('name_search')->whereColumn('users.id', 'profiles.user_id'));
+    }
+
+    /**
+     * Découverte par une entreprise (D3) : les profils que ce propriétaire a le droit de voir (visibilité, blocages, comptes actifs), qui
+     * ont **choisi** d'être découverts par les entreprises, et dont une capacité proposée est une compétence recherchée par l'opportunité.
+     * Aucune autre préférence privée n'est lue ; aucun ordre de pertinence (le tri est laissé à l'appelant).
+     */
+    public function discoverableFor(User $viewer, Opportunity $opportunity): Builder
+    {
+        $skillIds = $opportunity->requiredSkills()->pluck('skills.id')->all();
+
+        return $this->candidates($viewer)->reorder()
+            ->where('profiles.matching_preferences->discoverable', true)
+            ->whereHas('offeredSkills', fn (Builder $skills) => $skills->whereIn('skills.id', $skillIds ?: [Str::uuid()->toString()]));
     }
 
     /** Limite la requête aux profils complémentaires de `$mine` ; sans capacité déclarée, rien n'est suggéré. */

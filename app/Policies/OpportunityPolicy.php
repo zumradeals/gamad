@@ -62,6 +62,15 @@ class OpportunityPolicy
             && $opportunity->company->owner_id !== $user->id;
     }
 
+    /**
+     * Découvrir des personnes (D3) : le propriétaire d'une entreprise vérifiée et non suspendue, pour une opportunité publiée et ouverte.
+     * Rien d'autre : ni brouillon, ni opportunité close ou expirée, ni un autre compte.
+     */
+    public function discover(User $user, Opportunity $opportunity): bool
+    {
+        return $this->publish($user, $opportunity) && $opportunity->status === Opportunity::PUBLISHED && $opportunity->isOpen();
+    }
+
     /** Les réponses reçues, leurs messages et leurs pièces jointes : l'entreprise émettrice, jamais le public. */
     public function viewResponses(User $user, Opportunity $opportunity): bool
     {

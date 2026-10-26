@@ -48,6 +48,7 @@ use App\Livewire\MondeZumra;
 use App\Livewire\OpportunityCatalog;
 use App\Livewire\OpportunityForm;
 use App\Livewire\OpportunityManager;
+use App\Livewire\OpportunityPeople;
 use App\Livewire\OpportunityResponses;
 use App\Livewire\PageContribution;
 use App\Livewire\PageConversation;
@@ -132,6 +133,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/entreprises/{company}/opportunites/nouvelle', OpportunityForm::class)->where('company', '.+-[a-z0-9]{8}')->name('opportunites.create');
     Route::get('/opportunites/{opportunity}/modifier', OpportunityForm::class)->whereUuid('opportunity')->name('opportunites.edit');
     Route::get('/opportunites/{opportunity}/reponses', OpportunityResponses::class)->whereUuid('opportunity')->name('opportunites.responses');
+    Route::get('/opportunites/{opportunity}/personnes', OpportunityPeople::class)->whereUuid('opportunity')->name('opportunites.people');
     Route::post('/opportunites/{opportunity}/sauvegarder', [OpportunityController::class, 'save'])->whereUuid('opportunity')->name('opportunites.save');
     Route::get('/opportunites/{opportunity}/repondre', [OpportunityController::class, 'respond'])->whereUuid('opportunity')->name('opportunites.respond');
     Route::post('/opportunites/{opportunity}/repondre', [OpportunityController::class, 'storeResponse'])->whereUuid('opportunity')->middleware('throttle:20,1')->name('opportunites.respond.store');

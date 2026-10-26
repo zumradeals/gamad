@@ -120,7 +120,7 @@
             </section>
             @if ($isOwner)
                 <section class="rounded-card border border-line bg-card p-5"><h2 class="text-[17px] font-extrabold">Gestion</h2>
-                    <div class="mt-3 flex flex-col gap-2"><x-button :href="route('opportunites.edit', $opportunity)" variant="secondary">Modifier</x-button><x-button :href="route('opportunites.responses', $opportunity)" variant="secondary">Voir les réponses</x-button></div></section>
+                    <div class="mt-3 flex flex-col gap-2"><x-button :href="route('opportunites.edit', $opportunity)" variant="secondary">Modifier</x-button><x-button :href="route('opportunites.responses', $opportunity)" variant="secondary">Voir les réponses</x-button>@if ($open && $company->verified())<x-button :href="route('opportunites.people', $opportunity)" variant="secondary">Découvrir des personnes</x-button>@endif</div></section>
             @endif
             @if ($similar->isNotEmpty())
                 <section class="rounded-card border border-line bg-card p-5"><h2 class="text-[17px] font-extrabold">Autres opportunités de {{ $company->name }}</h2>

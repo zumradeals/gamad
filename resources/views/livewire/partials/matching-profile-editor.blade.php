@@ -12,5 +12,9 @@
         <label class="flex min-h-11 cursor-pointer items-center gap-3"><input type="checkbox" wire:model="matching_preferences.notify" @checked($matching_preferences['notify']) class="size-5 shrink-0 accent-ink"><span class="text-[14px] font-semibold">Me prévenir dans GAMAD lorsqu’une nouvelle piste correspond</span></label>
         <p class="text-[12px] text-muted">Notifications facultatives, regroupées pour limiter les alertes. Aucun e-mail ni SMS.</p>
     @endif
+    <div class="flex flex-col gap-1 border-t border-line-soft pt-3">
+        <label class="flex min-h-11 cursor-pointer items-center gap-3"><input type="checkbox" wire:model="matching_preferences.discoverable" @checked($matching_preferences['discoverable'] ?? false) class="size-5 shrink-0 accent-ink"><span class="text-[15px] font-bold">Permettre aux entreprises vérifiées de me découvrir pour leurs opportunités</span></label>
+        <p class="text-[12px] leading-relaxed text-muted">Choix distinct de vos suggestions, désactivé par défaut. Une entreprise ne voit que ce que votre profil rend visible, jamais vos préférences ci-dessus ; elle n’est pas prévenue de votre consentement, et vous n’êtes ni notifié ni contacté automatiquement. Vous pouvez le retirer à tout moment : l’effet est immédiat après enregistrement.</p>
+    </div>
     @foreach ($errors->get('matching_preferences*') as $messages)@foreach ($messages as $message)<p role="alert" class="text-[13px] text-danger">{{ $message }}</p>@endforeach @endforeach
 </section>
