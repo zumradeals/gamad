@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\ZumraDuty;
 use App\Enums\ZumraFormat;
+use App\Enums\ZumraJoinMode;
 use App\Enums\ZumraRole;
 use App\Enums\ZumraSphere;
 use App\Support\Normalizer;
@@ -26,11 +27,11 @@ class Zumra extends Model
 
     public const MISSION_MAX = 500;
 
-    protected $guarded = ['id', 'name_key', 'search', 'recognized_at', 'recognized_by', 'suspended_at', 'suspended_by', 'suspension_reason'];
+    protected $guarded = ['id', 'name_key', 'search', 'recognized_at', 'recognized_by', 'suspended_at', 'suspended_by', 'suspension_reason', 'closed_at'];
 
     protected function casts(): array
     {
-        return ['format' => ZumraFormat::class, 'sphere' => ZumraSphere::class, 'recognized_at' => 'datetime', 'suspended_at' => 'datetime'];
+        return ['format' => ZumraFormat::class, 'sphere' => ZumraSphere::class, 'recognized_at' => 'datetime', 'suspended_at' => 'datetime', 'closed_at' => 'datetime', 'join_mode' => ZumraJoinMode::class];
     }
 
     protected static function booted(): void
@@ -80,6 +81,24 @@ class Zumra extends Model
     public function isSuspended(): bool
     {
         return $this->suspended_at !== null;
+    }
+
+    /** Fermée par son fondateur (D-216) : elle n'existe plus que pour lui, qui peut la rouvrir, et pour la modération. */
+    public function isClosed(): bool
+    {
+        return $this->closed_at !== null;
+    }
+
+    /** Suspendue ou fermée : plus aucune action nouvelle, et plus de place dans le Carrefour ni dans les fils. */
+    public function isUnavailable(): bool
+    {
+        return $this->isSuspended() || $this->isClosed();
+    }
+
+    /** Adhésion libre et immédiate (par défaut), ou sur approbation (D-216). */
+    public function joinsFreely(): bool
+    {
+        return $this->join_mode !== ZumraJoinMode::Approval;
     }
 
     /** Reconnue officiellement par GAMAD : l'acte du super administrateur, tracé au journal (D-116, Lot 3c). */

@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Enums\ZumraFormat;
+use App\Enums\ZumraJoinMode;
 use App\Enums\ZumraSphere;
 use App\Livewire\Concerns\GuardsZumraModule;
 use App\Models\City;
@@ -41,6 +42,8 @@ class FormulaireZumra extends Component
 
     public string $sphere = '';
 
+    public string $join_mode = 'open';
+
     public function mount(?Zumra $zumra = null): void
     {
         if ($zumra?->exists) {
@@ -52,6 +55,7 @@ class FormulaireZumra extends Component
             $this->city_id = (string) $zumra->city_id;
             $this->format = $zumra->format->value;
             $this->mission = $zumra->mission;
+            $this->join_mode = $zumra->join_mode->value;
 
             return;
         }
@@ -65,13 +69,13 @@ class FormulaireZumra extends Component
 
         if ($this->zumraId) {
             $zumra = $this->zumra();
-            $zumras->update(Auth::user(), $zumra, ['city_id' => $this->city_id, 'format' => $this->format, 'mission' => $this->mission]);
+            $zumras->update(Auth::user(), $zumra, ['city_id' => $this->city_id, 'format' => $this->format, 'mission' => $this->mission, 'join_mode' => $this->join_mode]);
             session()->flash('status', 'ZUMRA mise à jour.');
 
             return $this->redirect(route('zumras.show', $zumra), navigate: false);
         }
 
-        $zumra = $zumras->create(Auth::user(), ['name' => $this->name, 'domain_id' => $this->domain_id, 'city_id' => $this->city_id, 'format' => $this->format, 'mission' => $this->mission, 'sphere' => $this->sphere]);
+        $zumra = $zumras->create(Auth::user(), ['name' => $this->name, 'domain_id' => $this->domain_id, 'city_id' => $this->city_id, 'format' => $this->format, 'mission' => $this->mission, 'sphere' => $this->sphere, 'join_mode' => $this->join_mode]);
         session()->flash('status', 'ZUMRA créée. Vous en êtes le fondateur.');
 
         return $this->redirect(route('zumras.show', $zumra), navigate: false);
@@ -91,6 +95,7 @@ class FormulaireZumra extends Component
                 ->get()->sortBy(fn (City $c) => Normalizer::key($c->label()))->values(),
             'formats' => ZumraFormat::cases(),
             'spheres' => ZumraSphere::cases(),
+            'joinModes' => ZumraJoinMode::cases(),
             'nameMax' => Zumra::NAME_MAX,
             'missionMax' => Zumra::MISSION_MAX,
         ])->title($editing ? 'Modifier la ZUMRA' : 'Créer une ZUMRA');

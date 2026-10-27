@@ -24,10 +24,10 @@ beforeEach(function () {
     $this->ibrahim = person('Ibrahim Traoré');
 });
 
-function recetteZumraCreee($test): Zumra
+function recetteZumraCreee($test, string $mode = 'approval'): Zumra
 {
     Livewire::actingAs($test->fondatrice)->test(FormulaireZumra::class)
-        ->set('name', 'Atelier Soleil Couture')->set('sphere', 'social')->set('domain_id', Domain::query()->first()->id)->set('format', 'hybrid')
+        ->set('name', 'Atelier Soleil Couture')->set('sphere', 'social')->set('domain_id', Domain::query()->first()->id)->set('format', 'hybrid')->set('join_mode', $mode)
         ->set('mission', 'Apprendre la couture ensemble et vendre nos créations.')->call('save')->assertHasNoErrors();
 
     return Zumra::query()->where('name', 'Atelier Soleil Couture')->firstOrFail();

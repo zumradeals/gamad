@@ -43,6 +43,10 @@ class JoinRequests
 
             Gate::forUser($user)->authorize('join', $locked);
 
+            if ($locked->joinsFreely()) {
+                throw ValidationException::withMessages(['joinWord' => 'Cette ZUMRA est en adhésion libre : rejoignez-la directement.']);
+            }
+
             $request = JoinRequest::query()->where('zumra_id', $locked->getKey())->where('user_id', $user->getKey())->first() ?? new JoinRequest;
             $request->fill(['message' => $message === '' ? null : $message, 'state' => JoinRequestState::Pending, 'decided_by' => null, 'decided_at' => null]);
             $request->zumra()->associate($locked);
@@ -54,6 +58,34 @@ class JoinRequests
                 ->each(fn (ZumraMembership $manager) => $this->notifier->push($manager->user, NotificationKind::ZumraRequestReceived, $user, zumra: $locked));
 
             return $request;
+        });
+    }
+
+    /**
+     * Rejoint librement une ZUMRA à adhésion libre (D-216) : la personne devient membre tout de suite, et le fondateur et les
+     * responsables en sont informés. Une ZUMRA sur approbation passe par une demande (propose).
+     *
+     * @throws ValidationException
+     */
+    public function join(User $user, Zumra $zumra): void
+    {
+        Gate::forUser($user)->authorize('join', $zumra);
+
+        $this->throttle($user);
+
+        DB::transaction(function () use ($user, $zumra) {
+            $locked = Zumra::query()->whereKey($zumra->getKey())->lockForUpdate()->firstOrFail();
+
+            Gate::forUser($user)->authorize('join', $locked);
+
+            if (! $locked->joinsFreely()) {
+                throw ValidationException::withMessages(['joinWord' => 'Cette ZUMRA examine chaque demande : envoyez-lui la vôtre.']);
+            }
+
+            $this->memberships->admit($locked, $user);
+
+            ZumraMembership::query()->where('zumra_id', $locked->getKey())->whereIn('role', ['founder', 'manager'])->with('user')->get()
+                ->each(fn (ZumraMembership $manager) => $this->notifier->push($manager->user, NotificationKind::ZumraMemberJoined, $user, zumra: $locked));
         });
     }
 
