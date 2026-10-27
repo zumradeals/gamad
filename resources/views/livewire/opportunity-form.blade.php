@@ -2,7 +2,7 @@
     $labelClass = 'text-[15px] font-extrabold';
     $field = fn ($name) => 'min-h-12 w-full rounded-button border bg-card px-3.5 text-[16px] '.($errors->has($name) ? 'border-danger' : 'border-chip-line');
     $area = fn ($name) => 'w-full resize-y rounded-button border bg-card px-3.5 py-3 text-[16px] leading-normal '.($errors->has($name) ? 'border-danger' : 'border-chip-line');
-    $cityLabel = $city_id !== '' ? \App\Models\City::query()->find($city_id)?->label() : null;
+    $cityLabel = \Illuminate\Support\Str::isUuid($city_id) ? \App\Models\City::query()->find($city_id)?->label() : null;
     $domainLabel = $domain_id !== '' ? $domains->firstWhere('id', $domain_id)?->name : null;
 @endphp
 <div class="flex flex-col gap-3.5" data-opportunity-form>

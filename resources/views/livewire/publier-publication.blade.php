@@ -25,7 +25,7 @@
     }
     $timings = ['Dès que possible', 'Cette semaine', 'Ce mois-ci', 'Dans plus d’un mois'];
     $visibilityLabels = [\App\Models\Publication::PUBLIC => 'Tout le monde', \App\Models\Publication::MEMBERS => 'Seulement les membres GAMAD'];
-    $cityLabel = $city_id !== '' ? \App\Models\City::query()->find($city_id)?->label() : null;
+    $cityLabel = \Illuminate\Support\Str::isUuid($city_id) ? \App\Models\City::query()->find($city_id)?->label() : null;
     $stepNow = $previewing ? 3 : $step;
     $profile = auth()->user()->ensureProfile();
     $canBack = $stepNow > 1;
