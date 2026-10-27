@@ -27,6 +27,7 @@ use App\Services\Wallets;
 use App\Services\ZumraPosts;
 use App\Services\Zumras;
 use App\Support\Normalizer;
+use App\Support\ProjectsModule;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -232,6 +233,10 @@ class MondeZumra extends Component
 
         // La Discussion n'existe pas pour qui n'est pas membre : « page introuvable » (D-112).
         $tab = in_array($this->tab, self::TABS, true) ? $this->tab : 'formation';
+        // Projets fermés (D-213) : l'onglet n'existe pas, même appelé directement.
+        if ($tab === 'projets' && ! ProjectsModule::accessibleTo(Auth::user())) {
+            $tab = 'formation';
+        }
         $this->tab = $tab;
         abort_if($tab === 'discussion' && ! $canDiscuss, 404);
 

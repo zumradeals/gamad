@@ -14,6 +14,7 @@ use App\Models\Publication;
 use App\Models\User;
 use App\Models\Zumra;
 use App\Support\Normalizer;
+use App\Support\ProjectsModule;
 use App\Support\ZumraModule;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -105,7 +106,7 @@ class ContributionFeed
     public function handledBy(User $user): Builder
     {
         $zumras = ZumraModule::accessibleTo($user) ? $user->managedZumraIds() : [];
-        $projects = ZumraModule::accessibleTo($user)
+        $projects = ProjectsModule::accessibleTo($user)
             ? Project::query()->where('owner_id', $user->getKey())->pluck('id')
                 ->merge(ProjectMember::query()->where('user_id', $user->getKey())->where('manages_contributions', true)->pluck('project_id'))->unique()->all()
             : [];
@@ -135,7 +136,7 @@ class ContributionFeed
             $projects = Project::query()->where('owner_id', $user->getKey())->pluck('id')
                 ->merge(ProjectMember::query()->where('user_id', $user->getKey())->where('manages_contributions', true)->pluck('project_id'))->unique()->all();
 
-            if ($projects !== [] && ZumraModule::accessibleTo($user)) {
+            if ($projects !== [] && ProjectsModule::accessibleTo($user)) {
                 $q->orWhereIn('project_id', $projects);
             }
 

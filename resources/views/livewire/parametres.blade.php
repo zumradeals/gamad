@@ -26,6 +26,12 @@
         <x-button :href="route('espace.parametres.zumra')" variant="secondary">Ouvrir</x-button>
     </section>
 
+    <section aria-labelledby="module-projets" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
+        <h2 id="module-projets" class="text-[18px] font-extrabold">Module Projets</h2>
+        <p class="text-[13px] text-muted">Suit le module ZUMRA par défaut ; vous pouvez le désactiver, l’ouvrir aux testeurs ou le rendre public, sans toucher aux projets existants.</p>
+        <x-button :href="route('espace.parametres.projets')" variant="secondary">Ouvrir</x-button>
+    </section>
+
     <section aria-labelledby="module-contributions" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
         <h2 id="module-contributions" class="text-[18px] font-extrabold">Module Contributions</h2>
         <p class="text-[13px] text-muted">Besoins et propositions d’entraide volontaire, sans paiement. Désactivé, test privé ou public : vous seul décidez de l’ouverture.</p>

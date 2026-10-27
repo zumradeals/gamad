@@ -7,7 +7,7 @@ use App\Enums\ProjectStage;
 use App\Enums\ProjectState;
 use App\Enums\ProjectStepState;
 use App\Enums\PublicationType;
-use App\Livewire\Concerns\GuardsZumraModule;
+use App\Livewire\Concerns\GuardsProjectsModule;
 use App\Livewire\Concerns\PicksSkills;
 use App\Models\Company;
 use App\Models\Gesture;
@@ -52,7 +52,7 @@ use Livewire\Component;
 #[Layout('components.layouts.app')]
 class MondeProjet extends Component
 {
-    use GuardsZumraModule, PicksSkills;
+    use GuardsProjectsModule, PicksSkills;
 
     public const TABS = ['avancement', 'accueil', 'equipe', 'competences', 'vitrine', 'entreprise', 'fil', 'besoins'];
 

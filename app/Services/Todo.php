@@ -19,6 +19,7 @@ use App\Models\Wallet;
 use App\Models\Zumra;
 use App\Models\ZumraMembership;
 use App\Support\Experience;
+use App\Support\ProjectsModule;
 use App\Support\ZumraModule;
 use Illuminate\Support\Str;
 
@@ -189,7 +190,7 @@ class Todo
     /** Pour le fondateur et les responsables : des demandes d'accueil de projets attendent une décision (une ligne par ZUMRA). */
     private function hostingRequestsToExamine(User $user): array
     {
-        if (! ZumraModule::accessibleTo($user)) {
+        if (! ProjectsModule::accessibleTo($user)) {
             return [];
         }
 
@@ -209,7 +210,7 @@ class Todo
     /** Une invitation à collaborer à un projet attend la réponse de la personne invitée (P1). */
     private function projectInvitations(User $user): array
     {
-        if (! ZumraModule::accessibleTo($user)) {
+        if (! ProjectsModule::accessibleTo($user)) {
             return [];
         }
 

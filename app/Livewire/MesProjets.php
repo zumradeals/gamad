@@ -3,7 +3,7 @@
 namespace App\Livewire;
 
 use App\Enums\JoinRequestState;
-use App\Livewire\Concerns\GuardsZumraModule;
+use App\Livewire\Concerns\GuardsProjectsModule;
 use App\Models\ParticipationRequest;
 use App\Models\Project;
 use App\Models\ProjectCompanyLink;
@@ -26,7 +26,7 @@ use Livewire\Component;
 #[Title('Mes projets')]
 class MesProjets extends Component
 {
-    use GuardsZumraModule;
+    use GuardsProjectsModule;
 
     public function accept(string $id, ProjectInvitations $invitations): void
     {
