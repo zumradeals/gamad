@@ -52,7 +52,7 @@ window.gamadDraft = (wire, key) => ({
 // lieux au plus ; le choix est écrit dans la propriété Livewire `model` (immédiatement si `live`, sinon à l’envoi du formulaire).
 window.gamadCityPicker = (wire, cfg) => ({
     open: false, q: '', items: [], active: -1, selectedId: cfg.selectedId, selectedLabel: cfg.selectedLabel, timer: null, message: '',
-    get country() { return this.$el.dataset.country || ''; },
+    get country() { return this.$root.dataset.country || ''; },
     async search() {
         const url = new URL(cfg.url, window.location.origin);
         url.searchParams.set('q', this.q);
