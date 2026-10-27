@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Enums\GestureState;
 use App\Enums\PublicationType;
+use App\Models\AdCampaign;
 use App\Models\Conversation;
 use App\Models\Gesture;
 use App\Models\Profile;
@@ -13,6 +14,9 @@ use App\Services\ComplementaryPeople;
 use App\Services\People;
 use App\Services\PersonalTrust;
 use App\Services\PublicationBookmarks;
+use App\Services\Publicite\AdFeedback;
+use App\Services\Publicite\AdServing;
+use App\Services\Publicite\AdStats;
 use App\Services\Supports;
 use App\Support\Experience;
 use App\Support\Normalizer;
@@ -88,6 +92,19 @@ class Fil extends Component
     {
         $this->filter = $this->knows($filter) ? $filter : 'tout';
         $this->limit = self::PAGE_SIZE;
+    }
+
+    /** Masquer une annonce sponsorisée (D-211) : elle ne revient plus pour cette personne. */
+    public function hideAd(string $id): void
+    {
+        app(AdFeedback::class)->hide(Auth::user(), AdCampaign::query()->findOrFail($id));
+    }
+
+    /** Signaler une annonce sponsorisée à la modération (D-211) ; elle est aussi masquée pour cette personne. */
+    public function reportAd(string $id, string $reason): void
+    {
+        app(AdFeedback::class)->report(Auth::user(), AdCampaign::query()->findOrFail($id), $reason);
+        session()->flash('status', 'Merci : l’annonce est signalée à la modération et masquée pour vous.');
     }
 
     public function more(): void
@@ -189,7 +206,15 @@ class Fil extends Component
         $followedAuthorIds = DB::table('person_follows')->where('user_id', $viewer->id)
             ->whereIn('followed_id', $posts->pluck('author_id'))->pluck('followed_id')->all();
 
+        // D-211 : une carte sponsorisée est une insertion séparée à un rang fixe, jamais un classement : l'ordre de `$posts` ne change pas.
+        $sponsored = ($filter === 'tout' && $text === '' && $posts->isNotEmpty()) ? app(AdServing::class)->forViewer($viewer) : null;
+        if ($sponsored) {
+            app(AdStats::class)->impression($sponsored, $viewer);
+        }
+
         return view('livewire.fil', [
+            'sponsored' => $sponsored,
+            'sponsoredWhy' => $sponsored ? app(AdServing::class)->why($sponsored) : null,
             'posts' => $posts,
             'searchText' => $text,
             'hasMore' => $hasMore && $this->limit < self::MAX_SIZE,

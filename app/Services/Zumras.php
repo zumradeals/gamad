@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\NotificationKind;
 use App\Enums\ZumraFormat;
+use App\Enums\ZumraJoinMode;
 use App\Enums\ZumraRole;
 use App\Enums\ZumraSphere;
 use App\Models\City;
@@ -36,24 +37,25 @@ class Zumras
         Gate::forUser($founder)->authorize('create', Zumra::class);
 
         // Toutes les erreurs remontent ensemble, chacune sous son champ.
-        [$name, $domainId, $cityId, $format, $mission, $sphere] = $this->all(
+        [$name, $domainId, $cityId, $format, $mission, $sphere, $joinMode] = $this->all(
             fn () => $this->name($data['name'] ?? null),
             fn () => $this->activeId(Domain::class, $data['domain_id'] ?? null, 'domain_id', 'Choisissez un domaine dans la liste.', required: true),
             fn () => $this->activeId(City::class, $data['city_id'] ?? null, 'city_id', 'Choisissez une ville dans la liste.'),
             fn () => $this->format($data['format'] ?? null),
             fn () => $this->mission($data['mission'] ?? null),
             fn () => $this->sphere($data['sphere'] ?? null),
+            fn () => $this->joinMode($data['join_mode'] ?? null),
         );
 
         $this->throttle($founder);
 
         try {
-            return DB::transaction(function () use ($founder, $name, $domainId, $cityId, $format, $mission, $sphere) {
+            return DB::transaction(function () use ($founder, $name, $domainId, $cityId, $format, $mission, $sphere, $joinMode) {
                 if (Zumra::query()->where('name_key', Normalizer::key($name))->exists()) {
                     throw $this->nameTaken();
                 }
 
-                $zumra = Zumra::query()->create(['name' => $name, 'domain_id' => $domainId, 'city_id' => $cityId, 'format' => $format, 'mission' => $mission, 'sphere' => $sphere]);
+                $zumra = Zumra::query()->create(['name' => $name, 'domain_id' => $domainId, 'city_id' => $cityId, 'format' => $format, 'mission' => $mission, 'sphere' => $sphere, 'join_mode' => $joinMode]);
 
                 $membership = new ZumraMembership(['role' => ZumraRole::Founder]);
                 $membership->zumra()->associate($zumra);
@@ -79,13 +81,14 @@ class Zumras
     {
         Gate::forUser($actor)->authorize('update', $zumra);
 
-        [$cityId, $format, $mission] = $this->all(
+        [$cityId, $format, $mission, $joinMode] = $this->all(
             fn () => $this->activeId(City::class, $data['city_id'] ?? null, 'city_id', 'Choisissez une ville dans la liste.', keep: $zumra->city_id),
             fn () => $this->format($data['format'] ?? null),
             fn () => $this->mission($data['mission'] ?? null),
+            fn () => array_key_exists('join_mode', $data) ? $this->joinMode($data['join_mode']) : $zumra->join_mode,
         );
 
-        $zumra->update(['city_id' => $cityId, 'format' => $format, 'mission' => $mission]);
+        $zumra->update(['city_id' => $cityId, 'format' => $format, 'mission' => $mission, 'join_mode' => $joinMode]);
     }
 
     /**
@@ -203,6 +206,17 @@ class Zumras
     private function nameTaken(): ValidationException
     {
         return ValidationException::withMessages(['name' => 'Ce nom est déjà pris par une autre ZUMRA.']);
+    }
+
+    /** Adhésion libre par défaut (D-216) ; une valeur inconnue est refusée. */
+    private function joinMode(?string $mode): ZumraJoinMode
+    {
+        if ($mode === null || $mode === '') {
+            return ZumraJoinMode::Open;
+        }
+
+        return ZumraJoinMode::tryFrom($mode)
+            ?? throw ValidationException::withMessages(['join_mode' => 'Choisissez comment on rejoint la ZUMRA.']);
     }
 
     private function format(?string $format): ZumraFormat

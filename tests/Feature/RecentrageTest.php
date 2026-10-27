@@ -151,7 +151,8 @@ it('bloque les nouvelles créations et publications collectives tout en gardant 
     expect(fn () => app(Publications::class)->publish($founder, PublicationType::Need, ['body' => 'Nouveau'], $zumra))->toThrow(ValidationException::class);
     expect(fn () => app(Publications::class)->publish($founder, PublicationType::Need, ['body' => 'Nouveau'], project: $project))->toThrow(ValidationException::class);
     $this->actingAs($founder)->get(route('projets.create', $zumra))->assertNotFound();
-    $this->get(route('zumras.publier', [$zumra, 'besoin']))->assertForbidden();
+    // Module ZUMRA fermé (D-205, D-214) : la publication collective n'existe pas (404).
+    $this->get(route('zumras.publier', [$zumra, 'besoin']))->assertNotFound();
     $this->get(route('projets.publier', [$project, 'besoin']))->assertForbidden();
     // Module ZUMRA fermé (D-205) : même le fondateur ne lit plus la ZUMRA ; ses données sont conservées.
     $this->get(route('zumras.show', $zumra))->assertNotFound();

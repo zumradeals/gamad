@@ -148,6 +148,13 @@ class Publication extends Model
         $query->where(fn (Builder $companyScope) => $companyScope->whereNull('company_id')
             ->orWhereHas('company', fn (Builder $companies) => $companies->publiclyVisible()));
 
+        // Les publications d'une ZUMRA suspendue (D-215) n'existent plus que pour ses membres et la modération.
+        if (! $viewer?->can('moderate')) {
+            $query->where(fn (Builder $zumraScope) => $zumraScope->whereNull('zumra_id')
+                ->orWhereHas('zumra', fn (Builder $zumras) => $zumras->whereNull('suspended_at')->whereNull('closed_at'))
+                ->when($viewer, fn (Builder $q) => $q->orWhereIn('zumra_id', $viewer->zumraMemberships()->select('zumra_id'))));
+        }
+
         if ($viewer && ! $viewer->can('moderate')) {
             $query->whereNotIn('author_id', People::excludedIds($viewer));
         }

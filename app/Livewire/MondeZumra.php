@@ -6,6 +6,7 @@ use App\Enums\JoinRequestState;
 use App\Enums\ProjectHostingState;
 use App\Enums\PublicationType;
 use App\Enums\ZumraDuty;
+use App\Enums\ZumraRole;
 use App\Livewire\Concerns\GuardsZumraModule;
 use App\Models\Gesture;
 use App\Models\Invitation;
@@ -24,9 +25,11 @@ use App\Services\Memberships;
 use App\Services\ProjectHosting;
 use App\Services\Supports;
 use App\Services\Wallets;
+use App\Services\ZumraModeration;
 use App\Services\ZumraPosts;
 use App\Services\Zumras;
 use App\Support\Normalizer;
+use App\Support\ProjectsModule;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -74,6 +77,9 @@ class MondeZumra extends Component
     /** Le message de la Discussion en cours d'écriture. */
     public string $postBody = '';
 
+    /** Motif de la suspension ou du rétablissement d'une ZUMRA (modération, D-215). */
+    public string $moderationReason = '';
+
     /** Motif du retrait de la reconnaissance (super administrateur). */
     public string $recognitionReason = '';
 
@@ -115,6 +121,22 @@ class MondeZumra extends Component
         $posts->delete(Auth::user(), ZumraPost::query()->where('zumra_id', $this->zumraId)->find($id) ?? abort(404));
     }
 
+    public function suspend(ZumraModeration $moderation): void
+    {
+        $moderation->suspend(Auth::user(), $this->zumra(), $this->moderationReason);
+
+        $this->reset('moderationReason');
+        session()->flash('status', 'ZUMRA suspendue : elle disparaît du Carrefour et des fils. Décision inscrite au journal.');
+    }
+
+    public function reinstate(ZumraModeration $moderation): void
+    {
+        $moderation->reinstate(Auth::user(), $this->zumra(), $this->moderationReason);
+
+        $this->reset('moderationReason');
+        session()->flash('status', 'ZUMRA rétablie. Décision inscrite au journal.');
+    }
+
     public function recognize(Zumras $zumras): void
     {
         $zumras->recognize(Auth::user(), $this->zumra());
@@ -127,6 +149,37 @@ class MondeZumra extends Component
 
         $this->reset('recognitionReason');
         session()->flash('status', 'Reconnaissance retirée.');
+    }
+
+    /** Adhésion libre (D-216) : la personne devient membre tout de suite. */
+    public function join(JoinRequests $requests): void
+    {
+        $requests->join(Auth::user(), $this->zumra());
+
+        session()->flash('status', 'Bienvenue dans la ZUMRA.');
+    }
+
+    /** Le fondateur confie la fondation à un membre (D-216). */
+    public function transferFoundation(string $id, Memberships $memberships): void
+    {
+        $memberships->transferFoundation(Auth::user(), $this->zumra(), $this->membership($id));
+
+        session()->flash('status', 'La fondation est confiée. Vous restez responsable et pouvez quitter la ZUMRA.');
+    }
+
+    /** Le fondateur, seul membre, ferme sa ZUMRA (D-216). */
+    public function closeZumra(Memberships $memberships): void
+    {
+        $memberships->close(Auth::user(), $this->zumra());
+
+        session()->flash('status', 'ZUMRA fermée. Vous pouvez la rouvrir quand vous voulez.');
+    }
+
+    public function reopenZumra(Memberships $memberships): void
+    {
+        $memberships->reopen(Auth::user(), $this->zumra());
+
+        session()->flash('status', 'ZUMRA rouverte.');
     }
 
     public function requestJoin(JoinRequests $requests): void
@@ -232,6 +285,10 @@ class MondeZumra extends Component
 
         // La Discussion n'existe pas pour qui n'est pas membre : « page introuvable » (D-112).
         $tab = in_array($this->tab, self::TABS, true) ? $this->tab : 'formation';
+        // Projets fermés (D-213) : l'onglet n'existe pas, même appelé directement.
+        if ($tab === 'projets' && ! ProjectsModule::accessibleTo(Auth::user())) {
+            $tab = 'formation';
+        }
         $this->tab = $tab;
         abort_if($tab === 'discussion' && ! $canDiscuss, 404);
 
@@ -316,6 +373,12 @@ class MondeZumra extends Component
                 ? JoinRequest::query()->where('zumra_id', $zumra->id)->where('state', JoinRequestState::Pending->value)
                     ->whereHas('user', fn (Builder $user) => $user->active())
                     ->with(['user.profile.city', 'user.profile.offeredSkills'])->orderBy('created_at')->get()
+                : collect(),
+            // Le fondateur qui veut partir : les personnes à qui il peut confier la fondation (D-216).
+            'foundationCandidates' => $role === ZumraRole::Founder
+                ? ZumraMembership::query()->where('zumra_id', $zumra->id)->where('user_id', '!=', $viewer->getKey())
+                    ->whereHas('user', fn (Builder $user) => $user->active()->whereNotNull('email_verified_at'))
+                    ->with('user')->orderByRaw("case role when 'manager' then 0 else 1 end")->orderBy('joined_at')->orderBy('id')->limit(50)->get()
                 : collect(),
             'invitations' => $manages
                 ? Invitation::query()->open()->where('zumra_id', $zumra->id)->with('user')->orderBy('created_at')->get()

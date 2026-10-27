@@ -11,6 +11,7 @@ use App\Models\Publication;
 use App\Models\User;
 use App\Models\Zumra;
 use App\Support\ContributionsModule;
+use App\Support\ProjectsModule;
 use App\Support\ZumraModule;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -64,7 +65,7 @@ class ContributionAccess
             BeneficiaryKind::Gamad => $user->isSuperAdmin(),
             BeneficiaryKind::Person => $beneficiary instanceof User && $beneficiary->getKey() === $user->getKey(),
             BeneficiaryKind::Zumra => $beneficiary instanceof Zumra && ZumraModule::accessibleTo($user) && (bool) $beneficiary->roleOf($user)?->manages(),
-            BeneficiaryKind::Project => $beneficiary instanceof Project && ZumraModule::accessibleTo($user) && $this->managesProject($user, $beneficiary),
+            BeneficiaryKind::Project => $beneficiary instanceof Project && ProjectsModule::accessibleTo($user) && $this->managesProject($user, $beneficiary),
             BeneficiaryKind::Company => $beneficiary instanceof Company && $beneficiary->verified() && $beneficiary->owner_id === $user->getKey(),
         };
     }
@@ -123,7 +124,7 @@ class ContributionAccess
         return match ($kind) {
             BeneficiaryKind::Gamad => true,
             BeneficiaryKind::Zumra => $beneficiary instanceof Zumra && ZumraModule::accessibleTo($viewer),
-            BeneficiaryKind::Project => $beneficiary instanceof Project && ZumraModule::accessibleTo($viewer) && $beneficiary->isShowcasePublished(),
+            BeneficiaryKind::Project => $beneficiary instanceof Project && ProjectsModule::accessibleTo($viewer) && $beneficiary->isShowcasePublished(),
             BeneficiaryKind::Company => $beneficiary instanceof Company && $beneficiary->verified(),
             BeneficiaryKind::Person => $beneficiary instanceof User && $beneficiary->isActive(),
         };

@@ -3,6 +3,10 @@
     // Module ZUMRA ouvert à cette personne : l'adhésion est active, même si les Projets et les finances restent gelés.
     $moduleOpen = \App\Support\ZumraModule::accessibleTo($viewer);
     $frozen = $initial && ! $moduleOpen;
+    // Publier dans la ZUMRA (D-214) : le module est ouvert et la personne y est membre vérifiée ; les types dépendent de son rôle.
+    $publishTypes = $moduleOpen && $viewer?->hasVerifiedEmail() && $role
+        ? ($manages ? \App\Enums\PublicationType::forZumra() : \App\Enums\PublicationType::forZumraMember())
+        : [];
     $meta = collect([$zumra->sphere?->label(), $zumra->domain->name, $zumra->city?->label(), $zumra->format->label()])->filter()->implode(' · ');
     $since = $zumra->created_at->copy()->locale('fr')->timezone('Africa/Abidjan')->translatedFormat('M Y');
 @endphp
@@ -48,6 +52,23 @@
         @endif
     </header>
 
+    @if ($zumra->isClosed())
+        <section aria-label="ZUMRA fermée" role="status" class="flex flex-col gap-2 rounded-card border-2 border-ink bg-card p-4">
+            <p class="text-[15px] font-extrabold">Cette ZUMRA est fermée.</p>
+            <p class="text-[14px] leading-normal">Elle n’apparaît plus dans le Carrefour ni dans les fils. Rien n’est supprimé.@if ($role === \App\Enums\ZumraRole::Founder && ! $zumra->isSuspended()) Vous pouvez la rouvrir quand vous voulez.@endif</p>
+            @if ($role === \App\Enums\ZumraRole::Founder && ! $zumra->isSuspended())
+                <x-button type="button" wire:click="reopenZumra" wire:loading.attr="disabled" wire:target="reopenZumra">Rouvrir la ZUMRA</x-button>
+            @endif
+        </section>
+    @endif
+
+    @if ($zumra->isSuspended())
+        <section aria-label="ZUMRA suspendue" role="status" class="flex flex-col gap-1 rounded-card border-2 border-danger bg-card p-4">
+            <p class="text-[15px] font-extrabold text-danger">Cette ZUMRA est suspendue par la modération.</p>
+            <p class="text-[14px] leading-normal">Elle n’apparaît plus dans le Carrefour ni dans les fils ; ses membres la voient, mais l’adhésion, les invitations, les publications et la Discussion sont fermées.@if ($role || auth()->user()?->can('moderate')) Motif : {{ $zumra->suspension_reason }}@endif</p>
+        </section>
+    @endif
+
     <section aria-label="La ZUMRA en chiffres" class="-mt-9 grid grid-cols-3 divide-x divide-line rounded-card border border-line bg-card py-3.5 md:mt-0">
         <div class="flex flex-col items-center gap-0.5">
             <span class="text-[22px] font-extrabold leading-tight">{{ $zumra->members_count }}</span>
@@ -80,6 +101,20 @@
             @endforeach
         </ul>
     </section>
+
+    @can('moderate')
+        <section aria-labelledby="moderation-zumra" class="flex flex-col gap-2.5 rounded-card border border-line bg-card p-4">
+            <h2 id="moderation-zumra" class="text-[15px] font-extrabold">Modération</h2>
+            <p class="text-[13px] text-muted">{{ $zumra->isSuspended() ? 'Rétablir rend la ZUMRA au Carrefour et aux fils.' : 'Suspendre retire la ZUMRA du Carrefour et des fils ; ses membres la gardent, sans pouvoir y agir.' }} L’acte exige un motif et est inscrit au journal d’administration.</p>
+            <label for="motif-moderation" class="text-[13px] font-extrabold">Motif{{ $zumra->isSuspended() ? ' (facultatif)' : ' (obligatoire)' }}</label>
+            <textarea id="motif-moderation" wire:model="moderationReason" rows="2" maxlength="500" class="w-full rounded-button border border-chip-line bg-card px-3.5 py-3 text-[15px]"></textarea>
+            @if ($zumra->isSuspended())
+                <x-button type="button" variant="secondary" wire:click="reinstate" wire:loading.attr="disabled" wire:target="reinstate">Rétablir la ZUMRA</x-button>
+            @else
+                <x-button type="button" wire:click="suspend" wire:loading.attr="disabled" wire:target="suspend">Suspendre la ZUMRA</x-button>
+            @endif
+        </section>
+    @endcan
 
     @can('super-admin')
         <section aria-labelledby="reconnaissance" class="flex flex-col gap-2.5 rounded-card border border-line bg-card p-4" x-data="{ confirming: false }">
@@ -124,11 +159,11 @@
         <section id="rejoindre" aria-label="Rejoindre cette ZUMRA" class="flex flex-col gap-2.5 rounded-card border border-line bg-card p-4"
                  x-data="{ open: false }" x-init="open = location.hash === '#rejoindre'">
             @guest
-                <p class="text-[14px] text-muted">Connectez-vous pour demander à rejoindre cette ZUMRA.</p>
-                <x-button :href="route('login')" variant="accent">Demander à rejoindre</x-button>
+                <p class="text-[14px] text-muted">Connectez-vous pour {{ $zumra->joinsFreely() ? 'rejoindre' : 'demander à rejoindre' }} cette ZUMRA.</p>
+                <x-button :href="route('login')" variant="accent">{{ $zumra->joinsFreely() ? 'Rejoindre la ZUMRA' : 'Demander à rejoindre' }}</x-button>
             @else
                 @if (! $viewer->hasVerifiedEmail())
-                    <p class="text-[14px] text-muted">Vérifiez votre adresse e-mail pour demander à rejoindre une ZUMRA.</p>
+                    <p class="text-[14px] text-muted">Vérifiez votre adresse e-mail pour {{ $zumra->joinsFreely() ? 'rejoindre' : 'demander à rejoindre' }} une ZUMRA.</p>
                 @elseif ($myRequest?->state === \App\Enums\JoinRequestState::Pending)
                     <p class="text-[15px] font-extrabold">Demande envoyée</p>
                     <p class="text-[14px] text-muted">Le fondateur ou un responsable y répondra.</p>
@@ -136,8 +171,11 @@
                         <p class="whitespace-pre-line break-words rounded-button bg-ground p-3 text-[14px] leading-normal">{{ $myRequest->message }}</p>
                     @endif
                     <x-button type="button" variant="secondary" wire:click="withdrawRequest" wire:loading.attr="disabled" wire:target="withdrawRequest">Retirer ma demande</x-button>
-                @elseif ($myRequest?->state === \App\Enums\JoinRequestState::Declined)
+                @elseif (! $zumra->joinsFreely() && $myRequest?->state === \App\Enums\JoinRequestState::Declined)
                     <p class="text-[14px] font-semibold text-muted">Votre demande n’a pas été retenue.</p>
+                @elseif ($zumra->joinsFreely())
+                    <p class="text-[14px] text-muted">Adhésion libre : vous entrez tout de suite et pouvez quitter quand vous voulez.</p>
+                    <x-button type="button" variant="accent" class="w-full" wire:click="join" wire:loading.attr="disabled" wire:target="join">Rejoindre la ZUMRA</x-button>
                 @else
                     <div x-show="! open">
                         <x-button type="button" variant="accent" class="w-full" x-on:click="open = true">Demander à rejoindre</x-button>
@@ -158,7 +196,7 @@
     <x-contribution-entry kind="zumra" :model="$zumra" :viewer="$viewer" />
 
     <nav aria-label="Onglets de la ZUMRA" class="-mx-4 flex overflow-x-auto border-b border-line bg-card px-2 md:mx-0 md:rounded-card md:border">
-        @foreach (['formation' => 'Formation', 'fil' => 'Fil'] + ['projets' => 'Projets'] + ['membres' => 'Membres'] + ($canDiscuss ? ['discussion' => 'Discussion'] : []) as $key => $label)
+        @foreach (['formation' => 'Formation', 'fil' => 'Fil'] + (\App\Support\ProjectsModule::accessibleTo($viewer) ? ['projets' => 'Projets'] : []) + ['membres' => 'Membres'] + ($canDiscuss ? ['discussion' => 'Discussion'] : []) as $key => $label)
             <button type="button" wire:click="setTab('{{ $key }}')" @if ($tab === $key) aria-current="page" @endif
                     @class(['flex min-h-12 min-w-11 shrink-0 items-center justify-center border-b-[3px] px-3 text-[14px]', 'border-accent font-extrabold text-ink' => $tab === $key, 'border-transparent font-semibold text-muted' => $tab !== $key])>{{ $label }}</button>
         @endforeach
@@ -178,7 +216,7 @@
 
             <div class="flex items-center justify-between gap-2">
                 <h2 class="text-[18px] font-extrabold">Savoirs partagés</h2>
-                @if ($manages && ! $initial)
+                @if (in_array(\App\Enums\PublicationType::Knowledge, $publishTypes, true))
                     <a href="{{ route('zumras.publier', [$zumra, 'savoir']) }}" class="inline-flex min-h-11 items-center text-[14px] font-bold">Partager un savoir</a>
                 @endif
             </div>
@@ -186,11 +224,11 @@
             <div class="flex items-center justify-between gap-2">
                 <h2 class="text-[18px] font-extrabold">Fil de la ZUMRA</h2>
             </div>
-            @if ($manages && ! $initial)
-                <section aria-label="Publier au nom de la ZUMRA" class="flex flex-col gap-2 rounded-card border border-line bg-card p-3.5">
-                    <span class="text-[13px] font-bold text-muted">Publier au nom de la ZUMRA</span>
+            @if ($publishTypes !== [])
+                <section aria-label="Publier dans la ZUMRA" class="flex flex-col gap-2 rounded-card border border-line bg-card p-3.5">
+                    <span class="text-[13px] font-bold text-muted">{{ $manages ? 'Publier au nom de la ZUMRA' : 'Publier dans la ZUMRA' }}</span>
                     <div class="flex flex-wrap gap-2">
-                        @foreach (\App\Enums\PublicationType::forZumra() as $kind)
+                        @foreach ($publishTypes as $kind)
                             <a href="{{ route('zumras.publier', [$zumra, $kind->slug()]) }}" class="inline-flex min-h-11 items-center rounded-chip px-3 text-[13px] font-bold no-underline hover:underline {{ $kind->badgeClasses() }}">{{ $kind->label() }}</a>
                         @endforeach
                     </div>
@@ -206,7 +244,7 @@
         @empty
             <section @class(['rounded-card border border-line bg-card p-5', 'lg:col-span-2' => $tab === 'fil'])>
                 <p class="text-[16px] font-extrabold">{{ $tab === 'formation' ? 'Aucun savoir partagé pour l’instant.' : 'Rien dans le Fil de cette ZUMRA pour l’instant.' }}</p>
-                <p class="mt-1 text-muted">{{ $manages && ! $initial ? 'Publiez au nom de la ZUMRA : un savoir à partager, un besoin, une offre d’aide ou un appel à rejoindre.' : 'Les publications de la ZUMRA apparaîtront ici.' }}</p>
+                <p class="mt-1 text-muted">{{ $manages && $publishTypes !== [] ? 'Publiez au nom de la ZUMRA : un savoir à partager, un besoin, une offre d’aide ou un appel à rejoindre.' : ($publishTypes !== [] ? 'Partagez un savoir ou une offre d’aide avec la ZUMRA.' : 'Les publications de la ZUMRA apparaîtront ici.') }}</p>
             </section>
         @endforelse
 
@@ -309,8 +347,15 @@
                         <span class="break-words text-[14px] font-extrabold">{{ $post->author->name }}</span>
                         <span class="shrink-0 text-[11px] text-muted">{{ $time }}</span>
                     </div>
-                    <p class="whitespace-pre-line break-words text-[15px] leading-normal">{{ $post->body }}</p>
-                    @if ($mine || $manages)
+                    @if ($post->hidden_at)
+                        <p class="rounded-button bg-ground p-3 text-[14px] italic text-muted">Message masqué par la modération.</p>
+                    @else
+                        <p class="whitespace-pre-line break-words text-[15px] leading-normal">{{ $post->body }}</p>
+                    @endif
+                    @if (! $mine && ! $post->hidden_at)
+                        <a href="{{ route('zumras.discussion.report', [$zumra, $post]) }}" class="inline-flex min-h-11 items-center text-[13px] font-semibold text-muted underline">Signaler</a>
+                    @endif
+                    @if (($mine || $manages) && ! $post->hidden_at)
                         <div>
                             <button type="button" x-show="! confirming" x-on:click="confirming = true" class="inline-flex min-h-11 items-center text-[13px] font-semibold text-muted underline">Supprimer</button>
                             <span x-show="confirming" x-cloak class="flex flex-wrap items-center gap-2">
@@ -482,6 +527,34 @@
     </section>
     @endif
 
+    @if ($role === \App\Enums\ZumraRole::Founder && ! $zumra->isUnavailable())
+        <section aria-labelledby="fondation" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4" x-data="{ confirming: null }">
+            <h2 id="fondation" class="text-[16px] font-extrabold">Passer la main</h2>
+            @if ($foundationCandidates->isNotEmpty())
+                <p class="text-[14px] leading-normal text-muted">Le fondateur ne part pas sans passer la main. Confiez la fondation à un membre : vous restez responsable, et pourrez ensuite quitter la ZUMRA comme tout responsable.</p>
+                @foreach ($foundationCandidates as $candidate)
+                    <div wire:key="fondation-{{ $candidate->id }}" class="flex flex-col gap-2 border-t border-line-soft pt-3 first:border-0 first:pt-0">
+                        <span class="break-words text-[15px] font-extrabold">{{ $candidate->user->name }}<span class="ml-2 text-[12px] font-semibold text-muted">{{ $candidate->role === \App\Enums\ZumraRole::Manager ? 'Responsable' : 'Membre' }}</span></span>
+                        <div x-show="confirming !== '{{ $candidate->id }}'"><x-button type="button" variant="secondary" x-on:click="confirming = '{{ $candidate->id }}'">Confier la fondation</x-button></div>
+                        <div x-show="confirming === '{{ $candidate->id }}'" x-cloak class="flex flex-col gap-2">
+                            <p class="text-[14px] font-semibold">Confier la fondation à {{ $candidate->user->name }} ? Elle devient fondatrice ou fondateur et peut vous retirer vos responsabilités.</p>
+                            <x-button type="button" wire:click="transferFoundation('{{ $candidate->id }}')" wire:loading.attr="disabled" wire:target="transferFoundation">Oui, confier la fondation</x-button>
+                            <x-button type="button" variant="secondary" x-on:click="confirming = null">Annuler</x-button>
+                        </div>
+                    </div>
+                @endforeach
+            @else
+                <p class="text-[14px] leading-normal text-muted">Vous êtes le seul membre. Vous pouvez fermer la ZUMRA : elle disparaît du Carrefour et des fils, rien n’est supprimé, et vous pouvez la rouvrir.</p>
+                <div x-show="confirming !== 'close'"><x-button type="button" variant="secondary" x-on:click="confirming = 'close'">Fermer la ZUMRA</x-button></div>
+                <div x-show="confirming === 'close'" x-cloak class="flex flex-col gap-2">
+                    <p class="text-[14px] font-semibold">Fermer cette ZUMRA ?</p>
+                    <x-button type="button" wire:click="closeZumra" wire:loading.attr="disabled" wire:target="closeZumra">Oui, fermer la ZUMRA</x-button>
+                    <x-button type="button" variant="secondary" x-on:click="confirming = null">Annuler</x-button>
+                </div>
+            @endif
+        </section>
+    @endif
+
     @if ($role && $role !== \App\Enums\ZumraRole::Founder)
         <section aria-label="Quitter la ZUMRA" class="rounded-card border border-line bg-card p-4" x-data="{ confirming: false }">
             <div x-show="! confirming">
@@ -493,5 +566,9 @@
                 <x-button type="button" variant="secondary" x-on:click="confirming = false">Annuler</x-button>
             </div>
         </section>
+    @endif
+
+    @if ($viewer && $moduleOpen && ! $manages && ! $zumra->isSuspended() && $viewer->hasVerifiedEmail())
+        <a href="{{ route('zumras.report', $zumra) }}" class="inline-flex min-h-11 items-center self-start text-[13px] font-semibold text-muted underline">Signaler cette ZUMRA</a>
     @endif
 </div>

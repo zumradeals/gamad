@@ -2,7 +2,7 @@
 
 namespace App\Livewire;
 
-use App\Livewire\Concerns\GuardsZumraModule;
+use App\Livewire\Concerns\GuardsProjectsModule;
 use App\Models\ParticipationRequest;
 use App\Models\Project;
 use App\Services\ParticipationRequests;
@@ -18,7 +18,7 @@ use Livewire\Component;
  */
 class ProjetVitrine extends Component
 {
-    use GuardsZumraModule;
+    use GuardsProjectsModule;
 
     #[Locked]
     public string $projectId;

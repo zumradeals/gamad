@@ -2,7 +2,7 @@
 
 namespace App\Livewire;
 
-use App\Livewire\Concerns\GuardsZumraModule;
+use App\Livewire\Concerns\GuardsProjectsModule;
 use App\Models\City;
 use App\Models\Domain;
 use App\Models\Project;
@@ -26,7 +26,7 @@ use Livewire\Component;
 #[Layout('components.layouts.app', ['narrow' => true])]
 class FormulaireProjet extends Component
 {
-    use GuardsZumraModule;
+    use GuardsProjectsModule;
 
     #[Locked]
     public ?string $projectId = null;

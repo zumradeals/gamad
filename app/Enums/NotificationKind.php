@@ -36,6 +36,11 @@ enum NotificationKind: string
     case ZumraFounderTransferred = 'zumra_founder_transferred';
     case ZumraRecognized = 'zumra_recognized';
     case ZumraRecognitionWithdrawn = 'zumra_recognition_withdrawn';
+    case ZumraSuspended = 'zumra_suspended';
+    case ZumraMemberJoined = 'zumra_member_joined';
+    case ZumraFounderGiven = 'zumra_founder_given';
+    case ZumraReinstated = 'zumra_reinstated';
+    case ZumraMessageHidden = 'zumra_message_hidden';
     case ProjectParticipationRequested = 'project_participation_requested';
     case ProjectParticipationAccepted = 'project_participation_accepted';
     case ProjectMemberAdded = 'project_member_added';
@@ -128,6 +133,11 @@ enum NotificationKind: string
             self::ZumraFounderTransferred => "La fondation de{$about} vous a été confiée : son fondateur a supprimé son compte.",
             self::ZumraRecognized => "a reconnu officiellement{$about} : elle porte le badge « Reconnue par GAMAD ».",
             self::ZumraRecognitionWithdrawn => "a retiré la reconnaissance officielle de{$about}.",
+            self::ZumraMemberJoined => "a rejoint{$about}.",
+            self::ZumraFounderGiven => "vous a confié la fondation de{$about}.",
+            self::ZumraSuspended => "a suspendu{$about}. Le motif est affiché sur la page de la ZUMRA.",
+            self::ZumraReinstated => "a rétabli{$about}.",
+            self::ZumraMessageHidden => "a masqué l’un de vos messages dans{$about}.",
             self::ProjectParticipationRequested => "veut participer au projet{$about}.",
             self::ProjectParticipationAccepted => "a accepté votre participation au projet{$about}.",
             self::ProjectMemberAdded => "vous a ajouté à l'équipe du projet{$about}.",

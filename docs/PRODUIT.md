@@ -52,9 +52,9 @@ Onglets V1 :
 | Je veux apprendre | `wanted_skills` | Ce qu'une personne déclare vouloir apprendre. |
 | Capacité | `Skill` | Une étiquette de savoir-faire (ex. « Informatique »), partagée par tous. |
 | ZUMRA | `Zumra` | Une communauté créée par toute personne autour d'un seul domaine. Écrit toujours en majuscules. |
-| Fondateur | `role = founder` | La personne qui a créé la ZUMRA. |
+| Fondateur | `role = founder` | La personne qui a créé la ZUMRA. Il peut confier la fondation à un membre, puis quitter (D-216). |
 | Responsable | `role = manager` | Un membre à qui le fondateur confie la gestion. |
-| Membre (d'une ZUMRA) | `ZumraMembership` | Une personne admise dans une ZUMRA. À ne pas confondre avec « membre du Mouvement GAMAD », non géré ici. |
+| Membre (d'une ZUMRA) | `ZumraMembership` | Une personne entrée dans une ZUMRA, librement (par défaut) ou sur approbation selon le choix du responsable (D-216). À ne pas confondre avec « membre du Mouvement GAMAD », non géré ici. |
 | Reconnaissance | `recognized_at`, `recognized_by` | L'acte par lequel le Président reconnaît officiellement une ZUMRA. Badge « Reconnue par GAMAD ». |
 | Domaine | `Domain` | Le domaine d'action d'une ZUMRA ou d'une publication (liste de référence, voir §7). |
 | Projet | `Project` | Une action structurée, toujours rattachée à une ZUMRA, avec page publique. |
@@ -93,7 +93,7 @@ Onglets V1 :
 | Objet | États | Qui décide |
 | --- | --- | --- |
 | Personne | active · suspendue · supprimée | La personne ; la modération pour la suspension |
-| ZUMRA | active · reconnue · suspendue · archivée | Le fondateur et les responsables gèrent ; le super administrateur reconnaît, suspend |
+| ZUMRA | active · reconnue · suspendue · fermée | Le fondateur et les responsables gèrent ; le fondateur, seul membre, la ferme et la rouvre (D-216) ; la modération la suspend et la rétablit (D-215) ; le super administrateur la reconnaît |
 | Projet | idée · en cours · terminé · abandonné | Les responsables désignés par la ZUMRA |
 | Publication | publiée · masquée · supprimée | Son auteur ; la modération masque |
 | Besoin | ouvert · en cours · résolu · fermé sans suite | Son auteur (personne, ou responsable de la ZUMRA) |

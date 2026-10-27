@@ -1,5 +1,8 @@
 @if ($zumra || $project)
+{{-- Une seule racine, au début d'une ligne : sans elle Livewire pose son identifiant sur le premier élément interne et le formulaire n'envoie plus rien. --}}
+<div>
     @include('livewire.partials.publier-legacy')
+</div>
 @else
 @php
     // Une intention, une question principale, quelques précisions facultatives, un aperçu (D-184).

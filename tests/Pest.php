@@ -136,6 +136,8 @@ function pageConversation(User $qui, Conversation $conversation)
 function zumra(User $fondateur, string $nom = 'Couture solidaire', array $data = []): Zumra
 {
     return app(Zumras::class)->create($fondateur, $data + [
+        // Les tests historiques décrivent l'adhésion sur demande (D-110) ; l'adhésion libre (D-216) se choisit explicitement.
+        'join_mode' => 'approval',
         'name' => $nom,
         'domain_id' => Domain::query()->where('name', 'Économie et Finances')->value('id'),
         'format' => 'onsite',
@@ -158,6 +160,13 @@ function ajouteMembre(Zumra $zumra, User $personne, ZumraRole $role = ZumraRole:
 /** Une demande d'adhésion acceptée par le fondateur : la personne devient membre. */
 function admis(Zumra $zumra, User $personne): ZumraMembership
 {
+    // Adhésion libre (D-216) : la personne entre toute seule ; sinon la demande est acceptée par le fondateur.
+    if ($zumra->joinsFreely()) {
+        app(JoinRequests::class)->join($personne, $zumra);
+
+        return $zumra->memberships()->where('user_id', $personne->id)->first();
+    }
+
     $demande = app(JoinRequests::class)->propose($personne, $zumra);
     app(JoinRequests::class)->accept($zumra->memberships()->where('role', 'founder')->first()->user, $demande);
 

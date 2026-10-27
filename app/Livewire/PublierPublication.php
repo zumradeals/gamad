@@ -105,7 +105,7 @@ class PublierPublication extends Component
         Gate::authorize('create', Publication::class);
 
         $zumra = $zumra?->exists ? $zumra : null;
-        abort_if(Experience::initial() && ($zumra || $project?->exists), 403, 'Les publications collectives sont en pause.');
+        abort_if(Experience::initial() && $project?->exists, 403, 'Les publications collectives sont en pause.');
 
         // Au nom d'un projet (D-127, D-134) : avancée ou réalisation, par le fondateur et les responsables de sa ZUMRA.
         if ($project?->exists) {
@@ -126,7 +126,7 @@ class PublierPublication extends Component
         // Au nom d'une ZUMRA (D-116) : son fondateur et ses responsables, avec les types qui existent pour une ZUMRA ; sinon les
         // types d'une personne (l'Appel à rejoindre n'existe que pour une ZUMRA).
         if ($zumra) {
-            Gate::authorize('manage', $zumra);
+            Gate::authorize('publish', [$zumra, $type]);
             abort_unless(in_array($type, PublicationType::forZumra(), true), 404);
 
             $this->zumraId = $zumra->id;
@@ -261,7 +261,7 @@ class PublierPublication extends Component
         ]);
     }
 
-    /** La ZUMRA au nom de laquelle on publie, après avoir revérifié le droit de la gérer. */
+    /** La ZUMRA dans laquelle on publie, après avoir revérifié le droit d'y publier ce type (D-214). */
     private function zumra(): ?Zumra
     {
         if ($this->zumraId === null) {
@@ -270,7 +270,7 @@ class PublierPublication extends Component
 
         $zumra = Zumra::query()->findOrFail($this->zumraId);
 
-        Gate::authorize('manage', $zumra);
+        Gate::authorize('publish', [$zumra, $this->type()]);
 
         return $zumra;
     }

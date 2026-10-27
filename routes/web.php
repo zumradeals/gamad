@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdClickController;
 use App\Http\Controllers\AdImageController;
 use App\Http\Controllers\AideController;
 use App\Http\Controllers\BrandingController;
@@ -53,6 +54,7 @@ use App\Livewire\ModerationAnnonces;
 use App\Livewire\ModerationCommentaires;
 use App\Livewire\ModerationConfiance;
 use App\Livewire\ModerationPersonnes;
+use App\Livewire\ModerationZumras;
 use App\Livewire\ModifierProfil;
 use App\Livewire\MondeZumra;
 use App\Livewire\OpportunityCatalog;
@@ -74,6 +76,7 @@ use App\Livewire\ParametresCopie;
 use App\Livewire\ParametresDomaines;
 use App\Livewire\ParametresPaiement;
 use App\Livewire\ParametresPortefeuille;
+use App\Livewire\ParametresProjets;
 use App\Livewire\ParametresPublicite;
 use App\Livewire\ParametresTerritoires;
 use App\Livewire\ParametresTextes;
@@ -82,8 +85,10 @@ use App\Livewire\ProposerContribution;
 use App\Livewire\PublierBesoin;
 use App\Livewire\PublierPublication;
 use App\Livewire\RapportContributions;
+use App\Livewire\ResultatsCampagnes;
 use App\Livewire\SignalerProfil;
 use App\Livewire\SignalerPublication;
+use App\Livewire\SignalerZumra;
 use App\Models\Project;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -195,6 +200,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/zumra/{zumra}/inviter', InviterPersonnes::class)->whereUuid('zumra')->name('zumras.invite');
     Route::get('/zumra/{zumra}/publier/{slug}', PublierPublication::class)->whereUuid('zumra')->name('zumras.publier');
     Route::get('/zumra/{zumra}/modifier', FormulaireZumra::class)->whereUuid('zumra')->name('zumras.edit');
+    Route::get('/zumra/{zumra}/signaler', SignalerZumra::class)->whereUuid('zumra')->name('zumras.report');
+    Route::get('/zumra/{zumra}/discussion/{post}/signaler', SignalerZumra::class)->whereUuid(['zumra', 'post'])->name('zumras.discussion.report');
     Route::get('/espace/projets', MesProjets::class)->name('espace.projets');
     Route::get('/contributions', CarrefourContributions::class)->name('contributions.index');
     Route::get('/contributions/besoin/nouveau', PublierBesoin::class)->name('contributions.need');
@@ -205,6 +212,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/espace/publicite', MesCampagnes::class)->name('publicite.campagnes');
     Route::get('/espace/publicite/nouvelle', CreerCampagne::class)->name('publicite.creer');
     Route::get('/espace/publicite/{campaign}/modifier', CreerCampagne::class)->whereUuid('campaign')->name('publicite.modifier');
+    Route::get('/publicite/{campaign}/aller', AdClickController::class)->whereUuid('campaign')->name('publicite.cta');
+    Route::get('/espace/publicite/resultats', ResultatsCampagnes::class)->name('publicite.resultats');
     Route::get('/publicite/{campaign}/image', AdImageController::class)->whereUuid('campaign')->name('publicite.image');
     Route::get('/projets/creer', FormulaireProjet::class)->name('projets.new');
     Route::get('/zumra/{zumra}/projets/creer', FormulaireProjet::class)->whereUuid('zumra')->name('projets.create');
@@ -217,6 +226,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/moderation', FileModeration::class)->middleware('can:moderate')->name('moderation');
     Route::get('/moderation/personnes', ModerationPersonnes::class)->middleware('can:moderate')->name('moderation.personnes');
     Route::get('/moderation/commentaires', ModerationCommentaires::class)->middleware('can:moderate')->name('moderation.commentaires');
+    Route::get('/moderation/zumras', ModerationZumras::class)->middleware('can:moderate')->name('moderation.zumras');
     Route::get('/moderation/annonces', ModerationAnnonces::class)->middleware('can:moderate')->name('moderation.annonces');
     Route::get('/moderation/journal', JournalAdministration::class)->middleware('can:moderate')->name('moderation.journal');
     Route::get('/espace/portefeuille', PagePortefeuille::class)->middleware('wallets')->name('portefeuille');
@@ -234,6 +244,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/espace/parametres', Parametres::class)->middleware('can:super-admin')->name('espace.parametres');
     Route::get('/espace/parametres/textes', ParametresTextes::class)->middleware('can:super-admin')->name('espace.parametres.textes');
     Route::get('/espace/parametres/zumra', ParametresZumra::class)->middleware('can:super-admin')->name('espace.parametres.zumra');
+    Route::get('/espace/parametres/projets', ParametresProjets::class)->middleware('can:super-admin')->name('espace.parametres.projets');
     Route::get('/espace/parametres/publicite', ParametresPublicite::class)->middleware('can:super-admin')->name('espace.parametres.publicite');
     Route::get('/espace/parametres/contributions', ParametresContributions::class)->middleware('can:super-admin')->name('espace.parametres.contributions');
     Route::get('/espace/parametres/paiement', ParametresPaiement::class)->middleware('can:super-admin')->name('espace.parametres.paiement');
