@@ -24,6 +24,7 @@ use App\Services\Memberships;
 use App\Services\ProjectHosting;
 use App\Services\Supports;
 use App\Services\Wallets;
+use App\Services\ZumraModeration;
 use App\Services\ZumraPosts;
 use App\Services\Zumras;
 use App\Support\Normalizer;
@@ -75,6 +76,9 @@ class MondeZumra extends Component
     /** Le message de la Discussion en cours d'écriture. */
     public string $postBody = '';
 
+    /** Motif de la suspension ou du rétablissement d'une ZUMRA (modération, D-215). */
+    public string $moderationReason = '';
+
     /** Motif du retrait de la reconnaissance (super administrateur). */
     public string $recognitionReason = '';
 
@@ -114,6 +118,22 @@ class MondeZumra extends Component
         abort_unless(Str::isUuid($id), 404);
 
         $posts->delete(Auth::user(), ZumraPost::query()->where('zumra_id', $this->zumraId)->find($id) ?? abort(404));
+    }
+
+    public function suspend(ZumraModeration $moderation): void
+    {
+        $moderation->suspend(Auth::user(), $this->zumra(), $this->moderationReason);
+
+        $this->reset('moderationReason');
+        session()->flash('status', 'ZUMRA suspendue : elle disparaît du Carrefour et des fils. Décision inscrite au journal.');
+    }
+
+    public function reinstate(ZumraModeration $moderation): void
+    {
+        $moderation->reinstate(Auth::user(), $this->zumra(), $this->moderationReason);
+
+        $this->reset('moderationReason');
+        session()->flash('status', 'ZUMRA rétablie. Décision inscrite au journal.');
     }
 
     public function recognize(Zumras $zumras): void

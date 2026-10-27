@@ -52,6 +52,13 @@
         @endif
     </header>
 
+    @if ($zumra->isSuspended())
+        <section aria-label="ZUMRA suspendue" role="status" class="flex flex-col gap-1 rounded-card border-2 border-danger bg-card p-4">
+            <p class="text-[15px] font-extrabold text-danger">Cette ZUMRA est suspendue par la modération.</p>
+            <p class="text-[14px] leading-normal">Elle n’apparaît plus dans le Carrefour ni dans les fils ; ses membres la voient, mais l’adhésion, les invitations, les publications et la Discussion sont fermées.@if ($role || auth()->user()?->can('moderate')) Motif : {{ $zumra->suspension_reason }}@endif</p>
+        </section>
+    @endif
+
     <section aria-label="La ZUMRA en chiffres" class="-mt-9 grid grid-cols-3 divide-x divide-line rounded-card border border-line bg-card py-3.5 md:mt-0">
         <div class="flex flex-col items-center gap-0.5">
             <span class="text-[22px] font-extrabold leading-tight">{{ $zumra->members_count }}</span>
@@ -84,6 +91,20 @@
             @endforeach
         </ul>
     </section>
+
+    @can('moderate')
+        <section aria-labelledby="moderation-zumra" class="flex flex-col gap-2.5 rounded-card border border-line bg-card p-4">
+            <h2 id="moderation-zumra" class="text-[15px] font-extrabold">Modération</h2>
+            <p class="text-[13px] text-muted">{{ $zumra->isSuspended() ? 'Rétablir rend la ZUMRA au Carrefour et aux fils.' : 'Suspendre retire la ZUMRA du Carrefour et des fils ; ses membres la gardent, sans pouvoir y agir.' }} L’acte exige un motif et est inscrit au journal d’administration.</p>
+            <label for="motif-moderation" class="text-[13px] font-extrabold">Motif{{ $zumra->isSuspended() ? ' (facultatif)' : ' (obligatoire)' }}</label>
+            <textarea id="motif-moderation" wire:model="moderationReason" rows="2" maxlength="500" class="w-full rounded-button border border-chip-line bg-card px-3.5 py-3 text-[15px]"></textarea>
+            @if ($zumra->isSuspended())
+                <x-button type="button" variant="secondary" wire:click="reinstate" wire:loading.attr="disabled" wire:target="reinstate">Rétablir la ZUMRA</x-button>
+            @else
+                <x-button type="button" wire:click="suspend" wire:loading.attr="disabled" wire:target="suspend">Suspendre la ZUMRA</x-button>
+            @endif
+        </section>
+    @endcan
 
     @can('super-admin')
         <section aria-labelledby="reconnaissance" class="flex flex-col gap-2.5 rounded-card border border-line bg-card p-4" x-data="{ confirming: false }">
@@ -313,8 +334,15 @@
                         <span class="break-words text-[14px] font-extrabold">{{ $post->author->name }}</span>
                         <span class="shrink-0 text-[11px] text-muted">{{ $time }}</span>
                     </div>
-                    <p class="whitespace-pre-line break-words text-[15px] leading-normal">{{ $post->body }}</p>
-                    @if ($mine || $manages)
+                    @if ($post->hidden_at)
+                        <p class="rounded-button bg-ground p-3 text-[14px] italic text-muted">Message masqué par la modération.</p>
+                    @else
+                        <p class="whitespace-pre-line break-words text-[15px] leading-normal">{{ $post->body }}</p>
+                    @endif
+                    @if (! $mine && ! $post->hidden_at)
+                        <a href="{{ route('zumras.discussion.report', [$zumra, $post]) }}" class="inline-flex min-h-11 items-center text-[13px] font-semibold text-muted underline">Signaler</a>
+                    @endif
+                    @if (($mine || $manages) && ! $post->hidden_at)
                         <div>
                             <button type="button" x-show="! confirming" x-on:click="confirming = true" class="inline-flex min-h-11 items-center text-[13px] font-semibold text-muted underline">Supprimer</button>
                             <span x-show="confirming" x-cloak class="flex flex-wrap items-center gap-2">
@@ -497,5 +525,9 @@
                 <x-button type="button" variant="secondary" x-on:click="confirming = false">Annuler</x-button>
             </div>
         </section>
+    @endif
+
+    @if ($viewer && $moduleOpen && ! $manages && ! $zumra->isSuspended() && $viewer->hasVerifiedEmail())
+        <a href="{{ route('zumras.report', $zumra) }}" class="inline-flex min-h-11 items-center self-start text-[13px] font-semibold text-muted underline">Signaler cette ZUMRA</a>
     @endif
 </div>

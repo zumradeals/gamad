@@ -26,11 +26,11 @@ class Zumra extends Model
 
     public const MISSION_MAX = 500;
 
-    protected $guarded = ['id', 'name_key', 'search', 'recognized_at', 'recognized_by'];
+    protected $guarded = ['id', 'name_key', 'search', 'recognized_at', 'recognized_by', 'suspended_at', 'suspended_by', 'suspension_reason'];
 
     protected function casts(): array
     {
-        return ['format' => ZumraFormat::class, 'sphere' => ZumraSphere::class, 'recognized_at' => 'datetime'];
+        return ['format' => ZumraFormat::class, 'sphere' => ZumraSphere::class, 'recognized_at' => 'datetime', 'suspended_at' => 'datetime'];
     }
 
     protected static function booted(): void
@@ -66,9 +66,20 @@ class Zumra extends Model
         return $this->hasMany(Project::class);
     }
 
+    public function reports(): HasMany
+    {
+        return $this->hasMany(ZumraReport::class);
+    }
+
     public function posts(): HasMany
     {
         return $this->hasMany(ZumraPost::class);
+    }
+
+    /** Suspendue par la modération (D-215) : retirée du Carrefour et des fils, lisible seulement par ses membres et la modération. */
+    public function isSuspended(): bool
+    {
+        return $this->suspended_at !== null;
     }
 
     /** Reconnue officiellement par GAMAD : l'acte du super administrateur, tracé au journal (D-116, Lot 3c). */
