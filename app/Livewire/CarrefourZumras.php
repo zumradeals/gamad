@@ -131,7 +131,7 @@ class CarrefourZumras extends Component
         $viewer = Auth::user();
         $like = Normalizer::likeContains($key);
 
-        $zumras = Zumra::query()
+        $zumras = Zumra::query()->whereNull('suspended_at')
             ->when($key !== '', fn (Builder $query) => $query->where(fn (Builder $q) => $q->where('search', 'like', $like)
                 ->orWhereHas('domain', fn (Builder $domains) => $domains->where('normalized', 'like', $like))
                 ->orWhereHas('city', fn (Builder $cities) => $cities->where('normalized', 'like', $like))))
@@ -153,7 +153,7 @@ class CarrefourZumras extends Component
         $seed = Carbon::today('Africa/Abidjan')->toDateString();
         $featured = $hasFilters || $zumras->currentPage() > 1
             ? collect()
-            : Zumra::query()->whereNotNull('recognized_at')->with(['domain', 'city.country'])
+            : Zumra::query()->whereNull('suspended_at')->whereNotNull('recognized_at')->with(['domain', 'city.country'])
                 ->withCount(['memberships as members_count' => fn (Builder $query) => $query->whereHas('user', fn (Builder $user) => $user->active())])
                 ->orderByRaw('md5(zumras.id::text || ?)', [$seed])->limit(self::FEATURED)->get();
 
