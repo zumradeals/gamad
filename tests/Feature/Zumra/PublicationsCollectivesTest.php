@@ -77,3 +77,10 @@ it('garde les publications de projet en pause', function () {
     expect(fn () => app(Publications::class)->publish($this->fondatrice, PublicationType::ProjectUpdate, ['body' => 'Non.'], null, $project))
         ->toThrow(ValidationException::class);
 });
+
+it('garde tout le formulaire de publication dans la racine du composant, pour que l’envoi fonctionne dans le navigateur', function () {
+    $html = Livewire::actingAs($this->membre)->test(PublierPublication::class, ['slug' => 'savoir', 'zumra' => $this->zumra])->html();
+
+    // L'identifiant Livewire est sur l'élément qui contient le formulaire (et non sur un en-tête interne).
+    expect(preg_match('/<div[^>]*wire:id="[^"]+"[^>]*>\s*<div class="flex flex-col gap-3\.5">/s', $html))->toBe(1);
+});

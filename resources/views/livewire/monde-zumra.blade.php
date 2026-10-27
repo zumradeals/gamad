@@ -52,6 +52,16 @@
         @endif
     </header>
 
+    @if ($zumra->isClosed())
+        <section aria-label="ZUMRA fermée" role="status" class="flex flex-col gap-2 rounded-card border-2 border-ink bg-card p-4">
+            <p class="text-[15px] font-extrabold">Cette ZUMRA est fermée.</p>
+            <p class="text-[14px] leading-normal">Elle n’apparaît plus dans le Carrefour ni dans les fils. Rien n’est supprimé.@if ($role === \App\Enums\ZumraRole::Founder && ! $zumra->isSuspended()) Vous pouvez la rouvrir quand vous voulez.@endif</p>
+            @if ($role === \App\Enums\ZumraRole::Founder && ! $zumra->isSuspended())
+                <x-button type="button" wire:click="reopenZumra" wire:loading.attr="disabled" wire:target="reopenZumra">Rouvrir la ZUMRA</x-button>
+            @endif
+        </section>
+    @endif
+
     @if ($zumra->isSuspended())
         <section aria-label="ZUMRA suspendue" role="status" class="flex flex-col gap-1 rounded-card border-2 border-danger bg-card p-4">
             <p class="text-[15px] font-extrabold text-danger">Cette ZUMRA est suspendue par la modération.</p>
@@ -149,11 +159,11 @@
         <section id="rejoindre" aria-label="Rejoindre cette ZUMRA" class="flex flex-col gap-2.5 rounded-card border border-line bg-card p-4"
                  x-data="{ open: false }" x-init="open = location.hash === '#rejoindre'">
             @guest
-                <p class="text-[14px] text-muted">Connectez-vous pour demander à rejoindre cette ZUMRA.</p>
-                <x-button :href="route('login')" variant="accent">Demander à rejoindre</x-button>
+                <p class="text-[14px] text-muted">Connectez-vous pour {{ $zumra->joinsFreely() ? 'rejoindre' : 'demander à rejoindre' }} cette ZUMRA.</p>
+                <x-button :href="route('login')" variant="accent">{{ $zumra->joinsFreely() ? 'Rejoindre la ZUMRA' : 'Demander à rejoindre' }}</x-button>
             @else
                 @if (! $viewer->hasVerifiedEmail())
-                    <p class="text-[14px] text-muted">Vérifiez votre adresse e-mail pour demander à rejoindre une ZUMRA.</p>
+                    <p class="text-[14px] text-muted">Vérifiez votre adresse e-mail pour {{ $zumra->joinsFreely() ? 'rejoindre' : 'demander à rejoindre' }} une ZUMRA.</p>
                 @elseif ($myRequest?->state === \App\Enums\JoinRequestState::Pending)
                     <p class="text-[15px] font-extrabold">Demande envoyée</p>
                     <p class="text-[14px] text-muted">Le fondateur ou un responsable y répondra.</p>
@@ -161,8 +171,11 @@
                         <p class="whitespace-pre-line break-words rounded-button bg-ground p-3 text-[14px] leading-normal">{{ $myRequest->message }}</p>
                     @endif
                     <x-button type="button" variant="secondary" wire:click="withdrawRequest" wire:loading.attr="disabled" wire:target="withdrawRequest">Retirer ma demande</x-button>
-                @elseif ($myRequest?->state === \App\Enums\JoinRequestState::Declined)
+                @elseif (! $zumra->joinsFreely() && $myRequest?->state === \App\Enums\JoinRequestState::Declined)
                     <p class="text-[14px] font-semibold text-muted">Votre demande n’a pas été retenue.</p>
+                @elseif ($zumra->joinsFreely())
+                    <p class="text-[14px] text-muted">Adhésion libre : vous entrez tout de suite et pouvez quitter quand vous voulez.</p>
+                    <x-button type="button" variant="accent" class="w-full" wire:click="join" wire:loading.attr="disabled" wire:target="join">Rejoindre la ZUMRA</x-button>
                 @else
                     <div x-show="! open">
                         <x-button type="button" variant="accent" class="w-full" x-on:click="open = true">Demander à rejoindre</x-button>
@@ -512,6 +525,34 @@
             @endguest
         @endif
     </section>
+    @endif
+
+    @if ($role === \App\Enums\ZumraRole::Founder && ! $zumra->isUnavailable())
+        <section aria-labelledby="fondation" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4" x-data="{ confirming: null }">
+            <h2 id="fondation" class="text-[16px] font-extrabold">Passer la main</h2>
+            @if ($foundationCandidates->isNotEmpty())
+                <p class="text-[14px] leading-normal text-muted">Le fondateur ne part pas sans passer la main. Confiez la fondation à un membre : vous restez responsable, et pourrez ensuite quitter la ZUMRA comme tout responsable.</p>
+                @foreach ($foundationCandidates as $candidate)
+                    <div wire:key="fondation-{{ $candidate->id }}" class="flex flex-col gap-2 border-t border-line-soft pt-3 first:border-0 first:pt-0">
+                        <span class="break-words text-[15px] font-extrabold">{{ $candidate->user->name }}<span class="ml-2 text-[12px] font-semibold text-muted">{{ $candidate->role === \App\Enums\ZumraRole::Manager ? 'Responsable' : 'Membre' }}</span></span>
+                        <div x-show="confirming !== '{{ $candidate->id }}'"><x-button type="button" variant="secondary" x-on:click="confirming = '{{ $candidate->id }}'">Confier la fondation</x-button></div>
+                        <div x-show="confirming === '{{ $candidate->id }}'" x-cloak class="flex flex-col gap-2">
+                            <p class="text-[14px] font-semibold">Confier la fondation à {{ $candidate->user->name }} ? Elle devient fondatrice ou fondateur et peut vous retirer vos responsabilités.</p>
+                            <x-button type="button" wire:click="transferFoundation('{{ $candidate->id }}')" wire:loading.attr="disabled" wire:target="transferFoundation">Oui, confier la fondation</x-button>
+                            <x-button type="button" variant="secondary" x-on:click="confirming = null">Annuler</x-button>
+                        </div>
+                    </div>
+                @endforeach
+            @else
+                <p class="text-[14px] leading-normal text-muted">Vous êtes le seul membre. Vous pouvez fermer la ZUMRA : elle disparaît du Carrefour et des fils, rien n’est supprimé, et vous pouvez la rouvrir.</p>
+                <div x-show="confirming !== 'close'"><x-button type="button" variant="secondary" x-on:click="confirming = 'close'">Fermer la ZUMRA</x-button></div>
+                <div x-show="confirming === 'close'" x-cloak class="flex flex-col gap-2">
+                    <p class="text-[14px] font-semibold">Fermer cette ZUMRA ?</p>
+                    <x-button type="button" wire:click="closeZumra" wire:loading.attr="disabled" wire:target="closeZumra">Oui, fermer la ZUMRA</x-button>
+                    <x-button type="button" variant="secondary" x-on:click="confirming = null">Annuler</x-button>
+                </div>
+            @endif
+        </section>
     @endif
 
     @if ($role && $role !== \App\Enums\ZumraRole::Founder)

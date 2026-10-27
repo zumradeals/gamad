@@ -82,6 +82,19 @@
             @enderror
         </fieldset>
 
+        <fieldset class="flex flex-col gap-2">
+            <legend class="mb-1 text-[13px] font-bold text-muted">Comment on rejoint la ZUMRA</legend>
+            @foreach ($joinModes as $option)
+                <label for="join-mode-{{ $option->value }}" class="flex min-h-12 cursor-pointer items-start gap-3 rounded-button border border-chip-line px-3 py-2.5 has-[:checked]:border-ink has-[:checked]:bg-soft-blue">
+                    <input id="join-mode-{{ $option->value }}" type="radio" wire:model="join_mode" value="{{ $option->value }}" class="mt-0.5 size-5 shrink-0 accent-ink">
+                    <span class="flex flex-col"><span class="text-[15px] font-semibold">{{ $option->label() }}</span><span class="text-[13px] leading-snug text-muted">{{ $option->hint() }}</span></span>
+                </label>
+            @endforeach
+            @error('join_mode')
+                <p role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>
+            @enderror
+        </fieldset>
+
         <div class="flex flex-col gap-1.5" x-data="{ count: [...$wire.mission].length }">
             <label for="mission" class="text-[13px] font-bold text-muted">Description courte</label>
             <textarea id="mission" wire:model="mission" rows="5" maxlength="{{ $missionMax }}" x-on:input="count = [...$event.target.value].length"

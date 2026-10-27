@@ -44,7 +44,13 @@
         @if ($project)
             <p class="rounded-button bg-soft-blue px-3 py-2.5 text-[13px] font-semibold">Vous publiez au nom du projet <strong>{{ $project->name }}</strong> ({{ $zumra->name }}).</p>
         @elseif ($zumra)
-            <p class="rounded-button bg-soft-blue px-3 py-2.5 text-[13px] font-semibold">Vous publiez au nom de <strong>{{ $zumra->name }}</strong>.</p>
+            <p class="rounded-button bg-soft-blue px-3 py-2.5 text-[13px] font-semibold">
+                @if ($zumra->roleOf(auth()->user())?->manages())
+                    Vous publiez au nom de <strong>{{ $zumra->name }}</strong>.
+                @else
+                    Vous publiez dans <strong>{{ $zumra->name }}</strong>, sous votre nom.
+                @endif
+            </p>
         @endif
 
         @if ($previewing)

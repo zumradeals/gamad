@@ -6,6 +6,7 @@ use App\Enums\JoinRequestState;
 use App\Enums\ProjectHostingState;
 use App\Enums\PublicationType;
 use App\Enums\ZumraDuty;
+use App\Enums\ZumraRole;
 use App\Livewire\Concerns\GuardsZumraModule;
 use App\Models\Gesture;
 use App\Models\Invitation;
@@ -148,6 +149,37 @@ class MondeZumra extends Component
 
         $this->reset('recognitionReason');
         session()->flash('status', 'Reconnaissance retirée.');
+    }
+
+    /** Adhésion libre (D-216) : la personne devient membre tout de suite. */
+    public function join(JoinRequests $requests): void
+    {
+        $requests->join(Auth::user(), $this->zumra());
+
+        session()->flash('status', 'Bienvenue dans la ZUMRA.');
+    }
+
+    /** Le fondateur confie la fondation à un membre (D-216). */
+    public function transferFoundation(string $id, Memberships $memberships): void
+    {
+        $memberships->transferFoundation(Auth::user(), $this->zumra(), $this->membership($id));
+
+        session()->flash('status', 'La fondation est confiée. Vous restez responsable et pouvez quitter la ZUMRA.');
+    }
+
+    /** Le fondateur, seul membre, ferme sa ZUMRA (D-216). */
+    public function closeZumra(Memberships $memberships): void
+    {
+        $memberships->close(Auth::user(), $this->zumra());
+
+        session()->flash('status', 'ZUMRA fermée. Vous pouvez la rouvrir quand vous voulez.');
+    }
+
+    public function reopenZumra(Memberships $memberships): void
+    {
+        $memberships->reopen(Auth::user(), $this->zumra());
+
+        session()->flash('status', 'ZUMRA rouverte.');
     }
 
     public function requestJoin(JoinRequests $requests): void
@@ -341,6 +373,12 @@ class MondeZumra extends Component
                 ? JoinRequest::query()->where('zumra_id', $zumra->id)->where('state', JoinRequestState::Pending->value)
                     ->whereHas('user', fn (Builder $user) => $user->active())
                     ->with(['user.profile.city', 'user.profile.offeredSkills'])->orderBy('created_at')->get()
+                : collect(),
+            // Le fondateur qui veut partir : les personnes à qui il peut confier la fondation (D-216).
+            'foundationCandidates' => $role === ZumraRole::Founder
+                ? ZumraMembership::query()->where('zumra_id', $zumra->id)->where('user_id', '!=', $viewer->getKey())
+                    ->whereHas('user', fn (Builder $user) => $user->active()->whereNotNull('email_verified_at'))
+                    ->with('user')->orderByRaw("case role when 'manager' then 0 else 1 end")->orderBy('joined_at')->orderBy('id')->limit(50)->get()
                 : collect(),
             'invitations' => $manages
                 ? Invitation::query()->open()->where('zumra_id', $zumra->id)->with('user')->orderBy('created_at')->get()

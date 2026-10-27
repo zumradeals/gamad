@@ -239,6 +239,55 @@ class Memberships
         }
     }
 
+    /**
+     * Le fondateur confie la fondation à une autre personne de la ZUMRA (D-216) : elle devient fondatrice, il devient responsable
+     * (et peut alors quitter la ZUMRA comme tout responsable). L'acte est inscrit au journal et la nouvelle fondatrice est prévenue.
+     */
+    public function transferFoundation(User $founder, Zumra $zumra, ZumraMembership $target): void
+    {
+        DB::transaction(function () use ($founder, $zumra, $target) {
+            $locked = $this->lock($zumra);
+            $to = ZumraMembership::query()->whereKey($target->getKey())->lockForUpdate()->firstOrFail();
+
+            Gate::forUser($founder)->authorize('transferFoundation', [$locked, $to]);
+
+            // L'ancien fondateur passe d'abord responsable : la base n'accepte qu'un fondateur par ZUMRA.
+            ZumraMembership::query()->where('zumra_id', $locked->getKey())->where('user_id', $founder->getKey())
+                ->update(['role' => ZumraRole::Manager->value, 'duty' => null, 'duty_state' => null]);
+            $to->update(['role' => ZumraRole::Founder, 'duty' => null, 'duty_state' => null]);
+
+            AdminJournal::record($founder, 'zumra.founder_transferred', $locked, 'Le fondateur a confié la fondation.', ['from' => $founder->getKey(), 'to' => $to->user_id]);
+            $this->notifier->push($to->user, NotificationKind::ZumraFounderGiven, $founder, zumra: $locked);
+        });
+    }
+
+    /** Le fondateur, seul membre, ferme sa ZUMRA (D-216) : rien n'est supprimé, elle n'existe plus que pour lui et la modération. */
+    public function close(User $founder, Zumra $zumra): void
+    {
+        DB::transaction(function () use ($founder, $zumra) {
+            $locked = $this->lock($zumra);
+
+            Gate::forUser($founder)->authorize('close', $locked);
+
+            $locked->forceFill(['closed_at' => now()])->save();
+            AdminJournal::record($founder, 'zumra.closed', $locked, 'Fermée par son fondateur, seul membre.');
+            $zumra->setRawAttributes($locked->getAttributes(), true);
+        });
+    }
+
+    public function reopen(User $founder, Zumra $zumra): void
+    {
+        DB::transaction(function () use ($founder, $zumra) {
+            $locked = $this->lock($zumra);
+
+            Gate::forUser($founder)->authorize('reopen', $locked);
+
+            $locked->forceFill(['closed_at' => null])->save();
+            AdminJournal::record($founder, 'zumra.reopened', $locked, 'Rouverte par son fondateur.');
+            $zumra->setRawAttributes($locked->getAttributes(), true);
+        });
+    }
+
     private function lock(Zumra $zumra): Zumra
     {
         return Zumra::query()->whereKey($zumra->getKey())->lockForUpdate()->firstOrFail();

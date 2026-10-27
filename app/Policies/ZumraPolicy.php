@@ -35,13 +35,17 @@ class ZumraPolicy
     /** Une ZUMRA suspendue disparaît pour toute personne qui n'en est pas membre et qui ne modère pas. */
     private function suspendedForPublic(?User $user, Zumra $zumra): bool
     {
-        return $zumra->isSuspended() && ! ($user && ($zumra->roleOf($user) || $user->can('moderate')));
+        return $zumra->isUnavailable() && ! ($user && ($zumra->roleOf($user) || $user->can('moderate')));
     }
 
     /** Aucune action nouvelle dans une ZUMRA suspendue (adhésion, invitation, publication, Discussion). */
     private function suspendedDenial(Zumra $zumra): ?Response
     {
-        return $zumra->isSuspended() ? Response::deny('Cette ZUMRA est suspendue par la modération.') : null;
+        return match (true) {
+            $zumra->isSuspended() => Response::deny('Cette ZUMRA est suspendue par la modération.'),
+            $zumra->isClosed() => Response::deny('Cette ZUMRA est fermée par son fondateur.'),
+            default => null,
+        };
     }
 
     /**
@@ -49,7 +53,7 @@ class ZumraPolicy
      */
     public function report(User $user, Zumra $zumra): Response
     {
-        if ($this->suspendedForPublic($user, $zumra) || $zumra->isSuspended()) {
+        if ($zumra->isUnavailable()) {
             return Response::denyAsNotFound();
         }
 
@@ -97,7 +101,7 @@ class ZumraPolicy
     /** La Discussion : les membres vérifiés seulement (D-112). Pour toute autre personne, elle n'existe pas (404). */
     public function discuss(?User $user, Zumra $zumra): Response
     {
-        return $user && $user->hasVerifiedEmail() && $zumra->roleOf($user) && ! $zumra->isSuspended()
+        return $user && $user->hasVerifiedEmail() && $zumra->roleOf($user) && ! $zumra->isUnavailable()
             ? Response::allow()
             : Response::denyAsNotFound();
     }
@@ -164,7 +168,7 @@ class ZumraPolicy
 
         return match ($state) {
             JoinRequestState::Pending => Response::deny('Votre demande est déjà envoyée.'),
-            JoinRequestState::Declined => Response::deny('Votre demande n’a pas été retenue.'),
+            JoinRequestState::Declined => $zumra->joinsFreely() ? Response::allow() : Response::deny('Votre demande n’a pas été retenue.'),
             default => Response::allow(),
         };
     }
@@ -189,7 +193,7 @@ class ZumraPolicy
         }
 
         return $role === ZumraRole::Founder
-            ? Response::deny('Le fondateur ne peut pas quitter sa ZUMRA.')
+            ? Response::deny('Le fondateur ne quitte pas sa ZUMRA sans l’avoir confiée : confiez la fondation à un membre, ou fermez la ZUMRA si vous en êtes le seul membre.')
             : Response::allow();
     }
 
@@ -222,5 +226,47 @@ class ZumraPolicy
         }
 
         return $target->role === ZumraRole::Founder ? Response::deny('Le fondateur est déjà responsable de tout.') : Response::allow();
+    }
+
+    /** Confier la fondation (D-216) : le fondateur seul, à une autre personne de la ZUMRA dont l'adresse e-mail est vérifiée. */
+    public function transferFoundation(User $user, Zumra $zumra, ZumraMembership $target): Response
+    {
+        if ($zumra->roleOf($user) !== ZumraRole::Founder || $target->zumra_id !== $zumra->getKey()) {
+            return Response::denyAsNotFound();
+        }
+
+        if ($denial = $this->suspendedDenial($zumra)) {
+            return $denial;
+        }
+
+        if ($target->role === ZumraRole::Founder || ! $target->user?->isActive() || ! $target->user->hasVerifiedEmail()) {
+            return Response::deny('Cette personne ne peut pas recevoir la fondation.');
+        }
+
+        return Response::allow();
+    }
+
+    /** Fermer la ZUMRA (D-216) : le fondateur, quand il en est le seul membre. Avec d'autres membres, il confie d'abord la fondation. */
+    public function close(User $user, Zumra $zumra): Response
+    {
+        if ($zumra->roleOf($user) !== ZumraRole::Founder) {
+            return Response::denyAsNotFound();
+        }
+
+        if ($zumra->isUnavailable()) {
+            return $this->suspendedDenial($zumra) ?? Response::denyAsNotFound();
+        }
+
+        return $zumra->memberships()->where('user_id', '!=', $user->getKey())->exists()
+            ? Response::deny('Une ZUMRA qui a d’autres membres ne se ferme pas : confiez la fondation à l’un d’eux.')
+            : Response::allow();
+    }
+
+    /** Rouvrir une ZUMRA fermée (D-216) : son fondateur. Une ZUMRA suspendue reste rétablie par la modération seule. */
+    public function reopen(User $user, Zumra $zumra): Response
+    {
+        return $zumra->roleOf($user) === ZumraRole::Founder && $zumra->isClosed() && ! $zumra->isSuspended()
+            ? Response::allow()
+            : Response::denyAsNotFound();
     }
 }
