@@ -17,7 +17,14 @@
             \App\Enums\BeneficiaryKind::Company => ['entreprise' => $model->getKey()],
             default => ['personne' => $model->profile?->public_id],
         };
-        $pending = $represents ? app(\App\Services\ContributionFeed::class)->handledBy($viewer)->where('state', 'proposed')->count() : 0;
+        // Seules les propositions de CE bénéficiaire comptent (recette ZUMRA) : le compteur n'agrège plus tout ce que la personne représente.
+        $pending = $represents ? app(\App\Services\ContributionFeed::class)->handledBy($viewer)->where('state', 'proposed')
+            ->where(match ($beneficiaryKind) {
+                \App\Enums\BeneficiaryKind::Zumra => 'zumra_id',
+                \App\Enums\BeneficiaryKind::Project => 'project_id',
+                \App\Enums\BeneficiaryKind::Company => 'company_id',
+                default => 'person_id',
+            }, $model->getKey())->count() : 0;
     @endphp
     @if ($exists && ($represents || $accepts || $needs->isNotEmpty()))
         <section aria-labelledby="contributions-{{ $kind }}" {{ $attributes->class('flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]') }}>
