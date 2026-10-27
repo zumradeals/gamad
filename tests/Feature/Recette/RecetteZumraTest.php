@@ -74,7 +74,7 @@ it('parcourt l’adhésion : demande, acceptation, notification, puis départ et
     Livewire::actingAs($this->ibrahim)->test(MondeZumra::class, ['zumra' => $zumra->fresh()])->assertSee('Demander à rejoindre');
 });
 
-it('gère les responsabilités : nomination, poste proposé, acceptation par la personne, publication encore en pause', function () {
+it('gère les responsabilités : nomination, poste proposé, acceptation par la personne, publication au nom de la ZUMRA', function () {
     $zumra = recetteZumraCreee($this);
     admis($zumra, $this->ibrahim);
     $service = app(Memberships::class);
@@ -87,8 +87,8 @@ it('gère les responsabilités : nomination, poste proposé, acceptation par la 
     Livewire::actingAs($this->ibrahim)->test(MesZumras::class)->assertSee('Premier responsable adjoint')->call('acceptDuty', $membership->id);
     expect($membership->fresh()->dutyPending())->toBeFalse()->and($zumra->fresh()->roleOf($this->ibrahim))->toBe(ZumraRole::Manager);
 
-    // Limite connue (D-183, D-205) : la publication collective au nom d'une ZUMRA reste gelée, même module ouvert.
-    $this->actingAs($this->ibrahim)->get(route('zumras.publier', [$zumra, 'savoir']))->assertForbidden();
+    // Depuis D-214, la publication collective suit l'ouverture du module ZUMRA.
+    $this->actingAs($this->ibrahim)->get(route('zumras.publier', [$zumra, 'savoir']))->assertOk();
 });
 
 it('protège la ZUMRA : seul un responsable gère ; le fondateur ne peut ni quitter ni être retiré ; un membre ordinaire ne voit pas la gestion', function () {

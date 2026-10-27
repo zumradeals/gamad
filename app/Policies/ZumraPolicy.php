@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Enums\JoinRequestState;
+use App\Enums\PublicationType;
 use App\Enums\ZumraRole;
 use App\Models\JoinRequest;
 use App\Models\User;
@@ -57,6 +58,28 @@ class ZumraPolicy
         return $user && $user->hasVerifiedEmail() && $zumra->roleOf($user)
             ? Response::allow()
             : Response::denyAsNotFound();
+    }
+
+    /**
+     * Publier dans une ZUMRA (D-214) : le fondateur et les responsables publient les quatre types ; un membre vérifié publie un savoir
+     * ou une offre d'aide (PublicationType::forZumraMember). Une personne qui n'est pas dans la ZUMRA n'y publie pas (404).
+     */
+    public function publish(User $user, Zumra $zumra, ?PublicationType $type = null): Response
+    {
+        $role = $zumra->roleOf($user);
+
+        if (! $role) {
+            return Response::denyAsNotFound();
+        }
+
+        if (! $user->hasVerifiedEmail()) {
+            return Response::deny('Vérifiez votre adresse e-mail pour publier.');
+        }
+
+        // Un type qui n'existe pour aucune ZUMRA est refusé par l'appelant (message de validation ou 404) ; ici, seul le droit du rôle compte.
+        $reserved = ! $role->manages() && $type !== null && in_array($type, PublicationType::forZumra(), true) && ! in_array($type, PublicationType::forZumraMember(), true);
+
+        return $reserved ? Response::denyAsNotFound() : Response::allow();
     }
 
     /** Gérer les demandes, les invitations et les membres : le fondateur et les responsables (D-111). */

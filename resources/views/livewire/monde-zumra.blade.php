@@ -3,6 +3,10 @@
     // Module ZUMRA ouvert à cette personne : l'adhésion est active, même si les Projets et les finances restent gelés.
     $moduleOpen = \App\Support\ZumraModule::accessibleTo($viewer);
     $frozen = $initial && ! $moduleOpen;
+    // Publier dans la ZUMRA (D-214) : le module est ouvert et la personne y est membre vérifiée ; les types dépendent de son rôle.
+    $publishTypes = $moduleOpen && $viewer?->hasVerifiedEmail() && $role
+        ? ($manages ? \App\Enums\PublicationType::forZumra() : \App\Enums\PublicationType::forZumraMember())
+        : [];
     $meta = collect([$zumra->sphere?->label(), $zumra->domain->name, $zumra->city?->label(), $zumra->format->label()])->filter()->implode(' · ');
     $since = $zumra->created_at->copy()->locale('fr')->timezone('Africa/Abidjan')->translatedFormat('M Y');
 @endphp
@@ -178,7 +182,7 @@
 
             <div class="flex items-center justify-between gap-2">
                 <h2 class="text-[18px] font-extrabold">Savoirs partagés</h2>
-                @if ($manages && ! $initial)
+                @if (in_array(\App\Enums\PublicationType::Knowledge, $publishTypes, true))
                     <a href="{{ route('zumras.publier', [$zumra, 'savoir']) }}" class="inline-flex min-h-11 items-center text-[14px] font-bold">Partager un savoir</a>
                 @endif
             </div>
@@ -186,11 +190,11 @@
             <div class="flex items-center justify-between gap-2">
                 <h2 class="text-[18px] font-extrabold">Fil de la ZUMRA</h2>
             </div>
-            @if ($manages && ! $initial)
-                <section aria-label="Publier au nom de la ZUMRA" class="flex flex-col gap-2 rounded-card border border-line bg-card p-3.5">
-                    <span class="text-[13px] font-bold text-muted">Publier au nom de la ZUMRA</span>
+            @if ($publishTypes !== [])
+                <section aria-label="Publier dans la ZUMRA" class="flex flex-col gap-2 rounded-card border border-line bg-card p-3.5">
+                    <span class="text-[13px] font-bold text-muted">{{ $manages ? 'Publier au nom de la ZUMRA' : 'Publier dans la ZUMRA' }}</span>
                     <div class="flex flex-wrap gap-2">
-                        @foreach (\App\Enums\PublicationType::forZumra() as $kind)
+                        @foreach ($publishTypes as $kind)
                             <a href="{{ route('zumras.publier', [$zumra, $kind->slug()]) }}" class="inline-flex min-h-11 items-center rounded-chip px-3 text-[13px] font-bold no-underline hover:underline {{ $kind->badgeClasses() }}">{{ $kind->label() }}</a>
                         @endforeach
                     </div>
@@ -206,7 +210,7 @@
         @empty
             <section @class(['rounded-card border border-line bg-card p-5', 'lg:col-span-2' => $tab === 'fil'])>
                 <p class="text-[16px] font-extrabold">{{ $tab === 'formation' ? 'Aucun savoir partagé pour l’instant.' : 'Rien dans le Fil de cette ZUMRA pour l’instant.' }}</p>
-                <p class="mt-1 text-muted">{{ $manages && ! $initial ? 'Publiez au nom de la ZUMRA : un savoir à partager, un besoin, une offre d’aide ou un appel à rejoindre.' : 'Les publications de la ZUMRA apparaîtront ici.' }}</p>
+                <p class="mt-1 text-muted">{{ $manages && $publishTypes !== [] ? 'Publiez au nom de la ZUMRA : un savoir à partager, un besoin, une offre d’aide ou un appel à rejoindre.' : ($publishTypes !== [] ? 'Partagez un savoir ou une offre d’aide avec la ZUMRA.' : 'Les publications de la ZUMRA apparaîtront ici.') }}</p>
             </section>
         @endforelse
 

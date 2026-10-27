@@ -15,6 +15,7 @@ use App\Models\Zumra;
 use App\Support\Experience;
 use App\Support\Normalizer;
 use App\Support\SkillList;
+use App\Support\ZumraModule;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -37,7 +38,8 @@ class Publications
      */
     public function publish(User $author, PublicationType $type, array $data, ?Zumra $zumra = null, ?Project $project = null, ?Company $company = null): Publication
     {
-        if (Experience::initial() && ($zumra || $project)) {
+        // Les publications de projet restent en pause (D-183) ; celles d'une ZUMRA suivent l'ouverture du module ZUMRA (D-214).
+        if (Experience::initial() && ($project || ($zumra && ! ZumraModule::accessibleTo($author)))) {
             throw ValidationException::withMessages(['body' => 'Les publications collectives sont en pause. Publiez en votre nom depuis Agir.']);
         }
 
@@ -66,8 +68,8 @@ class Publications
                 throw ValidationException::withMessages(['body' => 'Ce type de publication n’existe pas pour un projet.']);
             }
         } elseif ($zumra) {
-            // Publier au nom d'une ZUMRA : son fondateur et ses responsables seulement (D-116).
-            Gate::forUser($author)->authorize('manage', $zumra);
+            // Publier dans une ZUMRA (D-116, D-214) : le fondateur et les responsables, ou un membre pour un savoir ou une offre d'aide.
+            Gate::forUser($author)->authorize('publish', [$zumra, $type]);
         }
 
         if (! $project && ! in_array($type, $zumra ? PublicationType::forZumra() : PublicationType::forPerson(), true)) {
