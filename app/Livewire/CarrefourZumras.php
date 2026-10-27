@@ -5,7 +5,6 @@ namespace App\Livewire;
 use App\Enums\ZumraFormat;
 use App\Enums\ZumraSphere;
 use App\Livewire\Concerns\GuardsZumraModule;
-use App\Models\City;
 use App\Models\Country;
 use App\Models\Domain;
 use App\Models\Zumra;
@@ -158,11 +157,6 @@ class CarrefourZumras extends Component
                 ->orderByRaw('md5(zumras.id::text || ?)', [$seed])->limit(self::FEATURED)->get();
 
         // Les listes proposent les valeurs actives, plus celle déjà choisie dans l'adresse si elle a été désactivée depuis.
-        $cities = City::query()
-            ->where(fn (Builder $query) => $query->where(fn (Builder $q) => $q->where('active', true)
-                ->when($country !== '', fn (Builder $q) => $q->where('country_id', $country)))
-                ->when($city !== '', fn (Builder $q) => $q->orWhere('id', $city)))
-            ->get()->sortBy(fn (City $c) => Normalizer::key($c->label()))->values();
         $countries = Country::query()
             ->where(fn (Builder $query) => $query->where('active', true)->when($country !== '', fn (Builder $q) => $q->orWhere('id', $country)))
             ->get()->sortBy(fn (Country $c) => Normalizer::key($c->name))->values();
@@ -173,7 +167,6 @@ class CarrefourZumras extends Component
         return view('livewire.carrefour-zumras', [
             'zumras' => $zumras,
             'engagedIds' => app(Contributions::class)->engagedZumraIds($zumras->pluck('id')->all()),
-            'cities' => $cities,
             'domains' => $domains,
             'countries' => $countries,
             'formats' => ZumraFormat::cases(),

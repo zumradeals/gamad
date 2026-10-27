@@ -150,8 +150,9 @@ class CarrefourPersonnes extends Component
             ->pluck('n', 'id')->all();
 
         // Les listes proposent les valeurs actives, plus celle déjà choisie dans l'adresse si elle a été désactivée depuis.
+        // Seules les localités où vivent des personnes (et celle déjà choisie) : des milliers de lieux ne tiennent pas dans une liste (D-217).
         $cities = City::query()
-            ->where(fn (Builder $query) => $query->where('active', true)->when($city !== '', fn (Builder $q) => $q->orWhere('id', $city)))
+            ->where(fn (Builder $query) => $query->where('active', true)->where(fn (Builder $q) => $q->whereIn('id', array_keys($cityCounts))->when($city !== '', fn (Builder $c) => $c->orWhere('id', $city))))
             ->get()
             ->sortBy(fn (City $c) => Normalizer::key($c->label()))
             ->values();

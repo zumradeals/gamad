@@ -43,7 +43,7 @@
 
                 <div id="filtres-zumra" x-show="filters" x-cloak class="grid gap-2 sm:grid-cols-3">
                     <div><label for="filtre-pays" class="sr-only">Pays</label><select id="filtre-pays" wire:model.live="country" class="zumra-filter"><option value="">Tous les pays</option>@foreach ($countries as $pays)<option value="{{ $pays->id }}">{{ $pays->name }}</option>@endforeach</select></div>
-                    <div><label for="filtre-ville" class="sr-only">Ville</label><select id="filtre-ville" wire:model.live="city" class="zumra-filter"><option value="">Toutes les villes</option>@foreach ($cities as $ville)<option value="{{ $ville->id }}">{{ $ville->label() }}</option>@endforeach</select></div>
+                    <div><label for="filtre-ville" class="sr-only">Ville</label><x-city-picker id="filtre-ville" model="city" :value="$city" :country="$country" :live="true" placeholder="Toutes les villes" class="zumra-filter flex items-center" /></div>
                     <div><label for="filtre-domaine" class="sr-only">Domaine</label><select id="filtre-domaine" wire:model.live="domain" class="zumra-filter"><option value="">Tous les domaines</option>@foreach ($domains as $domaine)<option value="{{ $domaine->id }}">{{ $domaine->name }}</option>@endforeach</select></div>
                 </div>
 

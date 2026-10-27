@@ -4,7 +4,6 @@ namespace App\Livewire;
 
 use App\Enums\PublicationType;
 use App\Livewire\Concerns\PicksSkills;
-use App\Models\City;
 use App\Models\Domain;
 use App\Models\Project;
 use App\Models\Publication;
@@ -252,7 +251,6 @@ class PublierPublication extends Component
             'previewBody' => $this->previewing ? $this->composedBody() : '',
             'type' => $this->type(),
             'domains' => Domain::query()->active()->ordered()->get(),
-            'cities' => City::query()->active()->get()->sortBy(fn (City $city) => Normalizer::key($city->label()))->values(),
             'suggestions' => $this->skillSuggestions('skills'),
             'bodyMax' => Publication::BODY_MAX,
             'profileHasCity' => (bool) Auth::user()->ensureProfile()->city_id,

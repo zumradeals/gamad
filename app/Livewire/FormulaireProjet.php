@@ -3,12 +3,10 @@
 namespace App\Livewire;
 
 use App\Livewire\Concerns\GuardsProjectsModule;
-use App\Models\City;
 use App\Models\Domain;
 use App\Models\Project;
 use App\Models\Zumra;
 use App\Services\Projects;
-use App\Support\Normalizer;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -113,9 +111,6 @@ class FormulaireProjet extends Component
             'editing' => $project !== null,
             'projectModel' => $project,
             'domains' => Domain::query()->where(fn (Builder $q) => $q->where('active', true)->when($project?->domain_id, fn ($k, $id) => $k->orWhere('id', $id)))->ordered()->get(),
-            'cities' => $project
-                ? City::query()->where(fn (Builder $q) => $q->where('active', true)->when($project->city_id, fn ($k, $id) => $k->orWhere('id', $id)))->get()->sortBy(fn (City $c) => Normalizer::key($c->label()))->values()
-                : collect(),
             'zumras' => $project ? collect() : Zumra::query()->orderBy('name_key')->limit(300)->get(['id', 'name']),
             'mine' => $mine,
             'nameMax' => Project::NAME_MAX,

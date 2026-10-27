@@ -6,11 +6,9 @@ use App\Enums\BeneficiaryKind;
 use App\Enums\HelpKind;
 use App\Enums\ProposalState;
 use App\Livewire\Concerns\GuardsContributionsModule;
-use App\Models\City;
 use App\Models\Domain;
 use App\Services\ContributionFeed;
 use App\Services\ContributionStats;
-use App\Support\Normalizer;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -143,7 +141,6 @@ class CarrefourContributions extends Component
             'helpKinds' => HelpKind::cases(),
             'beneficiaryKinds' => BeneficiaryKind::cases(),
             'domains' => Domain::query()->where(fn (Builder $q) => $q->where('active', true)->when($filters['domain'] !== '', fn (Builder $c) => $c->orWhere('id', $filters['domain'])))->ordered()->get(),
-            'cities' => City::query()->where(fn (Builder $q) => $q->where('active', true)->when($filters['city'] !== '', fn (Builder $c) => $c->orWhere('id', $filters['city'])))->get()->sortBy(fn (City $c) => Normalizer::key($c->label()))->values(),
             'mine' => $stats->personal($viewer),
             'community' => $stats->community(),
         ]);

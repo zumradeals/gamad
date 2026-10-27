@@ -92,17 +92,20 @@
                 </div>
                 <div class="flex flex-col gap-1.5">
                     <label for="city_id" class="text-[13px] font-semibold">Ville</label>
-                    <select id="city_id" wire:model="city_id" @disabled($country_id === '')
-                            @class(['min-h-12 w-full rounded-button border bg-card px-2.5 text-[15px] disabled:opacity-60', $errors->has('city_id') ? 'border-danger' : 'border-chip-line'])>
-                        <option value="">{{ $country_id === '' ? 'Choisissez d’abord un pays' : 'Choisir une ville' }}</option>
-                        @foreach ($cities as $city)
-                            <option value="{{ $city->id }}">{{ $city->label() }}</option>
-                        @endforeach
-                    </select>
+                    <x-city-picker id="city_id" model="city_id" :value="$city_id" :country="$country_id" :disabled="$country_id === ''" :class="'min-h-12 w-full rounded-button border bg-card px-2.5 text-[15px] '.($errors->has('city_id') ? 'border-danger' : 'border-chip-line')" :placeholder="$country_id === '' ? 'Choisissez d’abord un pays' : 'Rechercher une ville'" />
                     @error('city_id')
                         <p role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>
                     @enderror
                 </div>
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <label for="locality" class="text-[13px] font-semibold">Ma localité n’est pas dans la liste (facultatif)</label>
+                <input id="locality" type="text" wire:model="locality" maxlength="{{ \App\Models\Profile::LOCALITY_MAX }}" autocomplete="off" placeholder="Quartier, village ou localité"
+                       @disabled($country_id === '') @class(['min-h-12 w-full rounded-button border bg-card px-3 text-[15px] disabled:opacity-60', $errors->has('locality') ? 'border-danger' : 'border-chip-line'])>
+                <p class="text-[12px] text-muted">Écrivez le nom tel que vous l’utilisez. Il s’affiche sur votre profil, à côté de votre ville. Ni adresse précise, ni téléphone.</p>
+                @error('locality')
+                    <p role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>
+                @enderror
             </div>
         </section>
 

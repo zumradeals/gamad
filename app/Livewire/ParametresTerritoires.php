@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\City;
 use App\Models\Country;
+use App\Services\AfricanGeography;
 use App\Services\ReferenceAdmin;
 use App\Support\Normalizer;
 use Illuminate\Support\Facades\Auth;
@@ -36,6 +37,9 @@ class ParametresTerritoires extends Component
     public string $editName = '';
 
     public ?string $status = null;
+
+    /** Résultat de la simulation de l'import des pays africains (D-217). */
+    public ?array $africaPlan = null;
 
     public function mount(): void
     {
@@ -112,6 +116,26 @@ class ParametresTerritoires extends Component
         $admin->setActive(Auth::user(), $item, ! $item->active);
 
         $this->status = $item->fresh()->active ? 'Réactivé.' : 'Désactivé.';
+    }
+
+    /** Simulation : ce que l'import ferait, sans rien écrire. */
+    public function previewAfrica(AfricanGeography $geography): void
+    {
+        Gate::authorize('super-admin');
+        $this->reset('status');
+
+        $this->africaPlan = $geography->plan();
+    }
+
+    /** Import réel, lancé par le super administrateur seul, après la simulation. */
+    public function importAfrica(AfricanGeography $geography): void
+    {
+        Gate::authorize('super-admin');
+
+        $result = $geography->import(Auth::user());
+
+        $this->africaPlan = null;
+        $this->status = 'Import terminé : '.$result['countries_new'].' pays et '.$result['places_new'].' lieux ajoutés ; rien n’a été modifié ni supprimé.';
     }
 
     public function render()

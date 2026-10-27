@@ -35,6 +35,8 @@ class CreateNewUser implements CreatesNewUsers
                 Rule::unique(User::class),
             ],
             'password' => $this->passwordRules(),
+            // Facultatif (D-217) : un pays actif de la liste, rien d'autre.
+            'country_id' => ['nullable', 'uuid', Rule::exists('countries', 'id')->where('active', true)],
             // Une fois la charte adoptée (D-146), on s'inscrit en l'acceptant.
             'charter' => $charter ? ['accepted'] : ['nullable'],
         ], ['charter.accepted' => 'Acceptez la charte de conduite pour créer un compte.'])->validate();
@@ -44,6 +46,10 @@ class CreateNewUser implements CreatesNewUsers
             'email' => $input['email'],
             'password' => Hash::make($input['password']),
         ]);
+
+        if (filled($input['country_id'] ?? null)) {
+            $user->ensureProfile()->forceFill(['country_id' => $input['country_id']])->save();
+        }
 
         // La date d'acceptation de la charte n'est gardée que si elle était adoptée à l'inscription.
         if ($charter) {

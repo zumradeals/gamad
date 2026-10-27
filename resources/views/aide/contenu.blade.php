@@ -35,6 +35,11 @@
         </section>
     @endforeach
 
+    <section aria-labelledby="g-credits" class="flex flex-col gap-1">
+        <h2 id="g-credits" class="text-[18px] font-extrabold">Crédits</h2>
+        <p class="text-[14px] leading-relaxed text-muted">Les pays et les lieux proposés viennent en partie du gazetier <a href="https://www.geonames.org" class="font-semibold underline" rel="noopener">GeoNames</a>, sous licence <a href="https://creativecommons.org/licenses/by/4.0/deed.fr" class="font-semibold underline" rel="noopener">Creative Commons Attribution 4.0</a>. Un nom incorrect ? Dites-le-nous, nous le corrigeons.</p>
+    </section>
+
     <section aria-labelledby="g-contact" class="flex flex-col items-start gap-3 rounded-card border border-line bg-soft-blue p-5">
         <h2 id="g-contact" class="text-[18px] font-extrabold">Besoin d’un coup de main ?</h2>
         <p class="text-[15px] leading-relaxed">Écrivez-nous : votre message est lu par l’équipe de GAMAD.</p>

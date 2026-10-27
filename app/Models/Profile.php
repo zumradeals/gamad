@@ -31,6 +31,8 @@ class Profile extends Model
 
     public const PHOTO_DISK = 'local';
 
+    public const LOCALITY_MAX = 100;
+
     protected $guarded = ['id', 'user_id', 'public_id'];
 
     protected function casts(): array

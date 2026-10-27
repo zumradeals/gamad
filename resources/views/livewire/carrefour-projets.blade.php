@@ -30,10 +30,7 @@
             </div>
             <div>
                 <label for="filtre-ville" class="sr-only">Ville</label>
-                <select id="filtre-ville" wire:model.live="city" class="zumra-filter">
-                    <option value="">Toutes les villes</option>
-                    @foreach ($cities as $ville)<option value="{{ $ville->id }}">{{ $ville->label() }}</option>@endforeach
-                </select>
+                <x-city-picker id="filtre-ville" model="city" :value="$city" :live="true" placeholder="Toutes les villes" class="zumra-filter flex items-center" />
             </div>
             <x-button type="submit" variant="accent" class="gap-2"><x-icon name="search" :size="18" />Rechercher</x-button>
         </form>

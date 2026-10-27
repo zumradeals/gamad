@@ -9,6 +9,22 @@
         <x-status>{{ $status }}</x-status>
     @endif
 
+    <section aria-labelledby="afrique" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
+        <h2 id="afrique" class="text-[18px] font-extrabold">Pays africains</h2>
+        <p class="text-[14px] leading-normal text-muted">Charge les 54 États membres de l’ONU situés en Afrique et leurs lieux principaux (source GeoNames, licence CC BY 4.0). L’import <strong>ajoute seulement</strong> : la Côte d’Ivoire et tout ce qui existe déjà ne changent pas, rien n’est supprimé, et on peut le relancer sans créer de doublon. Faites d’abord la simulation.</p>
+        @if ($africaPlan)
+            <dl class="grid grid-cols-2 gap-2 rounded-button bg-ground p-3 text-[14px]" aria-label="Résultat de la simulation">
+                <dt>Pays à ajouter</dt><dd class="text-right font-extrabold">{{ $africaPlan['countries_new'] }}</dd>
+                <dt>Pays déjà présents reconnus</dt><dd class="text-right font-extrabold">{{ $africaPlan['countries_linked'] }}</dd>
+                <dt>Lieux à ajouter</dt><dd class="text-right font-extrabold">{{ $africaPlan['places_new'] }}</dd>
+                <dt>Lieux déjà présents</dt><dd class="text-right font-extrabold">{{ $africaPlan['places_existing'] }}</dd>
+                <dt>Homonymes ignorés</dt><dd class="text-right font-extrabold">{{ $africaPlan['places_duplicate'] }}</dd>
+            </dl>
+            <x-button type="button" wire:click="importAfrica" wire:loading.attr="disabled" wire:target="importAfrica">Lancer l’import</x-button>
+        @endif
+        <x-button type="button" variant="secondary" wire:click="previewAfrica" wire:loading.attr="disabled" wire:target="previewAfrica">Simuler l’import</x-button>
+    </section>
+
     <section aria-labelledby="pays" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
         <h2 id="pays" class="text-[18px] font-extrabold">Pays</h2>
 

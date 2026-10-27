@@ -47,3 +47,36 @@ window.gamadDraft = (wire, key) => ({
         this.status = 'Ancien brouillon effacé.';
     },
 });
+
+// Choix d’un lieu par recherche (D-217) : des milliers de lieux ne tiennent pas dans une liste déroulante. Le serveur renvoie quinze
+// lieux au plus ; le choix est écrit dans la propriété Livewire `model` (immédiatement si `live`, sinon à l’envoi du formulaire).
+window.gamadCityPicker = (wire, cfg) => ({
+    open: false, q: '', items: [], active: -1, selectedId: cfg.selectedId, selectedLabel: cfg.selectedLabel, timer: null, message: '',
+    get country() { return this.$root.dataset.country || ''; },
+    async search() {
+        const url = new URL(cfg.url, window.location.origin);
+        url.searchParams.set('q', this.q);
+        if (this.country) url.searchParams.set('pays', this.country);
+        try {
+            const response = await fetch(url, { headers: { Accept: 'application/json' } });
+            this.items = response.ok ? await response.json() : [];
+            this.message = this.items.length ? '' : (this.q.trim().length < 2 && !this.country ? 'Tapez au moins deux lettres.' : 'Aucun lieu trouvé.');
+        } catch { this.items = []; this.message = 'Recherche indisponible.'; }
+        this.active = this.items.length ? 0 : -1;
+    },
+    openList() { this.open = true; this.search(); },
+    typing() { this.open = true; clearTimeout(this.timer); this.timer = setTimeout(() => this.search(), 200); },
+    choose(item) {
+        this.selectedId = item.id; this.selectedLabel = item.label; this.q = ''; this.open = false;
+        wire.$set(cfg.model, item.id, cfg.live);
+    },
+    clear() {
+        this.selectedId = ''; this.selectedLabel = ''; this.q = ''; this.open = false;
+        wire.$set(cfg.model, '', cfg.live);
+    },
+    move(step) {
+        if (!this.open) return this.openList();
+        if (this.items.length) this.active = (this.active + step + this.items.length) % this.items.length;
+    },
+    pick() { if (this.open && this.items[this.active]) this.choose(this.items[this.active]); },
+});

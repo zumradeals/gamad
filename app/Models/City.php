@@ -38,6 +38,12 @@ class City extends Model
         return filled($this->area) ? $this->area.', '.$this->name : $this->name;
     }
 
+    /** Libellé complet, avec le pays : « Ikeja, Lagos · Nigeria ». Pour un choix sans pays déjà connu. */
+    public function fullLabel(): string
+    {
+        return $this->label().($this->country ? ' · '.$this->country->name : '');
+    }
+
     public function normalizedSource(): string
     {
         return $this->label();
