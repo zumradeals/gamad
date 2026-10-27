@@ -37,6 +37,8 @@ enum NotificationKind: string
     case ZumraRecognized = 'zumra_recognized';
     case ZumraRecognitionWithdrawn = 'zumra_recognition_withdrawn';
     case ZumraSuspended = 'zumra_suspended';
+    case PayoutPaid = 'payout_paid';
+    case PayoutDeclined = 'payout_declined';
     case ZumraMemberJoined = 'zumra_member_joined';
     case ZumraFounderGiven = 'zumra_founder_given';
     case ZumraReinstated = 'zumra_reinstated';
@@ -135,6 +137,8 @@ enum NotificationKind: string
             self::ZumraRecognitionWithdrawn => "a retiré la reconnaissance officielle de{$about}.",
             self::ZumraMemberJoined => "a rejoint{$about}.",
             self::ZumraFounderGiven => "vous a confié la fondation de{$about}.",
+            self::PayoutPaid => 'Votre reversement a été versé sur le numéro indiqué.',
+            self::PayoutDeclined => 'Votre reversement n’a pas pu être effectué : la somme est revenue dans votre Zahab Wallet.',
             self::ZumraSuspended => "a suspendu{$about}. Le motif est affiché sur la page de la ZUMRA.",
             self::ZumraReinstated => "a rétabli{$about}.",
             self::ZumraMessageHidden => "a masqué l’un de vos messages dans{$about}.",

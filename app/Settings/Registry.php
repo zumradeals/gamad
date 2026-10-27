@@ -77,6 +77,14 @@ final class Registry
                 '0' => 'Fermés : personne ne les voit',
                 '1' => 'Ouverts : chaque personne et chaque ZUMRA a son portefeuille',
             ]),
+            // Service Zahab Wallet (D-218) : fermé tant que le Président ne l'ouvre pas ; jamais activé par une migration ou un déploiement.
+            new Definition('wallet_module', self::GROUP_WALLET, 'État du service Zahab Wallet', Definition::ENUM, 'off', ['required', 'in:off,test,public'], [
+                'off' => 'Désactivé : invisible et inaccessible',
+                'test' => 'Test privé : administrateurs et testeurs autorisés seulement',
+                'public' => 'Public : ouvert aux personnes connectées, qui l’activent si elles le veulent',
+            ]),
+            new Definition('wallet_testers', self::GROUP_WALLET, 'Comptes testeurs du Zahab Wallet (adresses e-mail)', Definition::STRING, null, ['nullable', 'string', 'max:2000']),
+            new Definition('wallet_payout_min', self::GROUP_WALLET, 'Reversement minimum (ZAHAB)', Definition::INTEGER, 1000, ['required', 'integer', 'between:1,100000000']),
             new Definition('wallet_max_balance_person', self::GROUP_WALLET, 'Solde maximum d’une personne (ZAHAB)', Definition::INTEGER, 500000, ['required', 'integer', 'between:1,100000000']),
             new Definition('wallet_max_balance_zumra', self::GROUP_WALLET, 'Solde maximum d’une ZUMRA (ZAHAB)', Definition::INTEGER, 5000000, ['required', 'integer', 'between:1,1000000000']),
 

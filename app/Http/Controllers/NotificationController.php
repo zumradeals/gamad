@@ -53,6 +53,7 @@ class NotificationController extends Controller
             NotificationKind::ModerationNoticeClosed => route('espace'),
             NotificationKind::PersonReinstated => route('fil'),
             NotificationKind::AdAccepted, NotificationKind::AdRefused => Route::has('publicite.campagnes') ? route('publicite.campagnes') : null,
+            NotificationKind::PayoutPaid, NotificationKind::PayoutDeclined => route('portefeuille'),
             NotificationKind::ZumraDutyProposed => route('espace.zumras'),
             // Toutes les notifications d'une ZUMRA mènent à son Monde (la ZUMRA est publique : elle existe pour tous).
             NotificationKind::ZumraRequestReceived, NotificationKind::ZumraRequestAccepted, NotificationKind::ZumraInvitationReceived,

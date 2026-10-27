@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Wallet;
 use App\Models\Zumra;
 use App\Support\Experience;
+use App\Support\WalletModule;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -19,10 +20,42 @@ class Wallets
 {
     public function __construct(private readonly Settings $settings) {}
 
-    /** Les portefeuilles sont masqués tant que le Président ne les a pas ouverts. */
+    /**
+     * Les portefeuilles sont masqués tant que le Président ne les a pas ouverts. Dans le parcours actif, c'est l'état du service Zahab
+     * Wallet (D-218) ; pour une personne en test privé, l'accès se vérifie aussi par personne (WalletModule::accessibleTo).
+     */
     public function enabled(): bool
     {
+        return Experience::initial() ? WalletModule::state() !== WalletModule::OFF : $this->settings->get('wallet_enabled') === '1';
+    }
+
+    /** Les relevés antérieurs au recentrage restent consultables selon l'ancien réglage, indépendamment du service Zahab Wallet (D-218). */
+    public function legacyEnabled(): bool
+    {
         return $this->settings->get('wallet_enabled') === '1';
+    }
+
+    /** Le portefeuille d'un titulaire, s'il l'a activé ; sinon rien (aucune création automatique, D-218). */
+    public function existing(string $ownerType, string $ownerId): ?Wallet
+    {
+        return Wallet::query()->where(['owner_type' => $ownerType, 'owner_id' => $ownerId])->first();
+    }
+
+    /**
+     * Activation volontaire (D-218) : une personne vérifiée active son Zahab Wallet ; le fondateur ou un responsable active celui de sa
+     * ZUMRA (un bien commun de ses responsables). Rien ne se crée tout seul. Sans effet si le portefeuille existe déjà.
+     */
+    public function activate(User $actor, ?Zumra $zumra = null): Wallet
+    {
+        abort_unless(WalletModule::accessibleTo($actor) && $actor->hasVerifiedEmail(), 404);
+
+        if ($zumra) {
+            abort_unless(in_array($zumra->getKey(), $actor->managedZumraIds(), true), 404);
+
+            return Wallet::query()->firstOrCreate(['owner_type' => Wallet::ZUMRA, 'owner_id' => $zumra->getKey()]);
+        }
+
+        return Wallet::query()->firstOrCreate(['owner_type' => Wallet::PERSON, 'owner_id' => $actor->getKey()]);
     }
 
     public function forPerson(User $user): Wallet
@@ -69,7 +102,8 @@ class Wallets
                 throw WalletException::insufficient();
             }
 
-            if ($kind->credits() && $after > ($max = $this->ceilingFor($locked))) {
+            // Le plafond ne protège que des recharges : une somme qui revient (reversement annulé) n'est jamais refusée.
+            if ($kind === LedgerKind::Recharge && $after > ($max = $this->ceilingFor($locked))) {
                 throw WalletException::ceiling($max);
             }
 

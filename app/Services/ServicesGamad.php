@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Support\PubliciteModule;
+use App\Support\WalletModule;
 use Illuminate\Support\Facades\Route;
 
 /**
@@ -21,6 +22,13 @@ class ServicesGamad
     public static function catalogue(): array
     {
         return [
+            'zahab-wallet' => [
+                'label' => 'Zahab Wallet',
+                'description' => 'Votre portefeuille GAMAD, si vous le souhaitez : rechargez-le par Mobile Money, suivez vos mouvements et demandez le reversement de votre solde.',
+                'route' => 'portefeuille',
+                'icon' => 'lock',
+                'open' => fn (?User $user) => WalletModule::accessibleTo($user),
+            ],
             'publicite' => [
                 'label' => 'GAMAD Publicité',
                 'description' => 'Faites connaître votre activité auprès des personnes qui la recherchent, avec des annonces claires, relues par la modération.',
