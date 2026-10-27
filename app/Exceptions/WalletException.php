@@ -27,9 +27,19 @@ class WalletException extends RuntimeException
         return new self('Le montant doit être un nombre entier de ZAHAB, supérieur à zéro.');
     }
 
+    public static function payoutMinimum(int $min): self
+    {
+        return new self('Un reversement est d’au moins '.number_format($min, 0, ',', ' ').' ZAHAB.');
+    }
+
+    public static function payoutTooMany(): self
+    {
+        return new self('Vous avez atteint la limite de demandes de reversement pour aujourd’hui.');
+    }
+
     public static function notEmpty(): self
     {
-        return new self('Votre portefeuille contient encore des ZAHAB : il n’y a pas de retrait pour l’instant, dépensez-les ou contactez le Président avant de supprimer le compte.');
+        return new self('Votre portefeuille contient encore des ZAHAB : demandez un reversement ou contactez le Président avant de supprimer le compte.');
     }
 
     public static function zumraNotEmpty(): self

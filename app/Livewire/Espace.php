@@ -165,7 +165,7 @@ class Espace extends Component
 
         $initial = Experience::initial();
         $legacyZumras = $initial ? Zumra::query()->whereHas('memberships', fn ($q) => $q->where('user_id', $user->getKey()))->orderBy('name_key')->get() : collect();
-        $legacyWallets = $initial && app(Wallets::class)->enabled()
+        $legacyWallets = $initial && app(Wallets::class)->legacyEnabled()
             ? Wallet::query()->where(fn ($q) => $q
                 ->where(fn ($q) => $q->where('owner_type', Wallet::PERSON)->where('owner_id', $user->getKey()))
                 ->orWhere(fn ($q) => $q->where('owner_type', Wallet::ZUMRA)->whereIn('owner_id', $user->managedZumraIds())))->get()
@@ -200,7 +200,7 @@ class Espace extends Component
             ],
             'suggestedPeople' => $this->suggestedPeople($user, $profile),
             'todo' => app(Todo::class)->for($user),
-            'walletsEnabled' => ! $initial && app(Wallets::class)->enabled(),
+            'walletsEnabled' => ! $initial && app(Wallets::class)->legacyEnabled(),
             // Mes publications : le chemin vers « Mon besoin » et les réponses reçues.
             'publications' => (clone $posts)
                 ->withCount(['gestures as live_gestures_count' => fn ($query) => $query->whereIn('state', ['sent', 'accepted'])])

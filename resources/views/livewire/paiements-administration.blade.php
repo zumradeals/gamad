@@ -8,7 +8,7 @@
     <div class="flex flex-col gap-1">
         <a href="{{ route('espace.parametres.paiement') }}" class="inline-flex min-h-11 items-center text-[14px] font-semibold">← Paiement</a>
         <h1 class="text-[24px] font-extrabold leading-tight">Paiements</h1>
-        <p class="text-muted">Réservé au super administrateur. Aucun nom n’apparaît : seul le type de portefeuille est indiqué.</p>
+        <p class="text-muted"><a href="{{ route('espace.reversements') }}" class="font-semibold underline">Reversements</a> · Réservé au super administrateur. Aucun nom n’apparaît : seul le type de portefeuille est indiqué.</p>
     </div>
 
     @if ($message)

@@ -44,9 +44,11 @@
         @if ($manages)
             <div class="flex flex-col gap-2 md:flex-row md:self-start">
                 <x-button :href="route('zumras.edit', $zumra)" variant="accent" class="md:px-8">Modifier la ZUMRA</x-button>
-                @if ($walletsEnabled && ! $initial)
-                    <x-button :href="route('zumras.portefeuille', $zumra)" variant="secondary" class="md:px-8">Portefeuille de la ZUMRA</x-button>
-                    <x-button :href="route('zumras.contribution', $zumra)" variant="secondary" class="md:px-8">Contribution de la ZUMRA</x-button>
+                @if ($walletsEnabled && \App\Support\WalletModule::accessibleTo($viewer))
+                    <x-button :href="route('zumras.portefeuille', $zumra)" variant="secondary" class="md:px-8">{{ $initial ? 'Zahab Wallet de la ZUMRA' : 'Portefeuille de la ZUMRA' }}</x-button>
+                    @unless ($initial)
+                        <x-button :href="route('zumras.contribution', $zumra)" variant="secondary" class="md:px-8">Contribution de la ZUMRA</x-button>
+                    @endunless
                 @endif
             </div>
         @endif

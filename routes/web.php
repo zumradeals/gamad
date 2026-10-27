@@ -87,6 +87,7 @@ use App\Livewire\PublierBesoin;
 use App\Livewire\PublierPublication;
 use App\Livewire\RapportContributions;
 use App\Livewire\ResultatsCampagnes;
+use App\Livewire\ReversementsAdministration;
 use App\Livewire\SignalerProfil;
 use App\Livewire\SignalerPublication;
 use App\Livewire\SignalerZumra;
@@ -252,6 +253,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/espace/parametres/paiement', ParametresPaiement::class)->middleware('can:super-admin')->name('espace.parametres.paiement');
     Route::get('/espace/messages', MessagesContact::class)->middleware('can:super-admin')->name('espace.messages');
     Route::get('/espace/contributions', ContributionsAdministration::class)->middleware('can:super-admin')->name('espace.contributions');
+    Route::get('/espace/reversements', ReversementsAdministration::class)->middleware('can:super-admin')->name('espace.reversements');
     Route::get('/espace/paiements', PaiementsAdministration::class)->middleware('can:super-admin')->name('espace.paiements');
     Route::get('/espace/parametres/portefeuille', ParametresPortefeuille::class)->middleware('can:super-admin')->name('espace.parametres.portefeuille');
     Route::get('/espace/parametres/copie', ParametresCopie::class)->middleware('can:super-admin')->name('espace.parametres.copie');

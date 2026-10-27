@@ -30,6 +30,11 @@ class Wallet extends Model
         return $this->hasMany(LedgerEntry::class)->orderByDesc('sequence');
     }
 
+    public function payouts(): HasMany
+    {
+        return $this->hasMany(Payout::class)->latest();
+    }
+
     public function isClosed(): bool
     {
         return $this->closed_at !== null;

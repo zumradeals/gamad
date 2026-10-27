@@ -63,7 +63,7 @@
     @endif
     <section aria-labelledby="portefeuille" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
         <h2 id="portefeuille" class="text-[18px] font-extrabold">Portefeuilles</h2>
-        <p class="text-[13px] text-muted">Ouvrir ou fermer les portefeuilles ZAHAB et fixer les plafonds de solde.</p>
+        <p class="text-[13px] text-muted">Ouvrir le service Zahab Wallet (désactivé, test privé, public), choisir les testeurs et fixer les plafonds de solde.</p>
         <x-button :href="route('espace.parametres.portefeuille')" variant="secondary">Ouvrir</x-button>
     </section>
 

@@ -293,7 +293,7 @@ it('refuse la suppression d’un compte dont le portefeuille n’est pas vide', 
     portefeuilles()->post(portefeuilles()->forPerson($this->awa), LedgerKind::Recharge, 300);
 
     Livewire::actingAs($this->awa)->test(Espace::class)->call('show', 'compte')->set('password', 'motdepasse1')->call('deleteAccount')
-        ->assertHasErrors(['password'])->assertSee('dépensez-les');
+        ->assertHasErrors(['password'])->assertSee('reversement');
 
     expect(User::find($this->awa->id))->not->toBeNull();
 });

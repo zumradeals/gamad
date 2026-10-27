@@ -10,14 +10,32 @@
         <p class="text-muted flex items-center gap-2"><x-icon name="lock" :size="15" />Privé : {{ $zumra ? 'seuls le fondateur et les responsables le voient' : 'vous seul le voyez' }}.</p>
     </div>
 
+    @if ($notice)
+        <x-status>{{ $notice }}</x-status>
+    @endif
+
+    @if (! $wallet)
+        <section aria-labelledby="activer" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
+            <h2 id="activer" class="text-[18px] font-extrabold">{{ $zumra ? 'Activer le Zahab Wallet de la ZUMRA' : 'Activer mon Zahab Wallet' }}</h2>
+            <p class="text-[14px] leading-normal">Le Zahab Wallet est le portefeuille GAMAD {{ $zumra ? 'de la ZUMRA, un bien commun de son fondateur et de ses responsables : les autres membres n’y ont pas accès' : 'de la personne' }}. 1 ZAHAB = 1 FCFA. On le recharge par Mobile Money (GeniusPay), on suit ses mouvements, et on peut demander le <strong>reversement</strong> de son solde au titulaire d’un numéro Mobile Money.</p>
+            <p class="text-[13px] leading-normal text-muted">Rien n’est créé tant que {{ $zumra ? 'vous ne l’activez pas' : 'vous ne l’activez pas' }}. L’activation est gratuite et sans engagement.</p>
+            @if ($sandbox)
+                <p class="rounded-button border border-line bg-type-call-bg px-3 py-2 text-[13px] font-semibold text-type-call-fg" data-testid="mode-essai">Mode d’essai : les paiements sont simulés, aucun argent réel ne circule.</p>
+            @endif
+            @if ($canActivate)
+                <x-button type="button" wire:click="activate" wire:loading.attr="disabled" wire:target="activate">{{ $zumra ? 'Activer le Zahab Wallet de la ZUMRA' : 'Activer mon Zahab Wallet' }}</x-button>
+            @else
+                <p class="text-[14px] font-semibold text-muted">Vérifiez votre adresse e-mail pour activer votre Zahab Wallet.</p>
+            @endif
+        </section>
+    @else
+
     <section aria-labelledby="solde" class="flex flex-col gap-1 rounded-card border border-line bg-card p-4 md:p-[18px]">
         <h2 id="solde" class="text-[13px] font-semibold text-muted">Solde</h2>
         <p class="text-[32px] font-extrabold leading-tight" data-testid="solde">{{ $format($balance) }} ZAHAB</p>
-        <p class="text-[13px] text-muted">1 ZAHAB = 1 FCFA. Les ZAHAB se dépensent dans le réseau ; il n’y a ni transfert entre personnes ni retrait pour l’instant.</p>
+        <p class="text-[13px] text-muted">1 ZAHAB = 1 FCFA. Vous pouvez demander le reversement de votre solde ci-dessous. Il n’y a pas de transfert entre portefeuilles.</p>
         @unless (\App\Support\Experience::initial())
         <x-button :href="$zumra ? route('zumras.contribution', $zumra) : route('contribution')" variant="secondary" class="mt-2 md:self-start">Contribuer</x-button>
-        @else
-            <p class="text-[14px] text-muted">Les nouvelles recharges et contributions sont en pause. Votre solde et votre historique sont conservés. Pour un solde restant ou une demande en attente, contactez l’administration de GAMAD.</p>
         @endunless
     </section>
 
@@ -68,4 +86,43 @@
         @endforelse
         {{ $entries->links() }}
     </section>
+
+    <section aria-labelledby="reversement" class="flex flex-col gap-3 rounded-card border border-line bg-card p-4 md:p-[18px]">
+        <h2 id="reversement" class="text-[18px] font-extrabold">Reversement</h2>
+        <p class="text-[14px] leading-normal text-muted">GAMAD reverse tout ou partie de votre solde au titulaire du numéro Mobile Money que vous indiquez. La somme est mise de côté tout de suite ; vous êtes prévenu quand elle est versée, ou si elle revient dans votre portefeuille. Minimum {{ $format($payoutMin) }} ZAHAB.</p>
+        @if ($sandbox)
+            <p class="rounded-button border border-line bg-type-call-bg px-3 py-2 text-[13px] font-semibold text-type-call-fg">Mode d’essai : aucun versement réel n’aura lieu.</p>
+        @endif
+        <form wire:submit="requestPayout" class="flex flex-col gap-3">
+            <x-wire-field name="payoutAmount" label="Montant à reverser (ZAHAB)" inputmode="numeric" autocomplete="off" />
+            <div class="flex flex-col gap-1.5">
+                <label for="payoutOperator" class="text-[13px] font-bold text-muted">Opérateur du numéro</label>
+                <select id="payoutOperator" wire:model="payoutOperator" @class(['min-h-12 w-full rounded-button border bg-card px-3 text-[15px]', $errors->has('payoutOperator') ? 'border-danger' : 'border-chip-line'])>
+                    <option value="">Choisir</option>
+                    @foreach ($operators as $key => $label)<option value="{{ $key }}">{{ $label }}</option>@endforeach
+                </select>
+                @error('payoutOperator')<p role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>@enderror
+            </div>
+            <x-wire-field name="payoutPhone" label="Numéro Mobile Money du titulaire" inputmode="tel" autocomplete="off" hint="Avec l’indicatif du pays, par exemple +2250700000000. Seul le Président le voit, pour verser la somme." />
+            <x-wire-field name="payoutHolder" label="Nom du titulaire du numéro" autocomplete="off" maxlength="100" />
+            <x-button wire:loading.attr="disabled" wire:target="requestPayout">
+                <span wire:loading.remove wire:target="requestPayout">Demander le reversement</span>
+                <span wire:loading wire:target="requestPayout">Envoi…</span>
+            </x-button>
+        </form>
+
+        @if ($payouts->isNotEmpty())
+            <ul class="flex flex-col divide-y divide-line-soft border-t border-line-soft" aria-label="Vos demandes de reversement">
+                @foreach ($payouts as $payout)
+                    <li wire:key="payout-{{ $payout->id }}" class="flex flex-col gap-1 py-3">
+                        <div class="flex items-baseline justify-between gap-2"><span class="text-[15px] font-extrabold">{{ $format($payout->amount) }} ZAHAB</span><span class="text-[13px] font-bold {{ $payout->status === \App\Enums\PayoutStatus::Paid ? 'text-type-knowledge-fg' : 'text-muted' }}">{{ $payout->status->label() }}</span></div>
+                        <span class="text-[12px] text-muted">{{ $operators[$payout->operator] ?? $payout->operator }} · {{ $payout->maskedPhone() }} · {{ $date($payout->created_at) }}</span>
+                        @if ($payout->status === \App\Enums\PayoutStatus::Declined && $payout->decline_reason)<span class="text-[13px]">Motif : {{ $payout->decline_reason }}</span>@endif
+                        @if ($payout->isOpen())<div><x-button type="button" variant="secondary" wire:click="cancelPayout('{{ $payout->id }}')" wire:loading.attr="disabled" wire:target="cancelPayout" class="!text-[14px]">Annuler la demande</x-button></div>@endif
+                    </li>
+                @endforeach
+            </ul>
+        @endif
+    </section>
+    @endif
 </div>
