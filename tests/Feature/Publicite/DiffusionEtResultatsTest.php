@@ -256,10 +256,10 @@ it('montre les résultats de l’annonceur seulement, avec la mention de masquag
     $c = difCampagne($annonceur);
     DB::table('ad_daily_stats')->insert(['ad_campaign_id' => $c->id, 'day' => now('Africa/Abidjan')->toDateString(), 'impressions' => 200, 'interactions' => 50, 'contacts' => 14]);
     $autre = difCampagne(User::factory()->create(), ['title' => 'Campagne d’autrui']);
-    DB::table('ad_daily_stats')->insert(['ad_campaign_id' => $autre->id, 'day' => now('Africa/Abidjan')->toDateString(), 'impressions' => 999, 'interactions' => 5, 'contacts' => 5]);
+    DB::table('ad_daily_stats')->insert(['ad_campaign_id' => $autre->id, 'day' => now('Africa/Abidjan')->toDateString(), 'impressions' => 7777, 'interactions' => 5, 'contacts' => 5]);
 
     $page = Livewire::actingAs($annonceur)->test(ResultatsCampagnes::class)->assertSee('Cours de couture')->assertDontSee('Campagne d’autrui')->assertSee('Demandes de relation attribuées')->assertSee('prévisionnelles')->assertSee('aucun nom');
-    $page->assertSee('200')->assertDontSee('999');
+    $page->assertSee('200')->assertDontSee('7 777');
     $page->set('campaign', $c->id)->assertSee('Cours de couture');
 });
 

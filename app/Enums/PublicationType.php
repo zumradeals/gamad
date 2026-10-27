@@ -155,6 +155,12 @@ enum PublicationType: string
         return [self::Need, self::Knowledge, self::Offer, self::ZumraCall];
     }
 
+    /** Types qu'un simple membre publie dans sa ZUMRA (D-214) : un savoir ou une offre d'aide ; le besoin et l'appel engagent la ZUMRA et restent aux responsables. */
+    public static function forZumraMember(): array
+    {
+        return [self::Knowledge, self::Offer];
+    }
+
     /** Types publiés au nom d'un projet (D-135, D-138) : l'avancée de projet, la réalisation et le besoin. */
     public static function forProject(): array
     {
