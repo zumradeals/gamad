@@ -3,7 +3,6 @@
 namespace App\Livewire;
 
 use App\Enums\ProjectState;
-use App\Models\City;
 use App\Models\Domain;
 use App\Models\Project;
 use App\Support\Normalizer;
@@ -82,9 +81,6 @@ class CarrefourProjets extends Component
             ->orderBy('name_key')->orderBy('id')
             ->paginate(self::PER_PAGE);
 
-        $cities = City::query()
-            ->where(fn (Builder $query) => $query->where('active', true)->when($city !== '', fn (Builder $q) => $q->orWhere('id', $city)))
-            ->get()->sortBy(fn (City $c) => Normalizer::key($c->label()))->values();
         $domains = Domain::query()
             ->where(fn (Builder $query) => $query->where('active', true)->when($domain !== '', fn (Builder $q) => $q->orWhere('id', $domain)))
             ->ordered()->get();
@@ -92,7 +88,6 @@ class CarrefourProjets extends Component
         return view('livewire.carrefour-projets', [
             'projects' => $projects,
             'states' => ProjectState::cases(),
-            'cities' => $cities,
             'domains' => $domains,
             'hasFilters' => $key !== '' || $state !== null || $city !== '' || $domain !== '',
         ]);

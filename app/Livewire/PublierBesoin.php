@@ -5,7 +5,6 @@ namespace App\Livewire;
 use App\Enums\BeneficiaryKind;
 use App\Enums\HelpKind;
 use App\Livewire\Concerns\GuardsContributionsModule;
-use App\Models\City;
 use App\Models\Company;
 use App\Models\Domain;
 use App\Models\Project;
@@ -14,7 +13,6 @@ use App\Models\Publication;
 use App\Models\Zumra;
 use App\Services\ContributionAccess;
 use App\Services\ContributionNeeds;
-use App\Support\Normalizer;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -93,7 +91,6 @@ class PublierBesoin extends Component
             'audiences' => $audiences,
             'kinds' => HelpKind::cases(),
             'domains' => Domain::query()->where('active', true)->ordered()->get(),
-            'cities' => City::query()->where('active', true)->get()->sortBy(fn (City $c) => Normalizer::key($c->label()))->values(),
         ]);
     }
 

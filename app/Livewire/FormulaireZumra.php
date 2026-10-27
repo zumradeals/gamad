@@ -6,12 +6,9 @@ use App\Enums\ZumraFormat;
 use App\Enums\ZumraJoinMode;
 use App\Enums\ZumraSphere;
 use App\Livewire\Concerns\GuardsZumraModule;
-use App\Models\City;
 use App\Models\Domain;
 use App\Models\Zumra;
 use App\Services\Zumras;
-use App\Support\Normalizer;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Layout;
@@ -90,9 +87,6 @@ class FormulaireZumra extends Component
             'editing' => $editing,
             'zumra' => $zumra,
             'domains' => Domain::query()->active()->ordered()->get(),
-            'cities' => City::query()
-                ->where(fn (Builder $query) => $query->where('active', true)->when($zumra?->city_id, fn (Builder $q, $id) => $q->orWhere('id', $id)))
-                ->get()->sortBy(fn (City $c) => Normalizer::key($c->label()))->values(),
             'formats' => ZumraFormat::cases(),
             'spheres' => ZumraSphere::cases(),
             'joinModes' => ZumraJoinMode::cases(),

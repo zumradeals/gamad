@@ -20,6 +20,7 @@ use App\Http\Controllers\GeniusPayWebhookController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OpportunityController;
 use App\Http\Controllers\PersonController;
+use App\Http\Controllers\PlaceSearchController;
 use App\Http\Controllers\PublicationBookmarkController;
 use App\Http\Controllers\PublicationMediaController;
 use App\Http\Controllers\SuspendedController;
@@ -99,6 +100,7 @@ Route::get('/', WelcomeController::class)->name('home');
 Route::get('/aide', AideController::class)->name('aide');
 Route::get('/contact', [ContactController::class, 'show'])->name('contact');
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+Route::get('/lieux/recherche', PlaceSearchController::class)->middleware('throttle:60,1')->name('lieux.search');
 Route::get('/charte', [TextesController::class, 'charte'])->name('charte');
 Route::get('/mentions-legales', [TextesController::class, 'mentions'])->name('mentions');
 

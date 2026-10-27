@@ -2,7 +2,7 @@
     $labelClass = 'text-[15px] font-extrabold';
     $field = fn ($name) => 'min-h-12 w-full rounded-button border bg-card px-3.5 text-[16px] '.($errors->has($name) ? 'border-danger' : 'border-chip-line');
     $area = fn ($name) => 'w-full resize-y rounded-button border bg-card px-3.5 py-3 text-[16px] leading-normal '.($errors->has($name) ? 'border-danger' : 'border-chip-line');
-    $cityLabel = $city_id !== '' ? $cities->firstWhere('id', $city_id)?->label() : null;
+    $cityLabel = $city_id !== '' ? \App\Models\City::query()->find($city_id)?->label() : null;
     $domainLabel = $domain_id !== '' ? $domains->firstWhere('id', $domain_id)?->name : null;
 @endphp
 <div class="flex flex-col gap-3.5" data-opportunity-form>
@@ -82,7 +82,7 @@
                     <p role="alert" class="rounded-button border border-danger px-3 py-2 text-[13px] font-semibold text-danger">{{ $errors->first('title') ?: $errors->first('description') }} <button type="button" wire:click="edit" class="font-bold underline">Modifier</button></p>
                 @endif
                 <div class="flex flex-col gap-1.5"><label for="city_id" class="{{ $labelClass }}">Où se déroule cette opportunité ? <span class="text-[13px] font-semibold text-muted">(facultatif)</span></label>
-                    <select id="city_id" wire:model="city_id" class="{{ $field('city_id') }}"><option value="">Ex. : Abidjan, Yopougon</option>@foreach ($cities as $c)<option value="{{ $c->id }}">{{ $c->label() }}</option>@endforeach</select>
+                    <x-city-picker id="city_id" model="city_id" :value="$city_id" placeholder="Ex. : Abidjan, Yopougon" :class="$field('city_id')" />
                     @error('city_id')<p role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>@enderror</div>
                 <div class="flex flex-col gap-1.5"><label for="deadline" class="{{ $labelClass }}">Date limite <span class="text-[13px] font-semibold text-link">(facultatif)</span></label>
                     <input id="deadline" type="date" wire:model="deadline" class="{{ $field('deadline') }}">

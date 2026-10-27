@@ -32,6 +32,22 @@
                     <x-auth-field name="password" label="Mot de passe" icon="lock" type="password" autocomplete="new-password" :toggle="true" hint="8 caractères au minimum." />
                     <x-auth-field name="password_confirmation" label="Confirmer le mot de passe" icon="lock" type="password" autocomplete="new-password" />
 
+                    {{-- Le pays est facultatif (D-217) : il sert à proposer des personnes et des occasions proches, jamais à refuser une inscription. --}}
+                    <div class="flex flex-col gap-1.5">
+                        <label for="country_id" class="text-[14px] font-bold">Pays <span class="text-[13px] font-semibold text-muted">(facultatif)</span></label>
+                        <div class="flex min-h-12 items-center gap-2 rounded-button border bg-soft-blue pl-3 pr-2 focus-within:outline focus-within:outline-[3px] focus-within:outline-link {{ $errors->has('country_id') ? 'border-danger' : 'border-chip-line' }}">
+                            <x-icon name="pin" :size="20" class="shrink-0 text-muted" />
+                            <select id="country_id" name="country_id" aria-describedby="country_id-hint" @if ($errors->has('country_id')) aria-invalid="true" @endif class="min-h-11 min-w-0 flex-1 border-0 bg-transparent text-[15px] outline-none">
+                                <option value="">Je le dirai plus tard</option>
+                                @foreach (\App\Models\Country::query()->active()->orderBy('sort_order')->orderBy('name')->get(['id', 'name']) as $country)
+                                    <option value="{{ $country->id }}" @selected(old('country_id') === $country->id)>{{ $country->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <p id="country_id-hint" class="text-[13px] text-muted">Pour vous proposer des personnes et des occasions proches. Vous pourrez le changer dans votre profil.</p>
+                        @error('country_id')<p role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>@enderror
+                    </div>
+
                     @if (app(\App\Services\LegalTexts::class)->charterAdopted())
                         <div class="flex flex-col gap-1.5">
                             <label for="charter" class="flex min-h-11 cursor-pointer items-start gap-3 text-[14px] leading-snug">

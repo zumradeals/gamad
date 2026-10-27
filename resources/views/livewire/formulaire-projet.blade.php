@@ -39,7 +39,7 @@
         @if ($editing)
             <div class="flex flex-col gap-1.5">
                 <label for="city_id" class="text-[13px] font-bold text-muted">Localité (facultative)</label>
-                <select id="city_id" wire:model="city_id" class="{{ $field('city_id') }}"><option value="">Aucune localité</option>@foreach ($cities as $city)<option value="{{ $city->id }}">{{ $city->label() }}</option>@endforeach</select>
+                <x-city-picker id="city_id" model="city_id" :value="$city_id" placeholder="Aucune localité" :class="$field('city_id')" />
                 @error('city_id')<p role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>@enderror
             </div>
         @else

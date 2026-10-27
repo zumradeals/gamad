@@ -62,6 +62,7 @@ class JournalReader
         'zumra.recognized' => 'a reconnu officiellement la ZUMRA',
         'zumra.recognition_withdrawn' => 'a retiré la reconnaissance de la ZUMRA',
         'zumra.founder_transferred' => 'a confié la fondation de la ZUMRA',
+        'country.africa_imported' => 'a chargé les pays africains et leurs lieux (import GeoNames)',
         'zumra.closed' => 'a fermé sa ZUMRA',
         'zumra.reopened' => 'a rouvert sa ZUMRA',
         'zumra.suspended' => 'a suspendu la ZUMRA',

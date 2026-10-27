@@ -221,7 +221,6 @@ class OpportunityForm extends Component
             'verified' => $company->verified(),
             'kinds' => OpportunityKind::cases(),
             'kindEnum' => OpportunityKind::tryFrom($this->kind),
-            'cities' => City::query()->active()->get()->sortBy(fn (City $c) => Normalizer::key($c->label()))->values(),
             'domains' => Domain::query()->active()->ordered()->get(),
             'editing' => $this->opportunityId !== null,
             'skillList' => $this->skills,

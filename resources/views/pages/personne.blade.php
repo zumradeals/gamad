@@ -2,7 +2,7 @@
     $user = $profile->user;
     $since = $user->created_at->copy()->locale('fr')->timezone('Africa/Abidjan')->translatedFormat('F Y');
     $empty = $profile->offeredSkills->isEmpty() && $profile->wantedSkills->isEmpty();
-    $place = collect([$profile->city?->label(), $profile->country?->name])->filter()->implode(', ');
+    $place = collect([$profile->locality, $profile->city?->label(), $profile->country?->name])->filter()->implode(', ');
     $tabs = ['savoir-faire' => 'Savoir-faire', 'realisations' => 'Réalisations', 'parcours' => 'Parcours', 'publications' => 'Publications'];
 @endphp
 

@@ -70,7 +70,7 @@
                 <div class="flex flex-col gap-1"><label for="filtre-domaine-c" class="text-[14px] font-extrabold">Domaine</label>
                     <select id="filtre-domaine-c" wire:model.live="domain" class="{{ $field }}"><option value="">Tous les domaines</option>@foreach ($domains as $domaine)<option value="{{ $domaine->id }}">{{ $domaine->name }}</option>@endforeach</select></div>
                 <div class="flex flex-col gap-1"><label for="filtre-ville-c" class="text-[14px] font-extrabold">Localité</label>
-                    <select id="filtre-ville-c" wire:model.live="city" class="{{ $field }}"><option value="">Toutes les localités</option>@foreach ($cities as $ville)<option value="{{ $ville->id }}">{{ $ville->label() }}</option>@endforeach</select></div>
+                    <x-city-picker id="filtre-ville-c" model="city" :value="$city" :live="true" placeholder="Toutes les localités" :class="$field" /></div>
                 @if ($hasFilters)<button type="button" wire:click="clearFilters" class="min-h-11 self-start text-[14px] font-semibold text-link underline">Réinitialiser</button>@endif
             </div>
         </aside>

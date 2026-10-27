@@ -4,7 +4,6 @@ namespace App\Livewire;
 
 use App\Enums\NeedState;
 use App\Enums\PublicationType;
-use App\Models\City;
 use App\Models\Domain;
 use App\Models\Publication;
 use App\Support\Normalizer;
@@ -117,9 +116,6 @@ class CarrefourBesoins extends Component
             ->orderByDesc('created_at')->orderByDesc('id')
             ->paginate(self::PER_PAGE);
 
-        $cities = City::query()
-            ->where(fn (Builder $query) => $query->where('active', true)->when($city !== '', fn (Builder $q) => $q->orWhere('id', $city)))
-            ->get()->sortBy(fn (City $c) => Normalizer::key($c->label()))->values();
         $domains = Domain::query()
             ->where(fn (Builder $query) => $query->where('active', true)->when($domain !== '', fn (Builder $q) => $q->orWhere('id', $domain)))
             ->ordered()->get();
@@ -132,7 +128,6 @@ class CarrefourBesoins extends Component
             'viewer' => $viewer,
             'managed' => $viewer?->managedZumraIds() ?? [],
             'states' => NeedState::cases(),
-            'cities' => $cities,
             'domains' => $domains,
             'emitters' => self::EMITTERS,
             'selectedState' => $showAll ? self::ALL : ($state?->value ?? 'open'),

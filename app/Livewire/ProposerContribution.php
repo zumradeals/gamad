@@ -5,7 +5,6 @@ namespace App\Livewire;
 use App\Enums\BeneficiaryKind;
 use App\Enums\HelpKind;
 use App\Livewire\Concerns\GuardsContributionsModule;
-use App\Models\City;
 use App\Models\Company;
 use App\Models\ContributionProposal;
 use App\Models\Domain;
@@ -16,7 +15,6 @@ use App\Models\User;
 use App\Models\Zumra;
 use App\Services\ContributionAccess;
 use App\Services\ContributionProposals;
-use App\Support\Normalizer;
 use App\Support\ZumraModule;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -144,7 +142,6 @@ class ProposerContribution extends Component
             'projects' => $zumraOpen ? Project::query()->showcased()->orderBy('name_key')->limit(300)->get(['id', 'name']) : collect(),
             'companies' => Company::query()->publiclyVisible()->orderBy('name')->limit(300)->get(['id', 'name']),
             'domains' => Domain::query()->where('active', true)->ordered()->get(),
-            'cities' => City::query()->where('active', true)->get()->sortBy(fn (City $c) => Normalizer::key($c->label()))->values(),
             // Une proposition publique ne révèle pas une personne : privée seulement pour une personne hors besoin public.
             'canBePublic' => $need ? $need->visibility === Publication::PUBLIC : $targetType !== 'person',
         ]);

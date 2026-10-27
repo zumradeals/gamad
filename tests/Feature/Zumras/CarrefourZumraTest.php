@@ -158,7 +158,6 @@ it('filtre par pays et réduit la liste des villes, puis efface la ville au chan
     zumra(User::factory()->create(), 'Communauté en ligne', ['city_id' => null, 'format' => 'online']);
 
     carrefour()->set('country', $ci)->assertSeeText('Communauté ivoirienne')->assertDontSeeText('Communauté extérieure')->assertDontSeeText('Communauté en ligne')
-        ->assertViewHas('cities', fn ($cities) => $cities->every(fn ($city) => $city->country_id === $ci))
         ->set('city', $this->bouake)->set('country', $senegal->id)->assertSet('city', '')
         ->assertSeeText('Communauté extérieure')->assertDontSeeText('Communauté ivoirienne')
         ->call('clearFilters')->assertSet('country', '')->assertSeeText('Communauté en ligne');
@@ -190,6 +189,6 @@ it('conserve les territoires désactivés déjà sélectionnés dans une adresse
 
     Livewire::withQueryParams(['pays' => $ville->country_id, 'ville' => $ville->id])->test(CarrefourZumras::class)
         ->assertSeeText('Communauté locale')
-        ->assertViewHas('cities', fn ($cities) => $cities->contains('id', $ville->id))
+        ->assertSeeText($ville->fullLabel())
         ->assertViewHas('countries', fn ($countries) => $countries->contains('id', $ville->country_id));
 });

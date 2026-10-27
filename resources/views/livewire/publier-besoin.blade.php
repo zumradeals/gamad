@@ -54,7 +54,7 @@
                     <select id="domain_id" wire:model="domain_id" class="{{ $field('domain_id') }}"><option value="">Aucun domaine</option>@foreach ($domains as $domain)<option value="{{ $domain->id }}">{{ $domain->name }}</option>@endforeach</select>
                     @error('domain_id')<p role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>@enderror</div>
                 <div class="flex flex-col gap-1.5"><label for="city_id" class="text-[13px] font-bold text-muted">Localité</label>
-                    <select id="city_id" wire:model="city_id" class="{{ $field('city_id') }}"><option value="">Aucune localité</option>@foreach ($cities as $city)<option value="{{ $city->id }}">{{ $city->label() }}</option>@endforeach</select>
+                    <x-city-picker id="city_id" model="city_id" :value="$city_id" placeholder="Aucune localité" :class="$field('city_id')" />
                     @error('city_id')<p role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>@enderror</div>
                 <div class="flex flex-col gap-1.5"><label for="needed_by" class="text-[13px] font-bold text-muted">À obtenir avant le</label>
                     <input id="needed_by" type="date" wire:model="needed_by" class="{{ $field('needed_by') }}">

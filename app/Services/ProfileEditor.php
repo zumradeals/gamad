@@ -50,6 +50,17 @@ class ProfileEditor
             throw ValidationException::withMessages(['visibility' => 'Choisissez qui voit votre profil.']);
         }
 
+        // Localité écrite librement quand la sienne n'est pas dans la liste (D-217) : un nom de lieu, jamais un contact ni une adresse.
+        $locality = Normalizer::display((string) ($data['locality'] ?? ''));
+
+        if (mb_strlen($locality) > Profile::LOCALITY_MAX) {
+            throw ValidationException::withMessages(['locality' => 'Une localité ne peut pas dépasser '.Profile::LOCALITY_MAX.' caractères.']);
+        }
+
+        if ($locality !== '' && (str_contains($locality, '@') || preg_match('/\d{5,}|\d(?:[\s.\-]?\d){6,}/', $locality))) {
+            throw ValidationException::withMessages(['locality' => 'Écrivez seulement le nom de votre localité : ni téléphone, ni adresse e-mail.']);
+        }
+
         $offered = SkillList::clean($data['offered'], 'offered', Profile::MAX_SKILLS_PER_KIND, 'Dix capacités au plus dans cette liste.');
         $wanted = SkillList::clean($data['wanted'], 'wanted', Profile::MAX_SKILLS_PER_KIND, 'Dix capacités au plus dans cette liste.');
         $domainIds = array_values(array_unique($data['domain_ids']));
@@ -84,12 +95,16 @@ class ProfileEditor
         $finalPhotoPath = null;
 
         try {
-            DB::transaction(function () use ($user, $name, $bio, $data, $offered, $wanted, $domainIds, $details, $newPhotoPath, $removePhoto, &$oldPhotoPath, &$finalPhotoPath) {
+            DB::transaction(function () use ($user, $name, $bio, $locality, $data, $offered, $wanted, $domainIds, $details, $newPhotoPath, $removePhoto, &$oldPhotoPath, &$finalPhotoPath) {
                 /** @var Profile $profile */
                 $profile = Profile::query()->where('user_id', $user->getKey())->lockForUpdate()->firstOrFail();
 
                 [$countryId, $cityId] = $this->territory($profile, $data['country_id'] ?? null, $data['city_id'] ?? null);
                 $this->checkDomains($profile, $domainIds);
+
+                if ($locality !== '' && $countryId === null) {
+                    throw ValidationException::withMessages(['locality' => 'Choisissez d’abord votre pays.']);
+                }
 
                 DisplayName::change($user, $name);
 
@@ -101,6 +116,7 @@ class ProfileEditor
                     'bio' => $bio === '' ? null : $bio,
                     'country_id' => $countryId,
                     'city_id' => $cityId,
+                    'locality' => $locality === '' ? null : $locality,
                     'visibility' => $data['visibility'],
                     'photo_path' => $finalPhotoPath,
                 ]);

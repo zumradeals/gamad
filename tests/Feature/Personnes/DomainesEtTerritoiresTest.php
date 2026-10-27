@@ -202,11 +202,15 @@ it('propose les villes ajoutées dans l’écran du profil, et plus celles désa
     $pays = Country::query()->create(['name' => 'Burkina Faso']);
     $ville = City::query()->create(['country_id' => $pays->id, 'name' => 'Bobo-Dioulasso']);
 
-    $editeur = Livewire::actingAs(User::factory()->create())->test(ModifierProfil::class);
-    $editeur->assertSeeText('Burkina Faso')->set('country_id', $pays->id)->assertSeeText('Bobo-Dioulasso');
+    $utilisateur = User::factory()->create();
+    $editeur = Livewire::actingAs($utilisateur)->test(ModifierProfil::class);
+    $editeur->assertSeeText('Burkina Faso')->set('country_id', $pays->id);
+
+    // Les villes se choisissent par recherche (D-217) : le sélecteur interroge cette route.
+    $this->actingAs($utilisateur)->getJson(route('lieux.search', ['pays' => $pays->id]))->assertOk()->assertJsonFragment(['label' => 'Bobo-Dioulasso · Burkina Faso']);
 
     $ville->update(['active' => false]);
-    $editeur->call('$refresh')->assertDontSeeText('Bobo-Dioulasso');
+    $this->getJson(route('lieux.search', ['pays' => $pays->id]))->assertOk()->assertJsonMissing(['label' => 'Bobo-Dioulasso · Burkina Faso']);
 });
 
 it('inscrit chaque acte au journal sous le nom du super administrateur, et le journal reste non modifiable', function () {

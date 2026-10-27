@@ -12,7 +12,6 @@ use App\Models\User;
 use App\Services\MatchingConditions;
 use App\Services\ProfileEditor;
 use App\Services\ProfilePhoto;
-use App\Support\Normalizer;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -80,6 +79,12 @@ class ModifierProfil extends Component
 
     public string $city_id = '';
 
+    /** Localité écrite librement quand la sienne n'est pas dans la liste (D-217). */
+    public string $locality = '';
+
+    /** Lieu à ajouter aux localités du matching : le choix se range tout de suite dans la liste (cinq au plus). */
+    public string $zoneToAdd = '';
+
     public string $visibility = Profile::PUBLIC;
 
     /** @var array<int, string> */
@@ -134,6 +139,7 @@ class ModifierProfil extends Component
         }, $this->skill_details);
         $this->country_id = (string) $profile->country_id;
         $this->city_id = (string) $profile->city_id;
+        $this->locality = (string) $profile->locality;
         $this->visibility = $profile->visibility;
         $this->offered = $profile->offeredSkills()->pluck('skills.name')->all();
         $this->wanted = $profile->wantedSkills()->pluck('skills.name')->all();
@@ -144,6 +150,22 @@ class ModifierProfil extends Component
     protected function skillLists(): array
     {
         return ['offered' => Profile::MAX_SKILLS_PER_KIND, 'wanted' => Profile::MAX_SKILLS_PER_KIND];
+    }
+
+    public function updatedZoneToAdd(): void
+    {
+        $id = $this->zoneToAdd;
+        $this->zoneToAdd = '';
+        $zones = (array) ($this->matching_preferences['zones'] ?? []);
+
+        if (Str::isUuid($id) && count($zones) < 5 && ! in_array($id, $zones, true) && City::query()->active()->whereKey($id)->exists()) {
+            $this->matching_preferences['zones'] = [...$zones, $id];
+        }
+    }
+
+    public function removeZone(string $id): void
+    {
+        $this->matching_preferences['zones'] = array_values(array_filter((array) ($this->matching_preferences['zones'] ?? []), fn ($zone) => $zone !== $id));
     }
 
     public function updatedCountryId(): void
@@ -219,6 +241,7 @@ class ModifierProfil extends Component
                 'featured_publications' => $this->featured_publications,
                 'country_id' => $this->country_id,
                 'city_id' => $this->city_id,
+                'locality' => $this->locality,
                 'visibility' => $this->visibility,
                 'offered' => $this->offered,
                 'wanted' => $this->wanted,
@@ -247,12 +270,6 @@ class ModifierProfil extends Component
             'countries' => Country::query()
                 ->where(fn (Builder $query) => $query->where('active', true)->when($profile->country_id, fn (Builder $q) => $q->orWhere('id', $profile->country_id)))
                 ->orderBy('sort_order')->orderBy('name')->get(),
-            'cities' => $countryId === '' ? collect() : City::query()
-                ->where('country_id', $countryId)
-                ->where(fn (Builder $query) => $query->where('active', true)->when($profile->city_id, fn (Builder $q) => $q->orWhere('id', $profile->city_id)))
-                ->get()
-                ->sortBy(fn (City $city) => Normalizer::key($city->label()))
-                ->values(),
             'domains' => Domain::query()
                 ->where(fn (Builder $query) => $query->where('active', true)->orWhereIn('id', $domainIds))
                 ->ordered()->get(),
@@ -264,7 +281,7 @@ class ModifierProfil extends Component
             'pendingPhotoUrl' => $this->pendingPhotoUrl(),
             'showPhoto' => ! $this->removePhoto && ($this->photo !== null || $profile->hasPhoto()),
             'bioMax' => Profile::BIO_MAX,
-            'matchingCities' => City::query()->active()->with('country')->orderBy('name')->get(),
+            'zoneCities' => City::query()->with('country:id,name')->whereIn('id', array_filter((array) ($this->matching_preferences['zones'] ?? []), fn ($id) => is_string($id) && Str::isUuid($id)))->get(),
             'ownPosts' => Publication::where('author_id', Auth::id())->whereNull('zumra_id')->whereNull('hidden_at')->orderByDesc('created_at')->limit(100)->get(['id', 'body', 'visibility', 'media_kind', 'media_path'])
                 ->merge(Publication::where('author_id', Auth::id())->whereNull('zumra_id')->whereNull('hidden_at')->whereIn('id', collect($profile->featured_publications ?? [])->merge(collect($profile->skill_details ?? [])->pluck('publication_id'))->push($profile->cover_publication_id)->filter())->get(['id', 'body', 'visibility', 'media_kind', 'media_path']))->unique('id')->values(),
         ]);

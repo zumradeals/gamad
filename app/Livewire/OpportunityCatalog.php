@@ -148,7 +148,7 @@ class OpportunityCatalog extends Component
             'kinds' => OpportunityKind::cases(),
             'kindCounts' => $kindCounts,
             'totalCount' => array_sum($kindCounts),
-            'cities' => City::query()->active()->get()->sortBy(fn (City $c) => Normalizer::key($c->label()))->values(),
+            'cities' => City::query()->active()->whereIn('id', Opportunity::query()->whereNotNull('city_id')->select('city_id'))->get()->sortBy(fn (City $c) => Normalizer::key($c->label()))->values(),
             'domains' => Domain::query()->active()->ordered()->get(),
             'sort' => $sort,
             'savedIds' => $savedIds,

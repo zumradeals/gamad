@@ -133,13 +133,7 @@
 
         <div class="flex flex-col gap-1.5">
             <label for="city_id" class="text-[13px] font-bold text-muted">Lieu (facultatif)</label>
-            <select id="city_id" wire:model="city_id"
-                    @class(['min-h-12 w-full rounded-button border bg-card px-3.5 text-[15px]', $errors->has('city_id') ? 'border-danger' : 'border-chip-line'])>
-                <option value="">Aucun lieu</option>
-                @foreach ($cities as $city)
-                    <option value="{{ $city->id }}">{{ $city->label() }}</option>
-                @endforeach
-            </select>
+            <x-city-picker id="city_id" model="city_id" :value="$city_id" placeholder="Aucun lieu" :class="'min-h-12 w-full rounded-button border bg-card px-3.5 text-[15px] '.($errors->has('city_id') ? 'border-danger' : 'border-chip-line')" />
             @error('city_id')
                 <p role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>
             @enderror

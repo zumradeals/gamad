@@ -25,7 +25,7 @@
     }
     $timings = ['Dès que possible', 'Cette semaine', 'Ce mois-ci', 'Dans plus d’un mois'];
     $visibilityLabels = [\App\Models\Publication::PUBLIC => 'Tout le monde', \App\Models\Publication::MEMBERS => 'Seulement les membres GAMAD'];
-    $cityLabel = $city_id !== '' ? $cities->firstWhere('id', $city_id)?->label() : null;
+    $cityLabel = $city_id !== '' ? \App\Models\City::query()->find($city_id)?->label() : null;
     $stepNow = $previewing ? 3 : $step;
     $profile = auth()->user()->ensureProfile();
     $canBack = $stepNow > 1;
@@ -87,10 +87,7 @@
             <section class="flex flex-col gap-4 rounded-card border border-line bg-card p-4">
                 <div class="flex flex-col gap-1.5">
                     <label for="city_id" class="text-[15px] font-extrabold">Où ? <span class="text-[13px] font-semibold text-muted">(facultatif)</span></label>
-                    <select id="city_id" wire:model="city_id" @class(['min-h-12 w-full rounded-button border bg-card px-3.5 text-[16px]', $errors->has('city_id') ? 'border-danger' : 'border-chip-line'])>
-                        <option value="">Aucun lieu précis</option>
-                        @foreach ($cities as $city)<option value="{{ $city->id }}">{{ $city->label() }}</option>@endforeach
-                    </select>
+                    <x-city-picker id="city_id" model="city_id" :value="$city_id" placeholder="Aucun lieu précis" :class="'min-h-12 w-full rounded-button border bg-card px-3.5 text-[16px] '.($errors->has('city_id') ? 'border-danger' : 'border-chip-line')" />
                     @error('city_id')<p role="alert" class="text-[13px] font-semibold text-danger">{{ $message }}</p>@enderror
                     <p class="text-[12px] text-muted">{{ $profileHasCity ? 'Repris de votre profil. Vous pouvez le changer.' : 'Choisissez une ville, ou renseignez la vôtre dans votre profil.' }}</p>
                 </div>
