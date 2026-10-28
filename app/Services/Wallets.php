@@ -121,11 +121,12 @@ class Wallets
 
     /**
      * Un compte ne disparaît pas avec de l'argent dedans (D-172) : il n'y a ni retrait ni transfert. Vaut aussi pour la dernière
-     * personne d'une ZUMRA, puisque la ZUMRA disparaît avec elle.
+     * personne d'une ZUMRA, puisque la ZUMRA disparaît avec elle. Les portefeuilles sont verrouillés (comme dans `post()`) : sous la
+     * transaction de fermeture, un mouvement concurrent attend le verdict au lieu de passer entre le contrôle et la suppression.
      */
     public function assertAccountCanBeDeleted(User $user): void
     {
-        $own = Wallet::query()->where(['owner_type' => Wallet::PERSON, 'owner_id' => $user->getKey()])->first();
+        $own = Wallet::query()->where(['owner_type' => Wallet::PERSON, 'owner_id' => $user->getKey()])->lockForUpdate()->first();
 
         if ($own && $this->balance($own) > 0) {
             throw WalletException::notEmpty();
@@ -136,7 +137,7 @@ class Wallets
             ->whereDoesntHave('memberships', fn ($q) => $q->where('user_id', '!=', $user->getKey()))
             ->pluck('id');
 
-        foreach (Wallet::query()->where('owner_type', Wallet::ZUMRA)->whereIn('owner_id', $alone)->get() as $wallet) {
+        foreach (Wallet::query()->where('owner_type', Wallet::ZUMRA)->whereIn('owner_id', $alone)->lockForUpdate()->get() as $wallet) {
             if ($this->balance($wallet) > 0) {
                 throw WalletException::zumraNotEmpty();
             }

@@ -56,14 +56,14 @@ it('nomme une publication par son extrait et son auteur', function () {
 
 it('nomme un compte supprimé sans planter', function () {
     AdminJournal::record($this->mod, 'person.notice_issued', $this->awa, 'Motif.', ['delai_jours' => 7]);
-    $this->awa->delete();
+    fermerCompte($this->awa);
 
     Livewire::actingAs($this->mod)->test(JournalAdministration::class)->assertSeeText('un compte supprimé')->assertSeeText('Délai pour s’expliquer : 7 jours');
 });
 
 it('garde l’acteur lisible après la suppression de son compte', function () {
     AdminJournal::record($this->mod, 'report.dismissed', null, 'Rien à signaler.');
-    $this->mod->delete();
+    fermerCompte($this->mod);
 
     Livewire::actingAs($this->admin)->test(JournalAdministration::class)->assertSeeText('Modératrice Une')->assertSeeText('a classé des signalements sans suite');
 });

@@ -2,8 +2,8 @@
 
 namespace App\Actions\Fortify;
 
+use App\Core\Identity\Credentials;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\ResetsUserPasswords;
@@ -25,8 +25,7 @@ class ResetUserPassword implements ResetsUserPasswords
             'password' => $this->passwordRules(),
         ])->validate();
 
-        $user->forceFill([
-            'password' => Hash::make($input['password']),
-        ])->save();
+        // Le nouveau mot de passe révoque toutes les sessions ouvertes et laisse une trace (Core\Identity).
+        app(Credentials::class)->reset($user, $input['password']);
     }
 }

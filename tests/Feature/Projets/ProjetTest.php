@@ -247,7 +247,7 @@ it('refuse le changement d’état à un responsable de la ZUMRA, à une autre p
 
 it('garde la trace d’un changement d’état sans le nom d’une personne dont le compte a disparu', function () {
     $p = projet($this->membre, $this->zumra);
-    $this->membre->delete();
+    fermerCompte($this->membre);
 
     $trace = ProjectStateChange::query()->where('project_id', $p->id)->sole();
     expect($trace->user_id)->toBeNull();

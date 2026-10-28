@@ -260,7 +260,7 @@ it('efface les messages d’une personne qui supprime son compte et garde ceux d
 
 it('ne permet plus d’écrire à une personne qui a supprimé son compte', function () {
     $conversation = conversationDe($this->auteur, $this->aidant, $this->besoin);
-    $this->aidant->delete();
+    fermerCompte($this->aidant);
 
     $conversation = $conversation->fresh();
 
@@ -272,10 +272,10 @@ it('supprime la conversation quand les deux personnes ont supprimé leur compte,
     $conversation = conversationDe($this->auteur, $this->aidant, $this->besoin);
     ecrire($this->auteur, $conversation, 'Bonjour');
 
-    $this->auteur->delete();
+    fermerCompte($this->auteur);
     expect(Conversation::count())->toBe(1);
 
-    $this->aidant->delete();
+    fermerCompte($this->aidant);
     expect(Conversation::count())->toBe(0)->and(Message::count())->toBe(0);
 });
 
@@ -283,7 +283,7 @@ it('affiche « Publication supprimée » quand le besoin n’existe plus, la con
     $conversation = conversationDe($this->auteur, $this->aidant, $this->besoin);
     ecrire($this->aidant, $conversation, 'Je suis disponible samedi');
 
-    $this->auteur->delete();
+    fermerCompte($this->auteur);
 
     $page = pageConversation($this->aidant, $conversation->fresh());
     $page->assertSeeText('Publication supprimée')->assertSeeText('Personne supprimée')->assertSeeText('Je suis disponible samedi');
@@ -292,7 +292,7 @@ it('affiche « Publication supprimée » quand le besoin n’existe plus, la con
 it('ne laisse aucun geste accepté orphelin : la suppression du compte de l’auteur supprime ses publications et gestes (D-097)', function () {
     conversationDe($this->auteur, $this->aidant, $this->besoin);
 
-    $this->auteur->delete();
+    fermerCompte($this->auteur);
 
     expect(Publication::count())->toBe(0)->and(Gesture::where('state', GestureState::Accepted->value)->count())->toBe(0);
 });

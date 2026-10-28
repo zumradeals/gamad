@@ -165,7 +165,7 @@ it('nettoie les liens à la suppression du compte et conserve la conversation ch
     $this->people->request($this->a, $this->b, 'Bonjour');
     $this->people->decide($this->b, $this->a, 'accept', PersonConnection::sole()->revision);
     $this->people->follow($this->a, $this->b, true);
-    $this->a->delete();
+    fermerCompte($this->a);
     expect(PersonConnection::count())->toBe(0)->and(DB::table('person_follows')->count())->toBe(0)->and(Conversation::count())->toBe(1);
     $this->actingAs($this->b)->get(route('conversations.show', Conversation::sole()))->assertOk();
 });

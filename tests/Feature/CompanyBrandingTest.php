@@ -168,7 +168,7 @@ it('retire les deux visuels privés quand l’entreprise est supprimée avec son
     ]);
     $paths = [$updated->logo_path, $updated->banner_path];
 
-    $owner->delete();
+    fermerCompte($owner);
 
     foreach ($paths as $path) {
         Storage::disk('local')->assertMissing($path);

@@ -179,7 +179,7 @@ it('n’affiche aucune adresse e-mail ni numéro de téléphone', function () {
 
 it('affiche « Personne supprimée » quand la personne à l’origine de la notification a supprimé son compte', function () {
     geste($this->aidant, $this->besoin);
-    $this->aidant->delete();
+    fermerCompte($this->aidant);
 
     Livewire::actingAs($this->auteur)->test(PageNotifications::class)->assertSeeText('Personne supprimée');
 });

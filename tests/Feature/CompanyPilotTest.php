@@ -162,7 +162,7 @@ it('efface les pièces privées quand le compte propriétaire est supprimé', fu
     $company = pilotCompany($owner);
     $path = $company->documents()->sole()->private_path;
 
-    $owner->delete();
+    fermerCompte($owner);
 
     Storage::disk('local')->assertMissing($path);
     expect(Company::whereKey($company->id)->exists())->toBeFalse();

@@ -39,6 +39,24 @@ class Company extends Model
         });
     }
 
+    /**
+     * Tous les fichiers du disque local qui n'existent que pour cette entreprise : pièces justificatives, logo, bannière, images de
+     * services et CV reçus par ses opportunités. Sert à la fermeture d'un compte propriétaire (les lignes partent par cascade SQL,
+     * sans événement du modèle).
+     *
+     * @return list<string>
+     */
+    public function storedFilePaths(): array
+    {
+        return array_values(array_filter([
+            ...$this->documents()->pluck('private_path')->all(),
+            $this->logo_path,
+            $this->banner_path,
+            ...collect($this->services ?? [])->pluck('image_path')->all(),
+            ...OpportunityResponse::query()->whereIn('opportunity_id', $this->allOpportunities()->select('id'))->whereNotNull('attachment_path')->pluck('attachment_path')->all(),
+        ]));
+    }
+
     public function getRouteKeyName(): string
     {
         return 'slug';

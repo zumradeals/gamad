@@ -2,9 +2,17 @@
 
 namespace App\Providers;
 
+use App\Core\Files\FilePurger;
+use App\Core\Identity\AccountCloser;
+use App\Core\Identity\Sessions;
 use App\Models\OpportunityResponse;
 use App\Models\User;
 use App\Policies\OpportunityPolicy;
+use App\Services\AccountClosure\ConversationsClosure;
+use App\Services\AccountClosure\FilesClosure;
+use App\Services\AccountClosure\ProfileClosure;
+use App\Services\AccountClosure\WalletsClosure;
+use App\Services\AccountClosure\ZumrasClosure;
 use App\Services\Backup\RcloneProbe;
 use App\Services\Backup\StorageProbe;
 use App\Services\Settings;
@@ -18,6 +26,18 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(Settings::class);
         $this->app->bind(StorageProbe::class, RcloneProbe::class);
+        $this->app->singleton(FilePurger::class);
+        $this->app->singleton(Sessions::class);
+
+        // Fermeture d'un compte : l'ordre est explicite et fait partie du comportement. Le contrôle du portefeuille passe d'abord ;
+        // la fondation des ZUMRA est transmise avant la suppression ; les conversations sont nettoyées en dernier.
+        $this->app->singleton(AccountCloser::class, fn ($app) => new AccountCloser([
+            $app->make(WalletsClosure::class),
+            $app->make(ProfileClosure::class),
+            $app->make(FilesClosure::class),
+            $app->make(ZumrasClosure::class),
+            $app->make(ConversationsClosure::class),
+        ], $app->make(FilePurger::class)));
     }
 
     public function boot(): void

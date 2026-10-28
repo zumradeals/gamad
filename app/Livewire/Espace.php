@@ -2,8 +2,9 @@
 
 namespace App\Livewire;
 
+use App\Core\Identity\AccountCloser;
+use App\Core\Identity\Closure\AccountClosureRefused;
 use App\Enums\PublicationType;
-use App\Exceptions\WalletException;
 use App\Models\Conversation;
 use App\Models\PersonConnection;
 use App\Models\Profile;
@@ -130,27 +131,22 @@ class Espace extends Component
         }
 
         try {
-            app(Wallets::class)->assertAccountCanBeDeleted($user);
-        } catch (WalletException $e) {
-            throw ValidationException::withMessages(['password' => $e->getMessage()]);
+            DB::transaction(function () use ($user) {
+                // Les actes d'un modérateur ou du super administrateur sont toujours tracés (CLAUDE.md, règle 8) : dans la même
+                // transaction que la fermeture, donc annulés avec elle si elle est refusée.
+                if ($user->can('moderate')) {
+                    AdminJournal::record($user, 'account.deleted_by_owner', $user, payload: ['role' => $user->platform_role->value]);
+                }
+
+                // Une instance distincte de celle du garde d'authentification : la déconnexion ci-dessous renouvelle le jeton « se
+                // souvenir de moi » et enregistre cette dernière ; sur une instance supprimée, l'enregistrement recréerait le compte.
+                app(AccountCloser::class)->close(User::query()->findOrFail($user->getKey()));
+            });
+        } catch (AccountClosureRefused $refusal) {
+            throw ValidationException::withMessages(['password' => $refusal->getMessage()]);
         }
 
-        DB::transaction(function () use ($user) {
-            // Les actes d'un modérateur ou du super administrateur sont toujours tracés (CLAUDE.md, règle 8).
-            if ($user->can('moderate')) {
-                AdminJournal::record($user, 'account.deleted_by_owner', $user, payload: ['role' => $user->platform_role->value]);
-            }
-
-            // Aucun jeton de réinitialisation ne survit au compte : il est rattaché à l'adresse e-mail, non à l'identifiant.
-            DB::table('password_reset_tokens')->whereRaw('lower(email) = ?', [mb_strtolower($user->email)])->delete();
-
-            // Ni adresse IP ni navigateur ne survivent au compte : toutes ses sessions sont effacées (D-048).
-            DB::table('sessions')->where('user_id', $user->id)->delete();
-
-            Auth::guard('web')->logout();
-            $user->delete();
-        });
-
+        Auth::guard('web')->logout();
         session()->invalidate();
         session()->regenerateToken();
 

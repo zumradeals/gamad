@@ -246,6 +246,6 @@ it('retire le remerciement avec le besoin ou la personne remerciée supprimant s
     remerciements()->resolveAndThank($this->auteur, $this->besoin, $this->aidant->id, 'Merci');
     expect(Gratitude::count())->toBe(1);
 
-    $this->aidant->delete();
+    fermerCompte($this->aidant);
     expect(Gratitude::count())->toBe(0);
 });

@@ -486,6 +486,7 @@
                 <x-button variant="secondary" class="!text-[13px]"><x-icon name="logout" :size="18" class="mr-2" />Se déconnecter</x-button>
             </form>
         </section>
+        <livewire:mon-acces />
         <livewire:consentement-publicite />
         <details wire:ignore.self class="space-panel group" @if ($errors->has('password')) open @endif x-data="{ confirming: {{ $errors->has('password') ? 'true' : 'false' }} }">
             <summary class="space-delete-summary">

@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Identity\Closure\AccountClosureRefused;
 use App\Enums\LedgerKind;
 use App\Enums\ZumraRole;
 use App\Exceptions\ImmutableRecordException;
@@ -344,9 +345,10 @@ it('ferme le portefeuille vide d’une ZUMRA qui disparaît avec son dernier mem
     expect($wz->fresh()->isClosed())->toBeTrue();
 });
 
-it('garde le filet de sécurité : le modèle refuse aussi de supprimer un compte au portefeuille non vide', function () {
+it('garde le filet de sécurité : la fermeture refuse un compte au portefeuille non vide, et le modèle refuse toute suppression directe', function () {
     portefeuilles()->post(portefeuilles()->forPerson($this->awa), LedgerKind::Recharge, 50);
 
-    expect(fn () => $this->awa->delete())->toThrow(WalletException::class);
+    expect(fn () => fermerCompte($this->awa))->toThrow(AccountClosureRefused::class);
+    expect(fn () => $this->awa->delete())->toThrow(LogicException::class);
     expect(User::find($this->awa->id))->not->toBeNull();
 });

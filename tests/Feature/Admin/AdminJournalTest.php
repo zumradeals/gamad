@@ -58,7 +58,7 @@ it('conserve l’entrée et le nom de l’acteur quand son compte est supprimé'
     $admin = User::factory()->superAdmin()->create(['name' => 'Ancien modérateur']);
     $entry = AdminJournal::record($admin, 'test.action');
 
-    $admin->delete();
+    fermerCompte($admin);
 
     $kept = AdminAction::find($entry->id);
     expect($kept)->not->toBeNull()

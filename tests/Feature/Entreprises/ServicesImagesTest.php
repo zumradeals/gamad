@@ -92,7 +92,7 @@ it('efface l’image d’une fiche retirée de la vitrine et celles de la page s
     Storage::disk('local')->assertExists($un);
     Storage::disk('local')->assertMissing($deux);
 
-    $this->owner->delete();
+    fermerCompte($this->owner);
     Storage::disk('local')->assertMissing($un);
 });
 
