@@ -555,7 +555,7 @@ it('garantit en base qu’une suspension a toujours un motif', function () {
 it('efface l’avis avec le compte mais garde la trace au journal', function () {
     avis($this->mod, $this->awa);
 
-    $this->awa->delete();
+    fermerCompte($this->awa);
 
     expect(ModerationNotice::query()->count())->toBe(0)->and(AdminAction::query()->where('action', 'person.notice_issued')->count())->toBe(1);
 });

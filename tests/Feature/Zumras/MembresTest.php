@@ -158,7 +158,7 @@ it('passe la fondation au responsable le plus ancien, informe la personne et ins
     ZumraMembership::query()->where('user_id', $this->resp2->id)->update(['joined_at' => now()->subDays(5)]);
     ZumraMembership::query()->where('user_id', $this->awa->id)->update(['joined_at' => now()->subDays(20)]);
 
-    $this->yao->delete();
+    fermerCompte($this->yao);
 
     expect(Zumra::query()->whereKey($this->zumra->id)->exists())->toBeTrue()
         ->and($this->zumra->roleOf($this->resp))->toBe(ZumraRole::Founder)->and($this->zumra->roleOf($this->resp2))->toBe(ZumraRole::Manager)
@@ -180,7 +180,7 @@ it('passe la fondation au membre le plus ancien quand il n’y a pas de responsa
     ZumraMembership::query()->where('user_id', $premier->id)->update(['joined_at' => now()->subDays(9)]);
     ZumraMembership::query()->where('user_id', $second->id)->update(['joined_at' => now()->subDays(2)]);
 
-    $this->awa->delete();
+    fermerCompte($this->awa);
 
     expect($seule->roleOf($premier))->toBe(ZumraRole::Founder)->and($seule->roleOf($second))->toBe(ZumraRole::Member);
 });
@@ -188,7 +188,7 @@ it('passe la fondation au membre le plus ancien quand il n’y a pas de responsa
 it('supprime la ZUMRA quand le fondateur est seul, sans rien inscrire au journal', function () {
     $seule = zumra($this->awa, 'Petite ZUMRA');
 
-    $this->awa->delete();
+    fermerCompte($this->awa);
 
     expect(Zumra::query()->whereKey($seule->id)->exists())->toBeFalse()->and(AdminAction::query()->where('action', 'zumra.founder_transferred')->count())->toBe(0);
 });
@@ -198,7 +198,7 @@ it('traite chaque ZUMRA du fondateur qui supprime son compte', function () {
     ajouteMembre($deuxieme, $this->moussa);
     $troisieme = zumra($this->yao, 'Troisième ZUMRA');
 
-    $this->yao->delete();
+    fermerCompte($this->yao);
 
     expect($this->zumra->roleOf($this->resp))->toBe(ZumraRole::Founder)->and($deuxieme->roleOf($this->moussa))->toBe(ZumraRole::Founder)
         ->and(Zumra::query()->whereKey($troisieme->id)->exists())->toBeFalse();
@@ -206,10 +206,10 @@ it('traite chaque ZUMRA du fondateur qui supprime son compte', function () {
 
 it('ne change rien quand c’est un simple membre qui supprime son compte, et efface ses demandes et invitations', function () {
     app(JoinRequests::class)->propose($this->awa->fresh(), zumra(User::factory()->create(), 'Autre ZUMRA'));
-    $this->moussa->delete();
+    fermerCompte($this->moussa);
 
     expect($this->zumra->roleOf($this->yao))->toBe(ZumraRole::Founder)->and($this->zumra->memberships()->count())->toBe(4);
-    $this->awa->delete();
+    fermerCompte($this->awa);
     expect(JoinRequest::count())->toBe(0)->and(Invitation::count())->toBe(0);
 });
 
@@ -221,7 +221,7 @@ it('supprime le compte par l’écran Espace avec la même règle', function () 
 });
 
 it('annonce le transfert de la fondation dans les notifications, sans nom de personne', function () {
-    $this->yao->delete();
+    fermerCompte($this->yao);
 
     Livewire::actingAs($this->resp)->test(PageNotifications::class)
         ->assertSeeText('La fondation de « Couture solidaire » vous a été confiée')->assertDontSeeText('Personne supprimée');

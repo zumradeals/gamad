@@ -283,7 +283,7 @@ it('garantit en base un seul soutien par personne et par avancée, et supprime l
     expect(fn () => DB::transaction(fn () => DB::table('publication_supports')->insert(['id' => (string) Str::uuid(), 'publication_id' => $p->id, 'user_id' => $this->dehors->id, 'created_at' => now()])))->toThrow(QueryException::class);
 
     app(Supports::class)->support($this->membre, $p);
-    $this->dehors->delete();
+    fermerCompte($this->dehors);
     expect(PublicationSupport::count())->toBe(1);
 
     $p->delete();

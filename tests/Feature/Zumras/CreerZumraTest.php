@@ -203,7 +203,7 @@ it('supprime la ZUMRA d’une personne qui supprime son compte quand elle est se
     $z = creer($this->yao);
     $autre = creer(User::factory()->create(), ['name' => 'Autre ZUMRA']);
 
-    $this->yao->delete();
+    fermerCompte($this->yao);
 
     expect(Zumra::query()->whereKey($z->id)->exists())->toBeFalse()->and(Zumra::query()->whereKey($autre->id)->exists())->toBeTrue();
     expect(ZumraMembership::query()->where('zumra_id', $z->id)->count())->toBe(0);

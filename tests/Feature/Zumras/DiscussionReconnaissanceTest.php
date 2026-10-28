@@ -125,7 +125,7 @@ it('perd l’accès à la Discussion en quittant la ZUMRA, et supprime les messa
     expect(fn () => app(ZumraPosts::class)->post($this->membre, $this->zumra, 'Après'))->toThrow(AuthorizationException::class);
     $this->actingAs($this->membre)->get(route('zumras.show', $this->zumra).'?onglet=discussion')->assertNotFound();
 
-    $this->membre->delete();
+    fermerCompte($this->membre);
     expect(ZumraPost::count())->toBe(0);
 });
 

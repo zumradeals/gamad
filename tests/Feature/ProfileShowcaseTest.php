@@ -130,7 +130,7 @@ it('supprime les fichiers lorsque leur publication ou leur compte est supprimé'
     Storage::disk('local')->assertMissing($path);
     $post = app(Publications::class)->publish($this->a, PublicationType::Share, ['body' => 'Un autre dessin', 'media' => UploadedFile::fake()->image('dessin.png')]);
     $path = $post->media_path;
-    $this->a->delete();
+    fermerCompte($this->a);
     Storage::disk('local')->assertMissing($path);
 });
 

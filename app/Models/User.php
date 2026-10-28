@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
+use App\Core\Identity\AccountCloser;
 use App\Enums\PlatformRole;
-use App\Services\Memberships;
-use App\Services\Wallets;
 use App\Support\Normalizer;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -19,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\DB;
+use LogicException;
 
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
@@ -43,41 +43,12 @@ class User extends Authenticatable implements MustVerifyEmail
         // Chaque personne a un profil dès son inscription.
         static::created(fn (User $user) => $user->profile()->create());
 
-        // Aucune photo ne survit au compte (données personnelles).
+        // Un compte ne se supprime que par AccountCloser::close() : contrôles préalables, transfert de fondation, fichiers, journal.
+        // Une suppression directe contournerait ces garanties (D-172 : aucun compte ne disparaît avec des ZAHAB).
         static::deleting(function (User $user) {
-            // Filet de sécurité : aucun compte ne disparaît avec des ZAHAB dedans (D-172). Le formulaire le vérifie avant, avec un message.
-            app(Wallets::class)->assertAccountCanBeDeleted($user);
-
-            $user->profile?->deletePhotoFile();
-            // Les CV joints à ses candidatures disparaissent avec elle (les lignes partent par cascade, sans événement).
-            OpportunityResponse::deleteAttachmentsOf(OpportunityResponse::query()->where('user_id', $user->id));
-            Company::where('owner_id', $user->id)->with('documents')->get()->each(fn (Company $company) => $company->delete());
-            Publication::query()->where('author_id', $user->id)->whereNotNull('media_path')->each(fn (Publication $post) => $post->deleteMediaFile());
-
-            // Fondateur d'une ZUMRA : la fondation passe à un autre membre, ou la ZUMRA disparaît s'il n'y en a pas (D-115).
-            app(Memberships::class)->passFoundationFrom($user);
-
-            // La prochaine action privée ne survit pas au départ d'un de ses deux participants (D-184).
-            Conversation::query()->where(fn ($q) => $q->where('owner_id', $user->getKey())->orWhere('helper_id', $user->getKey()))
-                ->update(['next_action' => null, 'next_action_date' => null, 'next_action_by' => null, 'next_action_confirmed_at' => null]);
-
-            // Ses messages sont effacés : le corps disparaît, la conversation affichera « Message supprimé » (D-097).
-            Message::query()->where('sender_id', $user->getKey())->update(['body' => null]);
-        });
-
-        // Une conversation dont les deux personnes ont disparu n'intéresse plus personne.
-        static::deleted(function (User $user) {
-            Conversation::query()->whereNull('owner_id')->whereNull('helper_id')->delete();
-
-            // Les portefeuilles du titulaire disparu sont fermés ; leur registre reste, en ajout seul.
-            $wallets = app(Wallets::class);
-            $wallets->closeFor(Wallet::PERSON, $user->getKey());
-
-            // Une ZUMRA sans personne est supprimée avec son dernier compte.
-            foreach (Zumra::query()->withoutMembers()->pluck('id') as $zumraId) {
-                $wallets->closeFor(Wallet::ZUMRA, $zumraId);
+            if (! app(AccountCloser::class)->isClosing($user)) {
+                throw new LogicException('Un compte se ferme par AccountCloser::close(), jamais par delete().');
             }
-            Zumra::query()->withoutMembers()->delete();
         });
     }
 

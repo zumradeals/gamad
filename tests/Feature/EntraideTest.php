@@ -203,7 +203,7 @@ it('efface l’action courante au départ d’un participant et ne recopie pas s
     $actions = app(ConversationActions::class);
     $actions->propose($this->author, $conversation, 'Texte personnel à effacer', null, 0);
     $actions->confirm($this->helper, $conversation, 1);
-    $this->author->delete();
+    fermerCompte($this->author);
     expect($conversation->fresh()->next_action)->toBeNull()->and($conversation->fresh()->next_action_date)->toBeNull()->and($conversation->fresh()->next_action_by)->toBeNull();
     expect(Message::query()->where('body', 'like', '%Texte personnel%')->count())->toBe(0);
     expect(fn () => $actions->propose($this->helper, $conversation, 'Impossible', null, 2))->toThrow(AuthorizationException::class);

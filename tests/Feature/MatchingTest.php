@@ -221,7 +221,7 @@ it('ne se propose pas soi-même et ne conserve aucun reçu après suppression du
     expect($this->engine->suggestions($this->helper))->toBeEmpty();
     matchingPublication($this->author);
     expect(MatchSuggestion::count())->toBe(1);
-    $this->helper->delete();
+    fermerCompte($this->helper);
     expect(MatchSuggestion::count())->toBe(0);
 });
 

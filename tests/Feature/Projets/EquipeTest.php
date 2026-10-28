@@ -168,7 +168,7 @@ it('supprime l’équipe, les invitations et les demandes avec le projet, et la 
     publie($this->projet, $this->yao);
     app(ParticipationRequests::class)->propose($this->dehors, $this->projet);
 
-    $this->awa->delete();
+    fermerCompte($this->awa);
     expect(ProjectMember::count())->toBe(0);
 
     $this->projet->delete();

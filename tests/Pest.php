@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Identity\AccountCloser;
 use App\Enums\PublicationType;
 use App\Enums\ZumraRole;
 use App\Livewire\MondeZumra;
@@ -29,6 +30,12 @@ use Tests\TestCase;
 
 require_once __DIR__.'/Helpers/portefeuilles.php';
 require_once __DIR__.'/Helpers/contributions.php';
+
+/** Ferme un compte par la seule porte qui existe (Core\Identity) : contrôles, transferts, fichiers, journal. */
+function fermerCompte(User $user): void
+{
+    app(AccountCloser::class)->close($user);
+}
 
 /** Bascule le test dans l'expérience historique (modules gelés, navigation d'avant D-183). */
 function legacyExperience(): void

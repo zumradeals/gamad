@@ -139,6 +139,6 @@ it('annonce le nombre de nouveaux messages dans l’administration du Président
 it('supprime le lien au compte sans supprimer le message quand le compte est supprimé', function () {
     $moi = User::factory()->create();
     $m = ContactMessage::create(['user_id' => $moi->getKey(), 'name' => 'A', 'email' => 'a@a.test', 'subject' => 'other', 'body' => 'Un message.']);
-    $moi->delete();
+    fermerCompte($moi);
     expect($m->fresh()->user_id)->toBeNull();
 });

@@ -437,7 +437,7 @@ it('efface le CV d’un candidat quand son compte est supprimé, et seulement le
     $sien = OpportunityResponse::where('user_id', $candidat->id)->value('attachment_path');
     $autrui = OpportunityResponse::where('user_id', $autre->id)->value('attachment_path');
 
-    $candidat->delete();
+    fermerCompte($candidat);
 
     Storage::disk('local')->assertMissing($sien);
     Storage::disk('local')->assertExists($autrui);
@@ -468,7 +468,7 @@ it('efface les CV reçus quand le propriétaire de l’entreprise supprime son c
     $path = OpportunityResponse::sole()->attachment_path;
 
     DB::table('user_notifications')->update(['opportunity_id' => null]);
-    $this->owner->delete();
+    fermerCompte($this->owner);
 
     Storage::disk('local')->assertMissing($path);
 });

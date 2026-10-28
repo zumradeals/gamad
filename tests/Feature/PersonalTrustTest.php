@@ -251,7 +251,7 @@ it('supprime les dossiers et références avec les comptes ou publications conce
     $this->trust->report($this->stranger, $this->author, $row, 'reference', 'Une référence à examiner.');
     $row->publication->delete();
     expect(WorkAttestation::count())->toBe(0)->and(TrustReport::count())->toBe(0);
-    $this->witness->delete();
+    fermerCompte($this->witness);
     expect(IdentityVerification::count())->toBe(0);
 });
 
