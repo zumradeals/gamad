@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Execution\BackgroundRunner;
 use App\Core\Identity\AccountCloser;
 use App\Enums\PublicationType;
 use App\Enums\ZumraRole;
@@ -30,6 +31,13 @@ use Tests\TestCase;
 
 require_once __DIR__.'/Helpers/portefeuilles.php';
 require_once __DIR__.'/Helpers/contributions.php';
+require_once __DIR__.'/Helpers/matching.php';
+
+/** Fait avancer, jusqu'au bout, les tâches en attente du Core (recherches de correspondances) : ce que fait le traitement après réponse. */
+function drainMatching(): int
+{
+    return app(BackgroundRunner::class)->run(10000, 120);
+}
 
 /** Ferme un compte par la seule porte qui existe (Core\Identity) : contrôles, transferts, fichiers, journal. */
 function fermerCompte(User $user): void

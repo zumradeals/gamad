@@ -2,9 +2,16 @@
 
 namespace App\Providers;
 
+use App\Core\Execution\BackgroundRunner;
 use App\Core\Files\FilePurger;
 use App\Core\Identity\AccountCloser;
 use App\Core\Identity\Sessions;
+use App\Events\Matching\PersonBlockChanged;
+use App\Events\Matching\PersonSuspensionChanged;
+use App\Events\Matching\ProfileMatchingChanged;
+use App\Events\Matching\ProfileSkillsChanged;
+use App\Events\Matching\PublicationMatchingChanged;
+use App\Listeners\MatchingSubscriber;
 use App\Models\OpportunityResponse;
 use App\Models\User;
 use App\Policies\OpportunityPolicy;
@@ -16,6 +23,8 @@ use App\Services\AccountClosure\ZumrasClosure;
 use App\Services\Backup\RcloneProbe;
 use App\Services\Backup\StorageProbe;
 use App\Services\Settings;
+use Illuminate\Queue\Events\JobFailed;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -28,6 +37,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(StorageProbe::class, RcloneProbe::class);
         $this->app->singleton(FilePurger::class);
         $this->app->singleton(Sessions::class);
+        $this->app->singleton(BackgroundRunner::class);
 
         // Fermeture d'un compte : l'ordre est explicite et fait partie du comportement. Le contrôle du portefeuille passe d'abord ;
         // la fondation des ZUMRA est transmise avant la suppression ; les conversations sont nettoyées en dernier.
@@ -45,6 +55,20 @@ class AppServiceProvider extends ServiceProvider
         if (! $this->isBuildingConfigCache()) {
             $this->app->make(Settings::class)->applyToConfig();
         }
+
+        // Échec définitif d'une tâche pendant un passage du lanceur du Core : consigné dans `failed_jobs`, comme le fait `queue:work`.
+        Event::listen(JobFailed::class, function (JobFailed $event) {
+            if (BackgroundRunner::working()) {
+                app('queue.failer')->log($event->connectionName, $event->job->getQueue(), $event->job->getRawBody(), $event->exception);
+            }
+        });
+
+        // Matching : protections immédiates et recherches confiées à l'exécution (voir MatchingSubscriber).
+        Event::listen(PublicationMatchingChanged::class, [MatchingSubscriber::class, 'publication']);
+        Event::listen(ProfileMatchingChanged::class, [MatchingSubscriber::class, 'profile']);
+        Event::listen(ProfileSkillsChanged::class, [MatchingSubscriber::class, 'skills']);
+        Event::listen(PersonBlockChanged::class, [MatchingSubscriber::class, 'block']);
+        Event::listen(PersonSuspensionChanged::class, [MatchingSubscriber::class, 'suspension']);
 
         Password::defaults(fn () => Password::min(8));
 

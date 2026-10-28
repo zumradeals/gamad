@@ -10,6 +10,7 @@
     @elseif (! $preferences['available'])
         <p class="mt-3 text-[14px] text-muted">Vous avez indiqué être indisponible. Vos suggestions sont en pause jusqu’à votre changement de préférence.</p>
     @else
+        <div class="mt-3"><livewire:search-status kind="person" key="search-person" /></div>
         <div class="mt-3 flex flex-col gap-3">
         @forelse ($items as $item)
             <article wire:key="match-{{ $item['suggestion']->id }}" class="min-w-0 rounded-card border border-line p-4">

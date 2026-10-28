@@ -139,7 +139,6 @@ class Publications
 
                 return $publication;
             });
-            app(Matching::class)->publicationChanged($published);
 
             return $published;
         } catch (\Throwable $error) {

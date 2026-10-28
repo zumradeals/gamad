@@ -91,6 +91,7 @@ use App\Livewire\ReversementsAdministration;
 use App\Livewire\SignalerProfil;
 use App\Livewire\SignalerPublication;
 use App\Livewire\SignalerZumra;
+use App\Livewire\TraitementsCore;
 use App\Models\Project;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -244,6 +245,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/espace/profil', ModifierProfil::class)->name('espace.profil');
     Route::get('/espace/parametres/identite', [BrandingController::class, 'edit'])->middleware('can:super-admin')->name('espace.parametres.identite');
     Route::post('/espace/parametres/identite', [BrandingController::class, 'save'])->middleware('can:super-admin')->name('espace.parametres.identite.save');
+    Route::get('/espace/traitements', TraitementsCore::class)->middleware('can:super-admin')->name('espace.traitements');
     Route::get('/espace/parametres', Parametres::class)->middleware('can:super-admin')->name('espace.parametres');
     Route::get('/espace/parametres/textes', ParametresTextes::class)->middleware('can:super-admin')->name('espace.parametres.textes');
     Route::get('/espace/parametres/zumra', ParametresZumra::class)->middleware('can:super-admin')->name('espace.parametres.zumra');

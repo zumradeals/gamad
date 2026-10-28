@@ -14,3 +14,11 @@ arch('le Core ne dépend ni des services, ni de l’interface, ni des modèles d
 arch('les participants à la fermeture implémentent l’interface du Core')
     ->expect('App\Services\AccountClosure')
     ->toImplement('App\Core\Identity\Closure\AccountClosureParticipant');
+
+arch('l’exécution du Core ne dépend ni du Social ni de ses événements ni de ses tâches')
+    ->expect('App\Core\Execution')
+    ->not->toUse(['App\Services', 'App\Livewire', 'App\Models', 'App\Jobs', 'App\Events', 'App\Listeners']);
+
+arch('les tâches du Matching passent par l’exécution du Core et par les services du Social, jamais par les modèles de la file')
+    ->expect('App\\Jobs\\Matching')
+    ->toImplement('Illuminate\\Contracts\\Queue\\ShouldQueue');

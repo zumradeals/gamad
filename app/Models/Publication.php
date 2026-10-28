@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\GestureState;
 use App\Enums\NeedState;
 use App\Enums\PublicationType;
+use App\Events\Matching\PublicationMatchingChanged;
 use App\Services\ContributionAccess;
 use App\Services\MatchingConditions;
 use App\Services\People;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -41,6 +43,15 @@ class Publication extends Model
     protected static function booted(): void
     {
         static::deleting(fn (Publication $publication) => $publication->deleteMediaFile());
+
+        // Matching : un changement qui peut rendre la publication éligible ou inéligible en informe le Matching, dans la même
+        // transaction (retraits immédiats) ; peu importe le chemin qui l'a provoqué (auteur, modération, accompagnement).
+        static::saved(function (Publication $publication) {
+            if ($publication->wasRecentlyCreated || $publication->wasChanged(['hidden_at', 'need_state', 'matching', 'visibility'])) {
+                $changed = array_keys(Arr::only($publication->getChanges(), ['hidden_at', 'need_state', 'matching', 'visibility']));
+                event(new PublicationMatchingChanged($publication, created: $publication->wasRecentlyCreated, before: $publication->wasRecentlyCreated ? [] : collect($changed)->mapWithKeys(fn (string $key) => [$key => $publication->getOriginal($key)])->all()));
+            }
+        });
     }
 
     public function deleteMediaFile(): void

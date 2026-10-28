@@ -21,17 +21,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 
-function matchingPreferences(User $user, array $changes = []): void
-{
-    $user->profile->update(['matching_preferences' => array_replace(MatchingConditions::defaults(), ['enabled' => true, 'intentions' => ['offer', 'teach', 'learn'], 'terms' => ['volunteer', 'paid', 'discuss'], 'remote' => true], $changes)]);
-    $user->unsetRelation('profile');
-}
-
-function matchingPublication(User $user, PublicationType $type = PublicationType::Need, array $changes = [], array $data = [])
-{
-    return app(Publications::class)->publish($user, $type, ['body' => 'Une occasion pour la couture', 'skills' => ['Couture'], 'matching' => array_replace(MatchingConditions::publicationDefaults($type), ['enabled' => true, 'remote' => true, 'terms' => 'volunteer'], $changes), ...$data]);
-}
-
 beforeEach(function () {
     config(['gamad.initial_experience' => true]);
     $this->author = person('Atelier de couture', ['Couture']);
@@ -183,7 +172,6 @@ it('permet de désactiver les alertes et limite les nouvelles alertes à cinq pa
     }
     expect(UserNotification::where('user_id', $this->helper->id)->where('kind', NotificationKind::MatchFound)->count())->toBe(5);
     matchingPreferences($this->helper, ['notify' => false]);
-    $this->engine->profileChanged($this->helper->id);
     matchingPublication($this->author);
     expect(UserNotification::where('user_id', $this->helper->id)->where('kind', NotificationKind::MatchFound)->count())->toBe(5);
 });
@@ -269,9 +257,7 @@ it('ne remet pas le plafond d’alertes à zéro en désactivant puis réactivan
         }
     }
     matchingPreferences($this->helper, ['notify' => false]);
-    $this->engine->profileChanged($this->helper->id);
     matchingPreferences($this->helper, ['notify' => true]);
-    $this->engine->profileChanged($this->helper->id);
     matchingPublication($this->author, data: ['body' => 'Sixième occasion']);
     expect(UserNotification::where('kind', NotificationKind::MatchFound)->count())->toBe(5)->and(UserNotification::where('kind', NotificationKind::MatchFound)->whereNull('read_at')->count())->toBe(0);
 });

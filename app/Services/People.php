@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\NotificationKind;
+use App\Events\Matching\PersonBlockChanged;
 use App\Models\Conversation;
 use App\Models\PersonConnection;
 use App\Models\User;
@@ -111,6 +112,7 @@ class People
             request()->attributes->remove('gamad.blocks.'.$other->id);
             if (! $block) {
                 DB::table('person_blocks')->where('user_id', $actor->id)->where('blocked_id', $other->id)->delete();
+                event(new PersonBlockChanged($actor, $other, false));
 
                 return;
             }
@@ -122,6 +124,8 @@ class People
                     ->orWhere(fn ($p) => $p->where('author_id', $other->id)->where('attester_id', $actor->id));
             })->whereIn('state', ['pending', 'confirmed'])->update(['state' => 'withdrawn', 'revision' => DB::raw('revision + 1'), 'reason' => 'Lien retiré à la suite d’un blocage.', 'updated_at' => now()]);
             $this->pair($actor, $other)->update(['state' => 'removed', 'note' => null, 'revision' => DB::raw('revision + 1')]);
+            // Les pistes qui rapprochaient ces deux personnes sont retirées tout de suite, dans la même transaction.
+            event(new PersonBlockChanged($actor, $other, true));
         });
     }
 

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Core\Identity\AccountCloser;
 use App\Enums\PlatformRole;
+use App\Events\Matching\PersonSuspensionChanged;
 use App\Support\Normalizer;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -37,6 +38,13 @@ class User extends Authenticatable implements MustVerifyEmail
             if ($user->isDirty('name')) {
                 IdentityVerification::where('user_id', $user->id)->whereIn('state', ['pending', 'verified'])
                     ->update(['state' => 'revoked', 'revision' => DB::raw('revision + 1'), 'reason' => 'Nom affiché modifié : un nouveau contrôle est nécessaire.', 'updated_at' => now()]);
+            }
+        });
+
+        // Matching : une suspension (ou sa levée) retire tout de suite les pistes qui concernent la personne.
+        static::saved(function (User $user) {
+            if ($user->wasChanged('suspended_at')) {
+                event(new PersonSuspensionChanged($user, $user->suspended_at !== null));
             }
         });
 
