@@ -35,6 +35,8 @@ class BackgroundRunner
 
     private static bool $working = false;
 
+    private static float $deadline = 0.0;
+
     private const LOCK = 'execution:runner';
 
     private const POLL_KEY = 'execution:poll';
@@ -46,6 +48,15 @@ class BackgroundRunner
     public static function working(): bool
     {
         return self::$working;
+    }
+
+    /**
+     * Temps qu'une tâche peut encore prendre dans le passage en cours : une tâche longue le lit pour rendre la main à temps (elle reprendra
+     * au curseur). Hors passage (commande, tests), `$default`. Le plafond du passage est coopératif : aucune tâche n'est interrompue de force.
+     */
+    public static function remaining(float $default): float
+    {
+        return self::$working ? max(0.5, min($default, self::$deadline - microtime(true))) : $default;
     }
 
     /** Une tâche d'une exécution précédente restée « réservée » (processus interrompu) redevient disponible après ce délai. */
@@ -102,6 +113,7 @@ class BackgroundRunner
         PHP_SAPI === 'cli' || @set_time_limit($seconds + 20);
         self::$working = true;
         $deadline = microtime(true) + $seconds;
+        self::$deadline = $deadline;
         $options = new WorkerOptions(name: 'opportuniste', backoff: 0, memory: 256, timeout: $seconds + 15, sleep: 0, maxTries: 5, stopWhenEmpty: true);
         /** @var Worker $worker */
         $worker = app('queue.worker');

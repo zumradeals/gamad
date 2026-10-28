@@ -29,6 +29,9 @@ Réutilise la file de Laravel (table `jobs`, `failed_jobs`) : persistance, rése
 worker permanent, `BackgroundRunner` fait avancer la file **après l'envoi des réponses web**, avec des limites : 8 secondes et 12 tâches par
 passage, un seul passage à la fois (verrou), un contrôle toutes les 5 secondes (immédiat pour la requête qui vient de confier une tâche).
 Aucune promesse de délai : sans visite, rien ne s'exécute avant la suivante ou la commande `gamad:traiter` (qu'un minuteur peut appeler).
+Le plafond de durée est **coopératif** : aucune tâche n'est interrompue de force. Une tâche longue se découpe donc elle-même en tranches bornées
+en candidats examinés (50) et en temps (`BackgroundRunner::remaining()`, 3 s au plus), reprises au curseur ; chaque tranche progresse d'un candidat
+au moins. Le verrou des passages a été éprouvé avec le cache `database` du déploiement (deux processus simultanés : un seul passe).
 
 - `Execution::dispatch($job)` : porte d'entrée (connexion `database` explicite, quel que soit `QUEUE_CONNECTION`). Une tâche utilise l'intergiciel
   `Instrumented` : chaque tentative est inscrite dans `execution_runs` (durée, issue, résultats chiffrés, sans sujet ni contenu).

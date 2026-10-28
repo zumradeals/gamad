@@ -7,6 +7,8 @@ use App\Enums\NotificationKind;
 use App\Enums\PublicationType;
 use App\Livewire\MatchSuggestions;
 use App\Livewire\PagePublication;
+use App\Livewire\SearchStatus;
+use App\Models\City;
 use App\Models\MatchingSearch;
 use App\Models\MatchSuggestion;
 use App\Models\Publication;
@@ -20,6 +22,7 @@ use App\Services\People;
 use App\Services\ProfileEditor;
 use App\Services\Publications;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 
 // Matching confié à l'exécution : recherches reprenables, états fidèles, retraits immédiats (sans traitement différé).
@@ -118,7 +121,10 @@ it('ne crée pas de doublon quand la même recherche est traitée deux fois', fu
     $rows = MatchSuggestion::count();
 
     app(Matching::class)->searchPublication($post->fresh());
-    app(Matching::class)->searchPerson($this->helper->fresh());
+    $cursor = null;
+    do {
+        $cursor = app(Matching::class)->searchPerson($this->helper->fresh(), $cursor)['cursor'];
+    } while ($cursor !== null);
 
     expect(MatchSuggestion::count())->toBe($rows)->and($rows)->toBe(2);
 });
@@ -364,12 +370,13 @@ it('permet de relancer une recherche indisponible, avec une limite', function ()
     $search = app(MatchingSearches::class)->request(MatchingSearches::FOR_PERSON, $this->helper->id);
     app(MatchingSearches::class)->fail($search->id, 'RuntimeException');
 
-    $page = Livewire::actingAs($this->helper)->test(MatchSuggestions::class)->assertSeeText('Recherche momentanément indisponible')->assertSeeText('Relancer la recherche');
-    $page->call('retrySearch')->assertSeeText('relancée');
+    Livewire::actingAs($this->helper)->test(MatchSuggestions::class)->assertSeeText('Recherche momentanément indisponible')->assertSeeText('Relancer la recherche');
+    $page = Livewire::actingAs($this->helper)->test(SearchStatus::class);
+    $page->call('retry')->assertSeeText('relancée');
     expect(MatchingSearch::query()->where('user_id', $this->helper->id)->where('state', 'queued')->count())->toBe(1);
 
     foreach (range(1, 3) as $_) {
-        $page->call('retrySearch');
+        $page->call('retry');
     }
     $page->assertSeeText('patienter');
 });
@@ -398,4 +405,146 @@ it('relance la recherche d’un besoin rouvert, sans réalerter', function () {
     drainMatching();
 
     expect(pistesVisibles($this->helper))->toBe(1)->and(UserNotification::where('user_id', $this->helper->id)->where('kind', NotificationKind::MatchFound)->count())->toBe(1);
+});
+
+// --- Recherches bornées : candidats examinés, temps, curseur -------------------------------------------------------------------
+
+function examinesBeaucoupTrouvePeu(object $test, int $posts = 130): void
+{
+    $cocody = City::where('name', 'Cocody')->firstOrFail();
+    $ailleurs = City::where('name', 'Bouaké')->firstOrFail();
+    matchingPreferences($test->helper, ['zones' => [$cocody->id], 'remote' => false]);
+    foreach (range(1, $posts) as $i) {
+        // Passe le tri SQL (compétence et conditions communes) mais pas les raisons : autre localité, pas à distance.
+        publierSansTraiter($test->author, changes: ['remote' => false], data: ['body' => "Besoin lointain $i", 'city_id' => $ailleurs->id]);
+    }
+    DB::table('jobs')->delete();
+    MatchingSearch::query()->delete();
+}
+
+it('borne la recherche d’une personne : beaucoup de candidats examinés, très peu de correspondances, par tranches reprises au curseur', function () {
+    examinesBeaucoupTrouvePeu($this);
+    $searches = app(MatchingSearches::class);
+    $runsBefore = ExecutionRun::query()->where('job', 'RunMatchingSearch')->count();
+
+    $search = $searches->request(MatchingSearches::FOR_PERSON, $this->helper->id);
+    $slices = 0;
+    while ($search->fresh()->isOpen() && $slices < 20) {
+        expect(app(BackgroundRunner::class)->run(1, 30))->toBe(1);
+        $slices++;
+    }
+
+    $examined = ExecutionRun::query()->where('job', 'RunMatchingSearch')->orderBy('ran_at')->get()->slice($runsBefore)->map(fn ($run) => $run->metrics['examined'] ?? 0);
+    expect($search->fresh()->state)->toBe(MatchingSearch::DONE)->and($search->fresh()->produced)->toBe(0)
+        ->and($examined->sum())->toBe(130)->and($examined->max())->toBeLessThanOrEqual(50)
+        ->and($slices)->toBeGreaterThanOrEqual(3)
+        ->and(MatchSuggestion::query()->where('user_id', $this->helper->id)->count())->toBe(0);
+});
+
+it('rend la main à temps : une tranche sans budget de temps examine un candidat puis reprend au curseur, sans jamais bloquer', function () {
+    examinesBeaucoupTrouvePeu($this, 12);
+    $engine = app(Matching::class);
+
+    $cursor = null;
+    $examined = 0;
+    $calls = 0;
+    do {
+        $slice = $engine->searchPerson($this->helper->fresh(), $cursor, 50, 0.0);
+        $examined += $slice['examined'];
+        $cursor = $slice['cursor'];
+        $calls++;
+    } while ($cursor !== null && $calls < 60);
+
+    // Chaque tranche progresse d'un candidat au moins ; 12 publications + les temps « mes publications » et « opportunités ».
+    expect($cursor)->toBeNull()->and($examined)->toBe(12)->and($calls)->toBeGreaterThanOrEqual(12)->and($calls)->toBeLessThanOrEqual(15);
+
+    $post = publierSansTraiter($this->author);
+    $cursor = null;
+    $calls = 0;
+    do {
+        $slice = $engine->searchPublication($post->fresh(), $cursor, 50, 0.0);
+        $cursor = $slice['cursor'];
+        $calls++;
+        expect($slice['examined'])->toBeLessThanOrEqual(1);
+    } while ($cursor !== null && $calls < 60);
+
+    expect($cursor)->toBeNull();
+});
+
+it('lit le temps restant du passage : celui du passage en cours, jamais plus que la tranche', function () {
+    expect(BackgroundRunner::remaining(3.0))->toBe(3.0);
+});
+
+it('délègue la recherche de personnes pour ses propres publications à des recherches découpées à leur tour', function () {
+    $own = publierSansTraiter($this->helper);
+    DB::table('jobs')->delete();
+    MatchingSearch::query()->delete();
+
+    app(MatchingSearches::class)->request(MatchingSearches::FOR_PERSON, $this->helper->id);
+    drainMatching();
+
+    expect(MatchingSearch::query()->where('publication_id', $own->id)->where('state', 'done')->count())->toBe(1)
+        ->and(MatchingSearch::query()->where('user_id', $this->helper->id)->where('state', 'done')->count())->toBe(1);
+});
+
+// --- États vivants : rafraîchissement léger, seulement tant que la recherche n'est pas terminée ------------------------------
+
+it('suit une recherche de « en attente » à « terminée » sans recharger la page, avec un rafraîchissement seulement pendant l’attente', function () {
+    $post = publierSansTraiter($this->author);
+    $searches = app(MatchingSearches::class);
+    $status = Livewire::actingAs($this->author)->test(SearchStatus::class, ['kind' => 'publication', 'subjectId' => $post->id]);
+
+    $status->assertSeeText('Recherche en attente')->assertSeeHtml('wire:poll.5s.visible')->assertNotDispatched('matching-search-updated');
+
+    $searches->begin(rechercheDe($post)->id);
+    $status->call('$refresh')->assertSeeText('Recherche en cours')->assertSeeHtml('wire:poll.5s.visible')->assertDispatched('matching-search-updated');
+
+    drainMatching();
+    $status->call('$refresh')->assertSeeText('Recherche terminée')->assertSeeText('1 piste à explorer')->assertDontSeeHtml('wire:poll');
+});
+
+it('suit les transitions vers « à reprendre » (rafraîchissement lent) puis « indisponible » (plus aucun rafraîchissement)', function () {
+    $post = publierSansTraiter($this->author);
+    $search = rechercheDe($post);
+    $searches = app(MatchingSearches::class);
+    $status = Livewire::actingAs($this->author)->test(SearchStatus::class, ['kind' => 'publication', 'subjectId' => $post->id]);
+
+    $searches->begin($search->id);
+    $searches->retrying($search->id, 'RuntimeException');
+    $status->call('$refresh')->assertSeeText('Recherche à reprendre')->assertSeeHtml('wire:poll.30s.visible')->assertDontSeeHtml('wire:poll.5s');
+
+    $searches->fail($search->id, 'RuntimeException');
+    $status->call('$refresh')->assertSeeText('Recherche momentanément indisponible')->assertDontSeeHtml('wire:poll')->assertSeeText('Relancer la recherche');
+});
+
+it('ne rafraîchit rien quand il n’y a aucune recherche ou qu’elle a été annulée', function () {
+    $post = publierSansTraiter($this->author);
+    app(Moderation::class)->hide(User::factory()->superAdmin()->create(), $post, 'Motif de recette');
+
+    Livewire::actingAs($this->author)->test(SearchStatus::class, ['kind' => 'publication', 'subjectId' => $post->id])->assertDontSeeHtml('wire:poll')->assertDontSeeHtml('data-testid="search-status"');
+    Livewire::actingAs($this->helper)->test(SearchStatus::class, ['kind' => 'person'])->assertDontSeeHtml('wire:poll');
+});
+
+it('recharge la liste de « Mes pistes » quand la recherche change d’état', function () {
+    $page = Livewire::actingAs($this->helper)->test(MatchSuggestions::class)->assertDontSeeText('Pourquoi cette suggestion');
+    matchingPublication($this->author);
+
+    $page->dispatch('matching-search-updated')->assertSeeText('Pourquoi cette suggestion');
+});
+
+it('montre l’état dans la page de la publication, vivant, pour l’auteur seulement', function () {
+    $post = publierSansTraiter($this->author);
+
+    Livewire::actingAs($this->author)->test(PagePublication::class, ['publication' => $post])->assertSeeText('Recherche en attente')->assertSeeHtml('wire:poll.5s.visible');
+    Livewire::actingAs($this->helper)->test(PagePublication::class, ['publication' => $post])->assertDontSeeText('Recherche en attente');
+});
+
+it('protège le composant : sujet verrouillé, publication d’autrui introuvable', function () {
+    $post = publierSansTraiter($this->author);
+    $component = Livewire::actingAs($this->author)->test(SearchStatus::class, ['kind' => 'publication', 'subjectId' => $post->id]);
+
+    expect(fn () => $component->set('subjectId', (string) Str::uuid()))->toThrow(Exception::class, 'Cannot update locked property');
+    expect(fn () => $component->set('kind', 'person'))->toThrow(Exception::class, 'Cannot update locked property');
+
+    Livewire::actingAs($this->helper)->test(SearchStatus::class, ['kind' => 'publication', 'subjectId' => $post->id])->assertNotFound();
 });

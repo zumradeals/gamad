@@ -4,11 +4,9 @@ namespace App\Livewire;
 
 use App\Enums\GestureState;
 use App\Models\Gesture;
-use App\Models\MatchSuggestion;
 use App\Models\Publication;
 use App\Services\Gestures;
 use App\Services\Gratitudes;
-use App\Services\MatchingSearches;
 use App\Services\Moderation;
 use App\Services\PublicationBookmarks;
 use App\Services\Publications;
@@ -158,14 +156,7 @@ class PagePublication extends Component
             ];
         }
 
-        // L'état réel de la recherche de correspondances, pour l'auteur d'une publication ouverte au matching.
-        $matchSearch = $isAuthor && ! $publication->zumra_id && ($publication->matching['enabled'] ?? false) && ! $publication->isHidden()
-            ? app(MatchingSearches::class)->latestForPublication($publication->id) : null;
-        $matchCount = $matchSearch ? MatchSuggestion::query()->where('user_id', $viewer->getKey())->where('publication_id', $publication->id)->whereNull('ignored_at')->whereNull('withdrawn_at')->count() : 0;
-
         return view('livewire.page-publication', [
-            'matchSearch' => $matchSearch,
-            'matchCount' => $matchCount,
             'c1' => $c1,
             'accepted' => $received->where('state', GestureState::Accepted)->values(),
             'gratitude' => $isAuthor ? $publication->gratitude()->with('helper.profile')->first() : null,

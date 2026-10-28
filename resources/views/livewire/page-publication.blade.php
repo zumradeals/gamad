@@ -34,7 +34,7 @@
             <input id="publication-link" readonly value="{{ route('publications.show', $publication) }}" onclick="this.select()" class="min-h-11 w-full min-w-0 rounded-button border border-line px-3 text-[13px]">
             <p class="text-[12px] text-muted">{{ $publication->isPublic() ? 'Cette publication peut être lue sans compte.' : 'Ce lien ne change pas l’audience : connexion et droits d’accès restent nécessaires.' }}</p>
             @if ($publication->matching['enabled'] ?? false)
-                <x-search-status :search="$matchSearch" :count="$matchCount" />
+                <livewire:search-status kind="publication" :subject-id="$publication->id" :key="'search-'.$publication->id" />
                 <x-button :href="route('espace').'#suggestions'" variant="secondary">Consulter mes pistes</x-button>
                 <p class="text-[12px] text-muted">Les pistes dépendent de vos préférences et des personnes disponibles. Une réponse n’est pas garantie.</p>
             @endif

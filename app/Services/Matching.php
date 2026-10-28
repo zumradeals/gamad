@@ -27,6 +27,15 @@ class Matching
     /** Lot D2 : nombre maximal d'opportunités examinées à chaque calcul, les plus récentes d'abord. */
     private const OPPORTUNITY_SCAN = 100;
 
+    /** Temps d'une tranche de recherche (secondes) : au-delà, la tranche rend la main et la suivante reprend au curseur. */
+    public const SLICE_SECONDS = 3.0;
+
+    /** Une recherche de personne s'arrête après autant de pistes trouvées (comme avant). */
+    private const MAX_FOUND = 100;
+
+    /** Nombre maximal de publications d'une personne dont la recherche est déléguée à chaque recherche de personne. */
+    private const OWN_POSTS = 50;
+
     public function preferences(Profile $profile): array
     {
         return array_replace(MatchingConditions::defaults(), $profile->matching_preferences ?? []);
@@ -46,17 +55,19 @@ class Matching
     }
 
     /**
-     * Une tranche de la recherche de personnes et d'offres compatibles avec une publication (bornée à `$limit` candidats par
-     * tranche, reprise par curseur). Les règles sont celles de toujours : personReasons / offerReasons décident, rien d'autre.
+     * Une tranche de la recherche de personnes et d'offres compatibles avec une publication (bornée à `$limit` candidats ET à
+     * `$seconds` secondes par tranche, reprise par curseur). Les règles sont celles de toujours : personReasons / offerReasons décident, rien d'autre.
      *
      * @param  array{phase: string, after: ?string}|null  $cursor
-     * @return array{produced: int, cursor: array{phase: string, after: ?string}|null}
+     * @return array{produced: int, examined: int, cursor: array{phase: string, after: ?string}|null}
      */
-    public function searchPublication(Publication $publication, ?array $cursor = null, int $limit = 50): array
+    public function searchPublication(Publication $publication, ?array $cursor = null, int $limit = 50, float $seconds = self::SLICE_SECONDS): array
     {
+        $deadline = microtime(true) + $seconds;
         $publication->loadMissing(self::POST_RELATIONS);
         $cursor ??= ['phase' => 'profiles', 'after' => null];
         $produced = 0;
+        $examined = 0;
         $skills = $publication->skills->modelKeys();
 
         if ($cursor['phase'] === 'profiles') {
@@ -65,13 +76,19 @@ class Matching
                 ->whereHas($relation, fn (Builder $q) => $q->whereIn('skills.id', $skills))
                 ->when($cursor['after'], fn (Builder $q, string $after) => $q->where('id', '>', $after))
                 ->with(self::PROFILE_RELATIONS)->orderBy('id')->limit($limit)->get();
+            $last = null;
             foreach ($profiles as $profile) {
+                $examined++;
+                $last = $profile;
                 $matched = false;
                 $this->rememberPerson($publication, $profile, null, $matched);
                 $produced += $matched ? 1 : 0;
+                if (microtime(true) >= $deadline) {
+                    break;
+                }
             }
-            if ($profiles->count() === $limit) {
-                return ['produced' => $produced, 'cursor' => ['phase' => 'profiles', 'after' => $profiles->last()->id]];
+            if ($last !== null && ($profiles->count() === $limit || $last->isNot($profiles->last()))) {
+                return ['produced' => $produced, 'examined' => $examined, 'cursor' => ['phase' => 'profiles', 'after' => $last->id]];
             }
             $cursor = ['phase' => 'offers', 'after' => null];
         }
@@ -82,23 +99,92 @@ class Matching
                 ->whereHas('skills', fn (Builder $q) => $q->whereIn('skills.id', $skills))
                 ->when($cursor['after'], fn (Builder $q, string $after) => $q->where('publications.id', '>', $after))
                 ->orderBy('publications.id')->limit($limit)->get();
+            $last = null;
             foreach ($posts as $post) {
+                $examined++;
+                $last = $post;
                 $matched = false;
                 $this->rememberOffer($publication->isNeed() ? $publication : $post, $publication->isNeed() ? $post : $publication, null, $matched);
                 $produced += $matched ? 1 : 0;
+                if (microtime(true) >= $deadline) {
+                    break;
+                }
             }
-            if ($posts->count() === $limit) {
-                return ['produced' => $produced, 'cursor' => ['phase' => 'offers', 'after' => $posts->last()->id]];
+            if ($last !== null && ($posts->count() === $limit || $last->isNot($posts->last()))) {
+                return ['produced' => $produced, 'examined' => $examined, 'cursor' => ['phase' => 'offers', 'after' => $last->id]];
             }
         }
 
-        return ['produced' => $produced, 'cursor' => null];
+        return ['produced' => $produced, 'examined' => $examined, 'cursor' => null];
     }
 
-    /** La recherche de pistes d'une personne (publications des autres, les siennes, opportunités) : bornée comme l'ancien calcul. */
-    public function searchPerson(User $user): int
+    /**
+     * Une tranche de la recherche de pistes d'une personne, bornée en candidats examinés (`$limit`) ET en temps (`$seconds`, au moins un
+     * candidat par tranche pour progresser), reprise par curseur. Trois temps :
+     *  - « posts » : les publications des autres, de la plus récente à la plus ancienne (curseur = dernière publication examinée) ;
+     *  - « mine » : les publications de la personne : leurs recherches de personnes sont déléguées (`delegate`), chacune étant elle-même
+     *    découpée en tranches ;
+     *  - « opportunities » : les opportunités ouvertes (déjà bornées à OPPORTUNITY_SCAN candidats), sans alerte.
+     * Comme avant, la recherche s'arrête après MAX_FOUND pistes trouvées.
+     *
+     * @param  array{phase: string, after: ?array{at: string, id: string}, found: int}|null  $cursor
+     * @return array{produced: int, examined: int, cursor: ?array, delegate: list<string>}
+     */
+    public function searchPerson(User $user, ?array $cursor = null, int $limit = 50, float $seconds = self::SLICE_SECONDS): array
     {
-        return $this->discover($user, 100);
+        $profile = $user->ensureProfile()->loadMissing(self::PROFILE_RELATIONS);
+        if (! $user->isActive() || ! $this->ready($profile)) {
+            return ['produced' => 0, 'examined' => 0, 'cursor' => null, 'delegate' => []];
+        }
+
+        $cursor ??= ['phase' => 'posts', 'after' => null, 'found' => 0];
+        $deadline = microtime(true) + $seconds;
+        $produced = 0;
+        $examined = 0;
+
+        if ($cursor['phase'] === 'posts' && $cursor['found'] < self::MAX_FOUND) {
+            $skills = array_unique([...$profile->offeredSkills->modelKeys(), ...$profile->wantedSkills->modelKeys()]);
+            $posts = $this->posts()->visibleTo($user)->where('author_id', '!=', $user->id)->whereIn('matching->terms', $this->preferences($profile)['terms'])
+                ->whereHas('skills', fn (Builder $q) => $q->whereIn('skills.id', $skills))
+                ->when($cursor['after'], fn (Builder $q, array $after) => $q->where(fn (Builder $k) => $k->where('publications.created_at', '<', $after['at'])
+                    ->orWhere(fn (Builder $tie) => $tie->where('publications.created_at', $after['at'])->where('publications.id', '<', $after['id']))))
+                ->orderByDesc('publications.created_at')->orderByDesc('publications.id')->limit($limit)->get();
+
+            $last = null;
+            foreach ($posts as $post) {
+                $examined++;
+                $last = $post;
+                $matched = false;
+                if ($this->rememberPerson($post, $profile, $user->id, $matched)) {
+                    $produced++;
+                }
+                if ($cursor['found'] + $produced >= self::MAX_FOUND || microtime(true) >= $deadline) {
+                    break;
+                }
+            }
+
+            $cursor['found'] += $produced;
+            $more = $last !== null && ($posts->count() === $limit || $last->isNot($posts->last())) && $cursor['found'] < self::MAX_FOUND;
+            if ($more) {
+                $cursor['after'] = ['at' => $last->created_at->format('Y-m-d H:i:s.uP'), 'id' => $last->id];
+
+                return ['produced' => $produced, 'examined' => $examined, 'cursor' => $cursor, 'delegate' => []];
+            }
+            $cursor = ['phase' => 'mine', 'after' => null, 'found' => $cursor['found']];
+        }
+
+        if ($cursor['phase'] === 'posts') {
+            $cursor = ['phase' => 'mine', 'after' => null, 'found' => $cursor['found']];
+        }
+
+        if ($cursor['phase'] === 'mine') {
+            $own = $this->posts()->where('author_id', $user->id)->with(self::POST_RELATIONS)->orderByDesc('created_at')->orderByDesc('id')->limit(self::OWN_POSTS)->get();
+
+            return ['produced' => $produced, 'examined' => $examined + $own->count(), 'delegate' => $own->filter(fn (Publication $post) => $this->active($post))->pluck('id')->all(),
+                'cursor' => ['phase' => 'opportunities', 'after' => null, 'found' => $cursor['found']]];
+        }
+
+        return ['produced' => $produced + $this->discoverOpportunities($user, $profile, self::MAX_FOUND), 'examined' => $examined, 'cursor' => null, 'delegate' => []];
     }
 
     /**
@@ -139,63 +225,6 @@ class Matching
         }
 
         return $items;
-    }
-
-    private function discover(User $user, int $limit): int
-    {
-        $profile = $user->ensureProfile()->loadMissing(self::PROFILE_RELATIONS);
-        if (! $user->isActive() || ! $this->ready($profile)) {
-            return 0;
-        }
-        $skills = $profile->offeredSkills->modelKeys();
-        $skills = array_unique([...$skills, ...$profile->wantedSkills->modelKeys()]);
-        $count = 0;
-        foreach ($this->posts()->visibleTo($user)->where('author_id', '!=', $user->id)->whereIn('matching->terms', $this->preferences($profile)['terms'])
-            ->whereHas('skills', fn (Builder $q) => $q->whereIn('skills.id', $skills))->orderByDesc('created_at')->orderByDesc('id')->lazy(100) as $post) {
-            if ($this->personReasons($post, $profile) && $this->rememberPerson($post, $profile, $user->id)) {
-                $count++;
-            }
-            if ($count >= $limit) {
-                break;
-            }
-        }
-        foreach ($this->posts()->where('author_id', $user->id)->orderByDesc('created_at')->orderByDesc('id')->lazy(50) as $post) {
-            if (! $this->active($post)) {
-                continue;
-            }
-            $relation = $this->profileRelation($post);
-            if ($relation !== null) {
-                foreach (Profile::visibleTo($user)->where('user_id', '!=', $user->id)->where('matching_preferences->enabled', true)
-                    ->whereHas($relation, fn (Builder $q) => $q->whereIn('skills.id', $post->skills->modelKeys()))
-                    ->with(self::PROFILE_RELATIONS)->orderByDesc('created_at')->orderByDesc('id')->lazy(100) as $candidate) {
-                    if ($this->personReasons($post, $candidate) && $this->rememberPerson($post, $candidate, $user->id)) {
-                        $count++;
-                    }
-                    if ($count >= $limit) {
-                        break;
-                    }
-                }
-            }
-            if (in_array($post->type, [PublicationType::Need, PublicationType::Offer], true) && $this->settings($post)['activity'] === 'service') {
-                $opposite = $post->isNeed() ? PublicationType::Offer : PublicationType::Need;
-                foreach ($this->posts()->visibleTo($user)->where('type', $opposite)->where('author_id', '!=', $user->id)
-                    ->whereHas('skills', fn (Builder $q) => $q->whereIn('skills.id', $post->skills->modelKeys()))->orderByDesc('created_at')->orderByDesc('id')->lazy(100) as $other) {
-                    $need = $post->isNeed() ? $post : $other;
-                    $offer = $post->isNeed() ? $other : $post;
-                    if ($this->offerReasons($need, $offer) && $this->rememberOffer($need, $offer, $user->id)) {
-                        $count++;
-                    }
-                    if ($count >= $limit) {
-                        break;
-                    }
-                }
-            }
-            if ($count >= $limit) {
-                break;
-            }
-        }
-
-        return $count + $this->discoverOpportunities($user, $profile, $limit);
     }
 
     /**

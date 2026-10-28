@@ -2,6 +2,7 @@
 
 namespace App\Jobs\Matching;
 
+use App\Core\Execution\BackgroundRunner;
 use App\Core\Execution\Execution;
 use App\Core\Execution\Instrumented;
 use App\Models\Publication;
@@ -62,8 +63,8 @@ class RunMatchingSearch implements ShouldQueue
                     return;
                 }
 
-                $slice = $matching->searchPublication($publication, $search->cursor, 50);
-                $this->runMetrics = ['produced' => $slice['produced'], 'slices' => 1];
+                $slice = $matching->searchPublication($publication, $search->cursor, 50, BackgroundRunner::remaining(Matching::SLICE_SECONDS));
+                $this->runMetrics = ['produced' => $slice['produced'], 'examined' => $slice['examined'], 'slices' => 1];
                 $searches->progress($search, $slice['produced'], $slice['cursor']);
 
                 if ($slice['cursor'] !== null) {
@@ -85,9 +86,23 @@ class RunMatchingSearch implements ShouldQueue
                 return;
             }
 
-            $produced = $matching->searchPerson($user);
-            $this->runMetrics = ['produced' => $produced, 'slices' => 1];
-            $searches->finish($search->getKey(), $produced);
+            // Même principe que pour une publication : une tranche bornée en candidats et en temps, puis la suivante reprend au curseur.
+            $slice = $matching->searchPerson($user, $search->cursor, 50, BackgroundRunner::remaining(Matching::SLICE_SECONDS));
+            $this->runMetrics = ['produced' => $slice['produced'], 'examined' => $slice['examined'], 'slices' => 1];
+            $searches->progress($search, $slice['produced'], $slice['cursor']);
+
+            // Les recherches de personnes pour ses propres publications sont des recherches à part entière, elles aussi par tranches.
+            foreach ($slice['delegate'] as $publicationId) {
+                $searches->request(MatchingSearches::FOR_PUBLICATION, $publicationId);
+            }
+
+            if ($slice['cursor'] !== null) {
+                Execution::dispatch(new self($this->searchId));
+
+                return;
+            }
+
+            $searches->finish($search->getKey(), 0);
         } catch (Throwable $error) {
             $searches->retrying($this->searchId, class_basename($error));
 
