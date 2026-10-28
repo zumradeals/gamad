@@ -168,3 +168,53 @@ it('journalise la suppression d’un compte de modération dans la transaction d
     expect(User::find($moderator->id))->toBeNull()
         ->and(DB::table('admin_actions')->where('action', 'account.deleted_by_owner')->count())->toBe(1);
 });
+
+it('n’efface aucun fichier tant que la transaction englobante n’est pas validée', function () {
+    $this->user->profile->update(['photo_path' => 'profile-photos/awa.jpg']);
+    Storage::disk('local')->put('profile-photos/awa.jpg', 'x');
+
+    DB::transaction(function () {
+        fermerCompte($this->user);
+
+        // Fermeture exécutée, transaction externe encore ouverte : le fichier est désigné, pas effacé.
+        Storage::disk('local')->assertExists('profile-photos/awa.jpg');
+        expect(FilePurge::query()->where('path', 'profile-photos/awa.jpg')->exists())->toBeTrue();
+    });
+
+    Storage::disk('local')->assertMissing('profile-photos/awa.jpg');
+    expect(FilePurge::query()->count())->toBe(0)->and(User::find($this->user->id))->toBeNull();
+});
+
+it('préserve le compte, les données et les fichiers quand la transaction englobante est annulée après la fermeture', function () {
+    $this->user->profile->update(['photo_path' => 'profile-photos/awa.jpg']);
+    Storage::disk('local')->put('profile-photos/awa.jpg', 'x');
+    $company = entrepriseAvecFichiers($this->user);
+    $document = $company->documents()->first()->private_path;
+    publication($this->user)->forceFill(['media_path' => 'publication-media/m.jpg'])->save();
+    Storage::disk('local')->put('publication-media/m.jpg', 'x');
+    AdCampaign::query()->forceCreate(['user_id' => $this->user->id, 'image_path' => 'ad-images/a.jpg']);
+    Storage::disk('local')->put('ad-images/a.jpg', 'x');
+    DB::table('sessions')->insert(['id' => 's1', 'user_id' => $this->user->id, 'ip_address' => '10.0.0.1', 'user_agent' => 'x', 'payload' => '', 'last_activity' => time()]);
+
+    try {
+        DB::transaction(function () {
+            fermerCompte($this->user);
+
+            throw new RuntimeException('annulation de la transaction englobante');
+        });
+    } catch (RuntimeException) {
+    }
+
+    expect(User::find($this->user->id))->not->toBeNull()
+        ->and(Profile::query()->where('user_id', $this->user->id)->exists())->toBeTrue()
+        ->and(Company::query()->where('owner_id', $this->user->id)->exists())->toBeTrue()
+        ->and(DB::table('publications')->where('author_id', $this->user->id)->exists())->toBeTrue()
+        ->and(AdCampaign::query()->where('user_id', $this->user->id)->exists())->toBeTrue()
+        ->and(DB::table('sessions')->where('id', 's1')->exists())->toBeTrue()
+        ->and(FilePurge::query()->count())->toBe(0)
+        ->and(IdentityEvent::query()->count())->toBe(0);
+
+    foreach (['profile-photos/awa.jpg', $document, 'company-branding/logo-awa.png', 'publication-media/m.jpg', 'ad-images/a.jpg'] as $path) {
+        Storage::disk('local')->assertExists($path);
+    }
+});

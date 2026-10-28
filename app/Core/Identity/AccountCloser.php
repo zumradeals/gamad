@@ -7,13 +7,15 @@ use App\Core\Identity\Closure\AccountClosureParticipant;
 use App\Core\Identity\Closure\ClosureContext;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 /**
  * Fermeture d'un compte : la seule porte de suppression d'un `User` (le modèle refuse toute autre).
  *
  *  1. dans UNE transaction : contrôles préalables de tous les participants, puis leurs préparations, puis la suppression, puis leurs
  *     suites, puis la trace de sécurité et la liste des fichiers à effacer. Toute exception annule tout ;
- *  2. après la validation : effacement des fichiers (FilePurger), repris plus tard s'il est interrompu.
+ *  2. après la validation de la transaction la PLUS EXTERNE : effacement des fichiers (FilePurger), repris plus tard s'il est
+ *     interrompu. Si une transaction englobante est annulée, ni le compte, ni les données, ni les fichiers ne sont touchés.
  *
  * Pas de chaîne d'événements : l'ordre des participants est explicite et le résultat est tout ou rien.
  */
@@ -34,11 +36,10 @@ class AccountCloser
     {
         $id = $user->getKey();
         $context = new ClosureContext;
-        $purgeIds = [];
         self::$closing[$id] = true;
 
         try {
-            DB::transaction(function () use ($user, $id, $context, &$purgeIds) {
+            DB::transaction(function () use ($user, $id, $context) {
                 // Verrou du compte : deux fermetures simultanées se suivent, la seconde ne trouve plus rien à fermer.
                 if (! User::query()->whereKey($id)->lockForUpdate()->exists()) {
                     return;
@@ -63,12 +64,19 @@ class AccountCloser
 
                 IdentityEvent::record($id, IdentityEvent::ACCOUNT_CLOSED, ['files' => count($context->files())]);
                 $purgeIds = $this->purger->enqueue($context->files());
+
+                // `afterCommit` s'exécute à la validation de la transaction la plus externe (tout de suite s'il n'y en a pas d'autre) et
+                // est abandonné si elle est annulée. Un échec ici n'annule rien : les lignes `file_purges` restent et seront reprises.
+                DB::afterCommit(function () use ($purgeIds) {
+                    try {
+                        $this->purger->drain($purgeIds);
+                    } catch (Throwable $error) {
+                        report($error);
+                    }
+                });
             });
         } finally {
             unset(self::$closing[$id]);
         }
-
-        // Après validation seulement. Un échec ici n'annule rien : les lignes restent et seront reprises.
-        $this->purger->drain($purgeIds);
     }
 }

@@ -16,5 +16,9 @@ Le Core partage le dépôt, l'application et la base PostgreSQL du réseau socia
 ## Files
 
 - **`FilePurger`** : `enqueue()` dans la transaction, `drain()` après validation. Une ligne `file_purges` subsiste tant que le fichier n'est pas parti.
-- La commande `gamad:purger-fichiers-en-attente` reprend les effacements interrompus ; elle est planifiée toutes les 15 minutes
-  (`routes/console.php`) et suppose que le planificateur Laravel (`schedule:run`) tourne sur le serveur.
+- **Reprise garantie par l'application** : `ResumeFilePurges` (middleware web, après l'envoi de la réponse) reprend un lot de fichiers en
+  attente au plus une fois toutes les 5 minutes, sans planificateur ni nouvelle fermeture de compte. La commande
+  `gamad:purger-fichiers-en-attente` (planifiée toutes les 15 minutes dans `routes/console.php`) fait le même travail quand `schedule:run`
+  tourne ; rien n'impose de l'installer. `FilePurger::pending()` donne les fichiers à reprendre et ceux abandonnés après 10 échecs.
+- L'effacement attend la validation de la transaction **la plus externe** (`DB::afterCommit`) : une transaction englobante annulée
+  ne touche ni le compte, ni les données, ni les fichiers.
