@@ -3,6 +3,7 @@
 use App\Http\Middleware\BlockSuspended;
 use App\Http\Middleware\EnsureWalletsEnabled;
 use App\Http\Middleware\ResumeFilePurges;
+use App\Http\Middleware\RunBackgroundWork;
 use App\Http\Middleware\SimplifyDiscovery;
 use App\Http\Middleware\ThrottleRegistration;
 use Illuminate\Foundation\Application;
@@ -20,7 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo(fn (Request $request) => $request->routeIs('fil') ? route('home') : route('login'));
         $middleware->alias(['wallets' => EnsureWalletsEnabled::class]);
         $middleware->validateCsrfTokens(except: ['webhooks/geniuspay']);
-        $middleware->web(append: [ThrottleRegistration::class, BlockSuspended::class, SimplifyDiscovery::class, ResumeFilePurges::class]);
+        $middleware->web(append: [ThrottleRegistration::class, BlockSuspended::class, SimplifyDiscovery::class, ResumeFilePurges::class, RunBackgroundWork::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

@@ -14,7 +14,7 @@ class MatchSuggestion extends Model
 
     protected function casts(): array
     {
-        return ['ignored_at' => 'datetime', 'alerted_at' => 'datetime'];
+        return ['ignored_at' => 'datetime', 'alerted_at' => 'datetime', 'withdrawn_at' => 'datetime'];
     }
 
     public function publication()

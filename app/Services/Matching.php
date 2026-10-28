@@ -16,7 +16,6 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Throwable;
 
 /** D-187 : complémentarités explicables, données choisies et accès courants. Aucun score de personne. */
 class Matching
@@ -38,58 +37,79 @@ class Matching
         return array_replace(MatchingConditions::publicationDefaults($publication->type), $publication->matching ?? []);
     }
 
-    public function publicationChanged(Publication $publication): void
+    /** La publication peut-elle encore produire des pistes ? (ouverte au matching, active, non masquée, auteur disponible) */
+    public function isSearchable(Publication $publication): bool
     {
-        $this->safely(function () use ($publication) {
-            if (! $this->active($publication)) {
-                return;
-            }
-            $publication->loadMissing(self::POST_RELATIONS);
+        $publication->loadMissing('author.profile');
+
+        return $this->active($publication);
+    }
+
+    /**
+     * Une tranche de la recherche de personnes et d'offres compatibles avec une publication (bornée à `$limit` candidats par
+     * tranche, reprise par curseur). Les règles sont celles de toujours : personReasons / offerReasons décident, rien d'autre.
+     *
+     * @param  array{phase: string, after: ?string}|null  $cursor
+     * @return array{produced: int, cursor: array{phase: string, after: ?string}|null}
+     */
+    public function searchPublication(Publication $publication, ?array $cursor = null, int $limit = 50): array
+    {
+        $publication->loadMissing(self::POST_RELATIONS);
+        $cursor ??= ['phase' => 'profiles', 'after' => null];
+        $produced = 0;
+        $skills = $publication->skills->modelKeys();
+
+        if ($cursor['phase'] === 'profiles') {
             $relation = $this->profileRelation($publication);
-            if ($relation !== null) {
-                Profile::query()->where('user_id', '!=', $publication->author_id)->where('matching_preferences->enabled', true)
-                    ->whereHas($relation, fn (Builder $q) => $q->whereIn('skills.id', $publication->skills->modelKeys()))
-                    ->with(self::PROFILE_RELATIONS)->chunkById(100, function ($profiles) use ($publication) {
-                        foreach ($profiles as $profile) {
-                            $this->rememberPerson($publication, $profile);
-                        }
-                    });
+            $profiles = $relation === null ? collect() : Profile::query()->where('user_id', '!=', $publication->author_id)->where('matching_preferences->enabled', true)
+                ->whereHas($relation, fn (Builder $q) => $q->whereIn('skills.id', $skills))
+                ->when($cursor['after'], fn (Builder $q, string $after) => $q->where('id', '>', $after))
+                ->with(self::PROFILE_RELATIONS)->orderBy('id')->limit($limit)->get();
+            foreach ($profiles as $profile) {
+                $matched = false;
+                $this->rememberPerson($publication, $profile, null, $matched);
+                $produced += $matched ? 1 : 0;
             }
-            if (in_array($publication->type, [PublicationType::Need, PublicationType::Offer], true) && $this->settings($publication)['activity'] === 'service') {
-                $opposite = $publication->type === PublicationType::Need ? PublicationType::Offer : PublicationType::Need;
-                $this->posts()->where('type', $opposite)->where('author_id', '!=', $publication->author_id)
-                    ->whereHas('skills', fn (Builder $q) => $q->whereIn('skills.id', $publication->skills->modelKeys()))
-                    ->chunkById(100, function ($posts) use ($publication) {
-                        foreach ($posts as $post) {
-                            $this->rememberOffer($publication->isNeed() ? $publication : $post, $publication->isNeed() ? $post : $publication);
-                        }
-                    });
+            if ($profiles->count() === $limit) {
+                return ['produced' => $produced, 'cursor' => ['phase' => 'profiles', 'after' => $profiles->last()->id]];
             }
-        });
+            $cursor = ['phase' => 'offers', 'after' => null];
+        }
+
+        if (in_array($publication->type, [PublicationType::Need, PublicationType::Offer], true) && $this->settings($publication)['activity'] === 'service') {
+            $opposite = $publication->type === PublicationType::Need ? PublicationType::Offer : PublicationType::Need;
+            $posts = $this->posts()->where('type', $opposite)->where('author_id', '!=', $publication->author_id)
+                ->whereHas('skills', fn (Builder $q) => $q->whereIn('skills.id', $skills))
+                ->when($cursor['after'], fn (Builder $q, string $after) => $q->where('publications.id', '>', $after))
+                ->orderBy('publications.id')->limit($limit)->get();
+            foreach ($posts as $post) {
+                $matched = false;
+                $this->rememberOffer($publication->isNeed() ? $publication : $post, $publication->isNeed() ? $post : $publication, null, $matched);
+                $produced += $matched ? 1 : 0;
+            }
+            if ($posts->count() === $limit) {
+                return ['produced' => $produced, 'cursor' => ['phase' => 'offers', 'after' => $posts->last()->id]];
+            }
+        }
+
+        return ['produced' => $produced, 'cursor' => null];
     }
 
-    public function profileChanged(string $userId): void
+    /** La recherche de pistes d'une personne (publications des autres, les siennes, opportunités) : bornée comme l'ancien calcul. */
+    public function searchPerson(User $user): int
     {
-        $this->safely(function () use ($userId) {
-            $user = User::find($userId);
-            if (! $user) {
-                return;
-            }
-            $prefs = $this->preferences($user->ensureProfile());
-            if (! $prefs['enabled'] || ! $prefs['notify']) {
-                UserNotification::where('user_id', $userId)->where('kind', NotificationKind::MatchFound)->whereNull('read_at')->update(['read_at' => now()]);
-            }
-            $this->discover($user, 100);
-        });
+        return $this->discover($user, 100);
     }
 
-    /** Recalcul de données dérivées ; une panne ne transforme pas un profil enregistré en faux échec d’envoi. */
-    private function safely(callable $work): void
+    /**
+     * Part immédiate d'un changement de préférences : une personne qui ne souhaite plus d'alertes n'en garde aucune en attente.
+     * La recherche de pistes, elle, est confiée à l'exécution (MatchingSearches).
+     */
+    public function settleProfile(User $user): void
     {
-        try {
-            $work();
-        } catch (Throwable $error) {
-            report($error);
+        $prefs = $this->preferences($user->ensureProfile());
+        if (! $prefs['enabled'] || ! $prefs['notify']) {
+            UserNotification::where('user_id', $user->id)->where('kind', NotificationKind::MatchFound)->whereNull('read_at')->update(['read_at' => now()]);
         }
     }
 
@@ -101,9 +121,14 @@ class Matching
 
     public function suggestions(User $user, int $limit = 10): Collection
     {
-        $this->discover($user, min(101, max(1, $limit + 1)));
         $items = collect();
-        foreach (MatchSuggestion::where('user_id', $user->id)->whereNull('ignored_at')->with(['publication.author.profile', 'publication.skills', 'publication.city', 'profile.user', 'profile.offeredSkills', 'profile.wantedSkills', 'offer.author.profile', 'offer.skills', 'offer.city', 'opportunity.company', 'opportunity.city', 'opportunity.requiredSkills'])->orderByRaw('coalesce((select p.created_at from publications p where p.id = match_suggestions.publication_id), (select o.published_at from opportunities o where o.id = match_suggestions.opportunity_id), match_suggestions.created_at) desc')->orderByDesc('id')->lazy(100) as $row) {
+        // Les pistes sont des résultats déjà calculés (voir MatchingSearches) ; seules les opportunités, dont l'amélioration est hors
+        // de ce périmètre, se recalculent à la lecture, de façon bornée.
+        $profile = $user->ensureProfile()->loadMissing(self::PROFILE_RELATIONS);
+        if ($user->isActive() && $this->ready($profile)) {
+            $this->discoverOpportunities($user, $profile, min(101, max(1, $limit + 1)));
+        }
+        foreach (MatchSuggestion::where('user_id', $user->id)->whereNull('ignored_at')->whereNull('withdrawn_at')->with(['publication.author.profile', 'publication.skills', 'publication.city', 'profile.user', 'profile.offeredSkills', 'profile.wantedSkills', 'offer.author.profile', 'offer.skills', 'offer.city', 'opportunity.company', 'opportunity.city', 'opportunity.requiredSkills'])->orderByRaw('coalesce((select p.created_at from publications p where p.id = match_suggestions.publication_id), (select o.published_at from opportunities o where o.id = match_suggestions.opportunity_id), match_suggestions.created_at) desc')->orderByDesc('id')->lazy(100) as $row) {
             $detail = $this->detail($user, $row);
             if ($detail) {
                 $items->push(['suggestion' => $row, ...$detail]);
@@ -116,11 +141,11 @@ class Matching
         return $items;
     }
 
-    private function discover(User $user, int $limit): void
+    private function discover(User $user, int $limit): int
     {
         $profile = $user->ensureProfile()->loadMissing(self::PROFILE_RELATIONS);
         if (! $user->isActive() || ! $this->ready($profile)) {
-            return;
+            return 0;
         }
         $skills = $profile->offeredSkills->modelKeys();
         $skills = array_unique([...$skills, ...$profile->wantedSkills->modelKeys()]);
@@ -169,18 +194,19 @@ class Matching
                 break;
             }
         }
-        $this->discoverOpportunities($user, $profile, $limit);
+
+        return $count + $this->discoverOpportunities($user, $profile, $limit);
     }
 
     /**
      * Lot D2 : les opportunités ouvertes dont une compétence recherchée est l'une de mes capacités proposées. Lecture bornée, aucune
      * notification : la piste n'apparaît que dans « Mes pistes », avec ses raisons, et peut être ignorée.
      */
-    private function discoverOpportunities(User $user, Profile $profile, int $limit): void
+    private function discoverOpportunities(User $user, Profile $profile, int $limit): int
     {
         $skills = $profile->offeredSkills->modelKeys();
         if ($skills === [] || ! in_array('offer', $this->preferences($profile)['intentions'], true)) {
-            return;
+            return 0;
         }
         $count = 0;
         $candidates = Opportunity::query()->open()
@@ -195,6 +221,8 @@ class Matching
                 break;
             }
         }
+
+        return $count;
     }
 
     /** Un reçu privé de découverte, jamais d'alerte : `alerted_at` reste vide et aucune notification n'est créée. */
@@ -209,6 +237,7 @@ class Matching
         } catch (UniqueConstraintViolationException) {
             $row = MatchSuggestion::where($keys)->first();
         }
+        $row = $row === null ? null : $this->revive($row);
 
         return $row !== null && ! $row->ignored_at;
     }
@@ -270,11 +299,13 @@ class Matching
         ]));
     }
 
-    private function rememberPerson(Publication $post, Profile $profile, ?string $countFor = null): bool
+    private function rememberPerson(Publication $post, Profile $profile, ?string $countFor = null, ?bool &$matched = null): bool
     {
+        $matched = false;
         if (! $this->personReasons($post, $profile)) {
             return false;
         }
+        $matched = true;
         $found = false;
         foreach (array_unique([$post->author_id, $profile->user_id]) as $userId) {
             $row = $this->remember($userId, $post->id, $profile->id, null);
@@ -286,11 +317,13 @@ class Matching
         return $found;
     }
 
-    private function rememberOffer(Publication $need, Publication $offer, ?string $countFor = null): bool
+    private function rememberOffer(Publication $need, Publication $offer, ?string $countFor = null, ?bool &$matched = null): bool
     {
+        $matched = false;
         if (! $this->offerReasons($need, $offer)) {
             return false;
         }
+        $matched = true;
         $found = false;
         foreach (array_unique([$need->author_id, $offer->author_id]) as $userId) {
             $row = $this->remember($userId, $need->id, null, $offer->id);
@@ -314,7 +347,7 @@ class Matching
             if (! $this->detail($user, $draft, fresh: true)) {
                 return null;
             }
-            $row = MatchSuggestion::firstOrCreate(['user_id' => $userId, 'signature' => hash('sha256', $postId.'|'.$profileId.'|'.$offerId)], $values);
+            $row = $this->revive(MatchSuggestion::firstOrCreate(['user_id' => $userId, 'signature' => hash('sha256', $postId.'|'.$profileId.'|'.$offerId)], $values));
             if ($row->ignored_at || $row->alerted_at || ! $this->preferences($user->profile)['notify']) {
                 return $row;
             }
@@ -328,6 +361,19 @@ class Matching
 
             return $row;
         });
+    }
+
+    /**
+     * Une piste retirée qui redevient valable (publication rouverte, personne débloquée, consentement redonné) reparaît, sauf si la
+     * personne l'a ignorée. Elle garde son `alerted_at` : un retrait puis un retour ne produit jamais une nouvelle alerte.
+     */
+    private function revive(MatchSuggestion $row): MatchSuggestion
+    {
+        if ($row->withdrawn_at !== null && $row->ignored_at === null) {
+            $row->forceFill(['withdrawn_at' => null, 'withdrawn_reason' => null])->save();
+        }
+
+        return $row;
     }
 
     public function detail(User $user, MatchSuggestion $row, bool $fresh = false): ?array
@@ -381,6 +427,12 @@ class Matching
     {
         Gate::forUser($user)->authorize('ignore', $row);
         $row->update(['ignored_at' => now()]);
+    }
+
+    /** La personne souhaite-t-elle et peut-elle recevoir des pistes (consentement, disponibilité, période) ? */
+    public function isReady(Profile $profile): bool
+    {
+        return $this->ready($profile);
     }
 
     private function ready(Profile $profile): bool

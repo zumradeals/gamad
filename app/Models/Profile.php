@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Events\Matching\ProfileMatchingChanged;
+use App\Services\Matching;
 use App\Services\People;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -46,6 +48,18 @@ class Profile extends Model
             do {
                 $profile->public_id = Str::lower(Str::random(12));
             } while (static::query()->where('public_id', $profile->public_id)->exists());
+        });
+
+        // Matching : un changement de consentement, de disponibilité ou de conditions en informe le Matching dans la même
+        // transaction. Un consentement retiré retire tout de suite les pistes ; un consentement donné ou modifié relance la recherche.
+        static::saved(function (Profile $profile) {
+            if ($profile->wasChanged('matching_preferences')) {
+                $user = $profile->user()->first();
+                if ($user !== null) {
+                    $user->setRelation('profile', $profile);
+                    event(new ProfileMatchingChanged($user, revoked: ! app(Matching::class)->isReady($profile)));
+                }
+            }
         });
     }
 

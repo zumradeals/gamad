@@ -22,3 +22,18 @@ Le Core partage le dépôt, l'application et la base PostgreSQL du réseau socia
   tourne ; rien n'impose de l'installer. `FilePurger::pending()` donne les fichiers à reprendre et ceux abandonnés après 10 échecs.
 - L'effacement attend la validation de la transaction **la plus externe** (`DB::afterCommit`) : une transaction englobante annulée
   ne touche ni le compte, ni les données, ni les fichiers.
+
+## Execution
+
+Réutilise la file de Laravel (table `jobs`, `failed_jobs`) : persistance, réservation, reprise des tâches interrompues, délais croissants. Sans
+worker permanent, `BackgroundRunner` fait avancer la file **après l'envoi des réponses web**, avec des limites : 8 secondes et 12 tâches par
+passage, un seul passage à la fois (verrou), un contrôle toutes les 5 secondes (immédiat pour la requête qui vient de confier une tâche).
+Aucune promesse de délai : sans visite, rien ne s'exécute avant la suivante ou la commande `gamad:traiter` (qu'un minuteur peut appeler).
+
+- `Execution::dispatch($job)` : porte d'entrée (connexion `database` explicite, quel que soit `QUEUE_CONNECTION`). Une tâche utilise l'intergiciel
+  `Instrumented` : chaque tentative est inscrite dans `execution_runs` (durée, issue, résultats chiffrés, sans sujet ni contenu).
+- `Stats` : file (à traiter, en attente de reprise, réservées), échecs définitifs (classe d'erreur seulement), durées p50/p95. Vue : Mon espace ›
+  Administration › Traitements du Core (super administrateur).
+- Un worker permanent (`php artisan queue:work --queue=default` sous le compte dédié) deviendrait indispensable si le volume de recherches
+  dépasse ce que les passages bornés absorbent (mesure : « plus ancienne attente » du panneau). Il se brancherait comme un minuteur ou un service
+  systemd du compte `gamad-reseau`, sans toucher aux autres services.

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\Matching\ProfileSkillsChanged;
 use App\Models\City;
 use App\Models\Country;
 use App\Models\Domain;
@@ -133,10 +134,6 @@ class ProfileEditor
             throw $e;
         }
 
-        if (array_key_exists('matching_preferences', $data)) {
-            app(Matching::class)->profileChanged($user->id);
-        }
-
         if ($oldPhotoPath !== null && $oldPhotoPath !== $finalPhotoPath) {
             Storage::disk(Profile::PHOTO_DISK)->delete($oldPhotoPath);
         }
@@ -193,6 +190,7 @@ class ProfileEditor
      */
     private function syncSkills(Profile $profile, array $offered, array $wanted): void
     {
+        $before = DB::table('profile_skill')->where('profile_id', $profile->id)->get(['skill_id', 'kind'])->map(fn ($row) => $row->kind.':'.$row->skill_id)->sort()->values()->all();
         DB::table('profile_skill')->where('profile_id', $profile->id)->delete();
 
         $rows = [];
@@ -209,5 +207,11 @@ class ProfileEditor
         }
 
         DB::table('profile_skill')->insert($rows);
+
+        // Une capacité ajoutée, retirée ou déplacée entre « propose » et « souhaite » relance la recherche de pistes (à l'exécution).
+        $after = collect($rows)->map(fn ($row) => $row['kind'].':'.$row['skill_id'])->sort()->values()->all();
+        if ($before !== $after && ($user = $profile->user()->first()) !== null) {
+            event(new ProfileSkillsChanged($user));
+        }
     }
 }

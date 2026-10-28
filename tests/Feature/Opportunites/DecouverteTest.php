@@ -70,7 +70,7 @@ it('ne notifie jamais, même quand la personne a activé les alertes', function 
     ($this->offre)(['title' => 'Autre offre']);
 
     pistes($this->moi);
-    app(Matching::class)->profileChanged($this->moi->id);
+    drainMatching();
 
     expect(UserNotification::count())->toBe(0)->and(MatchSuggestion::whereNotNull('alerted_at')->count())->toBe(0)->and(MatchSuggestion::count())->toBe(2);
 });
@@ -221,6 +221,7 @@ it('préserve les pistes existantes de personnes et d’offres, et refuse une pi
     preferencesDecouverte($auteur, ['intentions' => ['offer', 'teach', 'learn'], 'terms' => ['volunteer', 'paid', 'discuss'], 'remote' => true]);
     app(Publications::class)->publish($auteur, PublicationType::Need, ['body' => 'Un besoin de couture', 'skills' => ['Couture'],
         'matching' => array_replace(MatchingConditions::publicationDefaults(PublicationType::Need), ['enabled' => true, 'remote' => true, 'terms' => 'volunteer'])]);
+    drainMatching();
 
     expect(pistes($aidant))->toHaveCount(1)->and(MatchSuggestion::whereNull('opportunity_id')->count())->toBeGreaterThan(0);
 

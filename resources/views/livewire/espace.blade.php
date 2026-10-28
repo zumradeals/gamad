@@ -532,6 +532,7 @@
             <h2 id="administration" class="text-[18px] font-extrabold">Administration</h2>
             <p class="text-muted">Courriel, nom et adresse de la plateforme, limites de sécurité, domaines, territoires, charte et mentions légales.</p>
             <x-button :href="route('espace.parametres')">Paramètres</x-button>
+            <x-button variant="secondary" :href="route('espace.traitements')">Traitements du Core</x-button>
         </section>
 
         <section aria-labelledby="messages-contact" class="space-panel flex flex-col gap-3 p-4 md:p-5">
