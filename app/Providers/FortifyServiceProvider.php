@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use Illuminate\Auth\Events\Lockout;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -33,7 +34,12 @@ class FortifyServiceProvider extends ServiceProvider
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
 
-            return Limit::perMinute((int) config('gamad.limits.login_per_minute'))->by($throttleKey);
+            return Limit::perMinute((int) config('gamad.limits.login_per_minute'))->by($throttleKey)->response(function (Request $request, array $headers) {
+                // The named Laravel throttle skips Fortify's internal limiter: emit its real Lockout event here.
+                event(new Lockout($request));
+
+                return response('Trop de tentatives de connexion.', 429, $headers);
+            });
         });
     }
 }

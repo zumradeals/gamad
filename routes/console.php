@@ -10,3 +10,5 @@ Artisan::command('inspire', function () {
 
 // Reprise des effacements de fichiers interrompus (voir App\Core\Files\FilePurger). Suppose que le planificateur Laravel tourne.
 Schedule::command('gamad:purger-fichiers-en-attente')->everyFifteenMinutes()->withoutOverlapping();
+
+Schedule::command('gamad:purger-securite')->everyFiveMinutes()->withoutOverlapping();

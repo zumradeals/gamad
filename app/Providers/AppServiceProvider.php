@@ -12,6 +12,7 @@ use App\Events\Matching\ProfileMatchingChanged;
 use App\Events\Matching\ProfileSkillsChanged;
 use App\Events\Matching\PublicationMatchingChanged;
 use App\Listeners\MatchingSubscriber;
+use App\Listeners\SecurityAccessSubscriber;
 use App\Models\OpportunityResponse;
 use App\Models\User;
 use App\Policies\OpportunityPolicy;
@@ -23,6 +24,9 @@ use App\Services\AccountClosure\ZumrasClosure;
 use App\Services\Backup\RcloneProbe;
 use App\Services\Backup\StorageProbe;
 use App\Services\Settings;
+use Illuminate\Auth\Events\Failed;
+use Illuminate\Auth\Events\Lockout;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -69,6 +73,10 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(ProfileSkillsChanged::class, [MatchingSubscriber::class, 'skills']);
         Event::listen(PersonBlockChanged::class, [MatchingSubscriber::class, 'block']);
         Event::listen(PersonSuspensionChanged::class, [MatchingSubscriber::class, 'suspension']);
+
+        Event::listen(Login::class, [SecurityAccessSubscriber::class, 'login']);
+        Event::listen(Failed::class, [SecurityAccessSubscriber::class, 'failed']);
+        Event::listen(Lockout::class, [SecurityAccessSubscriber::class, 'lockout']);
 
         Password::defaults(fn () => Password::min(8));
 

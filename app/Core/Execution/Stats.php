@@ -47,7 +47,7 @@ class Stats
     /** @return list<array{job: string, runs: int, success: int, failure: int, retries: int, p50_ms: ?int, p95_ms: ?int, metrics: array<string, int>}> */
     public function runs(int $hours): array
     {
-        $rows = DB::table('execution_runs')->where('ran_at', '>=', now()->subHours($hours))->groupBy('job')->orderBy('job')->selectRaw(
+        $rows = DB::table('execution_runs')->where('job', 'not like', 'Runner:%')->where('ran_at', '>=', now()->subHours($hours))->groupBy('job')->orderBy('job')->selectRaw(
             "job, count(*) as runs, count(*) filter (where outcome = 'success') as success, count(*) filter (where outcome = 'failure') as failure,
              count(*) filter (where attempt > 1) as retries,
              percentile_cont(0.5) within group (order by duration_ms) as p50, percentile_cont(0.95) within group (order by duration_ms) as p95"
@@ -63,15 +63,11 @@ class Stats
     /** @return array<string, int> Somme, par nom, des résultats chiffrés déclarés par la tâche. */
     private function metrics(string $job, int $hours): array
     {
-        return DB::table('execution_runs')->where('job', $job)->where('outcome', 'success')->where('ran_at', '>=', now()->subHours($hours))->whereNotNull('metrics')
-            ->get('metrics')->reduce(function (array $sum, $row) {
-                foreach (json_decode($row->metrics, true) as $name => $value) {
-                    if (is_int($value)) {
-                        $sum[$name] = ($sum[$name] ?? 0) + $value;
-                    }
-                }
-
-                return $sum;
-            }, []);
+        return DB::table('execution_runs')
+            ->crossJoin(DB::raw("lateral jsonb_each_text(coalesce(metrics, '{}'::jsonb)) as metric(name, value)"))
+            ->where('job', $job)->where('outcome', 'success')->where('ran_at', '>=', now()->subHours($hours))
+            ->whereRaw("metric.value ~ '^[0-9]+$'")->groupBy('metric.name')
+            ->selectRaw('metric.name, sum(metric.value::bigint) as total')
+            ->pluck('total', 'name')->map(fn ($n) => (int) $n)->all();
     }
 }

@@ -73,7 +73,7 @@ class BackgroundRunner
                 return 0;
             }
 
-            return $this->due() ? $this->run(self::MAX_JOBS, self::DURATION) : 0;
+            return $this->run(self::MAX_JOBS, self::DURATION, 'web');
         } catch (Throwable $error) {
             // Le traitement de fond ne doit jamais faire échouer une requête déjà servie.
             report($error);
@@ -83,17 +83,41 @@ class BackgroundRunner
     }
 
     /** Traite les tâches disponibles dans les limites données (commande d'exploitation, tests). */
-    public function run(int $maxJobs, int $seconds): int
+    public function run(int $maxJobs, int $seconds, string $origin = 'command'): int
     {
+        $origin = in_array($origin, ['web', 'console', 'command'], true) ? $origin : 'command';
+        $maxJobs = max(1, $maxJobs);
+        $seconds = max(1, $seconds);
+        $start = hrtime(true);
         $lock = Cache::lock(self::LOCK, $seconds + 30);
-        if (! $lock->get()) {
-            return 0;
-        }
-
+        $acquired = $lock->get();
+        $done = 0;
+        $outcome = 'success';
+        $errorCode = null;
         try {
-            return $this->work($maxJobs, $seconds);
+            if ($acquired) {
+                $done = $this->work($maxJobs, $seconds);
+            }
+
+            return $done;
+        } catch (Throwable $error) {
+            $outcome = 'failure';
+            $errorCode = class_basename($error);
+            throw $error;
         } finally {
-            $lock->release();
+            if ($acquired) {
+                $lock->release();
+            }
+            try {
+                ExecutionRun::query()->create([
+                    'job' => 'Runner:'.$origin, 'attempt' => 1, 'outcome' => $outcome,
+                    'duration_ms' => (int) round((hrtime(true) - $start) / 1_000_000),
+                    'metrics' => ['processed' => $done, 'contended' => $acquired ? 0 : 1, 'idle' => $acquired && $done === 0 && $outcome === 'success' ? 1 : 0],
+                    'error_code' => $errorCode, 'ran_at' => now(),
+                ]);
+            } catch (Throwable $recording) {
+                report($recording);
+            }
         }
     }
 
