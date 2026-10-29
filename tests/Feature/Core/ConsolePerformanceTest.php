@@ -35,6 +35,9 @@ it('calcule un tableau de bord borné sur 100000 accès et 100000 exécutions sa
 });
 
 it('observe Identity sur 100000 comptes, sessions et événements avec des agrégats bornés', function () {
+    // Include the exact seven-day boundary deterministically, independently of fixture creation time.
+    $this->travelTo(now()->startOfSecond());
+    $eventAnchor = now()->format('Y-m-d H:i:sP');
     config(['session.driver' => 'database', 'session.lifetime' => 120]);
     DB::statement("insert into users (id, name, email, password, name_search, email_verified_at, suspended_at, suspension_reason, created_at, updated_at)
         select md5('volume-account-' || n)::uuid, 'Compte de recette ' || n, n || '@volume.example.test', 'not-an-authentication-secret', 'compte de recette',
@@ -45,7 +48,7 @@ it('observe Identity sur 100000 comptes, sessions et événements avec des agré
     DB::statement("insert into identity_events (id, user_id, type, occurred_at, context)
         select md5('volume-event-' || n)::uuid, md5('volume-account-' || n)::uuid,
         (array['password.changed','password.reset','session.revoked','sessions.others_revoked','account.closed'])[1 + (n % 5)],
-        now() - ((n * 7) % 604800) * interval '1 second', '{\"private\":\"PRIVATE-EVENT-CONTENT\"}'::jsonb from generate_series(1, 100000) n");
+        ?::timestamptz - ((n * 7) % 604800) * interval '1 second', '{\"private\":\"PRIVATE-EVENT-CONTENT\"}'::jsonb from generate_series(1, 100000) n", [$eventAnchor]);
     foreach (['users', 'sessions', 'identity_events'] as $table) {
         DB::statement('analyze '.$table);
     }
