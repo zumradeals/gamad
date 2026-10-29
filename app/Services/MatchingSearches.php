@@ -20,17 +20,17 @@ class MatchingSearches
     public const FOR_PERSON = 'person';
 
     /** Demande une recherche pour une publication ou une personne. Idempotent. */
-    public function request(string $kind, string $subjectId): MatchingSearch
+    public function request(string $kind, string $subjectId, bool $rerunRunning = true): MatchingSearch
     {
         $column = $kind === self::FOR_PUBLICATION ? 'publication_id' : 'user_id';
 
         try {
-            return DB::transaction(function () use ($column, $subjectId) {
+            return DB::transaction(function () use ($column, $subjectId, $rerunRunning) {
                 $open = MatchingSearch::query()->where($column, $subjectId)->whereIn('state', [MatchingSearch::QUEUED, MatchingSearch::RUNNING])->lockForUpdate()->first();
 
                 if ($open !== null) {
                     // En cours : elle repartira à la fin pour tenir compte du changement. En attente : elle le verra déjà.
-                    if ($open->state === MatchingSearch::RUNNING && ! $open->rerun) {
+                    if ($rerunRunning && $open->state === MatchingSearch::RUNNING && ! $open->rerun) {
                         $open->forceFill(['rerun' => true])->save();
                     }
 

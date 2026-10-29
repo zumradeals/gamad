@@ -184,7 +184,9 @@ class Matching
                 'cursor' => ['phase' => 'opportunities', 'after' => null, 'found' => $cursor['found']]];
         }
 
-        return ['produced' => $produced + $this->discoverOpportunities($user, $profile, self::MAX_FOUND), 'examined' => $examined, 'cursor' => null, 'delegate' => []];
+        $opportunities = $this->discoverOpportunities($user, $profile, self::MAX_FOUND);
+
+        return ['produced' => $produced + $opportunities['produced'], 'examined' => $examined + $opportunities['examined'], 'cursor' => null, 'delegate' => []];
     }
 
     /**
@@ -231,18 +233,20 @@ class Matching
      * Lot D2 : les opportunités ouvertes dont une compétence recherchée est l'une de mes capacités proposées. Lecture bornée, aucune
      * notification : la piste n'apparaît que dans « Mes pistes », avec ses raisons, et peut être ignorée.
      */
-    private function discoverOpportunities(User $user, Profile $profile, int $limit): int
+    private function discoverOpportunities(User $user, Profile $profile, int $limit): array
     {
         $skills = $profile->offeredSkills->modelKeys();
         if ($skills === [] || ! in_array('offer', $this->preferences($profile)['intentions'], true)) {
-            return 0;
+            return ['produced' => 0, 'examined' => 0];
         }
         $count = 0;
+        $examined = 0;
         $candidates = Opportunity::query()->open()
             ->whereHas('requiredSkills', fn (Builder $q) => $q->whereIn('skills.id', $skills))
             ->whereHas('company', fn (Builder $q) => $q->where('owner_id', '!=', $user->id))
             ->with(['company', 'city', 'requiredSkills'])->latest('published_at')->orderByDesc('id')->limit(self::OPPORTUNITY_SCAN)->get();
         foreach ($candidates as $opportunity) {
+            $examined++;
             if ($this->rememberOpportunity($opportunity, $profile)) {
                 $count++;
             }
@@ -251,7 +255,7 @@ class Matching
             }
         }
 
-        return $count;
+        return ['produced' => $count, 'examined' => $examined];
     }
 
     /** Un reçu privé de découverte, jamais d'alerte : `alerted_at` reste vide et aucune notification n'est créée. */

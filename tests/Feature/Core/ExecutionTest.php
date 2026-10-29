@@ -75,7 +75,7 @@ it('exécute la tâche persistée avec un exécuteur neuf, comme après un redé
     expect(($this->runner)()->run(10, 5))->toBe(1);
 
     expect(ProbeJob::$log)->toBe(['a'])->and(jobsInQueue())->toBe(0);
-    $run = ExecutionRun::query()->sole();
+    $run = ExecutionRun::query()->where('job', 'not like', 'Runner:%')->sole();
     expect($run->job)->toBe('ProbeJob')->and($run->outcome)->toBe('success')->and($run->attempt)->toBe(1)->and($run->metrics)->toBe(['units' => 3])->and($run->duration_ms)->toBeGreaterThanOrEqual(0);
 });
 
@@ -102,7 +102,7 @@ it('reprend après une erreur avec un délai, enregistre l’échec puis la réu
     ($this->runner)()->run(10, 5);
 
     expect(ProbeJob::$log)->toBe(['a'])->and(jobsInQueue())->toBe(0)->and(DB::table('failed_jobs')->count())->toBe(0);
-    $runs = ExecutionRun::query()->orderBy('attempt')->get();
+    $runs = ExecutionRun::query()->where('job', 'not like', 'Runner:%')->orderBy('attempt')->get();
     expect($runs->pluck('outcome')->all())->toBe(['failure', 'success'])->and($runs->pluck('attempt')->all())->toBe([1, 2])->and($runs[0]->error_code)->toBe('RuntimeException');
 });
 

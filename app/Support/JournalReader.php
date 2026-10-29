@@ -20,6 +20,7 @@ class JournalReader
 {
     /** Familles d'actes, dans l'ordre du filtre : clé => [libellé, préfixes d'action]. */
     public const FAMILIES = [
+        'console' => ['Console opérationnelle', ['console.']],
         'publications' => ['Publications', ['publication.', 'report.']],
         'personnes' => ['Personnes', ['person.']],
         'zumras' => ['ZUMRA', ['zumra.']],
@@ -37,6 +38,10 @@ class JournalReader
     public const MODERATION_FAMILIES = ['publications', 'personnes', 'commentaires', 'annonces'];
 
     private const LABELS = [
+        'console.runner.request' => 'a demandé un passage borné du lanceur après réponse',
+        'console.runner.result' => 'a reçu le résultat du passage demandé au lanceur',
+        'console.matching.retry' => 'a demandé une relance Matching vérifiée',
+        'console.security.investigate' => 'a consulté des détails d’investigation de sécurité',
         'trust.identity_reopen' => 'a rouvert un contrôle d’identité après recours pour',
         'trust.work_reopened' => 'a redemandé confirmation après recours sur',
         'trust.identity_verify' => 'a vérifié l’identité de',
@@ -195,6 +200,26 @@ class JournalReader
     {
         $payload = $action->payload ?? [];
         $lines = [];
+        if (str_starts_with($action->action, 'console.')) {
+            if ($action->subject_id !== null) {
+                $lines[] = 'Référence technique : '.$action->subject_id;
+            }
+            if (isset($payload['result'])) {
+                $results = ['requested_after_response' => 'Demandé après réponse, résultat encore inconnu', 'requested' => 'Nouvelle recherche demandée', 'already_open' => 'Recherche déjà ouverte, aucun doublon', 'refused_obsolete' => 'Relance refusée : sujet ou préférences obsolètes'];
+                $lines[] = 'Résultat : '.($results[$payload['result']] ?? self::scalar($payload['result']));
+            }
+            if (isset($payload['request'])) {
+                $lines[] = 'Demande : '.$payload['request'];
+            }
+            if (isset($payload['processed'])) {
+                $lines[] = (int) $payload['processed'].' tâche(s) traitée(s)';
+            }
+            if (isset($payload['displayed'])) {
+                $lines[] = (int) $payload['displayed'].' événement(s) affiché(s), sans copie de leurs données identifiantes dans ce journal';
+            }
+
+            return $lines;
+        }
 
         if (($payload['secret'] ?? false) === true) {
             return ['Valeur secrète : non affichée'];

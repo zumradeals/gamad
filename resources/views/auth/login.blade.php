@@ -55,6 +55,7 @@
                     </div>
 
                     <x-button x-bind:disabled="busy" class="min-h-12 w-full"><span x-show="! busy">Se connecter</span><span x-show="busy" x-cloak>Connexion…</span></x-button>
+                    <p class="text-[12px] text-muted">Pour protéger les accès, GAMAD conserve des traces techniques de connexion (IP et navigateur chiffrés, compte visé ou authentifié), réservées à l’investigation de sécurité : {{ config('core_console.security.detail_days') }} jours pour les détails et {{ config('core_console.security.aggregate_days') }} jours pour les comptes horaires sans identifiant.</p>
                 </form>
 
                 <div class="mt-5 flex flex-col items-center gap-1 text-center text-[14px]">

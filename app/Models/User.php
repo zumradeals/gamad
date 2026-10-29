@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\DB;
 use LogicException;
 
 #[Fillable(['name', 'email', 'password'])]
-#[Hidden(['password', 'remember_token'])]
+#[Hidden(['password', 'remember_token', 'gamad_number'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
@@ -35,6 +35,9 @@ class User extends Authenticatable implements MustVerifyEmail
 
         // Le nom contrôlé ne doit jamais redevenir vérifié après un changement puis un retour à l’ancien nom.
         static::updating(function (User $user) {
+            if ($user->isDirty('gamad_number')) {
+                throw new LogicException('Le numéro GAMAD du compte est immuable.');
+            }
             if ($user->isDirty('name')) {
                 IdentityVerification::where('user_id', $user->id)->whereIn('state', ['pending', 'verified'])
                     ->update(['state' => 'revoked', 'revision' => DB::raw('revision + 1'), 'reason' => 'Nom affiché modifié : un nouveau contrôle est nécessaire.', 'updated_at' => now()]);
@@ -49,7 +52,12 @@ class User extends Authenticatable implements MustVerifyEmail
         });
 
         // Chaque personne a un profil dès son inscription.
-        static::created(fn (User $user) => $user->profile()->create());
+        static::created(function (User $user) {
+            // The database allocates the number, including for direct SQL inserts. Make it available on the new model too.
+            $user->setAttribute('gamad_number', static::query()->whereKey($user->getKey())->value('gamad_number'));
+            $user->syncOriginalAttribute('gamad_number');
+            $user->profile()->create();
+        });
 
         // Un compte ne se supprime que par AccountCloser::close() : contrôles préalables, transfert de fondation, fichiers, journal.
         // Une suppression directe contournerait ces garanties (D-172 : aucun compte ne disparaît avec des ZAHAB).
