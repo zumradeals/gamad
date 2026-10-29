@@ -1,6 +1,25 @@
 <section id="identity" class="{{ $card }} scroll-mt-40" aria-labelledby="t-identity">
         <h2 id="t-identity" class="text-[18px] font-extrabold">Identity et sécurité</h2>
 
+        @if (isset($identity))
+            <h3 class="mt-3 font-bold">Comptes utilisateurs et fonctionnement Identity</h3>
+            <p class="mt-2 text-[13px]">{{ $identity['accounts']['total'] }} compte(s) au total : {{ $identity['accounts']['active'] }} actif(s), {{ $identity['accounts']['pending'] }} en attente de vérification e-mail et non suspendu(s), {{ $identity['accounts']['suspended'] }} suspendu(s).</p>
+            <p class="mt-2 text-[12px] text-muted">Actif = adresse e-mail vérifiée et compte non suspendu, selon le moteur existant. Tous états confondus : {{ $identity['accounts']['verified'] }} adresse(s) e-mail vérifiée(s), {{ $identity['accounts']['unverified'] }} non vérifiée(s). Une vérification e-mail n’est pas une attestation d’identité ni une admission comme membre GAMAD.</p>
+            <p class="mt-2 text-[12px] text-muted">Source : {{ $identity['accounts']['source'] }} · lu le {{ $identity['accounts']['observed_at'] }} · dernier changement de compte : {{ $identity['accounts']['latest_change'] ?? 'aucun compte enregistré' }}.</p>
+            <h3 class="mt-3 font-bold">Sessions authentifiées encore valides</h3>
+            <p class="mt-2 text-[13px]">{{ $identity['sessions']['count'] ?? 'Non mesuré' }} · {{ $identity['sessions']['state'] }}. {{ $identity['sessions']['reason'] }}</p>
+            <p class="mt-2 break-words text-[12px] text-muted">Source : {{ $identity['sessions']['source'] }} · lu le {{ $identity['sessions']['observed_at'] }}.</p>
+            <h3 class="mt-3 font-bold">Événements du moteur Identity sur la période</h3>
+            <dl class="mt-2 grid gap-2 sm:grid-cols-2">
+                @foreach ($identity['events'] as $event)
+                    <div class="rounded-button border border-line p-3"><dt class="text-[13px] font-bold">{{ $event['label'] }}</dt><dd class="text-[14px]">{{ $event['total'] }}</dd><dd class="mt-1 text-[12px] text-muted">Dernier sur la période : {{ $event['latest'] ?? 'aucun' }}</dd></div>
+                @endforeach
+            </dl>
+            <p class="mt-2 text-[12px] text-muted">Source : {{ $identity['events_source'] }} · lu le {{ $identity['observed_at'] }} · dernier événement reçu : {{ $identity['events_latest'] ?? 'aucun événement reçu' }}. Aucune activité n’est déduite d’un journal vide.</p>
+        @else
+            <p class="mt-2 text-[13px]">Observation du moteur Identity indisponible.</p>
+        @endif
+        <h3 class="mt-4 font-bold">Sécurité des accès</h3>
         @if (isset($security))
             <p class="mt-2 text-[13px]">Situation sur la période : {{ $security['totals']['success'] }} connexion(s) réussie(s) · {{ $security['totals']['failure'] }} échec(s) · {{ $security['totals']['limited'] }} limitation(s) · {{ $security['totals']['refused'] }} refus.</p>
             <p class="mt-2 text-[13px] text-muted">{{ $security['targets'] }} adresse(s) visée(s), connues ou inconnues · {{ $security['sources'] }} source(s) apparente(s) · {{ $security['unknown_sources'] }} événement(s) sans origine réseau disponible. Les origines absentes ne sont jamais assimilées à une même source.</p>

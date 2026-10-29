@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Identity\IdentityObservations;
 use App\Services\CoreConsoleObservations;
 use Illuminate\Support\Facades\DB;
 
@@ -31,4 +32,39 @@ it('calcule un tableau de bord borné sur 100000 accès et 100000 exécutions sa
     // Generous CI ceiling catches unbounded correlated scans, not hardware microbenchmarks.
     expect(max($times))->toBeLessThan(10000);
     fwrite(STDERR, '\nConsole benchmark: '.json_encode(['rows' => ['security' => 100000, 'execution' => 100000], 'snapshot_ms' => $times, 'queries_per_snapshot' => $queries / 3, 'memory_growth_bytes' => $growth])."\n");
+});
+
+it('observe Identity sur 100000 comptes, sessions et événements avec des agrégats bornés', function () {
+    config(['session.driver' => 'database', 'session.lifetime' => 120]);
+    DB::statement("insert into users (id, name, email, password, name_search, email_verified_at, suspended_at, suspension_reason, created_at, updated_at)
+        select md5('volume-account-' || n)::uuid, 'Compte de recette ' || n, n || '@volume.example.test', 'not-an-authentication-secret', 'compte de recette',
+        case when n % 4 <> 0 then now() end, case when n % 10 = 0 then now() end, case when n % 10 = 0 then 'Suspension de recette' end,
+        now() - interval '1 year', now() from generate_series(1, 100000) n");
+    DB::statement("insert into sessions (id, user_id, payload, last_activity)
+        select 'volume-session-' || n, md5('volume-account-' || n)::uuid, 'PRIVATE-SESSION-CONTENT', extract(epoch from now())::bigint - (n % 14400) from generate_series(1, 100000) n");
+    DB::statement("insert into identity_events (id, user_id, type, occurred_at, context)
+        select md5('volume-event-' || n)::uuid, md5('volume-account-' || n)::uuid,
+        (array['password.changed','password.reset','session.revoked','sessions.others_revoked','account.closed'])[1 + (n % 5)],
+        now() - ((n * 7) % 604800) * interval '1 second', '{\"private\":\"PRIVATE-EVENT-CONTENT\"}'::jsonb from generate_series(1, 100000) n");
+    foreach (['users', 'sessions', 'identity_events'] as $table) {
+        DB::statement('analyze '.$table);
+    }
+    $times = [];
+    $memory = memory_get_usage(true);
+    DB::enableQueryLog();
+    for ($i = 0; $i < 3; $i++) {
+        $start = hrtime(true);
+        $snapshot = app(IdentityObservations::class)->snapshot(168);
+        $times[] = round((hrtime(true) - $start) / 1000000, 1);
+        expect($snapshot['accounts']['total'])->toBe(100000)->and($snapshot['accounts']['active'])->toBe(70000);
+        expect($snapshot['accounts']['pending'])->toBe(20000)->and($snapshot['accounts']['suspended'])->toBe(10000);
+        expect(array_sum(array_column($snapshot['events'], 'total')))->toBe(100000);
+        expect($snapshot['sessions']['count'])->toBeGreaterThan(0)->toBeLessThan(100000);
+        expect(json_encode($snapshot))->not->toContain('PRIVATE-SESSION')->not->toContain('PRIVATE-EVENT')->not->toContain('volume.example.test');
+    }
+    $queries = count(DB::getQueryLog());
+    DB::disableQueryLog();
+    $growth = memory_get_usage(true) - $memory;
+    expect($queries)->toBe(12)->and($growth)->toBeLessThan(8 * 1024 * 1024)->and(max($times))->toBeLessThan(3000);
+    fwrite(STDERR, "\nIdentity observation benchmark: ".json_encode(['accounts' => 100000, 'sessions' => 100000, 'events' => 100000, 'snapshot_ms' => $times, 'queries_per_snapshot' => 4, 'memory_growth_bytes' => $growth])."\n");
 });

@@ -133,6 +133,8 @@
                 <x-avatar :profile="$profile" :size="104" class="self-start" />
                 <div class="flex min-w-0 flex-1 flex-col gap-1.5">
                     <h2 id="identite" class="flex flex-wrap items-center gap-2 break-words text-[24px] font-extrabold leading-tight">{{ $user->name }}@if ($identityVerified)<span class="text-link" title="Identité vérifiée par GAMAD"><x-icon name="check-circle" :size="24" /><span class="sr-only">Identité vérifiée par GAMAD</span></span>@endif</h2>
+                    <p class="break-words text-[14px] font-bold" data-testid="personal-gamad-number">Mon numéro GAMAD : {{ $user->gamad_number }}</p>
+                    <p class="text-[12px] text-muted">Référence personnelle de votre compte utilisateur. Ce numéro n’est ni une preuve d’authentification, ni une carte ou un statut de membre GAMAD.</p>
                     @if (filled($profile->headline))<p class="break-words text-[15px] text-muted">{{ $profile->headline }}</p>@endif
                     @if ($place !== '' || $available)
                         <p class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[14px] text-muted">

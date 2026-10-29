@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Core\Execution\Stats;
 use App\Core\Files\FilePurger;
+use App\Core\Identity\IdentityObservations;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -105,6 +106,7 @@ class CoreConsoleObservations
             }
             $source = 'matching_searches, match_suggestions, execution_runs ; coût = durée totale instrumentée / candidats examinés';
         } elseif ($engine === 'Identity') {
+            $data['identity'] = app(IdentityObservations::class)->snapshot($hours);
             $security = app(SecurityObservations::class);
             $data['security'] = $security->overview($hours);
             $data['recent_security_events'] = $security->events()->orderByDesc('occurred_at')->limit(10)->get(['id', 'occurred_at', 'outcome', 'authenticated_id', 'target_id']);
@@ -118,12 +120,15 @@ class CoreConsoleObservations
             } elseif ($current !== []) {
                 $state = 'dégradé';
                 $reason = count($current).' signal(aux) de sécurité actuel(s), à examiner sans présumer de culpabilité.';
+            } elseif ($data['identity']['sessions']['count'] === null) {
+                $state = 'inconnu';
+                $reason = 'Comptes et événements Identity mesurés ; sessions non observables. Aucun état global sain ne peut être déduit.';
             } else {
                 $state = $data['security']['latest'] === null || Carbon::parse($data['security']['latest'])->lt(now()->subHours(config('core_console.evidence_fresh_hours'))) ? 'inconnu' : 'sain';
                 $reason = $state === 'inconnu' ? 'Instrumentation active, aucun événement d’authentification récent reçu ; ce silence ne prouve pas une panne.' : 'Aucune concentration anormale dans la fenêtre de détection ; ce constat ne garantit pas l’absence d’attaque.';
             }
             $freshness = $data['security']['latest'];
-            $source = 'Événements Laravel/Fortify · security_access_events et security_access_hours ; fenêtre '.config('core_console.security.window_minutes').' min';
+            $source = 'États Identity : users, Sessions et identity_events ; accès : événements Laravel/Fortify · security_access_events et security_access_hours ; fenêtre '.config('core_console.security.window_minutes').' min';
         } else {
             $backup = app(BackupStorage::class);
             $data['backup'] = $status = $backup->status();

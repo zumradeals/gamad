@@ -21,6 +21,18 @@ class Sessions
         return config('session.driver') === 'database';
     }
 
+    /** Console aggregate only: no session ID, payload, browser or IP is read. Suspended/deleted accounts cannot use these sessions. */
+    public function authenticatedCount(): ?int
+    {
+        if (! $this->supported()) {
+            return null;
+        }
+
+        return $this->table()->join('users', 'users.id', '=', config('session.table', 'sessions').'.user_id')
+            ->whereNull('users.suspended_at')
+            ->where('last_activity', '>=', now()->subMinutes((int) config('session.lifetime'))->getTimestamp())->count();
+    }
+
     /** @return Collection<int, SessionInfo> Les plus récentes d'abord ; seulement les sessions encore valides. */
     public function for(User $user, ?string $currentSessionId): Collection
     {
