@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'gamad_core' => [
+        'url' => env('GAMAD_CORE_URL'),
+    ],
+
 ];
